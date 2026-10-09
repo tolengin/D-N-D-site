@@ -1110,6 +1110,7 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
     <button class="btn" data-act="sample">Örnek karakter</button>
     <button class="btn" data-act="char-export">Dışa aktar</button>
     <button class="btn" data-act="char-import">İçe aktar</button>
+    <button class="btn" id="legacyBtn" data-act="legacy-import" style="grid-column:1/-1" title="Önceki karakter kağıdı sitende bu tarayıcıda kayıtlı duran karakteri getirir" hidden>Eski siteden aktar</button>
   </div>
   <input type="file" id="importInput" accept=".json,application/json" hidden>
 </aside>
@@ -1348,10 +1349,13 @@ function flush() {
 }
 
 /* Önceki sitede kayıtlı bir karakter varsa yeni biçime çevirir */
-function readLegacy() {
-  let d = null;
-  try { d = JSON.parse(localStorage.getItem(LEGACY_KEY) || 'null'); } catch (e) { return null; }
-  if (!d || typeof d !== 'object' || !['charName', 'charClass', 'charSpecies'].some(k => String(d[k] || '').trim())) return null;
+const looksLegacy = d => !!d && typeof d === 'object' && ['charName', 'charClass', 'charSpecies'].some(k => String(d[k] || '').trim());
+function legacyRaw() {                      // eski sitenin bu tarayıcıdaki kaydı (yoksa null)
+  try { const d = JSON.parse(localStorage.getItem(LEGACY_KEY) || 'null'); return looksLegacy(d) ? d : null; } catch (e) { return null; }
+}
+const readLegacy = () => convertLegacy(legacyRaw());
+function convertLegacy(d) {
+  if (!looksLegacy(d)) return null;
   const S = k => (d[k] == null ? '' : String(d[k]));
   const c = blankChar();
   c.name = S('charName'); c.species = S('charSpecies'); c.cls = S('charClass'); c.subclass = S('charSubclass'); c.background = S('charBackground');
@@ -1867,7 +1871,7 @@ function adopt(c) {                       // yeni gelen karakteri listeye ekler;
   else addChar(c);
   switchChar(c.id);
 }
-function openDrawer(open) { $('#drawer').classList.toggle('open', open); if (open) { $('#tableDrawer').classList.remove('open'); renderChars(); } syncScrim(); }
+function openDrawer(open) { $('#drawer').classList.toggle('open', open); if (open) { $('#tableDrawer').classList.remove('open'); renderChars(); $('#legacyBtn').hidden = !legacyRaw(); } syncScrim(); }
 
 function exportChar() {
   const blob = new Blob([JSON.stringify({ app:'dort-element', v:1, character: C }, null, 2)], { type:'application/json' });
@@ -1884,8 +1888,9 @@ function importChar(file) {
     try {
       const data = JSON.parse(fr.result);
       const raw = data && data.character ? data.character : data;
-      if (!raw || typeof raw !== 'object' || typeof raw.abilities !== 'object') throw new Error('biçim');
-      adopt(normalize(clone(raw)));
+      const old = convertLegacy(raw);                                 // eski sitenin kayıt biçimi de kabul edilir
+      if (!old && (!raw || typeof raw !== 'object' || typeof raw.abilities !== 'object')) throw new Error('biçim');
+      adopt(old || normalize(clone(raw)));
       openDrawer(false); window.scrollTo({ top:0 });
       notify('Karakter içe aktarıldı', C.name || 'İsimsiz karakter');
     } catch (e) { notify('Bu dosya okunamadı', 'Bu siteden “Dışa aktar” ile kaydedilmiş bir .json dosyası seç.'); }
@@ -2099,6 +2104,12 @@ const ACTIONS = {
   },
   'char-export': () => exportChar(),
   'char-import': () => $('#importInput').click(),
+  'legacy-import': () => {
+    const c = readLegacy();
+    if (!c) { notify('Eski siteden kayıt bulunamadı', 'Eski siteyi açtığın tarayıcıda ve aynı yoldan açtığından emin ol.'); return; }
+    adopt(c); openDrawer(false); window.scrollTo({ top:0 });
+    notify('Eski sitendeki karakter aktarıldı', 'Sayıları bir kontrol et; saldırı bonusları artık kendiliğinden hesaplanıyor.');
+  },
 };
 
 // DM bir oyuncunun kağıdını izlerken yalnızca bu düğmeler çalışır (kağıt değiştirilemez)
