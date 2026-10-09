@@ -618,6 +618,89 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
   .tray{right:12px;bottom:12px}
   .fab{right:14px;bottom:14px}
 }
+
+/* ───────── 16) MASA GÖRÜNÜMÜ: oval masa, koltuklar ve uçan zarlar ─────────
+   Koltukların yerini JS yalnızca açı olarak verir (--cx = kosinüs, --sy = sinüs).
+   --rx ve --ry koltuk halkasının genişliği ve yüksekliğidir; ekran daralınca
+   yalnızca bunlar ve masanın oranı değişir, koltuklar kendiliğinden yerleşir.
+   cqw birimi = masanın genişliğinin yüzdesi: masa küçülünce yazı ve portre de küçülür. */
+#tableView{overflow-x:clip}
+.tv-wrap{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px;align-items:center}
+.tv-stage{position:relative;container-type:inline-size;margin:4px auto;aspect-ratio:16/10;
+  width:clamp(min(100%,480px),calc((100vh - var(--topbar-h,66px) - 130px) * 1.6),min(100%,1000px));
+  --rx:41%;--ry:38%;--av:clamp(40px,7cqw,68px);--seat-w:clamp(72px,13cqw,130px)}
+.tv-table{position:absolute;inset:12% 9%;border-radius:50%;
+  border:clamp(5px,1.1cqw,10px) solid color-mix(in srgb,var(--accent) 38%,var(--line));
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--accent) 16%,var(--surface)),var(--surface) 75%,color-mix(in srgb,var(--accent) 8%,var(--bg)));
+  box-shadow:var(--shadow),inset 0 0 50px -12px var(--bg),0 0 70px -24px var(--accent)}
+.tv-table::before{content:"";position:absolute;inset:8%;border-radius:50%;border:1px dashed var(--line)}
+
+/* Masanın ortası: zarlar, toplam ve kimin neyi attığı */
+.tv-center{position:absolute;z-index:3;left:50%;top:50%;width:56%;transform:translate(-50%,-50%);
+  display:grid;justify-items:center;text-align:center;pointer-events:none}
+.tv-idle{color:var(--muted);font-size:clamp(12px,1.6cqw,15px);max-width:30ch}
+.tv-throw{display:grid;justify-items:center;gap:clamp(4px,1.1cqw,12px);max-width:100%;--glow:var(--accent)}
+.tv-throw.crit-hit{--glow:var(--good)}
+.tv-throw.crit-miss{--glow:var(--bad)}
+.tv-total{min-width:1.7em;padding:.05em .3em;border-radius:var(--radius);background:var(--glow);color:var(--on-accent);
+  font-family:var(--font-display);font-size:clamp(30px,7cqw,64px);font-weight:700;line-height:1.05;box-shadow:0 0 28px -6px var(--glow)}
+.tv-throw:is(.crit-hit,.crit-miss) .tv-total{color:var(--bg)}
+.tv-dice{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:clamp(4px,1cqw,10px);max-width:100%}
+.tv-die{--die:clamp(46px,9cqw,86px);width:var(--die);height:var(--die);display:block}
+.tv-dice.m .tv-die{--die:clamp(36px,6.4cqw,62px)}
+.tv-dice.s .tv-die{--die:clamp(28px,4.6cqw,46px)}
+.tv-die svg{display:block;width:100%;height:100%;overflow:visible}
+.tv-die .f{fill:color-mix(in srgb,var(--accent) 70%,var(--bg));stroke:color-mix(in srgb,var(--accent) 60%,var(--text));stroke-width:2.5;stroke-linejoin:round}
+.tv-die .ff{fill:var(--accent)}
+.tv-die .l{fill:none;stroke:var(--on-accent);stroke-opacity:.3;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.tv-die text{fill:var(--on-accent);font-family:var(--font-display);font-weight:700;text-anchor:middle;dominant-baseline:central}
+.tv-die.x{opacity:.4;filter:grayscale(1)}                  /* avantaj/dezavantajda hesaba katılmayan zar */
+.tv-throw.shown:is(.crit-hit,.crit-miss) .tv-die:not(.x){filter:drop-shadow(0 0 9px var(--glow))}
+.tv-more{font-weight:800;color:var(--muted)}
+.tv-cap{display:grid;gap:2px;max-width:100%;font-size:clamp(12px,1.5cqw,15px);line-height:1.3}
+.tv-cap b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-cap span{color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tv-cap em{font-style:normal;font-weight:800;color:var(--glow)}
+.tv-cap small{color:var(--muted);font-size:.85em}
+.tv-throw:not(.shown) :is(.tv-total,.tv-cap){visibility:hidden}   /* zar yere inmeden sonuç görünmez */
+.tv-throw.shown .tv-total{animation:tvPop .45s cubic-bezier(.3,1.6,.5,1)}
+.tv-throw.shown:is(.crit-hit,.crit-miss) .tv-total{animation:tvPop .45s cubic-bezier(.3,1.6,.5,1),tvGlow 1.1s ease-in-out .45s infinite alternate}
+@keyframes tvPop{from{transform:scale(.4);opacity:0}}
+@keyframes tvGlow{to{box-shadow:0 0 46px 6px var(--glow)}}
+
+/* Koltuklar */
+.tv-seat{position:absolute;z-index:2;left:calc(50% + var(--cx,0) * var(--rx));top:calc(50% + var(--sy,0) * var(--ry));
+  transform:translate(-50%,-50%);width:var(--seat-w);display:grid;justify-items:center;gap:2px;text-align:center;line-height:1.2;
+  transition:left .7s cubic-bezier(.4,0,.2,1),top .7s cubic-bezier(.4,0,.2,1),opacity .3s}
+.tv-seat.in{animation:tvSeatIn .5s ease-out}
+@keyframes tvSeatIn{from{opacity:0;scale:.6}}
+.tv-av{position:relative;width:var(--av);height:var(--av);margin-bottom:2px;border-radius:50%;display:grid;place-items:center;
+  background:var(--field);border:2px solid var(--line);box-shadow:var(--shadow);
+  font-family:var(--font-display);font-size:calc(var(--av) * .44);font-weight:600;line-height:1}
+.tv-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.tv-av .ic{width:58%;height:58%}
+.tv-av .dot{position:absolute;right:0;bottom:0;width:max(10px,calc(var(--av) * .2));height:max(10px,calc(var(--av) * .2));border:2px solid var(--bg)}
+.tv-seat b{max-width:100%;font-size:clamp(11.5px,1.5cqw,14px);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-seat small{max-width:100%;font-size:clamp(10.5px,1.3cqw,12.5px);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-seat.dm .tv-av{border-color:var(--accent-2);color:var(--accent-2);background:color-mix(in srgb,var(--accent-2) 14%,var(--field))}
+.tv-seat.dm small{color:var(--accent-2);font-weight:800;letter-spacing:.1em}
+.tv-seat.me .tv-av{border:3px solid var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent),0 0 24px -4px var(--accent)}
+.tv-seat.me b{color:var(--accent)}
+.tv-seat.off{opacity:.5}
+.tv-seat.off .tv-av img{filter:grayscale(1)}
+.tv-seat.out{opacity:0}
+.tv-hp{width:min(100%,calc(var(--av) * 1.3));height:6px;margin-top:2px;border-radius:999px;background:var(--field);border:1px solid var(--line);overflow:hidden}
+
+/* Son atışlar: geniş ekranda masanın sağ kenarında, dar ekranda altında */
+.tv-log{padding:14px 14px 12px}
+.tv-log .card-h{margin-bottom:8px}
+@media (max-width:900px){ .tv-wrap{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:640px) and (orientation:portrait){
+  /* Dik tutulan telefonda masa dik bir ovale döner, DM masanın başında kalır */
+  .tv-stage{width:100%;aspect-ratio:4/5;--rx:37%;--ry:40%}
+  .tv-table{inset:10% 13%}
+  .tv-center{width:64%}
+}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
 }
@@ -675,7 +758,7 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
 <div class="app">
 
   <!-- Masaya bağlıyken görünen durum çubuğu -->
-  <div class="tablebar" id="tableBar" hidden><span class="dot" id="tableBarDot"></span><span class="txt" id="tableBarText"></span><button class="btn sm" id="tableBarBtn"></button></div>
+  <div class="tablebar" id="tableBar" hidden><span class="dot" id="tableBarDot"></span><span class="txt" id="tableBarText"></span><button class="btn sm accent" id="tableBarView" data-act="mode-table" hidden><svg class="ic"><use href="#i-table"/></svg>Masayı göster</button><button class="btn sm" id="tableBarBtn"></button></div>
 
   <!-- ═════════ DM EKRANI: yalnızca masayı kuran kişi görür ═════════ -->
   <section id="dmScreen" hidden>
@@ -689,6 +772,20 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
         <div class="card-h"><h2>Dice log<em>Zar akışı</em></h2><button class="btn sm" data-act="feed-clear">Temizle</button></div>
         <p class="hint" style="margin:0 0 10px">Oyuncuların attığı her zar anında buraya düşer. Kesikli çerçeveli satırlar senin gizli zarlarındır.</p>
         <ol class="history feed" id="dmFeed"></ol>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ═════════ MASA GÖRÜNÜMÜ: oval masa, koltuklar ve uçan zarlar (içini JS doldurur) ═════════ -->
+  <section id="tableView" hidden>
+    <div class="tv-wrap">
+      <div class="tv-stage" id="tvStage">
+        <div class="tv-table" aria-hidden="true"></div>
+        <div class="tv-center" id="tvCenter" role="status" aria-live="polite"></div>
+      </div>
+      <aside class="card tv-log">
+        <div class="card-h"><h2>Son atışlar<em>masada</em></h2></div>
+        <ol class="history feed" id="tvLog"></ol>
       </aside>
     </div>
   </section>
@@ -1423,15 +1520,20 @@ const rolls = [];          // son atışlar (zar tepsisinde listelenir)
 let toastTimer = 0;
 let critRow = -1;          // doğal 20 atılan saldırı satırı: bir sonraki hasar atışı kritik olur
 
+/* r.dice = [{ s: zarın yüz sayısı, v: gelen sayı, x: 1 ise hesaba katılmayan zar }]
+   Bu liste yalnızca masa görünümündeki zar çizimi içindir; sonucu etkilemez. */
 function showRoll(r, opt = {}) {
-  const t = $('#toast');
-  t.className = 'toast show' + (r.flag ? ' ' + r.flag : '');
-  t.innerHTML = `<div class="toast-total">${esc(r.total)}</div><div class="toast-body"><strong>${esc(r.label)}</strong><span>${esc(r.detail)}</span>${r.note ? `<em>${esc(r.note)}</em>` : ''}</div>`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 7000);
+  if (mode !== 'table') {                // masa görünümünde sonucu zar yere inince masa söyler; bildirim kutusu erken söylemesin
+    const t = $('#toast');
+    t.className = 'toast show' + (r.flag ? ' ' + r.flag : '');
+    t.innerHTML = `<div class="toast-total">${esc(r.total)}</div><div class="toast-body"><strong>${esc(r.label)}</strong><span>${esc(r.detail)}</span>${r.note ? `<em>${esc(r.note)}</em>` : ''}</div>`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 7000);
+  }
   rolls.unshift(r);
   if (rolls.length > 30) rolls.length = 30;
   renderHistory();
+  tableRoll(r, opt);                      // masadaysan: masa görünümünde zarı yuvarla, son atışlar listesine ekle
   if (!opt.remote) shareRoll(r);          // masadaysan zarı DM'e (ve izin varsa diğerlerine) bildir
 }
 function notify(text, sub) {
@@ -1462,7 +1564,9 @@ function rollD20(label, parts, opt = {}) {
   if (kept === 20) { flag = 'crit-hit'; note = opt.on20 || 'Doğal 20!'; }
   else if (kept === 1) { flag = 'crit-miss'; note = opt.on1 || 'Doğal 1!'; }
   const tag = mode === 'adv' ? ' (avantaj)' : mode === 'dis' ? ' (dezavantaj)' : '';
-  showRoll({ label: label + tag, total, detail, flag, note });
+  const dice = [{ s:20, v:a }];
+  if (b) { dice.push({ s:20, v:b }); dice[(mode === 'adv' ? a < b : a > b) ? 0 : 1].x = 1; }   // atılan (düşük ya da yüksek) zarı işaretle
+  showRoll({ label: label + tag, total, detail, flag, note, dice });
   return { kept, total };
 }
 
@@ -1484,17 +1588,19 @@ function rollExpr(expr, label, opt = {}) {
   const terms = parseDice(expr);
   if (!terms.length) { notify('Zar ifadesi anlaşılamadı', 'Şöyle yaz: 1d8+3 ya da 2d6'); return null; }
   let total = 0, detail = '';
+  const dice = [];
   terms.forEach((t, i) => {
     const op = i === 0 ? (t.neg ? '−' : '') : (t.neg ? ' − ' : ' + ');
     if (t.s) {
       const n = opt.crit ? t.n * 2 : t.n;
       const r = Array.from({ length: n }, () => die(t.s));
+      r.forEach(v => dice.push({ s: t.s, v }));
       const sum = r.reduce((x, y) => x + y, 0);
       total += t.neg ? -sum : sum;
       detail += `${op}${n}d${t.s} (${r.join(', ')})`;
     } else { total += t.neg ? -t.k : t.k; detail += op + t.k; }
   });
-  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : '' });
+  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : '', dice });
   return total;
 }
 
@@ -1917,6 +2023,25 @@ function loadPortrait(file) {
   fr.readAsDataURL(file);
 }
 
+/* Masadaki koltuklar için portrenin küçük (96 piksel) bir kopyasını yapar.
+   Resim yeniden çizildiği için öbür oyunculara asıl dosya değil, yalnızca bu küçük kopya gider. */
+function makeThumb(src, S = 96) {
+  return new Promise(done => {
+    if (!src) { done(''); return; }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const side = Math.min(img.width, img.height), cv = document.createElement('canvas');
+        cv.width = cv.height = S;
+        cv.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, S, S);
+        done(cv.toDataURL('image/jpeg', 0.8));
+      } catch (e) { done(''); }                 // çizilemeyen bir görselse portresiz (baş harfle) göster
+    };
+    img.onerror = () => done('');
+    img.src = src;
+  });
+}
+
 function confirmBox(text, yes = 'Evet') {
   return new Promise(resolve => {
     const m = $('#modal');
@@ -1993,7 +2118,9 @@ function setTab(tab) {
   $$('.panel').forEach(p => p.classList.toggle('on', p.dataset.panel === tab));
 }
 function setGuide(on) { store.guide = !!on; document.body.classList.toggle('guide', store.guide); $('#guideBtn').setAttribute('aria-pressed', String(store.guide)); }
-function setMode(mode) { store.diceMode = mode; $$('[data-act="dice-mode"]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.mode === mode))); }
+// Zar tepsisi: normal / avantaj / dezavantaj. (Eskiden adı setMode'du ve BÖLÜM 10'daki görünüm değiştiren
+// setMode ile çakışıp onun gölgesinde kalıyordu; bu yüzden avantaj düğmeleri çalışmıyordu.)
+function setDiceMode(dm) { store.diceMode = dm; $$('[data-act="dice-mode"]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.mode === dm))); }
 function toggleTray(open) { const t = $('#tray'); t.classList.toggle('open', open ?? !t.classList.contains('open')); }
 
 const ACTIONS = {
@@ -2039,7 +2166,7 @@ const ACTIONS = {
     const sides = int(C.hitDie.slice(1)), r = die(sides), heal = Math.max(1, r + mod('con'));
     C.hdUsed = int(C.hdUsed) + 1;
     C.hp.cur = Math.min(Math.max(0, int(C.hp.max)), Math.max(0, int(C.hp.cur)) + heal);
-    showRoll({ label:'Can zarı: kısa dinlenme', total: heal, detail:`1${C.hitDie} (${r}) ${mod('con') >= 0 ? '+' : '−'} ${Math.abs(mod('con'))} CON`, note:`Şimdiki can: ${C.hp.cur}` });
+    showRoll({ label:'Can zarı: kısa dinlenme', total: heal, detail:`1${C.hitDie} (${r}) ${mod('con') >= 0 ? '+' : '−'} ${Math.abs(mod('con'))} CON`, note:`Şimdiki can: ${C.hp.cur}`, dice:[{ s: sides, v: r }] });
     setInput('hp.cur'); changed();
   },
   longrest: async () => {
@@ -2086,7 +2213,7 @@ const ACTIONS = {
   'portrait-remove': () => { C.portrait = ''; changed(); renderChars(); },
 
   'dice-toggle': () => toggleTray(),
-  'dice-mode': b => { setMode(b.dataset.mode); save(); },
+  'dice-mode': b => { setDiceMode(b.dataset.mode); save(); },
   'dice-quick': b => { const s = int(b.dataset.s); if (s === 20) rollD20('d20', [], { free:true }); else rollExpr('1d' + s, 'd' + s); },
   'history-clear': () => { rolls.length = 0; renderHistory(); },
 
@@ -2157,8 +2284,11 @@ window.addEventListener('pagehide', flush);
    • Oyuncular o kodu yazınca doğrudan DM'in tarayıcısına bağlanır
      (PeerJS adlı hazır kütüphane, tarayıcılar arası bağlantıyı kurar).
    • Her oyuncu kağıdını ve attığı zarları YALNIZCA DM'e yollar.
-   • DM'in tarayıcısı öbür oyunculara sadece zar sonuçlarını ve masadakilerin
-     adını iletir. Kağıt verisi başka bir oyuncuya hiçbir zaman gönderilmez.
+   • DM'in tarayıcısı öbür oyunculara sadece zar sonuçlarını, masadakilerin
+     adını, karakter adını, bağlı olup olmadığını ve 96 piksele küçültülmüş
+     portresini iletir. Kağıt verisi başka bir oyuncuya hiçbir zaman gönderilmez.
+   • Her oyuncuya DM rastgele bir "koltuk kimliği" verir. Öbür oyuncular
+     yalnızca bunu görür; oyuncunun gizli bağlantı kimliği (pid) hiç gitmez.
    Arada bizim bir sunucumuz yoktur; DM'in sekmesi kapanınca masa da kapanır.
    ═══════════════════════════════════════════════════════════════════ */
 const PEER_LIB = ['https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js', 'https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js'];
@@ -2170,15 +2300,21 @@ const net = {
   peer: null, status:'off', note:'', timers:{},
   players: new Map(), feed: [],                              // DM tarafı: oyuncular ve zar akışı
   conn: null, dmName:'', roster: [], publicRolls: true, lastPong: 0, sentPortrait: null, welcomed: false,   // oyuncu tarafı
+  mySeat: '', faces: new Map(),                              // oyuncu tarafı: kendi koltuk kimliğim, öbürlerinin küçük portreleri
 };
-let mode = 'sheet';        // sheet = kendi kağıdım, dm = DM ekranı, peek = DM bir oyuncunun kağıdına bakıyor
+let mode = 'sheet';        // sheet = kendi kağıdım, dm = DM ekranı, peek = DM bir oyuncunun kağıdına bakıyor, table = masa görünümü
 let peekPid = '';
 
 const short = (v, n) => String(v ?? '').slice(0, n);
 const cleanCode = v => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
 const prettyCode = c => (c ? c.slice(0, 3) + '-' + c.slice(3) : '');
 const newCode = () => Array.from({ length: 6 }, () => CODE_CHARS[die(CODE_CHARS.length) - 1]).join('');
-const cleanRoll = r => ({ label: short(r.label, 140), total: short(r.total, 12), detail: short(r.detail, 320), flag: ['crit-hit', 'crit-miss'].includes(r.flag) ? r.flag : '', note: short(r.note, 200) });
+// Gelen zar bilgisini sınırlar: en fazla 20 zar, yüz sayısı 2–1000, gelen sayı 1 ile yüz sayısı arası
+const cleanDice = d => (Array.isArray(d) ? d : []).slice(0, 20).filter(x => x && typeof x === 'object')
+  .map(x => { const s = clamp(int(x.s), 2, 1000); return { s, v: clamp(int(x.v), 1, s), x: x.x ? 1 : 0 }; });
+const cleanRoll = r => ({ label: short(r.label, 140), total: short(r.total, 12), detail: short(r.detail, 320), flag: ['crit-hit', 'crit-miss'].includes(r.flag) ? r.flag : '', note: short(r.note, 200), dice: cleanDice(r.dice) });
+const cleanSeat = v => (/^(dm|s[a-z0-9]{4,10})$/.test(String(v || '')) ? String(v) : '');      // koltuk kimliği: "dm" ya da DM'in ürettiği kod
+const cleanImg = v => (typeof v === 'string' && v.length < 60000 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v) ? v : '');
 const onlineCount = () => Array.from(net.players.values()).filter(p => p.online).length;
 const ownChar = () => store.chars[store.activeId];
 // Bir başka karakterin sayılarını hesaplamak için: C'yi geçici olarak o karakter yapar
@@ -2208,12 +2344,14 @@ function loadPeerLib() {
 function stopNet(clearRole = true) {
   Object.values(net.timers).forEach(t => { clearTimeout(t); clearInterval(t); });
   net.timers = {};
-  if (store.net.role === 'player') send(net.conn, { t:'bye' });
+  // leave: true → oyuncu bilerek ayrıldı, DM koltuğunu kaldırsın (yalnızca bağlantı kopunca koltuk gri bekler)
+  if (store.net.role === 'player') send(net.conn, { t:'bye', leave: clearRole });
   const peer = net.peer;
   net.peer = null; net.conn = null;
   if (peer) { try { peer.destroy(); } catch (e) { /* zaten kapalı */ } }
   net.players.clear(); net.feed = []; net.roster = []; net.dmName = ''; net.sentPortrait = null;
-  if (clearRole) { store.net.role = ''; save(); if (mode !== 'sheet') setMode('sheet'); }
+  net.mySeat = ''; net.faces.clear();
+  if (clearRole) { tvReset(); store.net.role = ''; save(); if (mode !== 'sheet') setMode('sheet'); }
   setNet('off', '');
 }
 
@@ -2263,11 +2401,19 @@ function dmAccept(conn) {
   conn.on('open', () => {
     if (!pid || store.net.role !== 'dm') { conn.close(); return; }
     let p = net.players.get(pid);
+    if (!p && net.players.size >= MAX_PLAYERS) {           // masa doluysa, "Masadan ayrıl" ile gitmiş birinin yerini boşalt
+      const gone = Array.from(net.players.values()).find(o => o.left && !o.online);
+      if (gone) net.players.delete(gone.pid);
+    }
     if (!p && net.players.size >= MAX_PLAYERS) { send(conn, { t:'full' }); setTimeout(() => conn.close(), 400); return; }
     if (p && p.conn && p.conn !== conn) { try { p.conn.close(); } catch (e) { /* yok say */ } }
-    if (!p) { p = { pid, name, char: null, lastRoll: null }; net.players.set(pid, p); notify(`${name} masaya katıldı`); }
-    Object.assign(p, { name, conn, online: true, seen: Date.now() });
-    broadcastRoster(); renderParty(); renderNetUI();
+    if (!p) {
+      // seat: öbür oyuncuların göreceği rastgele koltuk kimliği (gizli pid'den bağımsız)
+      p = { pid, name, seat: 's' + newCode().toLowerCase(), char: null, lastRoll: null, face: '', faceSrc: '' };
+      net.players.set(pid, p); notify(`${name} masaya katıldı`);
+    }
+    Object.assign(p, { name, conn, online: true, left: false, seen: Date.now() });
+    broadcastRoster(); sendFaces(p); renderParty(); renderNetUI();
   });
   conn.on('data', msg => dmReceive(pid, conn, msg));
   conn.on('close', () => {
@@ -2283,32 +2429,54 @@ function dmReceive(pid, conn, msg) {
   dbg('rx', msg);
   p.seen = Date.now();
   if (msg.t === 'ping') send(conn, { t:'pong', want: !p.char });        // kağıt henüz gelmediyse yeniden iste
-  else if (msg.t === 'hello') send(conn, { t:'welcome', dm: store.net.name || 'DM', publicRolls: !!store.net.publicRolls, roster: rosterList() });
+  else if (msg.t === 'hello') send(conn, { t:'welcome', dm: store.net.name || 'DM', publicRolls: !!store.net.publicRolls, roster: rosterList(), you: p.seat });
   else if (msg.t === 'sheet' && msg.char && typeof msg.char === 'object') {
     const portrait = typeof msg.portrait === 'string' ? msg.portrait : (p.char ? p.char.portrait : '');
     const c = normalize(Object.assign({}, msg.char, { portrait }));
     const renamed = !p.char || p.char.name !== c.name;
     p.char = c;
+    updateFace(p);                                                    // portre değiştiyse küçük kopyasını öbürlerine yolla
     if (renamed) broadcastRoster();
     if (mode === 'peek' && peekPid === pid) { C = c; showChar(); applyReadonly(); }
     renderParty();
   }
   else if (msg.t === 'roll' && msg.roll && typeof msg.roll === 'object') {
     const roll = cleanRoll(msg.roll);
-    const entry = Object.assign({}, roll, { who: p.name, char: p.char ? p.char.name : '', ts: Date.now() });
+    // Koltuk kimliğini oyuncu yollamaz; DM zarın hangi bağlantıdan geldiğine bakarak kendisi ekler
+    const entry = Object.assign({}, roll, { who: p.name, char: p.char ? p.char.name : '', seat: p.seat, ts: Date.now() });
     p.lastRoll = entry;
     pushFeed(entry);
     // Öbür oyunculara yalnızca zar sonucu gider (DM bunu kapatabilir). Kağıt asla gitmez.
-    if (store.net.publicRolls) net.players.forEach(o => { if (o.pid !== pid) send(o.conn, { t:'roll', who: p.name, char: entry.char, roll }); });
+    if (store.net.publicRolls) net.players.forEach(o => { if (o.pid !== pid) send(o.conn, { t:'roll', who: p.name, char: entry.char, seat: p.seat, roll }); });
     showRemoteRoll(entry);
     renderParty();
   }
-  else if (msg.t === 'bye') { try { conn.close(); } catch (e) { /* yok say */ } }
+  else if (msg.t === 'bye') { if (msg.leave) p.left = true; try { conn.close(); } catch (e) { /* yok say */ } }
 }
 
-// Masadakilerin listesi: yalnızca oyuncu adı ve karakter adı (kağıdın geri kalanı yok)
-const rosterList = () => Array.from(net.players.values()).filter(p => p.online).map(p => ({ name: p.name, char: p.char ? short(p.char.name, 40) : '' }));
-function broadcastRoster() { const roster = rosterList(); net.players.forEach(p => send(p.conn, { t:'roster', roster })); }
+// Masadakilerin listesi: koltuk kimliği, oyuncu adı, karakter adı ve bağlı olup olmadığı (kağıdın geri kalanı yok).
+// "Masadan ayrıl" ile gidenler listede yer almaz; bağlantısı kopanlar gri noktayla koltuğunda bekler.
+const seated = () => Array.from(net.players.values()).filter(p => !p.left);
+const rosterList = () => seated().map(p => ({ id: p.seat, name: p.name, char: p.char ? short(p.char.name.trim(), 40) : '', on: !!p.online }));
+function broadcastRoster() {
+  const roster = rosterList(), dm = short(store.net.name || 'DM', 30);
+  net.players.forEach(p => send(p.conn, { t:'roster', roster, you: p.seat, dm }));   // you = alıcının kendi koltuğu
+  renderTable();
+}
+// Bir oyuncunun portresinden 96 piksellik kopya yapar ve öbür oyunculara YALNIZCA değiştiğinde yollar
+function updateFace(p) {
+  const src = p.char ? p.char.portrait : '';
+  if (src === p.faceSrc) return;
+  p.faceSrc = src;
+  makeThumb(src).then(img => {
+    if (p.faceSrc !== src || net.players.get(p.pid) !== p) return;   // bu arada yine değiştiyse eskisini yollama
+    p.face = img;
+    net.players.forEach(o => { if (o !== p) send(o.conn, { t:'face', id: p.seat, img }); });
+    renderTable();
+  });
+}
+// Yeni (ya da yeniden) bağlanan oyuncuya masadakilerin küçük portrelerini bir kez yollar
+function sendFaces(to) { seated().forEach(o => { if (o !== to && o.face) send(to.conn, { t:'face', id: o.seat, img: o.face }); }); }
 function pushFeed(entry) { net.feed.unshift(entry); if (net.feed.length > 150) net.feed.length = 150; renderFeed(); }
 
 /* ───────── Oyuncu tarafı ───────── */
@@ -2371,7 +2539,10 @@ function playerReceive(conn, msg) {
   if (net.conn !== conn || !msg || typeof msg !== 'object') return;
   dbg('rx', msg);
   net.lastPong = Date.now();
-  const readRoster = list => (Array.isArray(list) ? list : []).slice(0, 12).map(r => ({ name: short(r && r.name, 30), char: short(r && r.char, 40) }));
+  // Masadakiler: koltuk kimliği, ad, karakter adı, bağlı mı. Başka hiçbir alan okunmaz.
+  const readRoster = list => (Array.isArray(list) ? list : []).slice(0, 12).filter(r => r && typeof r === 'object')
+    .map(r => ({ id: cleanSeat(r.id), name: short(r.name, 30), char: short(r.char, 40), on: r.on !== false }));
+  if (msg.you) net.mySeat = cleanSeat(msg.you);
   if (msg.t === 'welcome') {
     net.dmName = short(msg.dm, 30); net.publicRolls = !!msg.publicRolls;
     if (msg.roster) net.roster = readRoster(msg.roster);
@@ -2380,8 +2551,17 @@ function playerReceive(conn, msg) {
   }
   else if (msg.t === 'pong') { if (msg.want) { net.sentPortrait = null; pushSheet(); } }
   else if (msg.t === 'cfg') { net.publicRolls = !!msg.publicRolls; renderNetUI(); }
-  else if (msg.t === 'roster') { net.roster = readRoster(msg.roster); renderNetUI(); }
-  else if (msg.t === 'roll' && msg.roll && typeof msg.roll === 'object') showRemoteRoll(Object.assign(cleanRoll(msg.roll), { who: short(msg.who, 30), char: short(msg.char, 40) }));
+  else if (msg.t === 'roster') { net.roster = readRoster(msg.roster); if (msg.dm) net.dmName = short(msg.dm, 30); renderNetUI(); }
+  else if (msg.t === 'face') {                                       // bir koltuğun küçük portresi (yalnızca değişince gelir)
+    const id = cleanSeat(msg.id), img = cleanImg(msg.img);
+    if (id && id !== 'dm') {
+      net.faces.delete(id);
+      if (img) net.faces.set(id, img);
+      while (net.faces.size > 16) net.faces.delete(net.faces.keys().next().value);
+      renderTable();
+    }
+  }
+  else if (msg.t === 'roll' && msg.roll && typeof msg.roll === 'object') showRemoteRoll(Object.assign(cleanRoll(msg.roll), { who: short(msg.who, 30), char: short(msg.char, 40), seat: cleanSeat(msg.seat) }));
   else if (msg.t === 'kick') { stopNet(); notify('DM seni masadan çıkardı'); }
   else if (msg.t === 'full') { stopNet(); notify('Masa dolu', `Bir masaya en fazla ${MAX_PLAYERS} oyuncu katılabilir.`); }
 }
@@ -2402,26 +2582,30 @@ function shareRoll(r) {
   else if (store.net.role === 'dm' && net.peer) {
     const secret = mode === 'peek' || !!store.net.dmSecret;
     pushFeed(Object.assign(cleanRoll(r), { who:'DM', char: mode === 'peek' ? `${C.name.trim() || 'oyuncu'} adına` : '', ts: Date.now(), secret }));
-    if (!secret) net.players.forEach(p => send(p.conn, { t:'roll', who: store.net.name || 'DM', char:'DM', roll: cleanRoll(r) }));
+    if (!secret) net.players.forEach(p => send(p.conn, { t:'roll', who: store.net.name || 'DM', char:'DM', seat:'dm', roll: cleanRoll(r) }));
   }
 }
 function showRemoteRoll(e) {
   const who = e.char && e.char !== e.who ? `${e.who} (${e.char})` : e.who;
-  showRoll({ label: `${who}: ${e.label}`, total: e.total, detail: e.detail, flag: e.flag, note: e.note }, { remote: true });
+  showRoll({ label: `${who}: ${e.label}`, total: e.total, detail: e.detail, flag: e.flag, note: e.note, dice: e.dice },
+    { remote: true, seat: e.seat, who: e.who, title: e.label });
 }
 
-/* ───────── Görünüm: kendi kağıdım / DM ekranı / oyuncu kağıdı izleme ───────── */
+/* ───────── Görünüm: kendi kağıdım / DM ekranı / oyuncu kağıdı izleme / masa görünümü ───────── */
 function setMode(m, pid) {
   const p = m === 'peek' ? net.players.get(pid) : null;
   if (m === 'peek' && !(p && p.char)) m = 'dm';
-  if (m !== 'sheet' && store.net.role !== 'dm') m = 'sheet';
+  if (m === 'table' ? !store.net.role : (m !== 'sheet' && store.net.role !== 'dm')) m = 'sheet';   // masa görünümü: masadaki herkes
   mode = m; peekPid = m === 'peek' ? pid : '';
   document.body.classList.toggle('peek', m === 'peek');
   $('#dmScreen').hidden = m !== 'dm';
-  $('#sheet').hidden = m === 'dm';
+  $('#sheet').hidden = m === 'dm' || m === 'table';
+  $('#tableView').hidden = m !== 'table';
   C = m === 'peek' ? p.char : ownChar();
   if (m === 'dm') { renderDMHead(); renderParty(); renderFeed(); document.title = 'DM ekranı — Dört Element'; }
   else { showChar(); applyReadonly(); }
+  if (m === 'table') { tvEnter(); document.title = 'Masa — Dört Element'; }
+  else tvLeave();
   $('#welcome').hidden = !!store.welcomed || m !== 'sheet';
   renderNetUI();
   window.scrollTo({ top: 0 });
@@ -2436,7 +2620,12 @@ function renderNetUI() {
   $('#tableDot').className = role ? dotClass() : 'dot';
   const bar = $('#tableBar'), btn = $('#tableBarBtn');
   let text = '';
-  if (role === 'player') {
+  if (role && mode === 'table') {
+    text = net.status === 'open'
+      ? `Masa ${code}: ${role === 'dm' ? `açık, ${onlineCount()} oyuncu bağlı.` : 'bağlısın.'} Atılan zarlar atanın koltuğundan masaya yuvarlanır.`
+      : `Masa ${code}: ${net.note || 'bağlanılıyor…'}`;
+    btn.textContent = role === 'dm' ? 'DM ekranına dön' : 'Kağıda dön'; btn.dataset.act = role === 'dm' ? 'mode-dm' : 'mode-sheet';
+  } else if (role === 'player') {
     text = net.status === 'open' ? `Masa ${code}: bağlısın. ${net.dmName || 'DM'} açık olan kağıdını ve attığın zarları canlı görüyor.` : `Masa ${code}: ${net.note || 'bağlanılıyor…'}`;
     btn.textContent = 'Masa ayrıntıları'; btn.dataset.act = 'table-open';
   } else if (role === 'dm' && mode === 'sheet') {
@@ -2450,8 +2639,10 @@ function renderNetUI() {
   bar.hidden = !text;
   $('#tableBarText').textContent = text;
   $('#tableBarDot').className = mode === 'peek' ? 'dot on' : dotClass();
+  $('#tableBarView').hidden = !(role === 'player' && mode === 'sheet');
   if ($('#tableDrawer').classList.contains('open')) renderTableDrawer();
   if (mode === 'dm') renderDMHead();
+  renderTable();
 }
 
 function renderTableDrawer() {
@@ -2468,7 +2659,7 @@ function renderTableDrawer() {
         <p>Diğer oyuncular kağıdını göremez. ${pub}</p>
       </div>
       <div><span class="f-l">Masadakiler</span>
-        <ul class="roster" style="margin-top:6px">${net.roster.length ? net.roster.map(r => `<li>${esc(r.name)}${r.char ? ` <small>${esc(r.char)}</small>` : ''}</li>`).join('') : '<li><small>Henüz liste gelmedi.</small></li>'}</ul></div>
+        <ul class="roster" style="margin-top:6px">${net.roster.length ? net.roster.map(r => `<li><span class="dot${r.on ? ' on' : ''}" title="${r.on ? 'Bağlı' : 'Çevrimdışı'}"></span> ${esc(r.name)}${r.char ? ` <small>${esc(r.char)}</small>` : ''}</li>`).join('') : '<li><small>Henüz liste gelmedi.</small></li>'}</ul></div>
       <button class="btn bad" data-act="table-leave">Masadan ayrıl</button>`;
   } else if (role === 'dm') {
     body.innerHTML = `
@@ -2509,6 +2700,7 @@ function renderDMHead() {
       <label class="check"><input type="checkbox" data-net="dmSecret"${store.net.dmSecret ? ' checked' : ''}> Benim attığım zarlar gizli kalsın</label>
     </div>
     <div class="dm-act">
+      <button class="btn accent" data-act="mode-table"><svg class="ic"><use href="#i-table"/></svg>Masa görünümü</button>
       <button class="btn" data-act="mode-sheet">Kendi kağıtlarıma geç</button>
       <button class="btn" data-act="table-newcode">Kodu yenile</button>
       <button class="btn bad" data-act="table-close">Masayı kapat</button>
@@ -2551,6 +2743,7 @@ function pcCard(p) {
   });
 }
 function renderParty() {
+  renderTable();                         // masa görünümündeysek koltukları ve DM'in can çubuklarını tazele
   if (mode !== 'dm') return;
   const list = Array.from(net.players.values());
   $('#party').innerHTML = list.length ? list.map(pcCard).join('')
@@ -2600,6 +2793,7 @@ Object.assign(ACTIONS, {
   },
   'mode-dm': () => { openTable(false); setMode('dm'); },
   'mode-sheet': () => setMode('sheet'),
+  'mode-table': () => { openTable(false); setMode('table'); },
   peek: b => setMode('peek', b.dataset.pid),
   kick: async b => {
     const p = net.players.get(b.dataset.pid); if (!p) return;
@@ -2639,12 +2833,219 @@ function resumeTable() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   BÖLÜM 11 — BAŞLANGIÇ
+   BÖLÜM 11 — MASA GÖRÜNÜMÜ: oval masa, koltuklar ve uçan zarlar
+   • DM her zaman en üstte (−90°) oturur. N oyuncu varsa i. oyuncunun açısı
+     −90° + 360° × (i+1)/(N+1) olur; herkes eşit aralıkla, simetrik dağılır.
+     Sıra DM'in listesindeki sıradır, herkes aynı sırayı görür.
+   • JS koltuğa yalnızca açıyı verir (--cx, --sy); ekrana göre ölçeklemeyi
+     CSS yapar (görünüm bölümü 16).
+   • Zarın sonucu her zaman atanın tarayıcısında hesaplanmıştır. Buradaki
+     animasyon yalnızca gösterimdir: sonucu değiştirmez, yeniden zar atmaz.
+     Zar havadayken yüzü boştur, gerçek sayılar yere inince yazılır.
+   • Peş peşe gelen atışlar sıraya girer; biri bitmeden öbürü başlamaz.
+   ═══════════════════════════════════════════════════════════════════ */
+const tv = {
+  els: new Map(),          // koltuk kimliği → koltuğun sayfadaki kutusu
+  queue: [],               // sırada bekleyen atışlar
+  cur: null,               // şu an havada olan atış
+  busy: false, run: 0, timer: 0, anims: [],
+  recent: [],              // son 5 atış (masanın kenarındaki liste)
+};
+const meSeat = () => (store.net.role === 'dm' ? 'dm' : net.mySeat || 'me');
+const myName = () => store.net.name || (store.net.role === 'dm' ? 'DM' : 'Sen');
+
+// Koltuklar: önce DM, sonra oyuncular. Oyuncunun ekranına yalnızca DM'den gelen liste (ad, karakter adı, bağlı mı) ve küçük portreler girer.
+function seatList() {
+  const me = meSeat(), own = ownChar(), live = net.status === 'open';
+  if (store.net.role === 'dm') {
+    return [{ id:'dm', dm:true, me:true, name: myName(), on: live }]
+      .concat(seated().map(p => ({ id: p.seat, name: p.name, char: p.char ? p.char.name.trim() : '', img: p.face, on: !!p.online,
+        hp: p.char ? p.char.hp : null })));                         // can çubuğu yalnızca DM'in kendi ekranında, hiçbir yere gönderilmez
+  }
+  const list = [{ id:'dm', dm:true, name: net.dmName || 'DM', on: live }]
+    .concat(net.roster.map((r, i) => {
+      const mine = !!r.id && r.id === me;
+      return { id: r.id || 'x' + i, me: mine, name: r.name, char: r.char, on: mine ? live : r.on, img: mine ? own.portrait : net.faces.get(r.id) || '' };
+    }));
+  if (!list.some(s => s.me)) list.push({ id: me, me:true, name: myName(), char: own.name.trim(), img: own.portrait, on: live });   // liste gelmeden de kendi koltuğum görünsün
+  return list;
+}
+
+function seatHTML(s) {
+  // DM koltuğunda her zaman zar simgesi (DM'in hazırladığı NPC portresi oyunculara sızmasın diye)
+  const av = s.dm ? '<svg class="ic"><use href="#i-d20"/></svg>'
+    : s.img ? `<img src="${esc(s.img)}" alt="">`
+    : esc(((s.char || s.name || '?').trim()[0] || '?').toUpperCase());
+  let hp = '';
+  if (s.hp) {
+    const max = Math.max(0, int(s.hp.max)), cur = int(s.hp.cur), pct = max ? clamp(cur / max, 0, 1) : 0;
+    hp = `<span class="tv-hp" title="${cur} / ${max} can"><span class="hp-fill" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span></span>`;
+  }
+  return `<span class="tv-av">${av}<span class="dot${s.on ? ' on' : ''}"></span></span>
+    <b>${esc(s.name)}</b>${s.dm ? '<small>DM</small>' : s.char ? `<small>${esc(s.char)}</small>` : ''}${hp}`;
+}
+
+// Koltukları çizer. Var olan kutular yerinde kalır, yalnızca yeri ve içeriği değişir; böylece kayarak yer değiştirirler.
+function renderTable() {
+  if (mode !== 'table') return;
+  const stage = $('#tvStage'), seats = seatList(), seen = new Set();
+  seats.forEach((s, i) => {
+    seen.add(s.id);
+    const a = (-90 + 360 * i / seats.length) * Math.PI / 180;    // i = 0 DM; i ≥ 1 için −90° + 360° × i/(N+1)
+    let el = tv.els.get(s.id);
+    const fresh = !el;
+    if (fresh) { el = document.createElement('div'); el.className = 'tv-seat in'; tv.els.set(s.id, el); setTimeout(() => el.classList.remove('in'), 600); }
+    clearTimeout(el._out); el.classList.remove('out');
+    el.style.setProperty('--cx', Math.cos(a).toFixed(4));
+    el.style.setProperty('--sy', Math.sin(a).toFixed(4));
+    el.classList.toggle('dm', !!s.dm); el.classList.toggle('me', !!s.me); el.classList.toggle('off', !s.on);
+    el.title = `${s.name}${s.char ? ', ' + s.char : ''}${s.dm ? ' (DM)' : ''}${s.me ? ' (sen)' : ''}: ${s.on ? 'bağlı' : 'çevrimdışı'}`;
+    const html = seatHTML(s);
+    if (el._html !== html) { el._html = html; el.innerHTML = html; }   // değişmediyse dokunma (portre titremesin)
+    if (fresh) stage.appendChild(el);                                // yeri ayarlandıktan sonra eklenir, ortadan kaymaz
+  });
+  tv.els.forEach((el, id) => {                                        // ayrılanların koltuğu solarak kalkar
+    if (seen.has(id) || el.classList.contains('out')) return;
+    el.classList.add('out');
+    el._out = setTimeout(() => { el.remove(); tv.els.delete(id); }, 350);
+  });
+}
+
+/* Zar şekilleri (100×100'lük bir kutuda). f = dış çizgi, ff = öndeki yüz, l = kenar çizgileri, t = sayının yüksekliği */
+const DIE_SHAPES = {
+  4:  { f:'M50 6 94 88H6Z', t:62 },
+  6:  { f:'M18 8h64q10 0 10 10v64q0 10-10 10H18Q8 92 8 82V18Q8 8 18 8Z', t:50 },
+  8:  { f:'M50 3 95 50 50 97 5 50Z', ff:'M50 3 80 66H20Z', l:'M20 66 50 97 80 66M5 50l15 16M95 50 80 66', t:46 },
+  10: { f:'M50 3 95 44 50 97 5 44Z', ff:'M50 3 76 56 50 68 24 56Z', l:'M5 44l19 12M95 44 76 56M50 68v29', t:45 },
+  12: { f:'M50 2l30 10 17 26v26L80 88 50 98 20 88 3 64V38l17-26Z', ff:'M50 22l27 20-10 32H33L23 42Z', l:'M50 22V2M77 42l20-4M67 74l13 14M33 74 20 88M23 42 3 38', t:51 },
+  20: { f:'M50 2 92 26v48L50 98 8 74V26Z', ff:'M50 24 78 70H22Z', l:'M50 2v22M8 26l42-2 42 2M92 26 78 70l14 4M8 26l14 44-14 4M22 70l28 28 28-28', t:55 },
+  o:  { f:'M50 5a45 45 0 1 1 0 90a45 45 0 1 1 0-90Z', t:50 },     // d2, d3, d1000 gibi alışılmadık zarlar: yuvarlak pul
+};
+function dieSVG(s, v, dropped, blank) {
+  const sh = DIE_SHAPES[s === 100 ? 10 : s] || DIE_SHAPES.o;        // d100 de on yüzlü zar gibi çizilir
+  const len = String(v).length, fs = (len <= 1 ? 38 : len === 2 ? 34 : len === 3 ? 26 : 20) * (s === 4 ? 0.8 : 1);
+  return `<span class="tv-die${dropped ? ' x' : ''}" data-v="${esc(v)}"><svg viewBox="0 0 100 100" aria-hidden="true">
+    <path class="f${sh.ff ? '' : ' ff'}" d="${sh.f}"/>${sh.ff ? `<path class="ff" d="${sh.ff}"/>` : ''}${sh.l ? `<path class="l" d="${sh.l}"/>` : ''}
+    <text x="50" y="${sh.t}" font-size="${fs}">${blank ? '' : esc(v)}</text></svg></span>`;
+}
+
+// Masanın ortasına bir atışı çizer. hidden = true ise zarların yüzü, toplam ve yazı henüz gizli (zar havada)
+function drawThrow(item, hidden) {
+  const box = $('#tvCenter');
+  if (!item) { box.innerHTML = '<p class="tv-idle">Zarlar burada yuvarlanacak. Sağ alttaki zar tepsisinden ya da kağıdındaki sayılardan at.</p>'; return null; }
+  const dice = item.dice.length ? item.dice : [{ s: 0, v: item.total }];   // zar bilgisi gelmediyse (eski sürüm) tek bir pul
+  const shown = dice.slice(0, 12), more = dice.length - shown.length;
+  const size = shown.length <= 2 ? '' : shown.length <= 6 ? ' m' : ' s';
+  box.innerHTML = `<div class="tv-throw ${item.flag}${hidden ? '' : ' shown'}">
+    <div class="tv-total">${esc(item.total)}</div>
+    <div class="tv-dice${size}">${shown.map(d => dieSVG(d.s, d.v, d.x, hidden)).join('')}${more > 0 ? `<span class="tv-more">+${more}</span>` : ''}</div>
+    <div class="tv-cap"><b>${esc(item.who ? item.who + ': ' : '')}${esc(item.label)}</b><span>${esc(item.detail)}</span>${item.note ? `<em>${esc(item.note)}</em>` : ''}${item.tag ? `<small>${esc(item.tag)}</small>` : ''}</div>
+  </div>`;
+  return box.firstElementChild;
+}
+
+// Zarları atanın koltuğundan masanın ortasına fırlatır: döner, seker, durur. Yalnızca konum ve dönüş canlandırılır (telefonda da hafif).
+function flyDice(box, item, fast) {
+  const stage = $('#tvStage').getBoundingClientRect();
+  const seat = tv.els.get(item.seat), av = seat && $('.tv-av', seat);
+  const from = av ? av.getBoundingClientRect() : null;
+  const fx = from ? from.left + from.width / 2 : stage.left + stage.width / 2;   // koltuğu bilinmiyorsa masanın alt kenarından
+  const fy = from ? from.top + from.height / 2 : stage.bottom;
+  const dur = fast ? 650 : 1150;
+  tv.anims = $$('.tv-die', box).map((d, i) => {
+    const r = d.getBoundingClientRect();
+    const dx = fx - (r.left + r.width / 2), dy = fy - (r.top + r.height / 2), hop = Math.min(40, r.height * 0.45);
+    const turn = (Math.random() < 0.5 ? -1 : 1) * (fast ? 360 : 720);   // yalnızca görüntü: zarın hangi yöne döneceği. Tam tur biter, sayı dik durur.
+    return d.animate([
+      { transform:`translate(${dx}px,${dy}px) rotate(0deg) scale(.5)`, opacity:0 },
+      { transform:`translate(${dx * 0.75}px,${dy * 0.75}px) rotate(${turn * 0.2}deg) scale(.75)`, opacity:1, offset:0.12 },
+      { transform:`translate(0px,${-hop}px) rotate(${turn * 0.85}deg) scale(1.08)`, offset:0.55 },
+      { transform:`translate(0px,0px) rotate(${turn}deg) scale(1)`, offset:0.72 },
+      { transform:`translate(0px,${-hop * 0.35}px) rotate(${turn + Math.sign(turn) * 8}deg) scale(1)`, offset:0.86 },
+      { transform:`translate(0px,0px) rotate(${turn}deg) scale(1)` },
+    ], { duration: dur, delay: i * (fast ? 30 : 70), easing:'cubic-bezier(.3,.7,.4,1)', fill:'backwards' });
+  });
+  return Promise.all(tv.anims.map(a => a.finished.catch(() => {})));
+}
+function reveal(box) {
+  if (!box || !box.isConnected) return;
+  $$('.tv-die', box).forEach(d => { $('text', d).textContent = d.dataset.v; });
+  box.classList.add('shown');
+}
+
+function addRecent(item) {
+  tv.recent.push(item);
+  tv.recent.sort((a, b) => b.ts - a.ts);
+  if (tv.recent.length > 5) tv.recent.length = 5;
+  renderTableLog();
+}
+function renderTableLog() {
+  if (mode !== 'table') return;
+  $('#tvLog').innerHTML = tv.recent.length ? tv.recent.map(e => `<li class="${e.flag}"><b>${esc(e.total)}</b>
+      <div><strong>${esc(e.who)}</strong>${esc(e.label)}<span>${esc(e.detail)}</span></div><time>${hhmm(e.ts)}</time></li>`).join('')
+    : '<li class="none">Henüz zar atılmadı.</li>';
+}
+
+/* showRoll buraya gelir: atışı sıraya alır. Masa görünümü kapalıysa ya da sekme
+   arkadaysa animasyon atlanır ama atış yine de son atışlar listesine girer. */
+function tableRoll(r, opt) {
+  if (!store.net.role) return;
+  const role = store.net.role;
+  const item = {
+    seat: opt.remote ? opt.seat || '' : meSeat(),
+    who: opt.remote ? opt.who || '' : myName(),
+    label: opt.remote ? opt.title || '' : r.label,
+    total: r.total, detail: r.detail, flag: r.flag || '', note: r.note || '',
+    dice: cleanDice(r.dice), ts: Date.now(),
+    // Kendi ekranımda küçük bir hatırlatma: bu zarı kimler görüyor?
+    tag: opt.remote ? '' : role === 'dm' ? (mode === 'peek' || store.net.dmSecret ? 'Gizli: oyuncular görmez' : '') : (!net.publicRolls ? 'Yalnızca DM görür' : ''),
+  };
+  if (mode !== 'table') { addRecent(item); return; }
+  if (document.hidden) { tvFlush(); addRecent(item); drawThrow(tv.recent[0], false); return; }
+  tv.queue.push(item);
+  while (tv.queue.length > 6) addRecent(tv.queue.shift());          // çok birikirse en eskiler animasyonsuz listeye geçer
+  if (!tv.busy) playNext();
+}
+async function playNext() {
+  const item = tv.queue.shift();
+  if (!item || mode !== 'table') { tv.busy = false; return; }
+  tv.busy = true; tv.cur = item;
+  const run = ++tv.run, fast = tv.queue.length >= 2;               // sıra uzunsa daha hızlı
+  const box = drawThrow(item, true);
+  if (!reduceMotion.matches) await flyDice(box, item, fast);         // hareket azaltılmışsa zar doğrudan sonucuyla belirir
+  if (run !== tv.run) return;                                        // bu arada görünüm kapandı ya da atlandı
+  reveal(box);
+  tv.cur = null; tv.anims = [];
+  addRecent(item);
+  tv.timer = setTimeout(() => { if (run === tv.run) playNext(); }, fast ? 600 : 1200);   // sonucu okumaya zaman tanı
+}
+// Havadaki ve sıradaki bütün atışları animasyonsuz bitirip listeye ekler
+function tvFlush() {
+  tv.run++; clearTimeout(tv.timer);
+  tv.anims.forEach(a => { try { a.cancel(); } catch (e) { /* yok say */ } });
+  tv.anims = [];
+  if (tv.cur) addRecent(tv.cur);
+  tv.queue.forEach(addRecent);
+  tv.queue = []; tv.cur = null; tv.busy = false;
+}
+function tvEnter() { renderTable(); renderTableLog(); if (!tv.busy) drawThrow(tv.recent[0], false); }
+function tvLeave() { if (tv.busy || tv.queue.length) tvFlush(); }
+function tvReset() {                                                 // masadan çıkınca her şeyi temizle
+  tvFlush(); tv.recent = [];
+  tv.els.forEach(el => { clearTimeout(el._out); el.remove(); });
+  tv.els.clear();
+}
+document.addEventListener('visibilitychange', () => {               // sekme arkaya giderse havadaki zarı beklemeden bitir
+  if (document.hidden && tv.busy) { tvFlush(); if (mode === 'table') drawThrow(tv.recent[0], false); }
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 12 — BAŞLANGIÇ
    ═══════════════════════════════════════════════════════════════════ */
 load();
 renderStatic();
 setGuide(store.guide);
-setMode(['adv', 'dis', 'normal'].includes(store.diceMode) ? store.diceMode : 'normal');
+setDiceMode(['adv', 'dis', 'normal'].includes(store.diceMode) ? store.diceMode : 'normal');
 setTab(store.tab);
 setElement(store.element);
 showChar();
