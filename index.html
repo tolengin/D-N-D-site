@@ -461,6 +461,8 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .modal-box p{font-size:15px}
 .modal-act{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 .foot{margin-top:28px;text-align:center;font-size:12px;color:var(--muted)}
+.foot p{max-width:96ch;margin:0 auto 6px}
+.foot a{color:inherit;overflow-wrap:anywhere}
 
 /* ───────── 13) MASA: çok oyunculu ekranlar ───────── */
 .dot{display:inline-block;width:9px;height:9px;flex:none;border-radius:50%;background:var(--muted)}
@@ -1061,7 +1063,12 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
 
   </div><!-- /#sheet -->
 
-  <p class="foot">Hayran yapımı, resmî olmayan bir karakter defteridir. Dungeons &amp; Dragons, Wizards of the Coast şirketinin tescilli markasıdır.</p>
+  <!-- Yasal notlar: bu iki İngilizce cümle Wizards of the Coast'un istediği kalıptır, sözcükleri değiştirme -->
+  <footer class="foot">
+    <p>Hayran yapımı, resmî olmayan ve ücretsiz bir karakter defteridir. Wizards of the Coast ile bir bağlantısı yoktur.</p>
+    <p lang="en">Dört Element is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</p>
+    <p lang="en">This work includes material from the System Reference Document 5.2.1 (“SRD 5.2.1”) by Wizards of the Coast LLC, available at <a href="https://www.dndbeyond.com/srd" target="_blank" rel="noopener">https://www.dndbeyond.com/srd</a>. The SRD 5.2.1 is licensed under the Creative Commons Attribution 4.0 International License, available at <a href="https://creativecommons.org/licenses/by/4.0/legalcode" target="_blank" rel="noopener">https://creativecommons.org/licenses/by/4.0/legalcode</a>.</p>
+  </footer>
 </div>
 
 <!-- ═════════ ZAR TEPSİSİ ═════════ -->
