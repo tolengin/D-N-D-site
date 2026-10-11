@@ -7,7 +7,7 @@
 <title>Dört Element — D&amp;D Karakter Defteri</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Grenze:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Grenze:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════════════════════
    DÖRT ELEMENT — D&D 2024 Karakter Defteri
@@ -619,60 +619,111 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
   .fab{right:14px;bottom:14px}
 }
 
-/* ───────── 16) MASA GÖRÜNÜMÜ: taverna, ahşap masa, oturan figürler ve uçan zarlar ─────────
-   Koltukların yerini JS yalnızca açı olarak verir (--cx = kosinüs, --sy = sinüs).
-   --rx ve --ry koltuk halkasının genişliği ve yüksekliğidir. --rot figürü masaya çevirir,
-   --ox/--oy isimliğin figürün hangi yanına konacağını söyler (masadan dışarı doğru).
-   cqw birimi = sahnenin genişliğinin yüzdesi: sahne küçülünce figür ve yazı da küçülür.
+/* ───────── 16) MASA GÖRÜNÜMÜ: boyalı taverna, oturan figürler, garson ve uçan zarlar ─────────
+   Sahne bir tablo gibi düşünülür: her şey "birim" ile ölçülür ve 1 birim = tablonun genişliğinin
+   yüzde biridir (CSS'te 1cqw). Ekran küçülünce tablo, figürler ve yazılar birlikte küçülür.
+   Görseller "masa" klasöründedir (taverna.webp, sınıf figürleri, sandalye, isimlik, garson).
+   JS her koltuğa yalnızca şunları verir: --x/--y (başın yeri), --rot (masaya dönüş açısı),
+   --px/--py (isimliğin yeri), --ox/--oy (masadan dışarı yön).
    Sahne kendi koyu taverna renklerini kullanır; temadan yalnızca vurgu rengi (--accent) gelir. */
 #tableView{overflow-x:clip}
-.tv-wrap{display:grid;grid-template-columns:minmax(0,1fr) 236px;gap:16px;align-items:start}
-.tv-wrap.has-me{grid-template-columns:252px minmax(0,1fr) 236px}     /* oyuncuda: solda kendi kutusu, ortada masa, sağda pano */
+.tv-wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
+.tv-wrap.has-me{grid-template-columns:252px minmax(0,1fr)}          /* oyuncuda: solda kendi kutusu, yanında masa */
 body.tv-on .app{max-width:1760px}
-.tv-stage{position:relative;container-type:inline-size;margin:4px auto;aspect-ratio:16/10;overflow:hidden;
-  width:clamp(min(100%,480px),calc((100vh - var(--topbar-h,66px) - 120px) * 1.6),min(100%,1120px));
-  border-radius:calc(var(--radius) + 6px);border:1px solid rgba(0,0,0,.65);box-shadow:var(--shadow),inset 0 0 0 3px #2a1b0f;
-  color-scheme:dark;--text:#f6ead8;--muted:#d6c3a6;--line:rgba(255,222,170,.30);--field:rgba(12,8,4,.6);--bg:#1a120b;--surface:rgba(34,22,13,.88);
-  color:var(--text);--rx:34%;--ry:31%;--fig:clamp(84px,17cqw,184px);--av:clamp(22px,3.5cqw,38px);
-  background:
+
+/* .tv-main sahnenin ve kara tahtanın ortak kutusudur; genişliği ekranın yüksekliğine göre seçilir ki masa tek ekrana sığsın */
+.tv-main{position:relative;container-type:inline-size;margin:4px auto;
+  width:clamp(min(100%,480px),calc((100vh - var(--topbar-h,66px) - 120px) * 1.4097),min(100%,1500px));
+  color-scheme:dark;--text:#f6ead8;--muted:#d6c3a6;--line:rgba(255,222,170,.30);--field:rgba(12,8,4,.6);--bg:#1a120b;--surface:rgba(34,22,13,.88);color:var(--text)}
+.tv-stage{position:relative;overflow:hidden;width:100%;aspect-ratio:1920/1362;--z:1;background:#1c1410;
+  border-radius:calc(var(--radius) + 6px);border:1px solid rgba(0,0,0,.65);box-shadow:var(--shadow),inset 0 0 0 3px #2a1b0f}
+/* .tv-scene tablonun kendisi. --z büyütme oranıdır: telefonda tablo büyütülür ve yalnızca ortadaki masa görünür. */
+.tv-scene{position:absolute;top:0;left:calc((1 - var(--z)) * 50.1%);width:calc(var(--z) * 100%);aspect-ratio:1920/1362;container-type:inline-size;
+  background:url("masa/taverna.webp") center/100% 100% no-repeat,
     radial-gradient(60% 56% at 50% 50%,rgba(255,196,110,.22),transparent 64%),
-    radial-gradient(120% 104% at 50% 50%,transparent 44%,rgba(0,0,0,.66) 100%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Crect width='260' height='260' fill='%2324211d'/%3E%3Crect x='3' y='3' width='74' height='56' rx='6' fill='%23625c52'/%3E%3Cpath d='M10 7h56' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='17' cy='18' r='2.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='83' y='3' width='104' height='56' rx='8' fill='%235b564d'/%3E%3Cpath d='M90 7h86' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='158' cy='27' r='1.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='193' y='3' width='64' height='56' rx='8' fill='%235b564d'/%3E%3Cpath d='M200 7h46' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='219' cy='19' r='2.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='3' y='65' width='114' height='64' rx='6' fill='%234c4841'/%3E%3Cpath d='M10 69h96' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='123' y='65' width='54' height='64' rx='6' fill='%235b564d'/%3E%3Cpath d='M130 69h36' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='183' y='65' width='74' height='64' rx='6' fill='%2358534a'/%3E%3Cpath d='M190 69h56' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='219' cy='79' r='1.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='3' y='135' width='64' height='52' rx='10' fill='%235b564d'/%3E%3Cpath d='M10 139h46' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='73' y='135' width='84' height='52' rx='8' fill='%23625c52'/%3E%3Cpath d='M80 139h66' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='91' cy='164' r='2' fill='%23000' fill-opacity='.18'/%3E%3Crect x='163' y='135' width='94' height='52' rx='10' fill='%2358534a'/%3E%3Cpath d='M170 139h76' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='198' cy='157' r='1.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='3' y='193' width='94' height='64' rx='10' fill='%2358534a'/%3E%3Cpath d='M10 197h76' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='243' r='1.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='103' y='193' width='64' height='64' rx='10' fill='%234c4841'/%3E%3Cpath d='M110 197h46' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='134' cy='233' r='2.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='173' y='193' width='84' height='64' rx='8' fill='%234c4841'/%3E%3Cpath d='M180 197h66' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='234' cy='215' r='2.5' fill='%23000' fill-opacity='.18'/%3E%3C/svg%3E") 0 0/clamp(150px,26cqw,270px) auto,#3a362f}
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Crect width='260' height='260' fill='%2324211d'/%3E%3Crect x='3' y='3' width='74' height='56' rx='6' fill='%23625c52'/%3E%3Cpath d='M10 7h56' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='17' cy='18' r='2.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='83' y='3' width='104' height='56' rx='8' fill='%235b564d'/%3E%3Cpath d='M90 7h86' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='158' cy='27' r='1.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='193' y='3' width='64' height='56' rx='8' fill='%235b564d'/%3E%3Cpath d='M200 7h46' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='219' cy='19' r='2.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='3' y='65' width='114' height='64' rx='6' fill='%234c4841'/%3E%3Cpath d='M10 69h96' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='123' y='65' width='54' height='64' rx='6' fill='%235b564d'/%3E%3Cpath d='M130 69h36' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='183' y='65' width='74' height='64' rx='6' fill='%2358534a'/%3E%3Cpath d='M190 69h56' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='219' cy='79' r='1.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='3' y='135' width='64' height='52' rx='10' fill='%235b564d'/%3E%3Cpath d='M10 139h46' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='73' y='135' width='84' height='52' rx='8' fill='%23625c52'/%3E%3Cpath d='M80 139h66' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='91' cy='164' r='2' fill='%23000' fill-opacity='.18'/%3E%3Crect x='163' y='135' width='94' height='52' rx='10' fill='%2358534a'/%3E%3Cpath d='M170 139h76' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='198' cy='157' r='1.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='3' y='193' width='94' height='64' rx='10' fill='%2358534a'/%3E%3Cpath d='M10 197h76' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='243' r='1.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='103' y='193' width='64' height='64' rx='10' fill='%234c4841'/%3E%3Cpath d='M110 197h46' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='134' cy='233' r='2.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='173' y='193' width='84' height='64' rx='8' fill='%234c4841'/%3E%3Cpath d='M180 197h66' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='234' cy='215' r='2.5' fill='%23000' fill-opacity='.18'/%3E%3C/svg%3E") 0 0/24% auto,#3a362f}
+.tv-scene::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;     /* kenarlara doğru hafif kararma */
+  background:radial-gradient(75% 80% at 50% 50%,transparent 55%,rgba(0,0,0,.34) 100%)}
 
-/* Köşelerdeki fıçılar ve sandık (yalnızca süs) */
-.tv-decor{position:absolute;inset:0;z-index:0;pointer-events:none}
-.tv-decor svg{position:absolute;width:clamp(70px,15cqw,160px);height:auto;filter:drop-shadow(0 0 6px rgba(0,0,0,.6))}
-.tv-decor .d1{left:15%;top:1%}
-.tv-decor .d2{right:15%;bottom:1%}
+/* Yedek masa: yalnızca taverna görseli yüklenemezse görünür (.no-art) */
+.tv-table{display:none;position:absolute;z-index:1;left:50.1cqw;top:35.45cqw;width:27.2cqw;height:27.2cqw;translate:-50% -50%;border-radius:50%;
+  background:repeating-linear-gradient(91deg,transparent 0 2.6cqw,rgba(40,20,6,.30) 2.6cqw calc(2.6cqw + 2px)),linear-gradient(180deg,#8d572a,#6d3f1c);
+  border:.9cqw solid #4a2a12;box-shadow:0 2cqw 3.6cqw rgba(0,0,0,.62),inset 0 0 5cqw rgba(30,12,2,.6)}
+.tv-mat{position:absolute;left:50%;top:50%;width:48%;height:48%;translate:-50% -50%;border-radius:50%;
+  background:radial-gradient(closest-side,#1e3528,#13231a);border:.5cqw solid #3b2412;outline:1.5px dashed rgba(255,225,170,.38);outline-offset:-1cqw}
+.tv-stage.no-art .tv-table{display:block}
+.tv-stage.no-art .tv-waiter{display:none}
+.tv-stage.no-art ~ .tv-log{background-color:#2a3036;border-color:#6b4a2a}
 
-/* Ahşap masa ve ortasındaki zar minderi */
-.tv-table{position:absolute;z-index:1;inset:22.5% 18.2%;border-radius:50%;
-  background:
-    radial-gradient(closest-side,rgba(255,205,130,.20),transparent 72%),
-    repeating-linear-gradient(91deg,transparent 0 clamp(16px,2.6cqw,28px),rgba(40,20,6,.30) clamp(16px,2.6cqw,28px) calc(clamp(16px,2.6cqw,28px) + 2px)),
-    repeating-linear-gradient(88deg,rgba(255,220,170,.05) 0 7px,transparent 7px 15px),
-    linear-gradient(180deg,#8d572a,#6d3f1c);
-  border:clamp(5px,1cqw,11px) solid #4a2a12;
-  box-shadow:0 clamp(8px,2cqw,24px) clamp(14px,3.6cqw,42px) rgba(0,0,0,.62),inset 0 0 clamp(20px,5cqw,60px) rgba(30,12,2,.6),inset 0 0 0 2px rgba(255,210,150,.14)}
-.tv-mat{position:absolute;left:50%;top:50%;width:63%;height:76%;transform:translate(-50%,-50%);border-radius:50%;
-  background:radial-gradient(closest-side,color-mix(in srgb,var(--accent) 20%,#1e3528),#13231a);
-  border:clamp(3px,.6cqw,6px) solid #3b2412;outline:1.5px dashed rgba(255,225,170,.38);outline-offset:calc(-1 * clamp(7px,1.3cqw,13px));
-  box-shadow:inset 0 0 clamp(14px,3cqw,34px) rgba(0,0,0,.6),0 2px 0 rgba(255,220,170,.14)}
+/* Koltuk: sıfır boyutlu bir çapa, tam figürün başının olduğu yerde durur. İçindekiler ona göre yerleşir.
+   Katman sırası: ışık halkası 1, sandalye 2, figür 3, kupalar 4, isimlik 5, garson 6, zarlar 7, kara tahta 8. */
+.tv-seat{position:absolute;left:calc(var(--x,50) * 1cqw);top:calc(var(--y,35) * 1cqw);width:0;height:0;
+  --tw:calc(13.6cqw * var(--f,1));--cw:calc(8.8cqw * var(--f,1));--co:calc(3.4cqw * var(--f,1));      /* --f: masa kalabalıksa figürler biraz küçülür */
+  transition:left .7s cubic-bezier(.4,0,.2,1),top .7s cubic-bezier(.4,0,.2,1),opacity .3s}
+.tv-seat.dm{--co:calc(2.5cqw * var(--f,1))}
+.tv-seat.in{animation:tvSeatIn .5s ease-out}
+@keyframes tvSeatIn{from{opacity:0}}
+.tv-seat.out{opacity:0}
+.tv-seat.me::before{content:"";position:absolute;z-index:1;width:19cqw;height:19cqw;left:-9.5cqw;top:-9.5cqw;border-radius:50%;pointer-events:none;
+  translate:calc(var(--ox,0) * 3cqw) calc(var(--oy,1) * 3cqw);
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--accent) 50%,transparent),color-mix(in srgb,var(--accent) 16%,transparent) 62%,transparent)}
+.tv-chairw,.tv-figw{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
+.tv-chairw{z-index:2;filter:drop-shadow(.2cqw .35cqw .4cqw rgba(0,0,0,.55))}
+.tv-figw{z-index:3;filter:drop-shadow(.25cqw .45cqw .5cqw rgba(0,0,0,.6));transition:opacity .4s}
+.tv-chair,.tv-fig{position:absolute;left:0;top:0;width:0;height:0;rotate:var(--rot,0deg);transition:rotate .7s cubic-bezier(.4,0,.2,1)}
+.tv-chair img,.tv-fig img{position:absolute;display:block;max-width:none;-webkit-user-select:none;user-select:none}
+/* Sandalye görselinde arkalık alttadır; oturağın ortası figürün başının biraz gerisine gelir */
+.tv-chair img{width:var(--cw);left:calc(var(--cw) * -.5);top:calc(var(--co) - var(--cw) * .441)}
+/* Figür görsellerinin hepsi aynı tuvaldedir: baş, tuvalin yatayda tam ortasında ve yukarıdan %45,15 aşağıdadır */
+.tv-fig img{width:var(--tw);left:calc(var(--tw) * -.5);top:calc(var(--tw) * -.7314)}
+.tv-fig svg{position:absolute;display:block;width:15cqw;height:15cqw;left:-7.5cqw;top:-7.875cqw;overflow:visible}   /* yedek çizim figür */
+.fg-me{fill:none}
+.tv-seat.off .tv-figw{opacity:0}                              /* bağlantısı kopan oyuncunun sandalyesi boş kalır */
+.tv-stage.no-art .tv-seat.off .tv-figw{opacity:1}
+.tv-stage.no-art .tv-seat.off :is(.fg-p,.fg-t){opacity:0}
 
-/* Masanın ortası: zarlar, toplam ve kimin neyi attığı (minderin üstünde) */
-.tv-center{position:absolute;z-index:4;left:50%;top:50%;width:37%;transform:translate(-50%,-50%);
+/* İsimlik: ahşap levha. Ad parşömende, karakter adı alt çıtada, solda portre. Yazılar her zaman düz durur. */
+.tv-tag{position:absolute;z-index:5;left:calc(var(--px,0) * 1cqw);top:calc(var(--py,8) * 1cqw);translate:-50% -50%;
+  --av:clamp(27px,4.9cqw,74px);width:clamp(84px,13cqw,196px);aspect-ratio:2323/730;
+  background:url("masa/isimlik.webp") center/100% 100% no-repeat;filter:drop-shadow(0 .3cqw .5cqw rgba(0,0,0,.6));
+  color:#2a1c10;line-height:1;white-space:nowrap;transition:left .7s cubic-bezier(.4,0,.2,1),top .7s cubic-bezier(.4,0,.2,1),opacity .3s}
+.tv-stage.no-art .tv-tag{border-radius:.5cqw;border:.35cqw solid #3d2511;
+  background:linear-gradient(180deg,#6a4526 0 26%,#ecdcb4 26% 74%,#6a4526 74%)}
+.tv-av{position:relative;flex:none;width:var(--av);height:var(--av);border-radius:50%;display:grid;place-items:center;
+  background:var(--field);border:1.5px solid var(--line);font-family:var(--font-display);font-size:calc(var(--av) * .5);font-weight:600;line-height:1}
+.tv-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.tv-av .ic{width:60%;height:60%}
+.tv-av .dot{position:absolute;right:-2px;bottom:-2px;width:max(8px,calc(var(--av) * .26));height:max(8px,calc(var(--av) * .26));border:1.5px solid #1a120b}
+.tv-tag .tv-av{position:absolute;left:calc(var(--av) * -.4);top:50%;translate:0 -50%;color:#f6ead8;background:#2a1b0f;
+  border:max(2px,.22cqw) solid #c9a45c;box-shadow:0 0 0 1px #2a1b0f,0 .2cqw .5cqw rgba(0,0,0,.6)}
+.tv-nm{position:absolute;inset:0 5.5% 0 calc(var(--av) * .6 + 3%);display:block;text-align:center}
+.tv-nm b{position:absolute;left:0;right:0;top:50%;translate:0 -52%;overflow:hidden;text-overflow:ellipsis;
+  font-family:var(--font-display);font-size:clamp(10.5px,1.36cqw,20px);font-weight:700;letter-spacing:.01em}
+.tv-nm small{position:absolute;left:4%;right:4%;bottom:5%;overflow:hidden;text-overflow:ellipsis;
+  font-size:clamp(8px,.92cqw,13.5px);font-weight:700;color:#f3dfb6;text-shadow:0 1px 1px #1d1108,0 0 3px #1d1108}
+.tv-hp{position:absolute;left:14%;right:14%;top:10%;height:max(3px,.42cqw);border-radius:999px;background:rgba(20,10,4,.8);box-shadow:0 0 0 1px rgba(255,220,170,.35);overflow:hidden}
+.tv-star{color:#b0611a;margin-left:.25em}
+.tv-seat.dm .tv-av{border-color:var(--accent-2);color:var(--accent-2)}
+.tv-seat.dm .tv-nm small{color:var(--accent-2);letter-spacing:.14em}
+.tv-seat.me .tv-tag{filter:drop-shadow(0 0 .45cqw var(--accent)) drop-shadow(0 .3cqw .5cqw rgba(0,0,0,.6))}
+.tv-seat.me .tv-tag .tv-av{border-color:var(--accent)}
+.tv-seat.off .tv-tag{opacity:.66}
+.tv-seat.off .tv-av img{filter:grayscale(1)}
+
+/* Masanın ortası: zarlar, toplam ve kimin neyi attığı (yeşil minderin üstünde) */
+.tv-center{position:absolute;z-index:7;left:50.1cqw;top:35.45cqw;width:24cqw;translate:-50% -50%;
   display:grid;justify-items:center;text-align:center;pointer-events:none}
-.tv-idle{color:var(--muted);font-size:clamp(11px,1.4cqw,14px);max-width:26ch}
-.tv-throw{display:grid;justify-items:center;gap:clamp(3px,.8cqw,9px);max-width:100%;--glow:var(--accent)}
+.tv-idle{margin:0;width:10.5cqw;color:#e6dcc4;opacity:.8;font-size:clamp(9px,1.05cqw,14px);line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.tv-throw{display:grid;justify-items:center;gap:clamp(2px,.55cqw,8px);max-width:100%;--glow:var(--accent)}
 .tv-throw.crit-hit{--glow:var(--good)}
 .tv-throw.crit-miss{--glow:var(--bad)}
 .tv-total{min-width:1.7em;padding:.02em .3em;border-radius:var(--radius);background:var(--glow);color:var(--on-accent);
-  font-family:var(--font-display);font-size:clamp(24px,5cqw,52px);font-weight:700;line-height:1.05;box-shadow:0 0 28px -6px var(--glow),0 3px 8px rgba(0,0,0,.5)}
+  font-family:var(--font-display);font-size:clamp(20px,3.5cqw,52px);font-weight:700;line-height:1.05;box-shadow:0 0 28px -6px var(--glow),0 3px 8px rgba(0,0,0,.5)}
 .tv-throw:is(.crit-hit,.crit-miss) .tv-total{color:var(--bg)}
-.tv-dice{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:clamp(3px,.8cqw,9px);max-width:100%}
-.tv-die{--die:clamp(38px,6.8cqw,70px);width:var(--die);height:var(--die);display:block;filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))}
-.tv-dice.m .tv-die{--die:clamp(30px,5cqw,52px)}
-.tv-dice.s .tv-die{--die:clamp(24px,3.7cqw,40px)}
+.tv-dice{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:clamp(2px,.5cqw,8px);max-width:100%}
+.tv-die{--die:clamp(30px,4.9cqw,70px);width:var(--die);height:var(--die);display:block;filter:drop-shadow(0 3px 4px rgba(0,0,0,.6))}
+.tv-dice.m .tv-die{--die:clamp(24px,3.7cqw,52px)}
+.tv-dice.s .tv-die{--die:clamp(19px,2.8cqw,40px)}
 .tv-die svg{display:block;width:100%;height:100%;overflow:visible}
 .tv-die .f{fill:color-mix(in srgb,var(--accent) 70%,var(--bg));stroke:color-mix(in srgb,var(--accent) 60%,var(--text));stroke-width:2.5;stroke-linejoin:round}
 .tv-die .ff{fill:var(--accent)}
@@ -681,7 +732,8 @@ body.tv-on .app{max-width:1760px}
 .tv-die.x{opacity:.4;filter:grayscale(1)}                  /* avantaj/dezavantajda hesaba katılmayan zar */
 .tv-throw.shown:is(.crit-hit,.crit-miss) .tv-die:not(.x){filter:drop-shadow(0 0 9px var(--glow))}
 .tv-more{font-weight:800;color:var(--muted)}
-.tv-cap{display:grid;gap:1px;max-width:100%;font-size:clamp(11px,1.3cqw,14px);line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.tv-cap{display:grid;gap:1px;max-width:100%;padding:.3cqw .9cqw .4cqw;border-radius:.7cqw;background:rgba(22,13,6,.78);box-shadow:0 2px 8px rgba(0,0,0,.4);
+  font-size:clamp(10px,1.12cqw,15px);line-height:1.3}
 .tv-cap b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tv-cap span{color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .tv-cap em{font-style:normal;font-weight:800;color:var(--glow)}
@@ -692,86 +744,74 @@ body.tv-on .app{max-width:1760px}
 @keyframes tvPop{from{transform:scale(.4);opacity:0}}
 @keyframes tvGlow{to{box-shadow:0 0 46px 6px var(--glow)}}
 
-/* Koltuklar: sandalyede oturan, tepeden görünen figür ve yanında portreli isimlik */
-.tv-seat{position:absolute;z-index:3;left:calc(50% + var(--cx,0) * var(--rx));top:calc(50% + var(--sy,0) * var(--ry));
-  width:var(--fig);height:var(--fig);transform:translate(-50%,-50%);
-  transition:left .7s cubic-bezier(.4,0,.2,1),top .7s cubic-bezier(.4,0,.2,1),opacity .3s}
-.tv-seat.in{animation:tvSeatIn .5s ease-out}
-@keyframes tvSeatIn{from{opacity:0;scale:.6}}
-.tv-fig{position:absolute;inset:0;rotate:var(--rot,0deg);transition:rotate .7s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 5px rgba(0,0,0,.6))}
-.tv-fig svg{display:block;width:100%;height:100%;overflow:visible}
-.fg-me{fill:none}
-.tv-seat.me .fg-me{fill:color-mix(in srgb,var(--accent) 26%,transparent);stroke:var(--accent);stroke-width:1.6;stroke-dasharray:4 3}
-.fg-p,.fg-t{transition:opacity .4s}
-.tv-seat.off :is(.fg-p,.fg-t){opacity:0}                    /* bağlantısı kopan oyuncunun sandalyesi boş kalır */
-.tv-tag{position:absolute;z-index:1;left:calc(50% + var(--ox,0) * var(--fig) * .36);top:calc(50% + var(--oy,1) * var(--fig) * .36);
-  transform:translate(calc(-50% + var(--ox,0) * 50%),calc(-50% + var(--oy,1) * 50%));
-  display:flex;align-items:center;gap:6px;width:max-content;max-width:clamp(92px,16cqw,172px);padding:3px 10px 3px 3px;border-radius:999px;
-  background:var(--surface);border:1px solid var(--line);box-shadow:0 4px 12px rgba(0,0,0,.55);line-height:1.15;white-space:nowrap}
-.tv-tag.v{flex-direction:column;gap:2px;padding:4px 7px 5px;border-radius:14px;text-align:center;max-width:clamp(68px,10.5cqw,112px)}
-.tv-av{position:relative;flex:none;width:var(--av);height:var(--av);border-radius:50%;display:grid;place-items:center;
-  background:var(--field);border:1.5px solid var(--line);font-family:var(--font-display);font-size:calc(var(--av) * .5);font-weight:600;line-height:1}
-.tv-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
-.tv-av .ic{width:60%;height:60%}
-.tv-av .dot{position:absolute;right:-2px;bottom:-2px;width:max(8px,calc(var(--av) * .3));height:max(8px,calc(var(--av) * .3));border:1.5px solid var(--bg)}
-.tv-nm{min-width:0;display:grid}
-.tv-nm b{font-size:clamp(10.5px,1.3cqw,14px);font-weight:700;overflow:hidden;text-overflow:ellipsis}
-.tv-nm small{font-size:clamp(9.5px,1.1cqw,12px);color:var(--muted);overflow:hidden;text-overflow:ellipsis}
-.tv-star{color:var(--accent-2);margin-left:3px}
-.tv-seat.dm .tv-av{border-color:var(--accent-2);color:var(--accent-2)}
-.tv-seat.dm .tv-nm small{color:var(--accent-2);font-weight:800;letter-spacing:.1em}
-.tv-seat.me .tv-tag{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 34%,transparent),0 4px 14px rgba(0,0,0,.55)}
-.tv-seat.me .tv-nm b{color:var(--accent)}
-.tv-seat.off .tv-tag{opacity:.62}
-.tv-seat.off .tv-av img{filter:grayscale(1)}
-.tv-seat.out{opacity:0}
-.tv-hp{display:block;width:100%;min-width:52px;height:5px;margin-top:2px;border-radius:999px;background:var(--field);border:1px solid var(--line);overflow:hidden}
+/* Garson kız: sağ duvardaki kapıdan çıkar, bir oyuncunun yanına gelir, bekler ve geri döner (yolu JS çizer).
+   Görselde yüzü AŞAĞI bakar; --r ile yürüdüğü yöne çevrilir. İki kare üst üstedir: dolu tepsi ve boş tepsi. */
+.tv-waiter{position:absolute;z-index:6;left:0;top:0;width:0;height:0;pointer-events:none;--ww:calc(11.5cqw * var(--f,1));
+  filter:drop-shadow(.25cqw .45cqw .5cqw rgba(0,0,0,.6))}
+.tv-waiter[hidden]{display:none}
+.tv-waiter-in{position:absolute;left:0;top:0;width:0;height:0;rotate:var(--r,0deg)}
+.tv-waiter img{position:absolute;display:block;max-width:none;width:var(--ww);left:calc(var(--ww) * -.5);top:calc(var(--ww) * -.6038);transition:opacity .35s}
+.tv-waiter .b{opacity:0}
+.tv-waiter.served .a{opacity:0}
+.tv-waiter.served .b{opacity:1}
+.tv-waiter.walk img{animation:tvStep .42s ease-in-out infinite alternate}
+@keyframes tvStep{from{transform:rotate(-3.5deg) translateX(-1.2%)}to{transform:rotate(3.5deg) translateX(1.2%)}}
+/* Garsonun bıraktığı kupa: oyuncunun elinin yanında, masanın üstünde durur */
+.tv-mug{position:absolute;z-index:4;width:2.5cqw;left:calc(var(--x) * 1cqw);top:calc(var(--y) * 1cqw);translate:-55% -56%;rotate:var(--r,0deg);
+  pointer-events:none;filter:drop-shadow(.1cqw .2cqw .2cqw rgba(0,0,0,.6));animation:tvMug .5s ease-out}
+@keyframes tvMug{from{opacity:0;scale:1.5}}
 
-/* Hizmetçi: arada bir sol kenardan aşağı, sonra sağ kenardan yukarı yürür */
-.tv-servant{position:absolute;z-index:2;left:4.5%;top:-16%;width:calc(var(--fig) * .66);height:calc(var(--fig) * .66);
-  margin:calc(var(--fig) * -.33) 0 0 calc(var(--fig) * -.33);rotate:180deg;pointer-events:none;
-  animation:tvServe 56s linear 5s infinite;filter:drop-shadow(0 0 5px rgba(0,0,0,.6))}
-.tv-servant svg{display:block;width:100%;height:100%;animation:tvStep .46s ease-in-out infinite alternate}
-@keyframes tvServe{
-  0%{left:4.5%;top:-16%;rotate:180deg} 14%{left:4.5%;top:116%;rotate:180deg}
-  14.01%,50%{left:95.5%;top:116%;rotate:0deg} 64%{left:95.5%;top:-16%;rotate:0deg}
-  64.01%,100%{left:4.5%;top:-16%;rotate:180deg}}
-@keyframes tvStep{from{transform:rotate(-4deg) translateX(-1.5%)}to{transform:rotate(4deg) translateX(1.5%)}}
-
-/* Son atışlar: duvardaki ahşap pano. Fare üstüne gelene kadar yarı saydam durur. */
-.tv-log{margin-top:6px;padding:10px 11px 14px;border-radius:9px;color:#2a1c10;border:6px solid #3d2511;
-  background:repeating-linear-gradient(90deg,rgba(0,0,0,.12) 0 2px,transparent 2px 44px),linear-gradient(180deg,#7c5432,#5c3b1f);
-  box-shadow:var(--shadow),inset 0 0 0 1px rgba(255,215,160,.2),inset 0 0 26px rgba(0,0,0,.45);
-  -webkit-backdrop-filter:none;backdrop-filter:none;transition:opacity .25s}
+/* Son atışlar: duvardaki kara tahtaya tebeşirle yazılır. Normalde yalnızca sonuç ve ad görünür;
+   fareyle üstüne gelince (telefonda dokununca) tahta büyür ve atışın ayrıntıları okunur. */
+.tv-log{position:absolute;z-index:8;box-sizing:border-box;left:80.5%;top:7.9%;width:15.1%;max-height:27.6%;min-height:27.6%;overflow:hidden;
+  border:1cqw solid transparent;border-radius:.4cqw;padding:.35cqw .55cqw .5cqw;cursor:zoom-in;outline:0;
+  font-family:'Caveat','Segoe Print','Bradley Hand','Comic Sans MS',cursive;color:#e8ecee;
+  transition:left .28s ease,width .28s ease,max-height .28s ease,background-color .28s,border-color .28s,box-shadow .28s}
+.tv-log h2{margin:0 0 .25cqw;padding-bottom:.15cqw;border-bottom:1.5px solid rgba(232,236,238,.4);
+  font:inherit;font-weight:700;font-size:clamp(11px,1.5cqw,21px);line-height:1.1;text-align:center;letter-spacing:.02em;white-space:nowrap;overflow:hidden}
+.tv-log h2 em{display:none;font-style:normal;font-weight:500;font-size:.8em;opacity:.7;margin-left:.4em}
+.tv-log ol{list-style:none;margin:0;padding:0;display:grid;gap:.05cqw}
+.tv-log li{display:grid;grid-template-columns:2.1em minmax(0,1fr) auto;column-gap:.4em;align-items:baseline;
+  font-size:clamp(10.5px,1.42cqw,20px);line-height:1.22;opacity:.92}
+.tv-log li b{font-size:1.16em;font-weight:700;text-align:right}
+.tv-log li .w{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-log li .d,.tv-log li time{display:none}
+.tv-log li.crit-hit{color:#a5ecb9}
+.tv-log li.crit-miss{color:#ffa79a}
+.tv-log li:nth-child(n+8){display:none}
+.tv-log li.none{display:block;text-align:center;opacity:.6;white-space:normal;font-size:clamp(10px,1.25cqw,17px)}
+.tv-log.open,.tv-log:focus-visible{left:55.5%;width:40.1%;max-height:84%;overflow:auto;cursor:zoom-out;padding:.7cqw 1.1cqw 1cqw;
+  background-color:#2a3036;border-color:#6b4a2a;box-shadow:0 0 0 .22cqw #3a2412,0 1.4cqw 3.4cqw rgba(0,0,0,.65),inset 0 0 2.4cqw rgba(0,0,0,.55)}
 @media (hover:hover){
-  .tv-log{opacity:.36}
-  .tv-log:hover,.tv-log:focus-within{opacity:1}
+  .tv-log:hover{left:55.5%;width:40.1%;max-height:84%;overflow:auto;padding:.7cqw 1.1cqw 1cqw;
+    background-color:#2a3036;border-color:#6b4a2a;box-shadow:0 0 0 .22cqw #3a2412,0 1.4cqw 3.4cqw rgba(0,0,0,.65),inset 0 0 2.4cqw rgba(0,0,0,.55)}
+  .tv-log:hover h2 em{display:inline}
+  .tv-log:hover li{grid-template-columns:2.3em minmax(0,1fr) auto;padding:.12cqw 0;border-bottom:1px dashed rgba(232,236,238,.16);font-size:clamp(13px,1.6cqw,23px)}
+  .tv-log:hover li:nth-child(n+8){display:grid}
+  .tv-log:hover li .w{font-weight:700}
+  .tv-log:hover li .d{display:block;grid-column:2/4;white-space:normal;opacity:.82;font-size:.86em;line-height:1.15}
+  .tv-log:hover li time{display:block;grid-column:3;grid-row:1;opacity:.55;font-size:.8em}
 }
-.tv-log .card-h{margin-bottom:12px;justify-content:center}
-.tv-log h2{padding:3px 14px;border-radius:5px;background:#3d2511;color:#f1dfba;font-size:17px;box-shadow:inset 0 0 0 1px rgba(255,215,160,.25)}
-.tv-log h2 em{color:#d2b98c}
-.tv-log .history{gap:11px;overflow:visible}
-.tv-log .history li{position:relative;background:#ecdcb4;color:#2a1c10;border-radius:3px;box-shadow:0 2px 5px rgba(0,0,0,.45);rotate:-.7deg}
-.tv-log .history li:nth-child(even){rotate:.8deg}
-.tv-log .history li::before{content:"";position:absolute;top:-5px;left:50%;width:10px;height:10px;margin-left:-5px;border-radius:50%;
-  background:radial-gradient(circle at 35% 35%,#ff9a8a,#a3261c);box-shadow:0 1px 2px rgba(0,0,0,.55)}
-.tv-log .history li span,.tv-log .history time{color:#6a5438}
-.tv-log .history li.crit-hit b{color:#1c7a47}
-.tv-log .history li.crit-miss b{color:#b3261c}
-.tv-log .history .none{background:transparent;color:#f1dfba;box-shadow:none;rotate:0deg;text-align:center}
-.tv-log .history .none::before{display:none}
+.tv-log:is(.open,:focus-visible) h2 em{display:inline}
+.tv-log:is(.open,:focus-visible) li{grid-template-columns:2.3em minmax(0,1fr) auto;padding:.12cqw 0;border-bottom:1px dashed rgba(232,236,238,.16);font-size:clamp(13px,1.6cqw,23px)}
+.tv-log:is(.open,:focus-visible) li:nth-child(n+8){display:grid}
+.tv-log:is(.open,:focus-visible) li .w{font-weight:700}
+.tv-log:is(.open,:focus-visible) li .d{display:block;grid-column:2/4;white-space:normal;opacity:.82;font-size:.86em;line-height:1.15}
+.tv-log:is(.open,:focus-visible) li time{display:block;grid-column:3;grid-row:1;opacity:.55;font-size:.8em}
+.tv-log li .d i{font-style:normal;opacity:.8}
+.tv-log li.none{grid-template-columns:1fr!important;border:0!important}
 
 /* Oyuncunun sol alttaki kendi kutusu: can, AC ve hızlı zarlar */
 .tv-me{align-self:end;display:grid;gap:9px;padding:11px 12px 12px;border-radius:var(--radius);background:var(--bar);border:1px solid var(--line);
   box-shadow:var(--shadow);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
 /* Küçültülmüş kutu sol alt köşede yüzen bir şerit olur ve masaya yer açar */
 @media (min-width:1200px){
-  .tv-wrap.has-me.me-min{grid-template-columns:minmax(0,1fr) 236px}
+  .tv-wrap.has-me.me-min{grid-template-columns:minmax(0,1fr)}
   .tv-wrap.me-min .tv-me{position:fixed;left:16px;bottom:16px;z-index:38;width:286px}
 }
 @media (max-width:1199px){
   /* Ekran daralınca kutu masanın üstüne, sol alt köşeye biner; küçültülmüş başlar */
-  .tv-wrap.has-me{grid-template-columns:minmax(0,1fr) 236px}
+  .tv-wrap.has-me{grid-template-columns:minmax(0,1fr)}
   .tv-me{position:fixed;left:16px;bottom:16px;z-index:38;width:min(286px,calc(100vw - 100px));max-height:calc(100vh - var(--topbar-h,66px) - 36px);overflow:auto}
 }
 .me-h{display:flex;align-items:center;gap:9px}
@@ -804,14 +844,26 @@ button.me-stat:hover span{color:inherit}
 body.tv-on .tray{z-index:41}
 @media (min-width:561px){ body.tv-on .toast{left:50%;translate:-50% 0} }
 
-@media (max-width:900px){ .tv-wrap,.tv-wrap.has-me{grid-template-columns:minmax(0,1fr)} .tv-log{max-width:420px;margin-inline:auto;width:100%} }
 @media (max-width:640px) and (orientation:portrait){
-  /* Dik tutulan telefonda masa dik bir ovale döner, DM masanın başında kalır */
-  .tv-stage{width:100%;aspect-ratio:3/4;--rx:33%;--ry:36%;--fig:clamp(76px,25cqw,120px);--av:20px}
-  .tv-table{inset:17.5% 24%}
-  .tv-mat{width:72%;height:66%}
-  .tv-center{width:40%}
-  .tv-tag{max-width:30cqw;padding:2px 7px 2px 2px;gap:4px}
+  /* Dik tutulan telefon: tablo büyütülür, yalnızca ortadaki masa ve çevresi görünür. Kara tahta sahnenin altına iner. */
+  .tv-main{width:100%}
+  .tv-stage{aspect-ratio:4/5;--z:1.762}
+  .tv-tag{background:rgba(26,16,8,.88)!important;aspect-ratio:auto;width:auto;max-width:74px;min-width:0;padding:2px 6px 2px calc(var(--av) * .62);
+    border-radius:999px;border:1px solid rgba(255,222,170,.4)!important;color:#f6ead8;--av:22px;filter:none}
+  .tv-tag .tv-av{left:calc(var(--av) * -.42)}
+  .tv-nm{position:static;display:block;text-align:left}
+  .tv-nm b{position:static;display:block;translate:none;font-size:10px;max-width:56px}
+  .tv-nm small,.tv-hp{display:none}
+  .tv-seat.me .tv-tag{filter:none;border-color:var(--accent)!important}
+  .tv-log,.tv-log:hover,.tv-log.open,.tv-log:focus-visible{position:static;width:auto;min-height:0;max-height:none;margin-top:12px;overflow:visible;cursor:default;padding:10px 14px 12px;
+    border:6px solid #6b4a2a;border-radius:6px;background-color:#2a3036;box-shadow:0 0 0 2px #3a2412,var(--shadow),inset 0 0 24px rgba(0,0,0,.55)}
+  .tv-log h2{font-size:20px;margin-bottom:6px}
+  .tv-log h2 em{display:inline}
+  .tv-log li,.tv-log:hover li,.tv-log:is(.open,:focus-visible) li{grid-template-columns:2.3em minmax(0,1fr) auto;padding:3px 0;border-bottom:1px dashed rgba(232,236,238,.16);font-size:18px}
+  .tv-log li:nth-child(n+8){display:grid}
+  .tv-log li .w{font-weight:700}
+  .tv-log li .d{display:block;grid-column:2/4;white-space:normal;opacity:.82;font-size:.86em;line-height:1.15}
+  .tv-log li time{display:block;grid-column:3;grid-row:1;opacity:.55;font-size:.8em}
   .tv-me{left:10px;bottom:10px}
 }
 @media (prefers-reduced-motion:reduce){
@@ -889,24 +941,26 @@ body.tv-on .tray{z-index:41}
     </div>
   </section>
 
-  <!-- ═════════ MASA GÖRÜNÜMÜ: oval masa, koltuklar ve uçan zarlar (içini JS doldurur) ═════════ -->
+  <!-- ═════════ MASA GÖRÜNÜMÜ: boyalı taverna, koltuklar, garson ve uçan zarlar (içini JS doldurur) ═════════ -->
   <section id="tableView" hidden>
     <div class="tv-wrap">
       <!-- Oyuncunun kendi kutusu (içini JS doldurur). DM'de görünmez. -->
       <aside class="tv-me" id="tvMe" aria-label="Karakterim" hidden></aside>
-      <div class="tv-stage" id="tvStage">
-        <div class="tv-decor" aria-hidden="true">
-          <svg class="d1" viewBox="0 0 160 110"><g stroke="#2f1c0c" stroke-width="2"><circle cx="46" cy="46" r="38" fill="#7a4d26"/><circle cx="46" cy="46" r="29" fill="#8d5a2c"/><path d="M17 46h58M24 26h44M24 66h44" stroke="#5a371b" stroke-width="2.5"/><circle cx="46" cy="46" r="38" fill="none" stroke="#3a3a40" stroke-width="5"/><circle cx="116" cy="70" r="30" fill="#6f4522"/><circle cx="116" cy="70" r="22" fill="#84532a"/><path d="M94 70h44M100 54h32M100 86h32" stroke="#5a371b" stroke-width="2.5"/><circle cx="116" cy="70" r="30" fill="none" stroke="#3a3a40" stroke-width="4.5"/></g></svg>
-          <svg class="d2" viewBox="0 0 160 110"><g stroke="#2f1c0c" stroke-width="2"><rect x="70" y="26" width="78" height="72" rx="5" fill="#7a5230"/><path d="M70 50h78M70 74h78M96 26v72M122 26v72" stroke="#4a2e16" stroke-width="2.5"/><rect x="70" y="26" width="78" height="72" rx="5" fill="none" stroke="#3d2511" stroke-width="5"/><path d="M14 78c-4-22 6-40 24-40s28 18 24 40c-2 12-10 20-24 20S16 90 14 78Z" fill="#c9b78f"/><path d="M26 44c6 5 18 5 24 0" fill="none" stroke="#8a744a" stroke-width="3"/></g></svg>
+      <div class="tv-main">
+        <div class="tv-stage" id="tvStage">
+          <!-- Tablo: koltuklar ve kupalar JS tarafından buraya eklenir -->
+          <div class="tv-scene" id="tvScene">
+            <div class="tv-table" aria-hidden="true"><div class="tv-mat"></div></div>
+            <div class="tv-waiter" id="tvWaiter" aria-hidden="true" hidden><div class="tv-waiter-in"><img class="a" src="masa/garson-dolu.webp" alt=""><img class="b" src="masa/garson-bos.webp" alt=""></div></div>
+            <div class="tv-center" id="tvCenter" role="status" aria-live="polite"></div>
+          </div>
         </div>
-        <div class="tv-servant" id="tvServant" aria-hidden="true"></div>
-        <div class="tv-table" aria-hidden="true"><div class="tv-mat"></div></div>
-        <div class="tv-center" id="tvCenter" role="status" aria-live="polite"></div>
+        <!-- Duvardaki kara tahta: son atışlar. Üstüne gelince (telefonda dokununca) büyür. -->
+        <aside class="tv-log" id="tvLogBox" tabindex="0" data-act="log-toggle" aria-label="Son atışlar" title="Son atışlar: ayrıntı için üstüne gel">
+          <h2>Son atışlar<em>en yenisi üstte</em></h2>
+          <ol id="tvLog"></ol>
+        </aside>
       </div>
-      <aside class="card tv-log" title="Fareyle üstüne gelince belirginleşir">
-        <div class="card-h"><h2>Son atışlar<em>pano</em></h2></div>
-        <ol class="history feed" id="tvLog"></ol>
-      </aside>
     </div>
   </section>
 
@@ -2598,7 +2652,15 @@ function dmReceive(pid, conn, msg) {
 const seated = () => Array.from(net.players.values()).filter(p => !p.left);
 // Figürün kıyafeti için sınıf, saçı için "Masadaki figür" seçimi de gider (masada herkes figürü zaten görür).
 const FIG_CLASSES = Object.keys(CLASSES).map(k => k.toLowerCase());
-const classKey = c => { const n = String(c && c.cls || '').trim().toLowerCase(); return FIG_CLASSES.includes(n) ? n : ''; };
+const CLASS_TR = { barbar:'barbarian', ozan:'bard', rahip:'cleric', ruhban:'cleric', 'savaşçı':'fighter', 'keşiş':'monk', korucu:'ranger', izci:'ranger', 'hırsız':'rogue', 'düzenbaz':'rogue', sihirbaz:'sorcerer', 'büyücü':'wizard' };
+const classKey = c => {      // figür için sınıf anahtarı. Türkçe yazılan adlar da tanınır; "Fighter 3 / Wizard 2" gibi yazımlarda ilk sınıf alınır.
+  const raw = String(c && c.cls || '').trim();
+  for (const w of [raw, raw.split(/[\s,\/(]+/)[0]]) {
+    const n = w.toLowerCase(); if (FIG_CLASSES.includes(n)) return n;
+    const t = CLASS_TR[w.toLocaleLowerCase('tr')]; if (t) return t;
+  }
+  return '';
+};
 const rosterList = () => seated().map(p => ({ id: p.seat, name: p.name, char: p.char ? short(p.char.name.trim(), 40) : '', on: !!p.online, cls: classKey(p.char), look: p.char ? p.char.look : '' }));
 const seatSig = c => (c ? [c.name, classKey(c), c.look].join('|') : '');
 function broadcastRoster() {
@@ -2987,7 +3049,8 @@ function resumeTable() {
    • DM her zaman en üstte (−90°) oturur. N oyuncu varsa i. oyuncunun açısı
      −90° + 360° × (i+1)/(N+1) olur; herkes eşit aralıkla, simetrik dağılır.
      Sıra DM'in listesindeki sıradır, herkes aynı sırayı görür.
-   • JS koltuğa yalnızca açıyı verir (--cx, --sy); ekrana göre ölçeklemeyi
+   • Sahne boyalı bir taverna tablosudur (masa/taverna.webp). JS her koltuğun
+     tablodaki yerini "birim" cinsinden verir (--x, --y); ekrana göre ölçeklemeyi
      CSS yapar (görünüm bölümü 16).
    • Zarın sonucu her zaman atanın tarayıcısında hesaplanmıştır. Buradaki
      animasyon yalnızca gösterimdir: sonucu değiştirmez, yeniden zar atmaz.
@@ -2999,12 +3062,15 @@ const tv = {
   queue: [],               // sırada bekleyen atışlar
   cur: null,               // şu an havada olan atış
   busy: false, run: 0, timer: 0, anims: [],
-  recent: [],              // son 5 atış (masanın kenarındaki liste)
+  recent: [],              // son 8 atış (duvardaki kara tahta)
+  mugs: new Map(),         // koltuk kimliği → garsonun bıraktığı kupa
+  art: undefined,          // görseller yüklendi mi? (undefined: bakılmadı, null: bakılıyor, true/false)
 };
 const meSeat = () => (store.net.role === 'dm' ? 'dm' : net.mySeat || 'me');
 const myName = () => store.net.name || (store.net.role === 'dm' ? 'DM' : 'Sen');
 
-/* ───────── Tepeden görünen figürler ─────────
+/* ───────── Yedek figürler (kodla çizilir) ─────────
+   Asıl figürler "masa" klasöründeki görsellerdir. Buradaki çizimler yalnızca o görseller yüklenemezse kullanılır.
    Her figür 120×120'lik bir kutuda, yüzü YUKARI (masaya) dönük çizilir; koltuğa göre döndürülür.
    Katman sırası: sandalye → sırttaki eşya → gövde ve kollar → masadaki eşyalar → saç → baş → başlık.
    Kıyafet sınıfa göre, saç ve omuz genişliği "Masadaki figür" seçimine göre değişir.
@@ -3120,18 +3186,41 @@ function figureSVG(o) {
   </svg>`;
 }
 
-/* Hizmetçi: tepsisinde iki kupayla yürür */
-const SERVANT_SVG = `<svg viewBox="0 0 120 120" aria-hidden="true">
-  <ellipse cx="60" cy="70" rx="22" ry="14" fill="#e9e2cf"/><path d="M42 74Q60 96 78 74Q60 84 42 74Z" fill="#8a2f2f"/>
-  <path d="M43 68Q38 52 48 40M77 68Q82 52 72 40" fill="none" stroke="#e9e2cf" stroke-width="10" stroke-linecap="round"/>
-  <circle cx="48" cy="38" r="5.4" fill="#e2ad80"/><circle cx="72" cy="38" r="5.4" fill="#e2ad80"/>
-  <ellipse cx="60" cy="30" rx="21" ry="14" fill="#7a5a34" stroke="#3b2814" stroke-width="1.6"/><ellipse cx="60" cy="30" rx="17" ry="10.500" fill="#8f6a3e"/>
-  <circle cx="52" cy="29" r="6" fill="#8a6a3a" stroke="#3b2814" stroke-width="1.3"/><circle cx="52" cy="29" r="3.900" fill="#e4b04a"/>
-  <circle cx="68" cy="31" r="6" fill="#8a6a3a" stroke="#3b2814" stroke-width="1.3"/><circle cx="68" cy="31" r="3.900" fill="#f3ead2"/>
-  <path d="M48 64Q45 82 52 92Q60 96 68 92Q75 82 72 64Q60 78 48 64Z" fill="#5b3a21"/>
-  <circle cx="60" cy="65" r="12.4" fill="#5b3a21" stroke="rgba(0,0,0,.28)" stroke-width=".9"/><path d="M51.500 57.500Q60 49 68.5 57.500Q60 62.5 51.500 57.500Z" fill="#e2ad80"/>
-  <path d="M49 62Q60 55 71 62" fill="none" stroke="#f3eedf" stroke-width="3" stroke-linecap="round"/>
-</svg>`;
+/* ───────── Sahnenin ölçüleri ─────────
+   Hepsi "birim" cinsindendir: 1 birim = taverna tablosunun genişliğinin yüzde biri.
+   Tablo 100 birim genişliğinde, 70,94 birim yüksekliğindedir. Sayılar masa/taverna.webp'ten ölçüldü;
+   görseli değiştirirsen yalnızca buradaki sayıları güncellemen yeter. */
+const TV = {
+  cx: 50.1, cy: 35.45,        // boyalı masanın (yeşil minderin) merkezi
+  h: 70.94,                   // tablonun yüksekliği
+  // Masa kalabalıklaştıkça figürler biraz küçülür ve masaya yaklaşır. Sıra: [figür ölçeği, oyuncunun başı, DM'in başı (masa merkezine uzaklık)]
+  fit: n => (n >= 6 ? [0.88, 16.5, 18.5] : n === 5 ? [0.94, 16.9, 18.9] : [1, 17.4, 19.3]),
+  plate: 13,                  // isimliğin genişliği
+  door: [104.5, 34.8],        // garsonun çıktığı kapı (sağ duvar, tablonun hemen dışı)
+  // Garsonun yürüdüğü yol: kapıdan girer, masanın çevresini alttan dolanır (sol üste kadar)…
+  lane: [[80, 35], [72.8, 45], [68, 55], [60, 62.3], [50.1, 64.2], [40, 62.3], [32.5, 55.5], [29.5, 46], [21.5, 35.45], [29.5, 25.5], [33.5, 15.8]],
+  up:   [[80, 35], [72.2, 26.5], [68.5, 16.8]],          // …ya da sağ üste çıkar. Üstten (tezgâhın önünden) geçmez.
+};
+const ART = 'masa/';                                     // görsellerin klasörü
+// Figür görseli: sınıf + (kadın/erkek). Sınıf seçilmediyse "sinifsiz". Görünüm belirtilmediyse koltuk kimliğinden
+// türetilir; böylece aynı kişi herkesin ekranında aynı figürle görünür.
+const figFile = s => (s.dm ? 'dm' : `${FIG_OUTFIT[s.cls] && s.cls ? s.cls : 'sinifsiz'}-${s.look === 'f' || s.look === 'm' ? s.look : (figHash(s.id) & 1 ? 'f' : 'm')}`);
+
+// Görseller yerinde mi? Taverna resmi yüklenemezse (masa klasörü eksikse) çizim figürlere ve çizim masaya dönülür.
+function tvArtCheck() {
+  if (tv.art !== undefined) return;
+  tv.art = null;
+  const im = new Image();
+  im.onload = () => { tv.art = true; };
+  im.onerror = () => {
+    tv.art = false;
+    $('#tvStage').classList.add('no-art');
+    tv.els.forEach(el => { el._html = ''; });
+    renderTable();
+    notify('Masa görselleri bulunamadı', '"masa" klasörü index.html ile aynı yerde olmalı. Şimdilik çizim figürler gösteriliyor.');
+  };
+  im.src = ART + 'taverna.webp';
+}
 
 // Koltuklar: önce DM, sonra oyuncular. Oyuncunun ekranına yalnızca DM'den gelen liste (ad, karakter adı, bağlı mı) ve küçük portreler girer.
 function seatList() {
@@ -3152,7 +3241,7 @@ function seatList() {
   return list;
 }
 
-function seatHTML(s, vert) {
+function seatHTML(s) {
   // İsimlikteki küçük resim: DM'de her zaman zar simgesi (DM'in hazırladığı NPC portresi oyunculara sızmasın diye)
   const av = s.dm ? '<svg class="ic"><use href="#i-d20"/></svg>'
     : s.img ? `<img src="${esc(s.img)}" alt="">`
@@ -3162,49 +3251,209 @@ function seatHTML(s, vert) {
     const max = Math.max(0, int(s.hp.max)), cur = int(s.hp.cur), pct = max ? clamp(cur / max, 0, 1) : 0;
     hp = `<span class="tv-hp" title="${cur} / ${max} can"><span class="hp-fill" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span></span>`;
   }
-  return `<div class="tv-fig">${figureSVG({ dm: s.dm, cls: s.cls, look: s.look, seed: s.id })}</div>
-    <div class="tv-tag${vert ? ' v' : ''}"><span class="tv-av">${av}<span class="dot${s.on ? ' on' : ''}"></span></span>
+  const fig = tv.art === false
+    ? `<div class="tv-figw"><div class="tv-fig">${figureSVG({ dm: s.dm, cls: s.cls, look: s.look, seed: s.id })}</div></div>`
+    : `<div class="tv-chairw"><div class="tv-chair"><img src="${ART}sandalye.webp" alt="" draggable="false"></div></div>
+       <div class="tv-figw"><div class="tv-fig"><img src="${ART}${figFile(s)}.webp" alt="" draggable="false"></div></div>`;
+  return `${fig}
+    <div class="tv-tag"><span class="tv-av">${av}<span class="dot${s.on ? ' on' : ''}"></span></span>
       <span class="tv-nm"><b>${esc(s.name)}${s.insp ? '<span class="tv-star" title="İlhamı var">★</span>' : ''}</b>${s.dm ? '<small>DM</small>' : s.char ? `<small>${esc(s.char)}</small>` : ''}${hp}</span></div>`;
+}
+
+// Ekranda tablonun hangi parçası görünüyor? (Telefonda tablo büyütülür, kenarları görünmez.) Değerler birim cinsindendir.
+function tvView() {
+  const st = $('#tvStage').getBoundingClientRect(), sc = $('#tvScene').getBoundingClientRect(), u = sc.width / 100 || 1;
+  const zoom = parseFloat(getComputedStyle($('#tvStage')).getPropertyValue('--z')) || 1;     // telefonda CSS tabloyu büyütür (--z > 1); o zaman isimlikler küçük etiket olur
+  return { u, x0: (st.left - sc.left) / u, x1: (st.right - sc.left) / u, y0: (st.top - sc.top) / u, y1: (st.bottom - sc.top) / u, compact: zoom > 1 };
+}
+
+/* İsimliğin yeri (başa göre, birim cinsinden). Kural: masadan dışarı doğru, figürün sırtının bittiği yere.
+   Sol üst ve sol alt köşede yan masalar, sağda kara tahta ve tezgâh olduğu için o taraflarda isimlik
+   ortadaki boş koridora kaydırılır. DM'in arkasında tezgâh var; onun isimliği sol yanına konur. */
+function platePos(s, a, x, y, v, f) {
+  const cx = Math.cos(a), sy = Math.sin(a);
+  if (v.compact) {                                               // telefonda küçük etiket: sırtın üstüne
+    const hw = 37 / v.u, hh = 12 / v.u, lead = 9 / v.u;
+    const px = clamp(x + 7.6 * f * cx, v.x0 + hw + lead + 0.6, v.x1 - hw - 0.6), py = clamp(y + (s.dm ? 6.4 : 7.6) * f * sy, v.y0 + hh + 0.6, v.y1 - hh - 0.6);
+    return [px - x, py - y, hw + lead, hh];
+  }
+  const w = Math.max(TV.plate, 84 / v.u), hw = w / 2, hh = w * 730 / 2323 / 2, lead = Math.max(TV.plate * 0.377, 27 / v.u) * 0.4;   // lead: soldan taşan portre
+  let px, py;
+  if (s.dm) { px = x - 6.9 * f - hw; py = y - 2.6; }
+  else {
+    const d = 6.4 * f + hw * Math.abs(cx) + hh * Math.abs(sy);
+    px = x + d * cx; py = y + d * sy;
+    // Solda iki yan masa var (üstte ve altta). İsimlik onlara değiyorsa en az kaydırmayla kurtarılır: ya sağa ya da aradaki boşluğa.
+    const left = px - hw - lead, over = 28.5 - left;
+    if (over > 0 && py - hh < 25.5) { const dy = 25.5 - (py - hh); if (dy < over) py += dy; else px += over; }
+    else if (over > 0 && py + hh > 45.4) { const dy = py + hh - 45.4; if (dy < over) py -= dy; else px += over; }
+    if (px + hw > 76) py = clamp(py, 32.4, 38.9);                // sağda kara tahta ve tezgâh var: isimlik kapı koridoruna alınır
+  }
+  px = clamp(px, v.x0 + hw + lead + 0.8, v.x1 - hw - 0.8);
+  py = clamp(py, v.y0 + hh + 0.8, v.y1 - hh - 0.8);
+  return [px - x, py - y, hw + lead, hh];
 }
 
 // Koltukları çizer. Var olan kutular yerinde kalır, yalnızca yeri ve içeriği değişir; böylece kayarak yer değiştirirler.
 function renderTable() {
   if (mode !== 'table') return;
-  const stage = $('#tvStage'), seats = seatList(), seen = new Set();
-  const box = stage.getBoundingClientRect(), cs = getComputedStyle(stage);
-  const RX = (parseFloat(cs.getPropertyValue('--rx')) / 100 * box.width) || 1, RY = (parseFloat(cs.getPropertyValue('--ry')) / 100 * box.height) || 1;
-  const narrow = box.width < 560;                                    // dar ekranda isimlik yana değil alta ya da üste konur
+  const scene = $('#tvScene'), seats = seatList(), seen = new Set(), v = tvView();
+  const [f, rs, rdm] = TV.fit(seats.length);
+  scene.style.setProperty('--f', f);
   seats.forEach((s, i) => {
     seen.add(s.id);
     const a = (-90 + 360 * i / seats.length) * Math.PI / 180;    // i = 0 DM; i ≥ 1 için −90° + 360° × i/(N+1)
-    const cx = Math.cos(a), sy = Math.sin(a);
+    const cx = Math.cos(a), sy = Math.sin(a), r = s.dm ? rdm : rs;
+    const x = TV.cx + r * cx, y = TV.cy + r * sy;
     let el = tv.els.get(s.id);
     const fresh = !el;
     if (fresh) { el = document.createElement('div'); el.className = 'tv-seat in'; tv.els.set(s.id, el); setTimeout(() => el.classList.remove('in'), 600); }
     clearTimeout(el._out); el.classList.remove('out');
     // Figür yukarı bakacak şekilde çizildi; masanın ortasına bakması için gereken dönüş (en kısa yoldan)
-    let rot = Math.atan2(-cx * RX, sy * RY) * 180 / Math.PI;
+    let rot = Math.atan2(-cx, sy) * 180 / Math.PI;
     if (el._rot !== undefined) { while (rot - el._rot > 180) rot -= 360; while (rot - el._rot < -180) rot += 360; }
-    el._rot = rot;
-    // İsimliğin yönü: masadan dışarı doğru
-    let ox = cx * RX, oy = sy * RY; const len = Math.hypot(ox, oy) || 1; ox /= len; oy /= len;
-    if (narrow) { ox = 0; oy = sy < -0.3 ? -1 : 1; }
-    el.style.setProperty('--cx', cx.toFixed(4));
-    el.style.setProperty('--sy', sy.toFixed(4));
+    el._rot = rot; el._a = a; el._x = x; el._y = y; el._on = !!s.on; el._dm = !!s.dm;
+    const [px, py, phw, phh] = platePos(s, a, x, y, v, f);
+    el._plate = [x + px, y + py, phw, phh];                          // isimliğin sahnedeki yeri: garson üstünde durmasın diye
+    el.style.setProperty('--x', x.toFixed(2));
+    el.style.setProperty('--y', y.toFixed(2));
     el.style.setProperty('--rot', rot.toFixed(1) + 'deg');
-    el.style.setProperty('--ox', ox.toFixed(3));
-    el.style.setProperty('--oy', oy.toFixed(3));
+    el.style.setProperty('--px', px.toFixed(2));
+    el.style.setProperty('--py', py.toFixed(2));
+    el.style.setProperty('--ox', cx.toFixed(3));
+    el.style.setProperty('--oy', sy.toFixed(3));
     el.classList.toggle('dm', !!s.dm); el.classList.toggle('me', !!s.me); el.classList.toggle('off', !s.on);
     el.title = `${s.name}${s.char ? ', ' + s.char : ''}${s.dm ? ' (DM)' : ''}${s.me ? ' (sen)' : ''}: ${s.on ? 'bağlı' : 'çevrimdışı'}`;
-    const html = seatHTML(s, !narrow && Math.abs(ox) > 0.62);        // tam yandaki koltuklarda isimlik dikey (dar) olur
-    if (el._html !== html) { el._html = html; el.innerHTML = html; }   // değişmediyse dokunma (portre titremesin)
-    if (fresh) stage.appendChild(el);                                // yeri ayarlandıktan sonra eklenir, ortadan kaymaz
+    const html = seatHTML(s);
+    if (el._html !== html) {                                         // değişmediyse dokunma (portre titremesin)
+      el._html = html; el.innerHTML = html;
+      const fig = $('.tv-fig img', el);                              // tek bir figür görseli eksikse onun yerine çizim figür
+      if (fig) fig.onerror = () => { fig.parentNode.innerHTML = figureSVG({ dm: s.dm, cls: s.cls, look: s.look, seed: s.id }); $('.tv-chairw', el)?.remove(); };
+    }
+    if (fresh) scene.appendChild(el);                                // yeri ayarlandıktan sonra eklenir, ortadan kaymaz
+    const mug = tv.mugs.get(s.id);                                   // garsonun bıraktığı kupa koltukla birlikte yer değiştirir
+    if (mug) { const m = mugPos(a); mug.style.setProperty('--x', m[0].toFixed(2)); mug.style.setProperty('--y', m[1].toFixed(2)); }
   });
   tv.els.forEach((el, id) => {                                        // ayrılanların koltuğu solarak kalkar
     if (seen.has(id) || el.classList.contains('out')) return;
     el.classList.add('out');
     el._out = setTimeout(() => { el.remove(); tv.els.delete(id); }, 350);
+    const mug = tv.mugs.get(id); if (mug) { mug.remove(); tv.mugs.delete(id); }
   });
+}
+
+/* ───────── Garson kız ─────────
+   Arada bir kapıdan çıkar, masadaki oyunculardan birinin yanına gelir, tepsisindeki kupaları bırakıp
+   boş tepsiyle geri döner. Her seferinde başka bir oyuncuya gider: sıradaki herkes bir kez servis
+   alana kadar aynı kişiye ikinci kez uğramaz. Yalnızca süstür; oyunun kurallarına dokunmaz. */
+const wt = { state:'idle', timer:0, raf:0, bag:[], last:'', pts:[], cum:[], d:0, rot:0, hold:0, t:0, seat:'', k: window.DE_WAITER_FAST ? 14 : 1 };
+const mugPos = a => [TV.cx + 11.9 * Math.cos(a - 0.47), TV.cy + 11.9 * Math.sin(a - 0.47)];   // oyuncunun sağ elinin yanı
+const dist = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
+
+// Köşeli yolu yumuşak bir eğriye çevirir (Catmull-Rom): garson köşelerde keskin dönmez
+function smoothPath(p) {
+  const out = [p[0]];
+  for (let i = 0; i < p.length - 1; i++) {
+    const p0 = p[Math.max(0, i - 1)], p1 = p[i], p2 = p[i + 1], p3 = p[Math.min(p.length - 1, i + 2)];
+    for (let k = 1; k <= 8; k++) {
+      const t = k / 8, t2 = t * t, t3 = t2 * t;
+      out.push([0, 1].map(j => 0.5 * (2 * p1[j] + (p2[j] - p0[j]) * t + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t2 + (3 * p1[j] - p0[j] - 3 * p2[j] + p3[j]) * t3)));
+    }
+  }
+  return out;
+}
+// Kapıdan, verilen koltuğun yanındaki durma noktasına giden yol. Oyuncunun iki yanından kısa yoldan ulaşılan seçilir.
+function waiterRoute(el) {
+  const v = tvView(), door = [Math.min(TV.door[0], v.x1 + 7), TV.door[1]];
+  let best = null;
+  for (const side of [-1, 1]) {
+    const b = el._a + side * 0.45, r = el._dm ? 22.5 : 23.6;
+    const stop = [clamp(TV.cx + r * Math.cos(b), 22, 78.5), clamp(TV.cy + r * Math.sin(b), 15.6, 64.5)];
+    const deg = ((b * 180 / Math.PI + 540) % 360) - 180;                   // −180…180
+    const lane = deg > -96 && deg < -3 ? TV.up : TV.lane;
+    let k = 0; lane.forEach((n, i) => { if (dist(n, stop) < dist(lane[k], stop)) k = i; });
+    const pts = [door].concat(lane.slice(0, k + 1), [stop]);
+    let len = 0; for (let i = 1; i < pts.length; i++) len += dist(pts[i - 1], pts[i]);
+    tv.els.forEach(o => {                                                   // bir isimliğin altında kalacaksa öbür yanı yeğle
+      const p = o._plate; if (p && Math.abs(stop[0] - p[0]) < p[2] + 5.6 && Math.abs(stop[1] - p[1]) < p[3] + 5.6) len += 500;
+    });
+    if (!best || len < best.len) best = { pts, len };
+  }
+  return best && smoothPath(best.pts);
+}
+// Sıradaki oyuncu: masadaki (bağlı) oyuncular karıştırılıp bir torbaya konur, torba bitince yeniden doldurulur
+function waiterPick() {
+  const here = id => { const el = tv.els.get(id); return el && el._on && !el.classList.contains('out'); };
+  let ids = [...tv.els.keys()].filter(id => id !== 'dm' && here(id));
+  if (!ids.length && here('dm')) ids = ['dm'];                              // masada oyuncu yoksa DM'e uğrar
+  if (!ids.length) return '';
+  wt.bag = wt.bag.filter(id => ids.includes(id));
+  if (!wt.bag.length) {
+    wt.bag = ids.slice().sort(() => Math.random() - 0.5);                   // yalnızca süs: kimin önce servis alacağı
+    if (wt.bag.length > 1 && wt.bag[0] === wt.last) wt.bag.push(wt.bag.shift());
+  }
+  return (wt.last = wt.bag.shift());
+}
+function waiterPlan(ms) {
+  clearTimeout(wt.timer);
+  if (mode !== 'table' || reduceMotion.matches) return;                     // hareket azaltılmışsa garson hiç çıkmaz
+  wt.timer = setTimeout(waiterGo, ms / wt.k);
+}
+function waiterGo() {
+  if (mode !== 'table' || wt.state !== 'idle') return;
+  if (document.hidden) return waiterPlan(8000);
+  const id = waiterPick(), el = id && tv.els.get(id), pts = el && waiterRoute(el);
+  if (!pts) return waiterPlan(9000);
+  wt.pts = pts; wt.cum = [0];
+  for (let i = 1; i < pts.length; i++) wt.cum.push(wt.cum[i - 1] + dist(pts[i - 1], pts[i]));
+  wt.seat = id; wt.d = 0; wt.state = 'out'; wt.t = 0;
+  wt.rot = Math.atan2(pts[1][1] - pts[0][1], pts[1][0] - pts[0][0]);
+  const box = $('#tvWaiter');
+  box.classList.remove('served'); box.classList.add('walk'); box.hidden = false;
+  box.dataset.seat = id; box.dataset.state = 'out';
+  cancelAnimationFrame(wt.raf); wt.raf = requestAnimationFrame(waiterTick);
+}
+function waiterTick(ts) {
+  if (mode !== 'table' || wt.state === 'idle') return;
+  const box = $('#tvWaiter'), dt = Math.min(0.05, wt.t ? (ts - wt.t) / 1000 : 0) * wt.k; wt.t = ts;
+  const total = wt.cum[wt.cum.length - 1];
+  let want = wt.rot;
+  if (wt.state === 'out' || wt.state === 'back') {
+    wt.d += (wt.state === 'out' ? 1 : -1) * 9.2 * dt;                       // saniyede 9,2 birim yürür
+    wt.d = clamp(wt.d, 0, total);
+    let i = 1; while (i < wt.cum.length - 1 && wt.cum[i] < wt.d) i++;
+    const a = wt.pts[i - 1], b = wt.pts[i], f = (wt.d - wt.cum[i - 1]) / ((wt.cum[i] - wt.cum[i - 1]) || 1);
+    wt.x = a[0] + (b[0] - a[0]) * f; wt.y = a[1] + (b[1] - a[1]) * f;
+    want = Math.atan2(b[1] - a[1], b[0] - a[0]) + (wt.state === 'back' ? Math.PI : 0);
+    if (wt.state === 'out' && wt.d >= total) { wt.state = 'serve'; wt.hold = 0; box.classList.remove('walk'); box.dataset.state = 'serve'; }
+    if (wt.state === 'back' && wt.d <= 0) {                                 // kapıdan çıktı: bir süre sonra yeniden gelir
+      wt.state = 'idle'; box.hidden = true; box.dataset.state = 'idle';
+      return waiterPlan(13000 + Math.random() * 11000);                     // yalnızca süs: ne kadar sonra geleceği
+    }
+  } else if (wt.state === 'serve') {
+    const el = tv.els.get(wt.seat);
+    if (el) want = Math.atan2(el._y - wt.y, el._x - wt.x);                  // oyuncuya döner
+    wt.hold += dt;
+    if (wt.hold > 1.3 && !box.classList.contains('served')) {               // kupayı bırakır, tepsi boşalır
+      box.classList.add('served');
+      if (el && !el._dm && !tv.mugs.has(wt.seat)) {
+        const m = document.createElement('img'), p = mugPos(el._a);
+        m.className = 'tv-mug'; m.src = ART + 'kupa.webp'; m.alt = ''; m.onerror = () => m.remove();
+        m.style.setProperty('--x', p[0].toFixed(2)); m.style.setProperty('--y', p[1].toFixed(2)); m.style.setProperty('--r', (figHash(wt.seat) % 360) + 'deg');
+        $('#tvScene').appendChild(m); tv.mugs.set(wt.seat, m);
+      }
+    }
+    if (wt.hold > 2.9) { wt.state = 'back'; box.classList.add('walk'); box.dataset.state = 'back'; }
+  }
+  let dr = want - wt.rot; while (dr > Math.PI) dr -= 2 * Math.PI; while (dr < -Math.PI) dr += 2 * Math.PI;
+  wt.rot += dr * Math.min(1, dt * 7);                                       // yönünü yumuşakça değiştirir
+  box.style.translate = `${wt.x.toFixed(2)}cqw ${wt.y.toFixed(2)}cqw`;
+  box.style.setProperty('--r', (wt.rot * 180 / Math.PI - 90).toFixed(1) + 'deg');   // görselde yüzü aşağı baktığı için −90°
+  wt.raf = requestAnimationFrame(waiterTick);
+}
+function waiterStop() {
+  clearTimeout(wt.timer); cancelAnimationFrame(wt.raf);
+  wt.state = 'idle'; const box = $('#tvWaiter'); box.hidden = true; box.dataset.state = 'idle';
 }
 
 /* Oyuncunun sol alttaki kutusu: kendi canı, AC'si ve hızlı zarları. Bilerek sade; ayrıntı kağıtta. */
@@ -3248,7 +3497,8 @@ function renderMe() {
     ${c.attacks.length ? `<div class="me-atk">${c.attacks.slice(0, 4).map((a, i) => `<div data-row data-i="${i}"><span title="${esc(a.dmg)}">${esc(a.name || 'Saldırı')}</span>
         <button class="roll" data-act="roll" data-roll="attack" title="Vuruş zarı at">${sign(attackBonus(a))}</button>
         <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(a.dmg)}" aria-label="Hasar zarı at">${D20}</button></div>`).join('')}</div>` : ''}
-    <div class="me-foot"><button class="btn sm" data-act="mode-sheet">Kağıdın tamamı</button></div>`;
+    <div class="me-foot"><button class="btn sm" data-act="mode-sheet">Kağıdın tamamı</button>
+      <button class="btn sm" data-act="me-look" title="Masadaki figürünü değiştir (kadın ya da erkek)">Figür: ${c.look === 'f' ? 'kadın' : c.look === 'm' ? 'erkek' : 'seçilmedi'}</button></div>`;
 }
 
 /* Zar şekilleri (100×100'lük bir kutuda). f = dış çizgi, ff = öndeki yüz, l = kenar çizgileri, t = sayının yüksekliği */
@@ -3272,7 +3522,7 @@ function dieSVG(s, v, dropped, blank) {
 // Masanın ortasına bir atışı çizer. hidden = true ise zarların yüzü, toplam ve yazı henüz gizli (zar havada)
 function drawThrow(item, hidden) {
   const box = $('#tvCenter');
-  if (!item) { box.innerHTML = '<p class="tv-idle">Zarlar burada yuvarlanacak. Sağ alttaki zar tepsisinden ya da kağıdındaki sayılardan at.</p>'; return null; }
+  if (!item) { box.innerHTML = '<p class="tv-idle">Zarlar buraya yuvarlanır</p>'; return null; }
   const dice = item.dice.length ? item.dice : [{ s: 0, v: item.total }];   // zar bilgisi gelmediyse (eski sürüm) tek bir pul
   const shown = dice.slice(0, 12), more = dice.length - shown.length;
   const size = shown.length <= 2 ? '' : shown.length <= 6 ? ' m' : ' s';
@@ -3287,7 +3537,7 @@ function drawThrow(item, hidden) {
 // Zarları atanın koltuğundan masanın ortasına fırlatır: döner, seker, durur. Yalnızca konum ve dönüş canlandırılır (telefonda da hafif).
 function flyDice(box, item, fast) {
   const stage = $('#tvStage').getBoundingClientRect();
-  const seat = tv.els.get(item.seat), av = seat && ($('.tv-fig', seat) || $('.tv-av', seat));   // zar, atanın oturduğu yerden çıkar
+  const seat = tv.els.get(item.seat), av = seat && ($('.tv-fig', seat) || $('.tv-av', seat));   // zar, atanın oturduğu yerden (başının olduğu noktadan) çıkar
   const from = av ? av.getBoundingClientRect() : null;
   const fx = from ? from.left + from.width / 2 : stage.left + stage.width / 2;   // koltuğu bilinmiyorsa masanın alt kenarından
   const fy = from ? from.top + from.height / 2 : stage.bottom;
@@ -3316,14 +3566,15 @@ function reveal(box) {
 function addRecent(item) {
   tv.recent.push(item);
   tv.recent.sort((a, b) => b.ts - a.ts);
-  if (tv.recent.length > 5) tv.recent.length = 5;
+  if (tv.recent.length > 8) tv.recent.length = 8;
   renderTableLog();
 }
 function renderTableLog() {
   if (mode !== 'table') return;
-  $('#tvLog').innerHTML = tv.recent.length ? tv.recent.map(e => `<li class="${e.flag}"><b>${esc(e.total)}</b>
-      <div><strong>${esc(e.who)}</strong>${esc(e.label)}<span>${esc(e.detail)}</span></div><time>${hhmm(e.ts)}</time></li>`).join('')
-    : '<li class="none">Henüz zar atılmadı.</li>';
+  // Tahtada küçükken yalnızca sonuç ve ad görünür; büyüyünce ne zarı olduğu, hesabı ve saati de okunur
+  $('#tvLog').innerHTML = tv.recent.length ? tv.recent.map(e => `<li class="${e.flag}"><b>${esc(e.total)}</b><span class="w">${esc(e.who)}</span>
+      <span class="d">${esc(e.label)}${e.detail ? ` <i>(${esc(e.detail)})</i>` : ''}</span><time>${hhmm(e.ts)}</time></li>`).join('')
+    : '<li class="none">Henüz zar atılmadı</li>';
 }
 
 /* showRoll buraya gelir: atışı sıraya alır. Masa görünümü kapalıysa ya da sekme
@@ -3370,17 +3621,25 @@ function tvFlush() {
 }
 function tvEnter() {
   if (store.meMin === undefined) store.meMin = window.innerWidth < 1200;     // dar ekranda kutu masanın üstüne bindiği için küçük başlar
+  tvArtCheck();
   renderTable(); renderTableLog(); renderMe(); if (!tv.busy) drawThrow(tv.recent[0], false);
+  if (wt.state === 'idle') waiterPlan(5000);                                  // garson birkaç saniye sonra ilk kez görünür
 }
-function tvLeave() { if (tv.busy || tv.queue.length) tvFlush(); $('#tvMe').hidden = true; $('.tv-wrap').classList.remove('has-me', 'me-min'); }
+function tvLeave() { if (tv.busy || tv.queue.length) tvFlush(); waiterStop(); $('#tvLogBox').classList.remove('open'); $('#tvMe').hidden = true; $('.tv-wrap').classList.remove('has-me', 'me-min'); }
 function tvReset() {                                                 // masadan çıkınca her şeyi temizle
   tvFlush(); tv.recent = [];
   tv.els.forEach(el => { clearTimeout(el._out); el.remove(); });
   tv.els.clear();
+  tv.mugs.forEach(m => m.remove()); tv.mugs.clear();
+  waiterStop(); wt.bag = []; wt.last = '';
 }
 Object.assign(ACTIONS, {
   'me-min': () => { store.meMin = !store.meMin; save(); renderMe(); },
   'me-kind': b => { tv.meKind = b.dataset.k; renderMe(); },
+  // Masadaki figürüm: kadın ↔ erkek. Kağıttaki "Masadaki figür" seçimiyle aynı şeydir; DM'e ve masaya da gider.
+  'me-look': () => { if (mode !== 'table') return; C.look = C.look === 'f' ? 'm' : 'f'; setInput('look'); changed(); renderTable(); },
+  // Kara tahta: dokunmatik ekranda dokununca büyür, bir daha dokununca küçülür
+  'log-toggle': () => $('#tvLogBox').classList.toggle('open'),
   // İlhamı yalnızca DM verir (ya da geri alır). Oyuncunun kağıdında yıldız kendiliğinden yanar.
   'give-insp': b => {
     const p = net.players.get(b.dataset.pid); if (!p || !p.char) return;
@@ -3390,10 +3649,10 @@ Object.assign(ACTIONS, {
     notify(on ? `${p.name} ilham kazandı` : `${p.name} oyuncusunun ilhamı geri alındı`);
   },
 });
-$('#tvServant').innerHTML = SERVANT_SVG;
 window.addEventListener('resize', () => { if (mode === 'table') renderTable(); });   // ekran dönünce figürler yeniden masaya çevrilsin
 document.addEventListener('visibilitychange', () => {               // sekme arkaya giderse havadaki zarı beklemeden bitir
   if (document.hidden && tv.busy) { tvFlush(); if (mode === 'table') drawThrow(tv.recent[0], false); }
+  if (document.hidden && wt.state !== 'idle') { waiterStop(); waiterPlan(6000); }   // garson da yarı yolda kalmasın
 });
 
 /* ═══════════════════════════════════════════════════════════════════
