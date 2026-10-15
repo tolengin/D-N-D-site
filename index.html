@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Grenze:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- NPR taverna (BÖLÜM 11b) için three.js'in adresi. Sürüm sabittir; kütüphane yalnızca masa görünümü açılınca indirilir. -->
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }</script>
 <style>
 /* ═══════════════════════════════════════════════════════════════════
    DÖRT ELEMENT — D&D 2024 Karakter Defteri
@@ -619,53 +621,108 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
   .fab{right:14px;bottom:14px}
 }
 
-/* ───────── 16) MASA GÖRÜNÜMÜ: boyalı taverna, oturan figürler, garson ve uçan zarlar ─────────
-   Sahne bir tablo gibi düşünülür: her şey "birim" ile ölçülür ve 1 birim = tablonun genişliğinin
-   yüzde biridir (CSS'te 1cqw). Ekran küçülünce tablo, figürler ve yazılar birlikte küçülür.
-   Görseller "masa" klasöründedir (taverna.webp, sınıf figürleri, sandalye, isimlik, garson).
+/* ───────── 16) MASA GÖRÜNÜMÜ: NPR taverna, oturan figürler, garson ve uçan zarlar ─────────
+   Sahne 16:9 bir tablo gibi düşünülür: her şey "birim" ile ölçülür ve 1 birim = sahnenin genişliğinin
+   yüzde biridir (CSS'te 1cqw). Sahne 100 birim genişliğinde, 56,25 birim yüksekliğindedir.
+   Pencere büyüyüp küçülünce tablo, figürler ve yazılar birlikte ölçeklenir.
+   Sahnenin solundaki şerit (genişliğin yaklaşık %32'si) boş bırakılır: oraya ileride bir panel gelecek.
+   Görseller "masa" klasöründedir (NPR taverna taverna-npr.glb, figür kareleri fig2d/, isimlik, garson).
    JS her koltuğa yalnızca şunları verir: --x/--y (başın yeri), --rot (masaya dönüş açısı),
    --px/--py (isimliğin yeri), --ox/--oy (masadan dışarı yön).
    Sahne kendi koyu taverna renklerini kullanır; temadan yalnızca vurgu rengi (--accent) gelir. */
-#tableView{overflow-x:clip}
-.tv-wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
-.tv-wrap.has-me{grid-template-columns:252px minmax(0,1fr)}          /* oyuncuda: solda kendi kutusu, yanında masa */
-body.tv-on .app{max-width:1760px}
 
-/* .tv-main sahnenin ve kara tahtanın ortak kutusudur; genişliği ekranın yüksekliğine göre seçilir ki masa tek ekrana sığsın */
-.tv-main{position:relative;container-type:inline-size;margin:4px auto;
-  width:clamp(min(100%,480px),calc((100vh - var(--topbar-h,66px) - 120px) * 1.4097),min(100%,1500px));
-  color-scheme:dark;--text:#f6ead8;--muted:#d6c3a6;--line:rgba(255,222,170,.30);--field:rgba(12,8,4,.6);--bg:#1a120b;--surface:rgba(34,22,13,.88);color:var(--text)}
-.tv-stage{position:relative;overflow:hidden;width:100%;aspect-ratio:1920/1362;--z:1;background:#1c1410;
+/* #tableView üst çubuğun (ve masa durum çubuğunun) altındaki alanın tamamını kaplar. Sahne bu alana sığan
+   en büyük 16:9 kutudur; kalan boşluk tavernanın koyu kahvesiyle dolar (sinema bandı gibi). */
+body.tv-on .app{max-width:none;padding:0}
+body.tv-on .tablebar{margin:8px 12px}
+#tableView{position:relative;display:grid;place-items:center;overflow:hidden;container-type:size;
+  height:calc(100dvh - var(--topbar-h,66px) - var(--tablebar-h,0px));
+  color-scheme:dark;--text:#f6ead8;--muted:#d6c3a6;--line:rgba(255,222,170,.30);--field:rgba(12,8,4,.6);--bg:#1a120b;--surface:rgba(34,22,13,.88);
+  --board:#2a3036;--board-frame:#6b4a2a;--board-edge:#3a2412;          /* kara tahta: yüzey, ahşap çerçeve, çerçevenin dış çizgisi */
+  background:var(--bg);color:var(--text)}
+/* .tv-wrap sahnenin boyutundadır; oyuncu kutusu ve tam ekran düğmesi ona göre yerleşir */
+.tv-wrap{position:relative;width:min(100cqw,100cqh * 16 / 9);aspect-ratio:16/9}
+/* .tv-main sahnenin ve kara tahtanın ortak kutusudur */
+.tv-main{position:absolute;inset:0;container-type:inline-size}
+.tv-stage{position:absolute;inset:0;overflow:hidden;--z:1;background:#1c1410;
   border-radius:calc(var(--radius) + 6px);border:1px solid rgba(0,0,0,.65);box-shadow:var(--shadow),inset 0 0 0 3px #2a1b0f}
 /* .tv-scene tablonun kendisi. --z büyütme oranıdır: telefonda tablo büyütülür ve yalnızca ortadaki masa görünür. */
-.tv-scene{position:absolute;top:0;left:calc((1 - var(--z)) * 50.1%);width:calc(var(--z) * 100%);aspect-ratio:1920/1362;container-type:inline-size;
-  background:url("masa/taverna.webp") center/100% 100% no-repeat,
-    radial-gradient(60% 56% at 50% 50%,rgba(255,196,110,.22),transparent 64%),
+.tv-scene{position:absolute;top:0;left:0;width:calc(var(--z) * 100%);aspect-ratio:16/9;container-type:inline-size}
+/* Taverna resimleri yüklenirken sahne boştur: yalnızca koyu zemin ve "Taverna hazırlanıyor…" yazısı (figürler eski masada belirip kaymasın) */
+.tv-stage.tav-wait .tv-scene>*{visibility:hidden}
+.tv-stage.tav-wait::before{content:"Taverna hazırlanıyor…";position:absolute;inset:0;display:grid;place-items:center;z-index:2;
+  padding-left:32%;color:var(--muted);font-family:var(--font-display);font-size:clamp(16px,2.2cqw,30px);letter-spacing:.04em;
+  animation:tavwait 1.6s ease-in-out infinite alternate}
+@keyframes tavwait{from{opacity:.35}to{opacity:.9}}
+@media (prefers-reduced-motion:reduce){.tv-stage.tav-wait::before{animation:none}}
+.tv-stage.snap :is(.tv-seat,.tv-chair,.tv-fig){transition:none}
+/* NPR taverna açılamazsa (.flat) ya da masa görselleri yoksa (.no-art): taş zemin ve kodla çizilmiş hap biçimli masa */
+.tv-stage:is(.flat,.no-art) .tv-scene{
+  background:radial-gradient(42% 56% at 64.6% 49.6%,rgba(255,196,110,.22),transparent 64%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Crect width='260' height='260' fill='%2324211d'/%3E%3Crect x='3' y='3' width='74' height='56' rx='6' fill='%23625c52'/%3E%3Cpath d='M10 7h56' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='17' cy='18' r='2.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='83' y='3' width='104' height='56' rx='8' fill='%235b564d'/%3E%3Cpath d='M90 7h86' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='158' cy='27' r='1.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='193' y='3' width='64' height='56' rx='8' fill='%235b564d'/%3E%3Cpath d='M200 7h46' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='219' cy='19' r='2.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='3' y='65' width='114' height='64' rx='6' fill='%234c4841'/%3E%3Cpath d='M10 69h96' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='123' y='65' width='54' height='64' rx='6' fill='%235b564d'/%3E%3Cpath d='M130 69h36' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='183' y='65' width='74' height='64' rx='6' fill='%2358534a'/%3E%3Cpath d='M190 69h56' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='219' cy='79' r='1.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='3' y='135' width='64' height='52' rx='10' fill='%235b564d'/%3E%3Cpath d='M10 139h46' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Crect x='73' y='135' width='84' height='52' rx='8' fill='%23625c52'/%3E%3Cpath d='M80 139h66' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='91' cy='164' r='2' fill='%23000' fill-opacity='.18'/%3E%3Crect x='163' y='135' width='94' height='52' rx='10' fill='%2358534a'/%3E%3Cpath d='M170 139h76' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='198' cy='157' r='1.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='3' y='193' width='94' height='64' rx='10' fill='%2358534a'/%3E%3Cpath d='M10 197h76' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='243' r='1.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='103' y='193' width='64' height='64' rx='10' fill='%234c4841'/%3E%3Cpath d='M110 197h46' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='134' cy='233' r='2.5' fill='%23000' fill-opacity='.18'/%3E%3Crect x='173' y='193' width='84' height='64' rx='8' fill='%234c4841'/%3E%3Cpath d='M180 197h66' stroke='%23fff' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='234' cy='215' r='2.5' fill='%23000' fill-opacity='.18'/%3E%3C/svg%3E") 0 0/24% auto,#3a362f}
 .tv-scene::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;     /* kenarlara doğru hafif kararma */
   background:radial-gradient(75% 80% at 50% 50%,transparent 55%,rgba(0,0,0,.34) 100%)}
 
-/* Yedek masa: yalnızca taverna görseli yüklenemezse görünür (.no-art) */
-.tv-table{display:none;position:absolute;z-index:1;left:50.1cqw;top:35.45cqw;width:27.2cqw;height:27.2cqw;translate:-50% -50%;border-radius:50%;
+/* Yedek masa: yalnızca taverna resimleri açılamazsa (.flat) ya da masa görselleri yoksa (.no-art) görünür. Hap biçimlidir. */
+.tv-table{display:none;position:absolute;z-index:1;left:64.6cqw;top:27.9cqw;width:36cqw;height:16.4cqw;translate:-50% -50%;border-radius:999px;
   background:repeating-linear-gradient(91deg,transparent 0 2.6cqw,rgba(40,20,6,.30) 2.6cqw calc(2.6cqw + 2px)),linear-gradient(180deg,#8d572a,#6d3f1c);
   border:.9cqw solid #4a2a12;box-shadow:0 2cqw 3.6cqw rgba(0,0,0,.62),inset 0 0 5cqw rgba(30,12,2,.6)}
-.tv-mat{position:absolute;left:50%;top:50%;width:48%;height:48%;translate:-50% -50%;border-radius:50%;
+.tv-mat{position:absolute;left:50%;top:50%;width:72%;height:62%;translate:-50% -50%;border-radius:999px;
   background:radial-gradient(closest-side,#1e3528,#13231a);border:.5cqw solid #3b2412;outline:1.5px dashed rgba(255,225,170,.38);outline-offset:-1cqw}
-.tv-stage.no-art .tv-table{display:block}
+.tv-stage:is(.flat,.no-art) .tv-table{display:block}
 .tv-stage.no-art .tv-waiter{display:none}
-.tv-stage.no-art ~ .tv-log{background-color:#2a3036;border-color:#6b4a2a}
+
+/* NPR taverna (BÖLÜM 11b). Yüklenince sahneye .tav gelir. 3D tuval (.tv-npr) tablonun arkasındadır; figürler, isimlikler ve
+   zarlar tablonun (.tv-scene) içindedir. Sürükleyip gezinince tablo kayar ve büyüyüp küçülür (--vx, --vy birim; --vs ölçek);
+   3D kamera her çizimde tablonun yerine göre ayarlanır. Tablonun içindeki katmanlar: masanın arkasındakiler 2, oyun masası
+   tuvali 3 (masanın arkasında oturanların bacaklarını örter), masanın önündekiler 4. */
+.tv-stage.tav .tv-scene{background:none;transform-origin:0 0;
+  transform:translate(calc(var(--vx,0) * 1cqw),calc(var(--vy,0) * 1cqw)) scale(var(--vs,1))}
+.tv-stage.tav.ease .tv-scene{transition:transform .7s cubic-bezier(.4,0,.2,1)}
+.tv-stage.tav .tv-scene::after{display:none}
+.tv-stage.tav::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(75% 80% at 50% 50%,transparent 55%,rgba(0,0,0,.34) 100%)}
+.tv-stage.tav{cursor:grab;touch-action:none}
+.tv-stage.tav.drag{cursor:grabbing}
+.tv-npr{position:absolute;inset:0;width:100%;height:100%;display:block}
+.tav-img{position:absolute;display:block;max-width:none;pointer-events:none;-webkit-user-select:none;user-select:none}
+.tav-masa{z-index:3}
+/* Figür ve sandalye kareleri (masa/fig2d): resmin ortası koltuğun yer noktasıdır (--fx, --fy: başa göre, birim). Dönmezler. */
+.tv-stage.tav :is(.tv-chair,.tv-fig){rotate:none}
+.tv-stage.tav :is(.tv-chair,.tv-fig) img{width:var(--sw);left:calc(var(--fx) * 1cqw - var(--sw) / 2);top:calc(var(--fy) * 1cqw - var(--sw) / 2)}
+.tv-stage.tav :is(.tv-chairw,.tv-figw){z-index:4;filter:drop-shadow(0 .15cqw .25cqw rgba(0,0,0,.45))}
+.tv-stage.tav .tv-seat.back :is(.tv-chairw,.tv-figw){z-index:2}
+/* Taverna araçları (sol üstte, panelin hemen sağında) ve yakınlaştırma düğmeleri (sol altta) */
+.tv-arac{position:absolute;z-index:9;left:calc(31.82% + .6%);top:1.2%;display:flex;gap:6px;flex-wrap:wrap}
+.tv-arac[hidden],.tv-zoom[hidden]{display:none}
+.tv-arac .btn,.tv-zoom .btn{background:var(--surface);color:var(--text)}
+.tv-arac .btn[aria-pressed="false"]{opacity:.62}
+.tv-arac .btn[aria-pressed="true"]:not(#tvAll) .ic{color:var(--accent)}
+:is(.tv-arac,.tv-zoom) .ic{width:15px;height:15px}
+.tv-zoom{position:absolute;z-index:9;left:calc(31.82% + .6%);bottom:1.8%;display:flex;flex-direction:column;gap:6px}
+.tv-zoom .btn{width:36px;height:36px;padding:0;justify-content:center}
+.tv-wrap.tav-all :is(.tv-arac,.tv-zoom){left:1.2%}                /* bütün tavernaya bakarken sol panel kapalı */
+/* Göz hizası (3D) açıkken: panelin zemini saydam, altında 3D tuval koltuktan bakan görüntüyü çizer; boyalı panorama gizlenir */
+.tv-pov.p3 .pov-frame{background:transparent}
+.tv-pov.p3 :is(.pov-pano,#povWaiterFar){display:none}
+.tv-main.all .tv-pov{display:none}                             /* bütün tavernaya bakarken sol panel kapanır */
 
 /* Koltuk: sıfır boyutlu bir çapa, tam figürün başının olduğu yerde durur. İçindekiler ona göre yerleşir.
-   Katman sırası: ışık halkası 1, sandalye 2, figür 3, kupalar 4, isimlik 5, garson 6, zarlar 7, kara tahta 8. */
-.tv-seat{position:absolute;left:calc(var(--x,50) * 1cqw);top:calc(var(--y,35) * 1cqw);width:0;height:0;
-  --tw:calc(13.6cqw * var(--f,1));--cw:calc(8.8cqw * var(--f,1));--co:calc(3.4cqw * var(--f,1));      /* --f: masa kalabalıksa figürler biraz küçülür */
-  transition:left .7s cubic-bezier(.4,0,.2,1),top .7s cubic-bezier(.4,0,.2,1),opacity .3s}
-.tv-seat.dm{--co:calc(2.5cqw * var(--f,1))}
+   Katman sırası: ışık halkası 1, sandalye 2, figür 3, kupalar 4, isimlik 5, garson 6, zarlar 7, kara tahta 8, oyuncu kutusu ve tam ekran düğmesi 9. */
+/* Koltuğun yeri (--x/--y) ve isimliğin yeri (--px/--py) sayı olarak kayıtlıdır; kayma animasyonu bu sayılara uygulanır.
+   Böylece biri masaya oturup kalkınca koltuklar kayarak yer değiştirir, ama pencere büyüyüp küçülünce figürler sahneyle anında birlikte ölçeklenir. */
+@property --x{syntax:"<number>";inherits:false;initial-value:64.6}
+@property --y{syntax:"<number>";inherits:false;initial-value:27.9}
+@property --px{syntax:"<number>";inherits:true;initial-value:0}
+@property --py{syntax:"<number>";inherits:true;initial-value:8}
+.tv-seat{position:absolute;left:calc(var(--x) * 1cqw);top:calc(var(--y) * 1cqw);width:0;height:0;
+  --tw:calc(10.9cqw * var(--f,1));--cw:calc(7cqw * var(--f,1));--co:calc(2.7cqw * var(--f,1));      /* --f: masa kalabalıksa figürler biraz küçülür */
+  transition:--x .7s cubic-bezier(.4,0,.2,1),--y .7s cubic-bezier(.4,0,.2,1),--px .7s cubic-bezier(.4,0,.2,1),--py .7s cubic-bezier(.4,0,.2,1),opacity .3s}
+.tv-seat.dm{--co:calc(2cqw * var(--f,1))}
 .tv-seat.in{animation:tvSeatIn .5s ease-out}
 @keyframes tvSeatIn{from{opacity:0}}
 .tv-seat.out{opacity:0}
-.tv-seat.me::before{content:"";position:absolute;z-index:1;width:19cqw;height:19cqw;left:-9.5cqw;top:-9.5cqw;border-radius:50%;pointer-events:none;
-  translate:calc(var(--ox,0) * 3cqw) calc(var(--oy,1) * 3cqw);
+.tv-seat.me::before{content:"";position:absolute;z-index:1;width:15.2cqw;height:15.2cqw;left:-7.6cqw;top:-7.6cqw;border-radius:50%;pointer-events:none;
+  translate:calc(var(--ox,0) * 2.4cqw) calc(var(--oy,1) * 2.4cqw);
   background:radial-gradient(closest-side,color-mix(in srgb,var(--accent) 50%,transparent),color-mix(in srgb,var(--accent) 16%,transparent) 62%,transparent)}
 .tv-chairw,.tv-figw{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
 .tv-chairw{z-index:2;filter:drop-shadow(.2cqw .35cqw .4cqw rgba(0,0,0,.55))}
@@ -676,17 +733,17 @@ body.tv-on .app{max-width:1760px}
 .tv-chair img{width:var(--cw);left:calc(var(--cw) * -.5);top:calc(var(--co) - var(--cw) * .441)}
 /* Figür görsellerinin hepsi aynı tuvaldedir: baş, tuvalin yatayda tam ortasında ve yukarıdan %45,15 aşağıdadır */
 .tv-fig img{width:var(--tw);left:calc(var(--tw) * -.5);top:calc(var(--tw) * -.7314)}
-.tv-fig svg{position:absolute;display:block;width:15cqw;height:15cqw;left:-7.5cqw;top:-7.875cqw;overflow:visible}   /* yedek çizim figür */
+.tv-fig svg{position:absolute;display:block;width:12cqw;height:12cqw;left:-6cqw;top:-6.3cqw;overflow:visible}   /* yedek çizim figür */
 .fg-me{fill:none}
 .tv-seat.off .tv-figw{opacity:0}                              /* bağlantısı kopan oyuncunun sandalyesi boş kalır */
 .tv-stage.no-art .tv-seat.off .tv-figw{opacity:1}
 .tv-stage.no-art .tv-seat.off :is(.fg-p,.fg-t){opacity:0}
 
 /* İsimlik: ahşap levha. Ad parşömende, karakter adı alt çıtada, solda portre. Yazılar her zaman düz durur. */
-.tv-tag{position:absolute;z-index:5;left:calc(var(--px,0) * 1cqw);top:calc(var(--py,8) * 1cqw);translate:-50% -50%;
-  --av:clamp(27px,4.9cqw,74px);width:clamp(84px,13cqw,196px);aspect-ratio:2323/730;
+.tv-tag{position:absolute;z-index:5;left:calc(var(--px) * 1cqw);top:calc(var(--py) * 1cqw);translate:-50% -50%;
+  --av:clamp(27px,3.9cqw,60px);width:clamp(84px,10.4cqw,160px);aspect-ratio:2323/730;
   background:url("masa/isimlik.webp") center/100% 100% no-repeat;filter:drop-shadow(0 .3cqw .5cqw rgba(0,0,0,.6));
-  color:#2a1c10;line-height:1;white-space:nowrap;transition:left .7s cubic-bezier(.4,0,.2,1),top .7s cubic-bezier(.4,0,.2,1),opacity .3s}
+  color:#2a1c10;line-height:1;white-space:nowrap;transition:opacity .3s}           /* kayma, koltuğun --px/--py sayılarıyla gelir */
 .tv-stage.no-art .tv-tag{border-radius:.5cqw;border:.35cqw solid #3d2511;
   background:linear-gradient(180deg,#6a4526 0 26%,#ecdcb4 26% 74%,#6a4526 74%)}
 .tv-av{position:relative;flex:none;width:var(--av);height:var(--av);border-radius:50%;display:grid;place-items:center;
@@ -698,10 +755,10 @@ body.tv-on .app{max-width:1760px}
   border:max(2px,.22cqw) solid #c9a45c;box-shadow:0 0 0 1px #2a1b0f,0 .2cqw .5cqw rgba(0,0,0,.6)}
 .tv-nm{position:absolute;inset:0 5.5% 0 calc(var(--av) * .6 + 3%);display:block;text-align:center}
 .tv-nm b{position:absolute;left:0;right:0;top:50%;translate:0 -52%;overflow:hidden;text-overflow:ellipsis;
-  font-family:var(--font-display);font-size:clamp(10.5px,1.36cqw,20px);font-weight:700;letter-spacing:.01em}
+  font-family:var(--font-display);font-size:clamp(10.5px,1.09cqw,16px);font-weight:700;letter-spacing:.01em}
 .tv-nm small{position:absolute;left:4%;right:4%;bottom:5%;overflow:hidden;text-overflow:ellipsis;
-  font-size:clamp(8px,.92cqw,13.5px);font-weight:700;color:#f3dfb6;text-shadow:0 1px 1px #1d1108,0 0 3px #1d1108}
-.tv-hp{position:absolute;left:14%;right:14%;top:10%;height:max(3px,.42cqw);border-radius:999px;background:rgba(20,10,4,.8);box-shadow:0 0 0 1px rgba(255,220,170,.35);overflow:hidden}
+  font-size:clamp(8px,.74cqw,11px);font-weight:700;color:#f3dfb6;text-shadow:0 1px 1px #1d1108,0 0 3px #1d1108}
+.tv-hp{position:absolute;left:14%;right:14%;top:10%;height:max(3px,.34cqw);border-radius:999px;background:rgba(20,10,4,.8);box-shadow:0 0 0 1px rgba(255,220,170,.35);overflow:hidden}
 .tv-star{color:#b0611a;margin-left:.25em}
 .tv-seat.dm .tv-av{border-color:var(--accent-2);color:var(--accent-2)}
 .tv-seat.dm .tv-nm small{color:var(--accent-2);letter-spacing:.14em}
@@ -710,20 +767,20 @@ body.tv-on .app{max-width:1760px}
 .tv-seat.off .tv-tag{opacity:.66}
 .tv-seat.off .tv-av img{filter:grayscale(1)}
 
-/* Masanın ortası: zarlar, toplam ve kimin neyi attığı (yeşil minderin üstünde) */
-.tv-center{position:absolute;z-index:7;left:50.1cqw;top:35.45cqw;width:24cqw;translate:-50% -50%;
+/* Masanın ortası: zarlar, toplam ve kimin neyi attığı */
+.tv-center{position:absolute;z-index:7;left:64.6cqw;top:27.9cqw;width:26cqw;translate:-50% -50%;
   display:grid;justify-items:center;text-align:center;pointer-events:none}
-.tv-idle{margin:0;width:10.5cqw;color:#e6dcc4;opacity:.8;font-size:clamp(9px,1.05cqw,14px);line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.8)}
-.tv-throw{display:grid;justify-items:center;gap:clamp(2px,.55cqw,8px);max-width:100%;--glow:var(--accent)}
+.tv-idle{margin:0;width:12cqw;color:#e6dcc4;opacity:.8;font-size:clamp(9px,.95cqw,13px);line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.tv-throw{display:grid;justify-items:center;gap:clamp(2px,.45cqw,7px);max-width:100%;--glow:var(--accent)}
 .tv-throw.crit-hit{--glow:var(--good)}
 .tv-throw.crit-miss{--glow:var(--bad)}
 .tv-total{min-width:1.7em;padding:.02em .3em;border-radius:var(--radius);background:var(--glow);color:var(--on-accent);
-  font-family:var(--font-display);font-size:clamp(20px,3.5cqw,52px);font-weight:700;line-height:1.05;box-shadow:0 0 28px -6px var(--glow),0 3px 8px rgba(0,0,0,.5)}
+  font-family:var(--font-display);font-size:clamp(18px,3cqw,46px);font-weight:700;line-height:1.05;box-shadow:0 0 28px -6px var(--glow),0 3px 8px rgba(0,0,0,.5)}
 .tv-throw:is(.crit-hit,.crit-miss) .tv-total{color:var(--bg)}
-.tv-dice{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:clamp(2px,.5cqw,8px);max-width:100%}
-.tv-die{--die:clamp(30px,4.9cqw,70px);width:var(--die);height:var(--die);display:block;filter:drop-shadow(0 3px 4px rgba(0,0,0,.6))}
-.tv-dice.m .tv-die{--die:clamp(24px,3.7cqw,52px)}
-.tv-dice.s .tv-die{--die:clamp(19px,2.8cqw,40px)}
+.tv-dice{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:clamp(2px,.45cqw,7px);max-width:100%}
+.tv-die{--die:clamp(26px,4.2cqw,60px);width:var(--die);height:var(--die);display:block;filter:drop-shadow(0 3px 4px rgba(0,0,0,.6))}
+.tv-dice.m .tv-die{--die:clamp(21px,3.2cqw,45px)}
+.tv-dice.s .tv-die{--die:clamp(17px,2.4cqw,34px)}
 .tv-die svg{display:block;width:100%;height:100%;overflow:visible}
 .tv-die .f{fill:color-mix(in srgb,var(--accent) 70%,var(--bg));stroke:color-mix(in srgb,var(--accent) 60%,var(--text));stroke-width:2.5;stroke-linejoin:round}
 .tv-die .ff{fill:var(--accent)}
@@ -733,7 +790,7 @@ body.tv-on .app{max-width:1760px}
 .tv-throw.shown:is(.crit-hit,.crit-miss) .tv-die:not(.x){filter:drop-shadow(0 0 9px var(--glow))}
 .tv-more{font-weight:800;color:var(--muted)}
 .tv-cap{display:grid;gap:1px;max-width:100%;padding:.3cqw .9cqw .4cqw;border-radius:.7cqw;background:rgba(22,13,6,.78);box-shadow:0 2px 8px rgba(0,0,0,.4);
-  font-size:clamp(10px,1.12cqw,15px);line-height:1.3}
+  font-size:clamp(10px,.98cqw,14px);line-height:1.3}
 .tv-cap b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tv-cap span{color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .tv-cap em{font-style:normal;font-weight:800;color:var(--glow)}
@@ -744,9 +801,9 @@ body.tv-on .app{max-width:1760px}
 @keyframes tvPop{from{transform:scale(.4);opacity:0}}
 @keyframes tvGlow{to{box-shadow:0 0 46px 6px var(--glow)}}
 
-/* Garson kız: sağ duvardaki kapıdan çıkar, bir oyuncunun yanına gelir, bekler ve geri döner (yolu JS çizer).
+/* Garson kız: alt duvardaki kapıdan girer, bir oyuncunun yanına gelir, bekler ve geri döner (yolu JS çizer).
    Görselde yüzü AŞAĞI bakar; --r ile yürüdüğü yöne çevrilir. İki kare üst üstedir: dolu tepsi ve boş tepsi. */
-.tv-waiter{position:absolute;z-index:6;left:0;top:0;width:0;height:0;pointer-events:none;--ww:calc(11.5cqw * var(--f,1));
+.tv-waiter{position:absolute;z-index:6;left:0;top:0;width:0;height:0;pointer-events:none;--ww:calc(9.2cqw * var(--f,1));
   filter:drop-shadow(.25cqw .45cqw .5cqw rgba(0,0,0,.6))}
 .tv-waiter[hidden]{display:none}
 .tv-waiter-in{position:absolute;left:0;top:0;width:0;height:0;rotate:var(--r,0deg)}
@@ -757,16 +814,17 @@ body.tv-on .app{max-width:1760px}
 .tv-waiter.walk img{animation:tvStep .42s ease-in-out infinite alternate}
 @keyframes tvStep{from{transform:rotate(-3.5deg) translateX(-1.2%)}to{transform:rotate(3.5deg) translateX(1.2%)}}
 /* Garsonun bıraktığı kupa: oyuncunun elinin yanında, masanın üstünde durur */
-.tv-mug{position:absolute;z-index:4;width:2.5cqw;left:calc(var(--x) * 1cqw);top:calc(var(--y) * 1cqw);translate:-55% -56%;rotate:var(--r,0deg);
+.tv-mug{position:absolute;z-index:4;width:2cqw;left:calc(var(--x) * 1cqw);top:calc(var(--y) * 1cqw);translate:-55% -56%;rotate:var(--r,0deg);
   pointer-events:none;filter:drop-shadow(.1cqw .2cqw .2cqw rgba(0,0,0,.6));animation:tvMug .5s ease-out}
 @keyframes tvMug{from{opacity:0;scale:1.5}}
 
-/* Son atışlar: duvardaki kara tahtaya tebeşirle yazılır. Normalde yalnızca sonuç ve ad görünür;
-   fareyle üstüne gelince (telefonda dokununca) tahta büyür ve atışın ayrıntıları okunur. */
-.tv-log{position:absolute;z-index:8;box-sizing:border-box;left:80.5%;top:7.9%;width:15.1%;max-height:27.6%;min-height:27.6%;overflow:hidden;
-  border:1cqw solid transparent;border-radius:.4cqw;padding:.35cqw .55cqw .5cqw;cursor:zoom-in;outline:0;
+/* Son atışlar: sağ üstteki tezgâhın önüne asılmış kara tahtaya tebeşirle yazılır. Normalde yalnızca sonuç ve ad görünür;
+   fareyle üstüne gelince (telefonda dokununca) tahta sola doğru büyür ve atışın ayrıntıları okunur. */
+.tv-log{position:absolute;z-index:8;box-sizing:border-box;left:83%;top:2.5%;width:15.8%;max-height:28%;min-height:28%;overflow:hidden;
+  border:.8cqw solid var(--board-frame);border-radius:.4cqw;padding:.35cqw .55cqw .5cqw;cursor:zoom-in;outline:0;background-color:var(--board);
+  box-shadow:0 0 0 .2cqw var(--board-edge),0 .8cqw 2cqw rgba(0,0,0,.55),inset 0 0 2cqw rgba(0,0,0,.55);
   font-family:'Caveat','Segoe Print','Bradley Hand','Comic Sans MS',cursive;color:#e8ecee;
-  transition:left .28s ease,width .28s ease,max-height .28s ease,background-color .28s,border-color .28s,box-shadow .28s}
+  transition:left .28s ease,width .28s ease,max-height .28s ease,box-shadow .28s}
 .tv-log h2{margin:0 0 .25cqw;padding-bottom:.15cqw;border-bottom:1.5px solid rgba(232,236,238,.4);
   font:inherit;font-weight:700;font-size:clamp(11px,1.5cqw,21px);line-height:1.1;text-align:center;letter-spacing:.02em;white-space:nowrap;overflow:hidden}
 .tv-log h2 em{display:none;font-style:normal;font-weight:500;font-size:.8em;opacity:.7;margin-left:.4em}
@@ -780,11 +838,11 @@ body.tv-on .app{max-width:1760px}
 .tv-log li.crit-miss{color:#ffa79a}
 .tv-log li:nth-child(n+8){display:none}
 .tv-log li.none{display:block;text-align:center;opacity:.6;white-space:normal;font-size:clamp(10px,1.25cqw,17px)}
-.tv-log.open,.tv-log:focus-visible{left:55.5%;width:40.1%;max-height:84%;overflow:auto;cursor:zoom-out;padding:.7cqw 1.1cqw 1cqw;
-  background-color:#2a3036;border-color:#6b4a2a;box-shadow:0 0 0 .22cqw #3a2412,0 1.4cqw 3.4cqw rgba(0,0,0,.65),inset 0 0 2.4cqw rgba(0,0,0,.55)}
+.tv-log.open,.tv-log:focus-visible{left:52%;width:46.8%;max-height:94%;overflow:auto;cursor:zoom-out;padding:.7cqw 1.1cqw 1cqw;
+  box-shadow:0 0 0 .22cqw var(--board-edge),0 1.4cqw 3.4cqw rgba(0,0,0,.65),inset 0 0 2.4cqw rgba(0,0,0,.55)}
 @media (hover:hover){
-  .tv-log:hover{left:55.5%;width:40.1%;max-height:84%;overflow:auto;padding:.7cqw 1.1cqw 1cqw;
-    background-color:#2a3036;border-color:#6b4a2a;box-shadow:0 0 0 .22cqw #3a2412,0 1.4cqw 3.4cqw rgba(0,0,0,.65),inset 0 0 2.4cqw rgba(0,0,0,.55)}
+  .tv-log:hover{left:52%;width:46.8%;max-height:94%;overflow:auto;padding:.7cqw 1.1cqw 1cqw;
+    box-shadow:0 0 0 .22cqw var(--board-edge),0 1.4cqw 3.4cqw rgba(0,0,0,.65),inset 0 0 2.4cqw rgba(0,0,0,.55)}
   .tv-log:hover h2 em{display:inline}
   .tv-log:hover li{grid-template-columns:2.3em minmax(0,1fr) auto;padding:.12cqw 0;border-bottom:1px dashed rgba(232,236,238,.16);font-size:clamp(13px,1.6cqw,23px)}
   .tv-log:hover li:nth-child(n+8){display:grid}
@@ -801,24 +859,76 @@ body.tv-on .app{max-width:1760px}
 .tv-log li .d i{font-style:normal;opacity:.8}
 .tv-log li.none{grid-template-columns:1fr!important;border:0!important}
 
+/* Karakterin gözünden panel (sol şerit): masaya oturan kişinin göz hizasından gördüğü masa, karşısındakiler ve eli.
+   Sahnenin yüksekliğinin tamamını kaplar (yukarıdan aşağıya 56,25 birim), 31,64 birim genişliğindedir: 9:16, dik.
+   Katmanlar (arkadan öne): panorama (pov-kuzey / pov-guney) → mum ışıkları → karşı kenardakiler (önden figürler)
+   → karşıdan geçen garson → zarlar → yaklaşan garson → el. Panorama 16:9'dur; panel onun panel oranındaki bir penceresini
+   gösterir ve pencere bakanın masa boyundaki yerine göre sağa-sola kayar (JS: povRender).
+   El kareleri 3:4 çizildiği için el, panelin altındaki 3:4'lük kutuda durur (bozulmasın diye). Karakter adı panelin içinde, sol üstte. */
+.tv-pov{position:absolute;z-index:8;left:.18cqw;top:0;bottom:0;width:31.64cqw;pointer-events:none}
+.pov-name{position:absolute;z-index:11;left:.8cqw;top:.8cqw;max-width:calc(100% - 1.6cqw - 120px);box-sizing:border-box;padding:.25cqw .8cqw;border-radius:999px;
+  background:var(--surface);border:1px solid var(--line);color:var(--text);font-family:var(--font-ui);font-weight:700;
+  font-size:clamp(11px,1.05cqw,17px);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pov-frame{position:absolute;inset:0;overflow:hidden;border-radius:var(--radius);border:.35cqw solid var(--board-frame);
+  box-shadow:0 0 0 .12cqw var(--board-edge),inset 0 0 0 .14cqw var(--accent),0 .8cqw 2.2cqw rgba(0,0,0,.6);background:var(--bg)}
+.pov-frame::after{content:"";position:absolute;inset:0;z-index:9;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 0 .14cqw var(--accent)}
+/* Panorama: panelin yüksekliğinde 16:9 bir şerit; JS sola kaydırır (left). İçindeki her şeyin yeri panoramaya göre yüzdedir.
+   Görsel yoksa koyu kahve geçiş görünür. .flip: güney görseli yokken kuzey görseli yatay aynalanır (yalnızca zemin, figürler değil). */
+.pov-pano{position:absolute;z-index:1;top:0;left:0;height:100%;aspect-ratio:16/9;transition:left .7s cubic-bezier(.4,0,.2,1)}   /* kendi katmanı: içindeki sıralama dışarı taşmasın */
+.pov-pano.snap{transition:none}
+.pov-bg{position:absolute;inset:0;background:var(--pano) center/100% 100% no-repeat,linear-gradient(180deg,var(--bg) 0 55%,#2a1b0f 55%,#6d3f1c)}
+.pov-pano.flip .pov-bg{scale:-1 1}
+/* Mum ışığı: iki mumun üstünde hafifçe titreyen sıcak ışık (taverna ışığıyla aynı ton) */
+.pov-cand{position:absolute;width:16%;aspect-ratio:1;translate:-50% -50%;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(closest-side,rgba(255,196,110,.42),rgba(255,196,110,.12) 55%,transparent);animation:povFlick 2.3s steps(1) infinite}
+.pov-cand+.pov-cand{animation-duration:1.9s;animation-delay:-.7s}
+@keyframes povFlick{0%{opacity:.85}13%{opacity:1}27%{opacity:.78}41%{opacity:.95}58%{opacity:.82}72%{opacity:1}86%{opacity:.88}}
+/* Karşı kenarda oturanlar: önden figür, alt kesimi karşı masa kenarı çizgisinde. Boy, loşluk ve sıra (z-index) JS'ten gelir.
+   Görsel yoksa koyu siluet (.sil). Çok hafif nefes alırlar. */
+.pov-person{position:absolute;translate:-50% 0;aspect-ratio:640/620;transition:left .7s cubic-bezier(.4,0,.2,1),width .7s cubic-bezier(.4,0,.2,1),opacity .4s}
+.pov-person img{position:absolute;inset:0;width:100%;height:100%;display:block;transform-origin:50% 100%;animation:povSit 4.2s ease-in-out infinite alternate}
+@keyframes povSit{to{transform:scale(1.012,1.018)}}
+.pov-person.sil img{display:none}
+.pov-person.sil::before{content:"";position:absolute;left:22%;right:22%;bottom:0;height:62%;border-radius:45% 45% 0 0;background:var(--bg);opacity:.9}
+.pov-person.sil::after{content:"";position:absolute;left:38%;width:24%;bottom:52%;aspect-ratio:1;border-radius:50%;background:var(--bg);opacity:.9}
+/* Garson: karşıdan geçerken panoramada yürür ve hafifçe sallanır; sana kupa getirirken önden büyüyerek yaklaşır (.near) */
+.pov-waiter{position:absolute;translate:-50% 0;aspect-ratio:640/620;pointer-events:none}
+.pov-waiter[hidden]{display:none}
+.pov-waiter img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pov-waiter.walk img{animation:povWalk .42s ease-in-out infinite alternate}
+@keyframes povWalk{from{transform:translateY(0) rotate(-1.2deg)}to{transform:translateY(-2.2%) rotate(1.2deg)}}
+.pov-waiter.near{z-index:6}
+/* Paneldeki zarlar: masanın üstünde, göz hizasında (eğik değil, sayı okunur). Yerleri panele göre yüzdedir. */
+.pov-dice{position:absolute;inset:0;z-index:5}
+.pov-dice .tv-die{position:absolute;width:var(--d);height:auto;aspect-ratio:1;translate:-50% -50%;filter:drop-shadow(0 .25cqw .3cqw rgba(0,0,0,.6))}
+.pov-dice.shown.crit-hit .tv-die:not(.x){filter:drop-shadow(0 0 .7cqw var(--good))}
+.pov-dice.shown.crit-miss .tv-die:not(.x){filter:drop-shadow(0 0 .7cqw var(--bad))}
+.pov-hand{position:absolute;left:0;right:0;bottom:0;aspect-ratio:3/4;z-index:7}   /* el kareleri 3:4: panelin altında, bozulmadan */
+.pov-hand img{position:absolute;inset:0;width:100%;height:100%;display:block;visibility:hidden;-webkit-user-select:none;user-select:none}
+/* Kare kare değişir: yalnızca data-f ile seçilen kare görünür, arada yumuşak geçiş yok */
+.pov-hand[data-f="2"] .f2,.pov-hand[data-f="1b"] .f1b,.pov-hand[data-f="3"] .f3,.pov-hand[data-f="3a"] .f3a,.pov-hand[data-f="5"] .f5{visibility:visible}
+/* Boştaki el biraz aşağıda ve küçük durur ki karşıdakilerin yüzlerini ve zarları kapatmasın.
+   Atış başlayınca .idle kalkar ve kareler eski (tam) yerinden oynar. */
+.pov-hand.idle{translate:16% 25%;scale:.8;transform-origin:85% 100%;animation:povBreath 3.6s ease-in-out infinite alternate}   /* boştayken nefes alır gibi */
+@keyframes povBreath{to{transform:translateY(-.9%)}}
+/* El görselleri yoksa: el gizlenir, panelde yalnızca masa ve zar görünür */
+.tv-pov.no-hand .pov-hand{display:none}
+
 /* Oyuncunun sol alttaki kendi kutusu: can, AC ve hızlı zarlar */
-.tv-me{align-self:end;display:grid;gap:9px;padding:11px 12px 12px;border-radius:var(--radius);background:var(--bar);border:1px solid var(--line);
-  box-shadow:var(--shadow);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
-/* Küçültülmüş kutu sol alt köşede yüzen bir şerit olur ve masaya yer açar */
-@media (min-width:1200px){
-  .tv-wrap.has-me.me-min{grid-template-columns:minmax(0,1fr)}
-  .tv-wrap.me-min .tv-me{position:fixed;left:16px;bottom:16px;z-index:38;width:286px}
-}
-@media (max-width:1199px){
-  /* Ekran daralınca kutu masanın üstüne, sol alt köşeye biner; küçültülmüş başlar */
-  .tv-wrap.has-me{grid-template-columns:minmax(0,1fr)}
-  .tv-me{position:fixed;left:16px;bottom:16px;z-index:38;width:min(286px,calc(100vw - 100px));max-height:calc(100vh - var(--topbar-h,66px) - 36px);overflow:auto}
-}
-.me-h{display:flex;align-items:center;gap:9px}
+.tv-me{position:absolute;z-index:9;right:max(1.2%,var(--fab-gap,0px));bottom:1.8%;width:17.9%;max-height:46%;overflow:auto;overscroll-behavior:contain;
+  display:grid;grid-template-columns:minmax(0,1fr);           /* sütun içeriğe göre genişlemez: uzun isim kutuyu taşırmaz, "…" ile kısalır */
+  gap:calc(9px * var(--k,1));padding:calc(11px * var(--k,1)) calc(12px * var(--k,1)) calc(12px * var(--k,1));
+  border-radius:var(--radius);background:var(--bar);border:1px solid var(--line);box-shadow:var(--shadow);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.tv-me>*{zoom:var(--k,1)}                                       /* kutunun içi sahneyle birlikte ölçeklenir */
+/* Tam ekran düğmesi: soldaki panelin sağ üst köşesinde (panel sahnenin boyunu kapladığı için altında boşluk yok).
+   Panelin sağ kenarı sahne genişliğinin %31,82'sindedir. Tarayıcı desteklemiyorsa JS gizler. */
+.tv-fs{position:absolute;z-index:9;right:calc(68.18% + .6%);top:1.2%;background:var(--surface);color:var(--text)}
+.tv-fs .ic{width:15px;height:15px}
+.me-h{display:flex;align-items:center;gap:9px;min-width:0}
 .me-h .tv-av{--av:38px;border-color:var(--accent)}
 .me-id{flex:1;min-width:0;line-height:1.2}
 .me-id b{display:block;font-family:var(--font-display);font-size:19px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.me-id small{color:var(--muted);font-size:12px}
+.me-id small{display:block;color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .me-hp{display:grid;gap:5px}
 .me-hp-n{display:flex;align-items:baseline;gap:5px;font-size:12.5px;color:var(--muted)}
 .me-hp-n b{font-family:var(--font-display);font-size:26px;font-weight:600;line-height:1;color:var(--text)}
@@ -843,11 +953,33 @@ button.me-stat:hover span{color:inherit}
 .me-foot{display:flex;gap:6px;flex-wrap:wrap}
 body.tv-on .tray{z-index:41}
 @media (min-width:561px){ body.tv-on .toast{left:50%;translate:-50% 0} }
+/* Tam ekran: üst çubuk ve masa durum çubuğu gizlenir, sahne ekranın tamamına sığar. Zar tepsisi ve bildirimler görünmeye devam eder. */
+body.tv-full{overflow:hidden}
+body.tv-full :is(.topbar,.tablebar){display:none}
+body.tv-full #tableView{height:100dvh}
 
 @media (max-width:640px) and (orientation:portrait){
-  /* Dik tutulan telefon: tablo büyütülür, yalnızca ortadaki masa ve çevresi görünür. Kara tahta sahnenin altına iner. */
-  .tv-main{width:100%}
-  .tv-stage{aspect-ratio:4/5;--z:1.762}
+  /* Dik tutulan telefon: tablo büyütülür, yalnızca ortadaki masa ve çevresi görünür. Kara tahta sahnenin altına iner.
+     Sahne alanı ekranı doldurmaz, sayfa aşağı kayar; kutular yine eskisi gibi akışın içindedir. */
+  body.tv-on .app{padding:14px 12px 110px}
+  body.tv-on .tablebar{margin:0 0 14px}
+  #tableView{display:block;height:auto;overflow:visible;container-type:normal;background:none}
+  .tv-wrap{width:100%;aspect-ratio:auto}
+  .tv-main{position:relative;inset:auto}
+  .tv-stage{position:relative;inset:auto;aspect-ratio:6/5;--z:1.5}
+  /* Büyütülen tablo, masanın merkezi (64,6 ; 27,9 birim) sahnenin ortasına gelecek şekilde kaydırılır */
+  .tv-scene{left:calc(50% - var(--z) * 64.6%);top:calc(41.667cqw - var(--z) * 27.9cqw)}
+  .tv-me{position:fixed;left:10px;right:auto;bottom:10px;z-index:38;width:min(286px,calc(100vw - 100px));max-height:calc(100dvh - var(--topbar-h,66px) - 36px);--k:1}
+  .tv-fs{top:8px;bottom:auto;left:8px;right:auto}
+  .tv-zoom,#tvAll,#tvGoz{display:none}                        /* telefonda tavernada gezinme ve göz hizası paneli yok */
+  .tv-arac{top:8px;left:auto;right:8px}                       /* yalnızca "Canlı" kalır, sağ üstte */
+  .tv-stage.tav{cursor:auto;touch-action:auto}
+  /* Panel sürekli görünmez; yalnızca kendi zarımı atınca sahnenin sol altında küçük bir kutu olarak açılır (.pop).
+     Sahne 6:5'tir, yüksekliği 83,33 birim; kutu 40 birim genişliğinde, 53,33 birim yüksekliğindedir. */
+  .tv-pov{display:none;left:2cqw;top:28cqw;bottom:auto;width:40cqw;aspect-ratio:3/4}
+  .tv-pov.pop{display:block;animation:povPop .2s ease-out}
+  .pov-name{bottom:auto;top:.8cqw;left:.8cqw;max-width:calc(100% - 1.6cqw);z-index:1;font-size:11px}
+  .pov-frame{border-width:2px}
   .tv-tag{background:rgba(26,16,8,.88)!important;aspect-ratio:auto;width:auto;max-width:74px;min-width:0;padding:2px 6px 2px calc(var(--av) * .62);
     border-radius:999px;border:1px solid rgba(255,222,170,.4)!important;color:#f6ead8;--av:22px;filter:none}
   .tv-tag .tv-av{left:calc(var(--av) * -.42)}
@@ -856,7 +988,7 @@ body.tv-on .tray{z-index:41}
   .tv-nm small,.tv-hp{display:none}
   .tv-seat.me .tv-tag{filter:none;border-color:var(--accent)!important}
   .tv-log,.tv-log:hover,.tv-log.open,.tv-log:focus-visible{position:static;width:auto;min-height:0;max-height:none;margin-top:12px;overflow:visible;cursor:default;padding:10px 14px 12px;
-    border:6px solid #6b4a2a;border-radius:6px;background-color:#2a3036;box-shadow:0 0 0 2px #3a2412,var(--shadow),inset 0 0 24px rgba(0,0,0,.55)}
+    border:6px solid var(--board-frame);border-radius:6px;background-color:var(--board);box-shadow:0 0 0 2px var(--board-edge),var(--shadow),inset 0 0 24px rgba(0,0,0,.55)}
   .tv-log h2{font-size:20px;margin-bottom:6px}
   .tv-log h2 em{display:inline}
   .tv-log li,.tv-log:hover li,.tv-log:is(.open,:focus-visible) li{grid-template-columns:2.3em minmax(0,1fr) auto;padding:3px 0;border-bottom:1px dashed rgba(232,236,238,.16);font-size:18px}
@@ -864,8 +996,8 @@ body.tv-on .tray{z-index:41}
   .tv-log li .w{font-weight:700}
   .tv-log li .d{display:block;grid-column:2/4;white-space:normal;opacity:.82;font-size:.86em;line-height:1.15}
   .tv-log li time{display:block;grid-column:3;grid-row:1;opacity:.55;font-size:.8em}
-  .tv-me{left:10px;bottom:10px}
 }
+@keyframes povPop{from{opacity:0;scale:.9}}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
 }
@@ -893,6 +1025,12 @@ body.tv-on .tray{z-index:41}
   <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5C6.5 4.5 9.5 4.6 12 6c2.5-1.4 5.5-1.5 8-.5v13c-2.5-1-5.5-.9-8 .5-2.5-1.4-5.5-1.5-8-.5zM12 6v13"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6l-5.4 2.9 1.2-6L3.3 9.3l6.1-.7z"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5z"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+  <symbol id="i-shrink" viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 21c-3.6 0-6-2.4-6-5.6 0-3.5 3-5.4 3.6-9.4 2.6 1.6 3.4 4 3.2 5.8 1-.6 1.7-1.7 1.9-3 1.7 1.6 3.3 4 3.3 6.6 0 3.2-2.4 5.6-6 5.6z"/></symbol>
   <symbol id="i-table" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.6"/><circle cx="5.5" cy="17.5" r="2.6"/><circle cx="18.5" cy="17.5" r="2.6"/><path d="M10.7 7.8 6.8 15.2M13.3 7.8l3.9 7.4M8.1 17.5h7.8"/></symbol>
 </svg>
 
@@ -941,18 +1079,51 @@ body.tv-on .tray{z-index:41}
     </div>
   </section>
 
-  <!-- ═════════ MASA GÖRÜNÜMÜ: boyalı taverna, koltuklar, garson ve uçan zarlar (içini JS doldurur) ═════════ -->
+  <!-- ═════════ MASA GÖRÜNÜMÜ: 16:9 NPR taverna, koltuklar, garson ve uçan zarlar (içini JS doldurur) ═════════ -->
   <section id="tableView" hidden>
     <div class="tv-wrap">
-      <!-- Oyuncunun kendi kutusu (içini JS doldurur). DM'de görünmez. -->
+      <!-- Oyuncunun sağ alttaki kendi kutusu (içini JS doldurur). DM'de görünmez. -->
       <aside class="tv-me" id="tvMe" aria-label="Karakterim" hidden></aside>
+      <!-- Tam ekran: tarayıcı desteklemiyorsa (ör. iPhone Safari) JS gizler -->
+      <button class="btn sm tv-fs" id="tvFull" data-act="tv-full" aria-pressed="false" hidden><svg class="ic"><use href="#i-expand"/></svg><span>Tam ekran</span></button>
+      <!-- NPR taverna yüklenince görünür: bütün tavernaya bakmak / masaya dönmek -->
+      <div class="tv-arac" id="tvArac" hidden>
+        <button class="btn sm" id="tvAll" data-act="tav-all" aria-pressed="false"><svg class="ic"><use href="#i-expand"/></svg><span>Bütün taverna</span></button>
+        <!-- Canlı: sahne sürekli çizilir, ışıklar titrer. Kapalıyken yalnızca bir şey değişince çizilir (bilgisayarı daha az yorar). -->
+        <button class="btn sm" id="tvCanli" data-act="tav-canli" aria-pressed="true" title="Sahne sürekli çizilsin, ışıklar titresin (kapatınca bilgisayar daha az yorulur)"><svg class="ic"><use href="#i-flame"/></svg><span>Canlı</span></button>
+        <!-- Göz hizası: soldaki panel karakterin koltuğundan canlı 3D görünür; kapalıyken eski boyalı panel -->
+        <button class="btn sm" id="tvGoz" data-act="tav-goz" aria-pressed="true" title="Soldaki panel: karakterin koltuğundan canlı 3D görünüm"><svg class="ic"><use href="#i-eye"/></svg><span>Göz hizası</span></button>
+      </div>
+      <div class="tv-zoom" id="tvZoom" hidden>
+        <button class="btn sm" data-act="tav-yakin" title="Yakınlaştır" aria-label="Yakınlaştır"><svg class="ic"><use href="#i-plus"/></svg></button>
+        <button class="btn sm" data-act="tav-uzak" title="Uzaklaştır" aria-label="Uzaklaştır"><svg class="ic"><use href="#i-minus"/></svg></button>
+      </div>
       <div class="tv-main">
         <div class="tv-stage" id="tvStage">
-          <!-- Tablo: koltuklar ve kupalar JS tarafından buraya eklenir -->
+          <!-- NPR taverna: tablonun arkasında canlı 3D olarak çizilir (BÖLÜM 11b) -->
+          <canvas class="tv-npr" id="tvNpr" aria-hidden="true"></canvas>
+          <!-- Tablo: oyun masası katmanı (BÖLÜM 11b), koltuklar ve kupalar JS tarafından buraya eklenir -->
           <div class="tv-scene" id="tvScene">
             <div class="tv-table" aria-hidden="true"><div class="tv-mat"></div></div>
             <div class="tv-waiter" id="tvWaiter" aria-hidden="true" hidden><div class="tv-waiter-in"><img class="a" src="masa/garson-dolu.webp" alt=""><img class="b" src="masa/garson-bos.webp" alt=""></div></div>
             <div class="tv-center" id="tvCenter" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+        <!-- Karakterin gözünden panel (sol şerit): göz hizasından panorama, karşı kenardakiler, garson, zarlar ve el.
+             Tamamen bu tarayıcıda çalışır, ağa bir şey göndermez. İçini JS koltuk bilgisinden kurar (BÖLÜM 11, povRender).
+             El karelerinin adresini JS masa görünümü ilk açıldığında verir. -->
+        <div class="tv-pov" id="tvPov" aria-hidden="true">
+          <div class="pov-name" id="povName"></div>
+          <div class="pov-frame" id="povFrame">
+            <div class="pov-pano" id="povPano">
+              <div class="pov-bg"></div>
+              <div class="pov-cand"></div><div class="pov-cand"></div>
+              <div id="povPeople"></div>
+              <div class="pov-waiter" id="povWaiterFar" hidden><img alt=""></div>
+            </div>
+            <div class="pov-dice" id="povDice"></div>
+            <div class="pov-waiter near" id="povWaiterNear" hidden><img alt=""></div>
+            <div class="pov-hand idle" id="povHand" data-f="2"><img class="f2" alt=""><img class="f1b" alt=""><img class="f3" alt=""><img class="f3a" alt=""><img class="f5" alt=""></div>
           </div>
         </div>
         <!-- Duvardaki kara tahta: son atışlar. Üstüne gelince (telefonda dokununca) büyür. -->
@@ -1707,11 +1878,16 @@ function showRoll(r, opt = {}) {
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove('show'), 7000);
   }
+  // Masa görünümünde zar tepsisinin geçmişine de zar yere inince yazılır (sonuç hiçbir yerde zardan önce görünmesin)
+  if (mode === 'table' && store.net.role) opt = Object.assign({}, opt, { hist: r });
+  else pushHistory(r);
+  tableRoll(r, opt);                      // masadaysan: masa görünümünde zarı yuvarla, son atışlar listesine ekle
+  if (!opt.remote) shareRoll(r);          // masadaysan zarı DM'e (ve izin varsa diğerlerine) bildir
+}
+function pushHistory(r) {
   rolls.unshift(r);
   if (rolls.length > 30) rolls.length = 30;
   renderHistory();
-  tableRoll(r, opt);                      // masadaysan: masa görünümünde zarı yuvarla, son atışlar listesine ekle
-  if (!opt.remote) shareRoll(r);          // masadaysan zarı DM'e (ve izin varsa diğerlerine) bildir
 }
 function notify(text, sub) {
   const t = $('#toast');
@@ -3046,12 +3222,19 @@ function resumeTable() {
 
 /* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 11 — MASA GÖRÜNÜMÜ: taverna masası, oturan figürler ve uçan zarlar
-   • DM her zaman en üstte (−90°) oturur. N oyuncu varsa i. oyuncunun açısı
-     −90° + 360° × (i+1)/(N+1) olur; herkes eşit aralıkla, simetrik dağılır.
-     Sıra DM'in listesindeki sıradır, herkes aynı sırayı görür.
-   • Sahne boyalı bir taverna tablosudur (masa/taverna.webp). JS her koltuğun
-     tablodaki yerini "birim" cinsinden verir (--x, --y); ekrana göre ölçeklemeyi
-     CSS yapar (görünüm bölümü 16).
+   • Masa hap biçimlidir (iki yanı yarım daire, ortası düz). Herkes iki uzun
+     kenara karşılıklı oturur, yuvarlak uçlara kimse oturmaz (seatLayout): DM üst
+     kenarın ortasında; oyuncular sırayla kenar değiştirir ve her kenarda ortadan
+     iki yana açılır. Sıra DM'in listesindeki sıradır, herkes aynı sırayı görür.
+   • Sahne 16:9 bir tablodur; arkasında NPR taverna canlı 3D olarak çizilir (BÖLÜM 11b; eski boyalı
+     resim 2026-10-15'te kaldırıldı, sayılar ondan ölçülmüştü). JS her
+     koltuğun tablodaki yerini "birim" cinsinden verir (--x, --y); ekrana göre
+     ölçeklemeyi CSS yapar (görünüm bölümü 16). Soldaki şeritte (TV.free) masa
+     yoktur; orada karakterin gözünden, göz hizasında bakan panel durur (POV):
+     panorama, karşı kenardakilerin önden figürleri, garson ve zarlar. Kendi
+     atışımda el zarı fırlatır; zar iki yerde birden kalkar ve aynı anda durur.
+   • Sonuç, zar yere inmeden hiçbir yerde görünmez: masadaki büyük sayı, paneldeki
+     zarlar, kara tahta ve zar tepsisinin geçmişi zar durunca birlikte yazılır.
    • Zarın sonucu her zaman atanın tarayıcısında hesaplanmıştır. Buradaki
      animasyon yalnızca gösterimdir: sonucu değiştirmez, yeniden zar atmaz.
      Zar havadayken yüzü boştur, gerçek sayılar yere inince yazılır.
@@ -3187,26 +3370,74 @@ function figureSVG(o) {
 }
 
 /* ───────── Sahnenin ölçüleri ─────────
-   Hepsi "birim" cinsindendir: 1 birim = taverna tablosunun genişliğinin yüzde biri.
-   Tablo 100 birim genişliğinde, 70,94 birim yüksekliğindedir. Sayılar masa/taverna.webp'ten ölçüldü;
-   görseli değiştirirsen yalnızca buradaki sayıları güncellemen yeter. */
+   Hepsi "birim" cinsindendir: 1 birim = sahnenin genişliğinin yüzde biri.
+   Tablo 100 birim genişliğinde, 56,25 birim yüksekliğindedir (16:9). Sayılar eski boyalı resimden ölçülmüştü; NPR tavernada masa merkezi (cx, cy) 3D kameranın da merkezidir;
+   görseli değiştirirsen yalnızca buradaki sayıları (ve CSS'teki masa merkezini) güncellemen yeter. */
 const TV = {
-  cx: 50.1, cy: 35.45,        // boyalı masanın (yeşil minderin) merkezi
-  h: 70.94,                   // tablonun yüksekliği
-  // Masa kalabalıklaştıkça figürler biraz küçülür ve masaya yaklaşır. Sıra: [figür ölçeği, oyuncunun başı, DM'in başı (masa merkezine uzaklık)]
-  fit: n => (n >= 6 ? [0.88, 16.5, 18.5] : n === 5 ? [0.94, 16.9, 18.9] : [1, 17.4, 19.3]),
-  plate: 13,                  // isimliğin genişliği
-  door: [104.5, 34.8],        // garsonun çıktığı kapı (sağ duvar, tablonun hemen dışı)
-  // Garsonun yürüdüğü yol: kapıdan girer, masanın çevresini alttan dolanır (sol üste kadar)…
-  lane: [[80, 35], [72.8, 45], [68, 55], [60, 62.3], [50.1, 64.2], [40, 62.3], [32.5, 55.5], [29.5, 46], [21.5, 35.45], [29.5, 25.5], [33.5, 15.8]],
-  up:   [[80, 35], [72.2, 26.5], [68.5, 16.8]],          // …ya da sağ üste çıkar. Üstten (tezgâhın önünden) geçmez.
+  cx: 64.6, cy: 27.9,         // oyun masasının merkezi (BÖLÜM 11b'deki TAV.hedef bu noktaya düşer)
+  L: 9.8,                     // masanın düz kenarının yarı uzunluğu
+  R: 8.2,                     // masanın iki ucundaki yarım dairelerin yarıçapı (masanın yarı yüksekliği)
+  h: 56.25,                   // tablonun yüksekliği
+  free: 32,                   // soldaki şerit (göz hizası paneli): isimlik ve garson buraya girmez
+  // Oturma: herkes iki uzun kenarda. Koltuklar kenarın ortasından iki yana "slot" aralığıyla dizilir.
+  reach: 12.8,                // ortadan en uzak koltuğun yatay uzaklığı (düz kenarın biraz ötesi; yuvarlak uçlara oturulmaz)
+  gapMax: 9,                  // az kişide koltuk aralığı en fazla bu kadar
+  figW: 8.2,                  // figürün (tam boyda) masa boyunca kapladığı genişlik; aralık daha darsa figürler küçülür
+  plate: 10.4,                // isimliğin genişliği
+  board: [83, 17.4],          // kara tahtanın sol kenarı ve alt kenarı (sağ üst köşede)
+  me: [80.5, 50],             // küçültülmüş oyuncu kutusunun sol kenarı ve üst kenarı (sağ alt köşede)
+  door: [63, 60.5],           // garsonun girdiği kapı (alt duvar, tablonun hemen dışı)
+  lane: 12.5,                 // garsonun yürüdüğü çizginin masa kenarından uzaklığı: figürlerin ve sandalyelerin arkasından geçer
 };
+/* Koltukların yeri. Herkes masanın iki uzun kenarına, karşılıklı oturur; yuvarlak uçlara kimse oturmaz.
+   • DM üst kenarın ortasında (slot 0).
+   • Oyuncular sırayla kenar değiştirir: 1. oyuncu altta DM'in karşısında, 2. üstte DM'in bir yanında, 3. altta 1.'nin
+     bir yanında, 4. üstte DM'in öbür yanında… Her kenarda koltuklar ortadan iki yana sırayla açılır (slot 0, −1, +1, −2, +2).
+   • Koltuk aralığı en kalabalık kenara göre seçilir; aralık figürden darsa figürler o oranda küçülür.
+   Döner: { f: figür ölçeği, gap: aralık, seats: [{ edge: −1 üst / +1 alt, slot, x, y, a }] } (sıra seatList ile aynı). */
+function seatLayout(n) {
+  if (tav.state === 'on') return seatLayoutTav(n);                   // NPR tavernada masa yuvarlak (BÖLÜM 11b)
+  const order = [0, -1, 1, -2, 2, -3, 3, -4, 4];
+  const lay = [{ edge: -1, slot: 0 }];
+  let top = 1, bottom = 0;                                           // üstte DM oturuyor
+  for (let p = 1; p < n; p++) {
+    if (p % 2) lay.push({ edge: 1, slot: order[bottom++] });         // tek sıradakiler alta (ilki DM'in karşısına)
+    else lay.push({ edge: -1, slot: order[top++] });                 // çift sıradakiler üste, DM'in iki yanına
+  }
+  const far = Math.max(1, ...lay.map(o => Math.abs(o.slot)));
+  const gap = Math.min(TV.gapMax, TV.reach / far);
+  const f = Math.min(1, gap / TV.figW);
+  const off = 3 * f;                                                 // başın masa kenarından uzaklığı
+  lay.forEach(o => {
+    o.x = TV.cx + o.slot * gap;
+    o.y = TV.cy + o.edge * (TV.R + off);
+    o.a = o.edge * Math.PI / 2;                                      // masadan dışarı bakan yön: üstte yukarı, altta aşağı
+  });
+  return { f, gap, seats: lay };
+}
+// Garsonun yürüme çizgisinde bir noktaya en yakın yer (t, 0…1): koltuğun arkasında durmak için
+function laneT(x, y) {
+  let best = 0, bd = Infinity;
+  for (let i = 0; i < 400; i++) { const p = capPoint(i / 400, TV.lane), d = (p[0] - x) ** 2 + (p[1] - y) ** 2; if (d < bd) { bd = d; best = i / 400; } }
+  return best;
+}
+/* Masanın kenarından `off` birim dışarıdan geçen hap biçimli çizgi üzerinde bir nokta. t = 0 üst kenarın ortasıdır,
+   t saat yönünde 0'dan 1'e ilerler (0,5 alt kenarın ortası). Döner: [x, y, a]; a masadan dışarı bakan yönün açısıdır (radyan). */
+function capPoint(t, off) {
+  const L = TV.L, r = TV.R + off, arc = Math.PI * r;
+  let s = (((t % 1) + 1) % 1) * (4 * L + 2 * arc);
+  if (s < L) return [TV.cx + s, TV.cy - r, -Math.PI / 2];                                   // üst kenar, sağ yarı
+  if ((s -= L) < arc) { const a = -Math.PI / 2 + s / r; return [TV.cx + L + r * Math.cos(a), TV.cy + r * Math.sin(a), a]; }   // sağ uç
+  if ((s -= arc) < 2 * L) return [TV.cx + L - s, TV.cy + r, Math.PI / 2];                    // alt kenar
+  if ((s -= 2 * L) < arc) { const a = Math.PI / 2 + s / r; return [TV.cx - L + r * Math.cos(a), TV.cy + r * Math.sin(a), a]; }   // sol uç
+  return [TV.cx - L + s - arc, TV.cy - r, -Math.PI / 2];                                     // üst kenar, sol yarı
+}
 const ART = 'masa/';                                     // görsellerin klasörü
 // Figür görseli: sınıf + (kadın/erkek). Sınıf seçilmediyse "sinifsiz". Görünüm belirtilmediyse koltuk kimliğinden
 // türetilir; böylece aynı kişi herkesin ekranında aynı figürle görünür.
 const figFile = s => (s.dm ? 'dm' : `${FIG_OUTFIT[s.cls] && s.cls ? s.cls : 'sinifsiz'}-${s.look === 'f' || s.look === 'm' ? s.look : (figHash(s.id) & 1 ? 'f' : 'm')}`);
 
-// Görseller yerinde mi? Taverna resmi yüklenemezse (masa klasörü eksikse) çizim figürlere ve çizim masaya dönülür.
+// Görseller yerinde mi? DM figürü yüklenemezse (masa klasörü eksikse) çizim figürlere ve çizim masaya dönülür.
 function tvArtCheck() {
   if (tv.art !== undefined) return;
   tv.art = null;
@@ -3219,7 +3450,7 @@ function tvArtCheck() {
     renderTable();
     notify('Masa görselleri bulunamadı', '"masa" klasörü index.html ile aynı yerde olmalı. Şimdilik çizim figürler gösteriliyor.');
   };
-  im.src = ART + 'taverna.webp';
+  im.src = ART + 'dm.webp';
 }
 
 // Koltuklar: önce DM, sonra oyuncular. Oyuncunun ekranına yalnızca DM'den gelen liste (ad, karakter adı, bağlı mı) ve küçük portreler girer.
@@ -3253,6 +3484,9 @@ function seatHTML(s) {
   }
   const fig = tv.art === false
     ? `<div class="tv-figw"><div class="tv-fig">${figureSVG({ dm: s.dm, cls: s.cls, look: s.look, seed: s.id })}</div></div>`
+    : s.k !== undefined                                              // NPR taverna: koltuğun yönüne dönük kare (s.k), şimdilik blockout
+    ? `<div class="tv-chairw"><div class="tv-chair"><img src="${ART}fig2d/sandalye-${String(s.k).padStart(2, '0')}.webp" alt="" draggable="false"></div></div>
+       <div class="tv-figw"><div class="tv-fig"><img src="${ART}fig2d/${tavFig(s)}-${String(s.k).padStart(2, '0')}.webp" alt="" draggable="false"></div></div>`
     : `<div class="tv-chairw"><div class="tv-chair"><img src="${ART}sandalye.webp" alt="" draggable="false"></div></div>
        <div class="tv-figw"><div class="tv-fig"><img src="${ART}${figFile(s)}.webp" alt="" draggable="false"></div></div>`;
   return `${fig}
@@ -3268,29 +3502,29 @@ function tvView() {
 }
 
 /* İsimliğin yeri (başa göre, birim cinsinden). Kural: masadan dışarı doğru, figürün sırtının bittiği yere.
-   Sol üst ve sol alt köşede yan masalar, sağda kara tahta ve tezgâh olduğu için o taraflarda isimlik
-   ortadaki boş koridora kaydırılır. DM'in arkasında tezgâh var; onun isimliği sol yanına konur. */
-function platePos(s, a, x, y, v, f) {
+   Yan yana koltuklar sıkışık olduğu için isimlikler iki sıradır: tek slotlular (−1, +1, −3…) bir isimlik boyu daha dışarıda.
+   Engeller: soldaki şerit, sağ üstteki kara tahta ve (oyuncuda) sağ alttaki kendi kutusu. İsimlik bunlara değerse
+   yana ya da yukarı kaydırılır. */
+function platePos(s, a, x, y, v, f, outer) {
   const cx = Math.cos(a), sy = Math.sin(a);
   if (v.compact) {                                               // telefonda küçük etiket: sırtın üstüne
     const hw = 37 / v.u, hh = 12 / v.u, lead = 9 / v.u;
-    const px = clamp(x + 7.6 * f * cx, v.x0 + hw + lead + 0.6, v.x1 - hw - 0.6), py = clamp(y + (s.dm ? 6.4 : 7.6) * f * sy, v.y0 + hh + 0.6, v.y1 - hh - 0.6);
+    const px = clamp(x + 6.1 * f * cx, v.x0 + hw + lead + 0.6, v.x1 - hw - 0.6);
+    const py = clamp(y + ((s.dm ? 5.1 : 6.1) * f + (outer ? hh * 2.3 : 0)) * sy, v.y0 + hh + 0.6, v.y1 - hh - 0.6);
     return [px - x, py - y, hw + lead, hh];
   }
   const w = Math.max(TV.plate, 84 / v.u), hw = w / 2, hh = w * 730 / 2323 / 2, lead = Math.max(TV.plate * 0.377, 27 / v.u) * 0.4;   // lead: soldan taşan portre
-  let px, py;
-  if (s.dm) { px = x - 6.9 * f - hw; py = y - 2.6; }
-  else {
-    const d = 6.4 * f + hw * Math.abs(cx) + hh * Math.abs(sy);
-    px = x + d * cx; py = y + d * sy;
-    // Solda iki yan masa var (üstte ve altta). İsimlik onlara değiyorsa en az kaydırmayla kurtarılır: ya sağa ya da aradaki boşluğa.
-    const left = px - hw - lead, over = 28.5 - left;
-    if (over > 0 && py - hh < 25.5) { const dy = 25.5 - (py - hh); if (dy < over) py += dy; else px += over; }
-    else if (over > 0 && py + hh > 45.4) { const dy = py + hh - 45.4; if (dy < over) py -= dy; else px += over; }
-    if (px + hw > 76) py = clamp(py, 32.4, 38.9);                // sağda kara tahta ve tezgâh var: isimlik kapı koridoruna alınır
+  const minX = Math.max(v.x0, TV.free) + hw + lead + 0.8;        // isimlik soldaki şeride girmez
+  const d = 5.1 * f + hw * Math.abs(cx) + hh * Math.abs(sy) + (outer ? hh * 2 + 0.5 : 0);
+  let px = x + d * cx, py = y + d * sy;
+  if (px < minX) {                                               // soldaki şerit: isimlik sağa itilir; figürün başına biniyorsa üstüne ya da altına alınır
+    px = minX;
+    if (px + hw > x - 3.5 * f) py = y + (sy < 0 ? -1 : 1) * (hh + 4.4 * f);
   }
-  px = clamp(px, v.x0 + hw + lead + 0.8, v.x1 - hw - 0.8);
+  px = clamp(px, minX, v.x1 - hw - 0.8);
   py = clamp(py, v.y0 + hh + 0.8, v.y1 - hh - 0.8);
+  if (px + hw > TV.board[0] && py - hh < TV.board[1]) px = TV.board[0] - hw - 0.5;                     // kara tahtanın soluna
+  if (store.net.role === 'player' && px + hw > TV.me[0] && py + hh > TV.me[1]) py = TV.me[1] - hh - 0.5;   // kendi kutumun üstüne
   return [px - x, py - y, hw + lead, hh];
 }
 
@@ -3298,13 +3532,15 @@ function platePos(s, a, x, y, v, f) {
 function renderTable() {
   if (mode !== 'table') return;
   const scene = $('#tvScene'), seats = seatList(), seen = new Set(), v = tvView();
-  const [f, rs, rdm] = TV.fit(seats.length);
+  const lay = seatLayout(seats.length), f = lay.f;
   scene.style.setProperty('--f', f);
+  // Sol panelin başlığı: oyuncuda karakterin adı, DM'de DM'in adı
+  $('#povName').textContent = store.net.role === 'dm' ? myName() : (ownChar().name.trim() || myName());
   seats.forEach((s, i) => {
     seen.add(s.id);
-    const a = (-90 + 360 * i / seats.length) * Math.PI / 180;    // i = 0 DM; i ≥ 1 için −90° + 360° × i/(N+1)
-    const cx = Math.cos(a), sy = Math.sin(a), r = s.dm ? rdm : rs;
-    const x = TV.cx + r * cx, y = TV.cy + r * sy;
+    const o = lay.seats[i], { x, y, a, edge, slot } = o;             // i = 0 DM (üst kenarın ortası); oyuncular sırayla iki uzun kenara
+    if (o.k !== undefined) s.k = o.k;                                 // NPR taverna: figür karesinin yönü
+    const cx = Math.cos(a), sy = Math.sin(a);
     let el = tv.els.get(s.id);
     const fresh = !el;
     if (fresh) { el = document.createElement('div'); el.className = 'tv-seat in'; tv.els.set(s.id, el); setTimeout(() => el.classList.remove('in'), 600); }
@@ -3312,11 +3548,17 @@ function renderTable() {
     // Figür yukarı bakacak şekilde çizildi; masanın ortasına bakması için gereken dönüş (en kısa yoldan)
     let rot = Math.atan2(-cx, sy) * 180 / Math.PI;
     if (el._rot !== undefined) { while (rot - el._rot > 180) rot -= 360; while (rot - el._rot < -180) rot += 360; }
-    el._rot = rot; el._a = a; el._x = x; el._y = y; el._on = !!s.on; el._dm = !!s.dm;
-    const [px, py, phw, phh] = platePos(s, a, x, y, v, f);
+    el._rot = rot; el._a = a; el._t = laneT(x, y + sy * TV.lane); el._x = x; el._y = y; el._on = !!s.on; el._dm = !!s.dm;
+    el._edge = edge; el._slot = slot; el._s = s;                      // göz hizası paneli için: hangi kenar, kim (sınıf ve figür seçimi)
+    // İsimlik başın çevresine göre yerleşir; NPR tavernada masanın önündekilerde ayakların altına (gövdeyi kapatmasın)
+    const bx = o.bx ?? x, by = o.by ?? y;
+    let [px, py, phw, phh] = platePos(s, a, bx, by, v, f, o.outer ?? Math.abs(slot) % 2 === 1);
+    px += bx - x; py += by - y;
     el._plate = [x + px, y + py, phw, phh];                          // isimliğin sahnedeki yeri: garson üstünde durmasın diye
     el.style.setProperty('--x', x.toFixed(2));
     el.style.setProperty('--y', y.toFixed(2));
+    if (o.fx !== undefined) { el.style.setProperty('--fx', o.fx.toFixed(2)); el.style.setProperty('--fy', o.fy.toFixed(2)); }
+    el.classList.toggle('back', !!o.back);                           // masanın arkasında: masa katmanının altında kalır
     el.style.setProperty('--rot', rot.toFixed(1) + 'deg');
     el.style.setProperty('--px', px.toFixed(2));
     el.style.setProperty('--py', py.toFixed(2));
@@ -3332,14 +3574,16 @@ function renderTable() {
     }
     if (fresh) scene.appendChild(el);                                // yeri ayarlandıktan sonra eklenir, ortadan kaymaz
     const mug = tv.mugs.get(s.id);                                   // garsonun bıraktığı kupa koltukla birlikte yer değiştirir
-    if (mug) { const m = mugPos(a); mug.style.setProperty('--x', m[0].toFixed(2)); mug.style.setProperty('--y', m[1].toFixed(2)); }
+    if (mug) { const m = mugPos(el); mug.style.setProperty('--x', m[0].toFixed(2)); mug.style.setProperty('--y', m[1].toFixed(2)); }
   });
   tv.els.forEach((el, id) => {                                        // ayrılanların koltuğu solarak kalkar
     if (seen.has(id) || el.classList.contains('out')) return;
     el.classList.add('out');
-    el._out = setTimeout(() => { el.remove(); tv.els.delete(id); }, 350);
+    el._out = setTimeout(() => { el.remove(); tv.els.delete(id); povRender(); }, 350);
     const mug = tv.mugs.get(id); if (mug) { mug.remove(); tv.mugs.delete(id); }
   });
+  if (tav.state === 'on') tavKoltuklar(lay, seats);                    // göz hizasındaki 3D mankenler (BÖLÜM 11b)
+  povRender();                                                        // göz hizası paneli: kim karşımda, pencere nerede
 }
 
 /* ───────── Garson kız ─────────
@@ -3347,7 +3591,8 @@ function renderTable() {
    boş tepsiyle geri döner. Her seferinde başka bir oyuncuya gider: sıradaki herkes bir kez servis
    alana kadar aynı kişiye ikinci kez uğramaz. Yalnızca süstür; oyunun kurallarına dokunmaz. */
 const wt = { state:'idle', timer:0, raf:0, bag:[], last:'', pts:[], cum:[], d:0, rot:0, hold:0, t:0, seat:'', k: window.DE_WAITER_FAST ? 14 : 1 };
-const mugPos = a => [TV.cx + 11.9 * Math.cos(a - 0.47), TV.cy + 11.9 * Math.sin(a - 0.47)];   // oyuncunun sağ elinin yanı
+// Kupanın yeri: oyuncunun sağ elinin yanı, masanın üstü (başından 5,4 birim masaya doğru, 4,3 birim sağına)
+const mugPos = el => { const c = Math.cos(el._a), s = Math.sin(el._a); return [el._x - 5.4 * c + 4.3 * s, el._y - 5.4 * s - 4.3 * c]; };
 const dist = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
 
 // Köşeli yolu yumuşak bir eğriye çevirir (Catmull-Rom): garson köşelerde keskin dönmez
@@ -3362,17 +3607,20 @@ function smoothPath(p) {
   }
   return out;
 }
-// Kapıdan, verilen koltuğun yanındaki durma noktasına giden yol. Oyuncunun iki yanından kısa yoldan ulaşılan seçilir.
+/* Kapıdan, verilen koltuğun yanındaki durma noktasına giden yol. Garson alt kapıdan girip masanın alt kenarının
+   ortasına gelir, oradan masanın çevresindeki yürüme çizgisi (TV.lane) boyunca yürür.
+   Oyuncunun iki yanından kısa yoldan ulaşılan seçilir. */
 function waiterRoute(el) {
-  const v = tvView(), door = [Math.min(TV.door[0], v.x1 + 7), TV.door[1]];
+  const v = tvView(), door = [TV.door[0], Math.min(TV.door[1], v.y1 + 6)];
+  const P = 4 * TV.L + 2 * Math.PI * (TV.R + TV.lane);                     // yürüme çizgisinin boyu
   let best = null;
   for (const side of [-1, 1]) {
-    const b = el._a + side * 0.45, r = el._dm ? 22.5 : 23.6;
-    const stop = [clamp(TV.cx + r * Math.cos(b), 22, 78.5), clamp(TV.cy + r * Math.sin(b), 15.6, 64.5)];
-    const deg = ((b * 180 / Math.PI + 540) % 360) - 180;                   // −180…180
-    const lane = deg > -96 && deg < -3 ? TV.up : TV.lane;
-    let k = 0; lane.forEach((n, i) => { if (dist(n, stop) < dist(lane[k], stop)) k = i; });
-    const pts = [door].concat(lane.slice(0, k + 1), [stop]);
+    const ts = el._t + side * 4.6 / P;                                      // oyuncunun 4,6 birim yanında durur
+    const stop = capPoint(ts, TV.lane);
+    const d = (((ts - 0.5) % 1) + 1.5) % 1 - 0.5;                           // alt ortadan (t = 0,5) ne kadar ve hangi yöne: −0,5…0,5
+    const n = Math.max(1, Math.ceil(Math.abs(d) * P / 3));                  // yaklaşık 3 birimde bir ara nokta
+    const pts = [door];
+    for (let k = 0; k <= n; k++) pts.push(capPoint(0.5 + d * k / n, TV.lane).slice(0, 2));
     let len = 0; for (let i = 1; i < pts.length; i++) len += dist(pts[i - 1], pts[i]);
     tv.els.forEach(o => {                                                   // bir isimliğin altında kalacaksa öbür yanı yeğle
       const p = o._plate; if (p && Math.abs(stop[0] - p[0]) < p[2] + 5.6 && Math.abs(stop[1] - p[1]) < p[3] + 5.6) len += 500;
@@ -3397,6 +3645,7 @@ function waiterPick() {
 function waiterPlan(ms) {
   clearTimeout(wt.timer);
   if (mode !== 'table' || reduceMotion.matches) return;                     // hareket azaltılmışsa garson hiç çıkmaz
+  if (tav.state === 'on' || tav.state === 'loading') return;               // NPR tavernada garson henüz yok (yolu yuvarlak masaya göre çizilmedi)
   wt.timer = setTimeout(waiterGo, ms / wt.k);
 }
 function waiterGo() {
@@ -3427,7 +3676,7 @@ function waiterTick(ts) {
     want = Math.atan2(b[1] - a[1], b[0] - a[0]) + (wt.state === 'back' ? Math.PI : 0);
     if (wt.state === 'out' && wt.d >= total) { wt.state = 'serve'; wt.hold = 0; box.classList.remove('walk'); box.dataset.state = 'serve'; }
     if (wt.state === 'back' && wt.d <= 0) {                                 // kapıdan çıktı: bir süre sonra yeniden gelir
-      wt.state = 'idle'; box.hidden = true; box.dataset.state = 'idle';
+      wt.state = 'idle'; box.hidden = true; box.dataset.state = 'idle'; povWaiterStep();
       return waiterPlan(13000 + Math.random() * 11000);                     // yalnızca süs: ne kadar sonra geleceği
     }
   } else if (wt.state === 'serve') {
@@ -3437,7 +3686,7 @@ function waiterTick(ts) {
     if (wt.hold > 1.3 && !box.classList.contains('served')) {               // kupayı bırakır, tepsi boşalır
       box.classList.add('served');
       if (el && !el._dm && !tv.mugs.has(wt.seat)) {
-        const m = document.createElement('img'), p = mugPos(el._a);
+        const m = document.createElement('img'), p = mugPos(el);
         m.className = 'tv-mug'; m.src = ART + 'kupa.webp'; m.alt = ''; m.onerror = () => m.remove();
         m.style.setProperty('--x', p[0].toFixed(2)); m.style.setProperty('--y', p[1].toFixed(2)); m.style.setProperty('--r', (figHash(wt.seat) % 360) + 'deg');
         $('#tvScene').appendChild(m); tv.mugs.set(wt.seat, m);
@@ -3449,14 +3698,16 @@ function waiterTick(ts) {
   wt.rot += dr * Math.min(1, dt * 7);                                       // yönünü yumuşakça değiştirir
   box.style.translate = `${wt.x.toFixed(2)}cqw ${wt.y.toFixed(2)}cqw`;
   box.style.setProperty('--r', (wt.rot * 180 / Math.PI - 90).toFixed(1) + 'deg');   // görselde yüzü aşağı baktığı için −90°
+  povWaiterStep();                                                          // göz hizası panelinde de aynı adım
   wt.raf = requestAnimationFrame(waiterTick);
 }
 function waiterStop() {
   clearTimeout(wt.timer); cancelAnimationFrame(wt.raf);
   wt.state = 'idle'; const box = $('#tvWaiter'); box.hidden = true; box.dataset.state = 'idle';
+  povWaiterStep();
 }
 
-/* Oyuncunun sol alttaki kutusu: kendi canı, AC'si ve hızlı zarları. Bilerek sade; ayrıntı kağıtta. */
+/* Oyuncunun sağ alttaki kutusu: kendi canı, AC'si ve hızlı zarları. Bilerek sade; ayrıntı kağıtta. */
 function renderMe() {
   const box = $('#tvMe');
   const show = mode === 'table' && store.net.role === 'player';
@@ -3522,7 +3773,7 @@ function dieSVG(s, v, dropped, blank) {
 // Masanın ortasına bir atışı çizer. hidden = true ise zarların yüzü, toplam ve yazı henüz gizli (zar havada)
 function drawThrow(item, hidden) {
   const box = $('#tvCenter');
-  if (!item) { box.innerHTML = '<p class="tv-idle">Zarlar buraya yuvarlanır</p>'; return null; }
+  if (!item) { box.innerHTML = '<p class="tv-idle">Zarlar buraya yuvarlanır</p>'; povDiceDraw(null); return null; }
   const dice = item.dice.length ? item.dice : [{ s: 0, v: item.total }];   // zar bilgisi gelmediyse (eski sürüm) tek bir pul
   const shown = dice.slice(0, 12), more = dice.length - shown.length;
   const size = shown.length <= 2 ? '' : shown.length <= 6 ? ' m' : ' s';
@@ -3531,39 +3782,296 @@ function drawThrow(item, hidden) {
     <div class="tv-dice${size}">${shown.map(d => dieSVG(d.s, d.v, d.x, hidden)).join('')}${more > 0 ? `<span class="tv-more">+${more}</span>` : ''}</div>
     <div class="tv-cap"><b>${esc(item.who ? item.who + ': ' : '')}${esc(item.label)}</b><span>${esc(item.detail)}</span>${item.note ? `<em>${esc(item.note)}</em>` : ''}${item.tag ? `<small>${esc(item.tag)}</small>` : ''}</div>
   </div>`;
+  povDiceDraw(item, hidden);                                         // göz hizası panelinde de aynı zarlar (havadaysa yüzleri boş)
   return box.firstElementChild;
 }
 
-// Zarları atanın koltuğundan masanın ortasına fırlatır: döner, seker, durur. Yalnızca konum ve dönüş canlandırılır (telefonda da hafif).
-function flyDice(box, item, fast) {
-  const stage = $('#tvStage').getBoundingClientRect();
-  const seat = tv.els.get(item.seat), av = seat && ($('.tv-fig', seat) || $('.tv-av', seat));   // zar, atanın oturduğu yerden (başının olduğu noktadan) çıkar
-  const from = av ? av.getBoundingClientRect() : null;
-  const fx = from ? from.left + from.width / 2 : stage.left + stage.width / 2;   // koltuğu bilinmiyorsa masanın alt kenarından
-  const fy = from ? from.top + from.height / 2 : stage.bottom;
+/* Zarları atanın koltuğundan masanın ortasına fırlatır: döner, seker, durur. Yalnızca konum ve dönüş canlandırılır (telefonda da hafif).
+   Uzaklıklar "birim" (cqw) cinsindendir. Aynı anda göz hizası panelinde de zar yuvarlanır (povFly): aynı süre, aynı dönüş.
+   delay: kendi atışımda zar, paneldeki el açılana kadar bekler (iki yerde birden). */
+function flyDice(box, item, fast, delay = 0) {
+  const sc = $('#tvScene').getBoundingClientRect(), u = sc.width / 100 || 1;
+  const seat = tv.els.get(item.seat);
+  const fx = seat ? seat._x : TV.cx, fy = seat ? seat._y : TV.cy + TV.R + 8;   // zar atanın başının olduğu yerden çıkar; koltuğu bilinmiyorsa masanın alt kenarından
   const dur = fast ? 650 : 1150;
-  tv.anims = $$('.tv-die', box).map((d, i) => {
+  const turns = [];
+  tv.anims = [];
+  $$('.tv-die', box).forEach((d, i) => {
     const r = d.getBoundingClientRect();
-    const dx = fx - (r.left + r.width / 2), dy = fy - (r.top + r.height / 2), hop = Math.min(40, r.height * 0.45);
+    const dx = fx - (r.left + r.width / 2 - sc.left) / u, dy = fy - (r.top + r.height / 2 - sc.top) / u, hop = Math.min(40, r.height * 0.45) / u;
     const turn = (Math.random() < 0.5 ? -1 : 1) * (fast ? 360 : 720);   // yalnızca görüntü: zarın hangi yöne döneceği. Tam tur biter, sayı dik durur.
-    return d.animate([
-      { transform:`translate(${dx}px,${dy}px) rotate(0deg) scale(.5)`, opacity:0 },
-      { transform:`translate(${dx * 0.75}px,${dy * 0.75}px) rotate(${turn * 0.2}deg) scale(.75)`, opacity:1, offset:0.12 },
-      { transform:`translate(0px,${-hop}px) rotate(${turn * 0.85}deg) scale(1.08)`, offset:0.55 },
-      { transform:`translate(0px,0px) rotate(${turn}deg) scale(1)`, offset:0.72 },
-      { transform:`translate(0px,${-hop * 0.35}px) rotate(${turn + Math.sign(turn) * 8}deg) scale(1)`, offset:0.86 },
-      { transform:`translate(0px,0px) rotate(${turn}deg) scale(1)` },
-    ], { duration: dur, delay: i * (fast ? 30 : 70), easing:'cubic-bezier(.3,.7,.4,1)', fill:'backwards' });
+    const T = (x, y, r, s) => `translate(${x.toFixed(2)}cqw,${y.toFixed(2)}cqw) rotate(${r}deg) scale(${s})`;
+    const frames = [
+      { transform: T(dx, dy, 0, 0.5), opacity: 0 },
+      { transform: T(dx * 0.75, dy * 0.75, turn * 0.2, 0.75), opacity: 1, offset: 0.12 },
+      { transform: T(0, -hop, turn * 0.85, 1.08), offset: 0.55 },
+      { transform: T(0, 0, turn, 1), offset: 0.72 },
+      { transform: T(0, -hop * 0.35, turn + Math.sign(turn) * 8, 1), offset: 0.86 },
+      { transform: T(0, 0, turn, 1) },
+    ];
+    const timing = { duration: dur, delay: delay + i * (fast ? 30 : 70), easing: 'cubic-bezier(.3,.7,.4,1)', fill: 'backwards' };
+    tv.anims.push(d.animate(frames, timing));
+    turns.push(turn);
   });
+  tv.anims.push(...povFly(item, dur, delay, fast, turns));           // göz hizası panelinde aynı zarlar, aynı anda
   return Promise.all(tv.anims.map(a => a.finished.catch(() => {})));
 }
 function reveal(box) {
   if (!box || !box.isConnected) return;
-  $$('.tv-die', box).forEach(d => { $('text', d).textContent = d.dataset.v; });
-  box.classList.add('shown');
+  [box, $('#povDice')].forEach(b => {                                // ana sahne ve göz hizası paneli birlikte
+    $$('.tv-die', b).forEach(d => { $('text', d).textContent = d.dataset.v; });
+    b.classList.add('shown');
+  });
+}
+
+/* ───────── Karakterin gözünden panel (sol şerit): göz hizası ─────────
+   Bakan kişi masanın hangi uzun kenarında oturuyorsa karşı tarafı görür: alt kenardaysa pov-kuzey, üst kenardaysa
+   (DM dahil) pov-guney panoraması. Panel panoramanın 3:4'lük bir penceresidir; pencere bakanın masa boyundaki yerine
+   göre sağa-sola kayar (masanın solunda oturan panoramanın solunu görür). Karşı kenarda oturanlar önden figürleriyle
+   panoramadaki karşı masa kenarına oturur; bakandan uzaklaştıkça biraz küçülür ve loşlaşır. Aynı kenardakiler görünmez.
+   Garson ve zarlar ana sahneyle aynı anda oynar. Kendi atışımda (oyuncu da DM de) el kareleri sırayla, geçişsiz değişir;
+   "el açılır" karesinin başında zar iki yerde birden kalkar. Animasyon yalnızca gösterimdir: sonucu değiştirmez,
+   yeniden zar atmaz. Ağa hiçbir şey gönderilmez: koltuk, sınıf ve figür seçimi zaten masada var. */
+const POV = {
+  // Kare sırası ve süreleri (ms). Boşta el-2 (yumruk); sonra ara kare, ileri uzanma, el açılır (zar çıkar), geri çekilir.
+  // pov-el-1 (hareket bulanıklığı) kullanılmaz: bulanık kısmı macentayla karıştığı için atışın başında parlıyordu. Yerine bulanıksız el-1b.
+  seq: [['1b', 80], ['3', 100], ['3a', 150], ['5', 150]],
+  files: { 2:'pov-el-2', '1b':'pov-el-1b', 3:'pov-el-3', '3a':'pov-el-3-acik', 5:'pov-el-5' },
+  // Panoramaların ölçüleri (görselin %'si), görsellerden ölçüldü. edge: karşı masa kenarı çizgisinin yüksekliği;
+  // x0–x1: karşı kenarın düz kısmı (sahnede TV.cx ± TV.L buraya denk gelir); near: yakın masa kenarı; cand: iki mum.
+  // Güneyden bakınca doğu solda kalır: sahnedeki sağ panoramada sola düşer (flip).
+  pano: {
+    kuzey: { file: 'pov-kuzey', edge: 59.6, x0: 28, x1: 78, near: 93, flip: false, cand: [[38.3, 69], [66.5, 69]] },
+    guney: { file: 'pov-guney', edge: 54.9, x0: 27, x1: 77, near: 93, flip: true,  cand: [[35.6, 66], [68.9, 66.5]] },
+  },
+  figH: 33,                   // tam boy oturan figürün yüksekliği (panoramanın %'si); masa kalabalıksa sahnedeki gibi küçülür
+  stand: 1.35,                // ayakta duran garson oturanlardan bu kadar büyük
+  land: 36,                   // zarların durduğu yer: panelin soldan %'si (yumruğun altında); derinlikte masanın ortası
+  near: 18,                   // garson bana bu kadar birim kala önden yaklaşmaya başlar
+  art: {},                    // hangi görsel var: dosya adı → true / false (yüklenemedi; sayfa yenilenince yeniden denenir)
+  people: new Map(),          // koltuk kimliği → karşıdaki figürün kutusu
+  cur: null,                  // şu anki görüntü: { p: panorama ölçüleri, edge: kenarım, x: yerim, W, H: panel, PW: panorama genişliği, left }
+  ready: false, size: '', timers: [], popTimer: 0,
+};
+// Sahnedeki x (birim) → panoramada yatay yer (%), karşı masa kenarı boyunca
+const povPx = (p, x) => { const t = (x - (TV.cx - TV.L)) / (2 * TV.L); return p.flip ? p.x1 - t * (p.x1 - p.x0) : p.x0 + t * (p.x1 - p.x0); };
+// Önden figür dosyaları (ilk bulunan kullanılır): sınıf + kadın/erkek, yoksa sınıfsız; DM her zaman dm-on (DM'in hazırladığı
+// portre asla kullanılmaz). Figür seçimi belirtilmemişse ana sahnedeki gibi koltuk kimliğinden türetilir.
+function povFigNames(s) {
+  if (s.dm) return ['dm-on'];
+  const look = figFile(s).endsWith('-f') ? 'kadin' : 'erkek';
+  const cls = FIG_OUTFIT[s.cls] && s.cls ? s.cls : 'sinifsiz';
+  return [...new Set([`${cls}-${look}-on`, `sinifsiz-${look}-on`])];
+}
+// Görseli sırayla dener; hiçbiri yoksa koyu siluet. Yüklenemeyenler bu oturum boyunca bir daha istenmez.
+function povSetImg(box, names) {
+  const img = $('img', box);
+  box.classList.remove('sil');
+  const next = i => {
+    if (i >= names.length) { box.classList.add('sil'); return; }
+    if (POV.art[names[i]] === false) return next(i + 1);
+    img.onerror = () => { POV.art[names[i]] = false; next(i + 1); };
+    img.onload = () => { POV.art[names[i]] = true; };
+    img.src = ART + names[i] + '.webp';
+  };
+  next(0);
+}
+// İlk girişte: el karelerinin adresi verilir ve panoramaların varlığına bakılır. Güney yoksa kuzey aynalanarak kullanılır;
+// panorama hiç yoksa koyu kahve geçiş görünür (CSS). El kareleri yüklenemezse el gizlenir.
+function povInit() {
+  if (POV.ready) return;
+  POV.ready = true;
+  const pov = $('#tvPov');
+  const fail = what => {
+    if (pov.classList.contains('no-hand')) return;
+    pov.classList.add('no-hand');
+    notify('El görselleri bulunamadı', `${what} "masa" klasöründe olmalı. Şimdilik panelde el olmadan yalnızca masa ve zar gösteriliyor.`);
+  };
+  $$('#povHand img').forEach(im => {
+    const f = im.className.slice(1);
+    im.onerror = () => {
+      if (f === '3a' && !im.dataset.alt) { im.dataset.alt = 1; im.src = ART + POV.files[3] + '.webp'; return; }   // açık el yoksa: ileri uzanan yumruk
+      fail(POV.files[f] + '.webp');
+    };
+    im.src = ART + POV.files[f] + '.webp';
+  });
+  ['pov-kuzey', 'pov-guney'].forEach(n => {
+    const im = new Image();
+    im.onload = () => { POV.art[n] = true; };
+    im.onerror = () => { POV.art[n] = false; povRender(); };
+    im.src = ART + n + '.webp';
+  });
+}
+function povFrame(f) { $('#povHand').dataset.f = f; }
+function povClear() {                                                // süren el hareketini durdurur, eli boşta duruma alır
+  POV.timers.forEach(clearTimeout); POV.timers = [];
+  povFrame('2'); $('#povHand').classList.add('idle');
+}
+
+/* Paneli kurar: hangi panorama, pencere nerede, karşıda kim oturuyor. renderTable her çalıştığında (biri katılınca,
+   ayrılınca, koltuklar değişince, pencere boyutu değişince) çağrılır. */
+function povRender() {
+  if (mode !== 'table' || !POV.ready) return;
+  const fr = $('#povFrame'), pano = $('#povPano'), W = fr.clientWidth, H = fr.clientHeight;
+  const me = tv.els.get(meSeat());
+  const edge = me ? me._edge : 1, myX = me ? me._x : TV.cx;           // koltuğum bilinmiyorsa alt kenarın ortası
+  let p = edge === 1 ? POV.pano.kuzey : POV.pano.guney, mirror = false;
+  if (edge !== 1 && POV.art['pov-guney'] === false) {                // güney görseli yoksa kuzey yatay aynalanır
+    const k = POV.pano.kuzey;
+    p = { ...k, x0: 100 - k.x1, x1: 100 - k.x0, flip: true, cand: k.cand.map(c => [100 - c[0], c[1]]) };
+    mirror = true;
+  }
+  pano.style.setProperty('--pano', `url("${ART}${p.file}.webp")`);
+  pano.classList.toggle('flip', mirror);
+  $$('.pov-cand', pano).forEach((c, i) => { c.style.left = p.cand[i][0] + '%'; c.style.top = p.cand[i][1] + '%'; });
+  const PW = H * 16 / 9;
+  const left = W ? clamp(povPx(p, myX) / 100 * PW - W / 2, 0, PW - W) : 0;   // pencere: yerim panelin ortasına gelsin, panoramadan taşmasın
+  const size = `${W}x${H}`, snap = POV.size !== size;                // panel boyutu değiştiyse kaymadan yerine otursun
+  POV.size = size;
+  if (snap) pano.classList.add('snap');
+  pano.style.left = (-left).toFixed(1) + 'px';
+  if (snap) { void pano.offsetWidth; pano.classList.remove('snap'); }
+  POV.cur = { p, edge, x: myX, W, H, PW, left };
+  // Karşı kenardakiler. Boy: sahnedeki figür ölçeği × uzaklık; uzaktakiler biraz küçük ve loş, yakındakiler önde.
+  const f = parseFloat($('#tvScene').style.getPropertyValue('--f')) || 1, seen = new Set();
+  tv.els.forEach((el, id) => {
+    if (el.classList.contains('out') || el._edge === edge || id === meSeat()) return;
+    seen.add(id);
+    let d = POV.people.get(id);
+    if (!d) {
+      d = document.createElement('div'); d.className = 'pov-person'; d.innerHTML = '<img alt="" draggable="false">';
+      $('img', d).style.animationDelay = -(figHash(id) % 4000) / 1000 + 's';   // herkes başka anda nefes alsın
+      $('#povPeople').appendChild(d); POV.people.set(id, d);
+    }
+    const names = povFigNames(el._s), key = names.join();
+    if (d._key !== key) { d._key = key; povSetImg(d, names); }
+    const far = Math.min(1, Math.abs(el._x - myX) / 20), k = 1 - 0.22 * far;
+    const h = POV.figH * f * k;                                       // panoramanın yüksekliğinin %'si
+    d.style.width = (h * (9 / 16) * (640 / 620)).toFixed(2) + '%';
+    d.style.left = povPx(p, el._x).toFixed(2) + '%';
+    d.style.top = (p.edge - h).toFixed(2) + '%';                      // alt kesim karşı masa kenarında
+    d.style.zIndex = 100 - Math.round(far * 20);
+    d.style.filter = `brightness(${(1 - 0.28 * far).toFixed(2)})`;
+    d.style.opacity = el._on ? 1 : 0;                                 // bağlantısı kopanın yeri boş kalır (ana sahnedeki gibi)
+  });
+  POV.people.forEach((d, id) => { if (!seen.has(id)) { d.remove(); POV.people.delete(id); } });
+  povWaiterStep();
+}
+
+/* Garson, göz hizasında. Ana sahnedeki her adımda çağrılır (waiterTick).
+   • Karşı taraftan geçerken panoramada aynı yöne yürür, hafifçe sallanır; ayakta olduğu için oturanlardan büyük,
+     alt kesimi karşı masa kenarının biraz altında.
+   • Bana kupa getiriyorsa son POV.near birimde önden büyüyerek yaklaşır; kupayı bırakınca boş tepsiyle küçülerek uzaklaşır.
+   • Hareket azaltılmışsa hiç görünmez. */
+function povWaiterStep() {
+  const far = $('#povWaiterFar'), near = $('#povWaiterNear'), c = POV.cur;
+  if (!c || !c.W || mode !== 'table' || wt.state === 'idle' || reduceMotion.matches) { far.hidden = near.hidden = true; return; }
+  const src = ART + ($('#tvWaiter').classList.contains('served') ? 'garson-bos-on' : 'garson-dolu-on') + '.webp';
+  const f = parseFloat($('#tvScene').style.getPropertyValue('--f')) || 1, h0 = POV.figH * POV.stand * f;
+  const walk = wt.state !== 'serve';
+  if (wt.seat === meSeat()) {
+    const rem = wt.state === 'serve' ? 0 : wt.cum[wt.cum.length - 1] - wt.d;   // durma noktasına kalan yol
+    if (rem < POV.near) {
+      const t = 1 - rem / POV.near, e = t * t;                        // 0 uzakta … 1 önümde
+      const hMax = Math.min(100, 133.3 * c.W / c.H);                  // en yakında: 3:4 panelin boyu kadar (dik panelde genişliği taşmasın)
+      const h = h0 + (hMax - h0) * e, top = (c.p.edge + 3 - h0) + ((104 - h) - (c.p.edge + 3 - h0)) * e;   // alt kesimi panelin altında
+      far.hidden = true; near.hidden = false;
+      if (near._src !== src) { near._src = src; $('img', near).src = src; }
+      near.style.height = h.toFixed(2) + '%';
+      near.style.left = '52%';
+      near.style.top = top.toFixed(2) + '%';
+      near.classList.toggle('walk', walk);
+      return;
+    }
+  }
+  near.hidden = true;
+  const across = c.edge === 1 ? wt.y < TV.cy : wt.y > TV.cy;          // masanın karşı yarısında mı?
+  if (!across) { far.hidden = true; return; }
+  far.hidden = false;
+  if (far._src !== src) { far._src = src; $('img', far).src = src; }
+  far.style.height = h0.toFixed(2) + '%';
+  far.style.left = povPx(c.p, wt.x).toFixed(2) + '%';
+  far.style.top = (c.p.edge + 3 - h0).toFixed(2) + '%';
+  far.classList.toggle('walk', walk);
+}
+
+/* Paneldeki zarlar: masanın derinlikte ortasında (karşı kenar ile yakın kenarın arası), panelin soldan %36'sında,
+   yumruğun altında dururlar. Göz hizasında oldukları için eğik değildir; sayı yere inince yazılır (reveal). */
+function povDiceDraw(item, hidden) {
+  const box = $('#povDice');
+  if (!item) { box.innerHTML = ''; box.className = 'pov-dice'; return; }
+  const p = POV.cur ? POV.cur.p : POV.pano.kuzey;
+  const dice = (item.dice.length ? item.dice : [{ s: 0, v: item.total }]).slice(0, 12);
+  const n = dice.length, d = n <= 2 ? 10 : n <= 6 ? 7.5 : 6;         // zarın genişliği (panelin %'si)
+  const p3 = $('#tvPov').classList.contains('p3');                   // göz hizası 3D: zarlar masanın ortasının paneldeki yerine (TAV.goz.zar)
+  const per = n <= 6 ? n : Math.ceil(n / 2), gap = d * 1.15, yMid = p3 ? TAV.goz.zar[1] : (p.edge + p.near) / 2, land = p3 ? TAV.goz.zar[0] : POV.land;
+  const wh = POV.cur && POV.cur.H ? POV.cur.W / POV.cur.H : 9 / 16;   // panelin eni / boyu: genişliğe göre % → yüksekliğe göre %
+  box.className = `pov-dice ${item.flag}${hidden ? '' : ' shown'}`;
+  box.innerHTML = dice.map((x, i) => {
+    const row = Math.floor(i / per), col = i % per, inRow = Math.min(per, n - row * per);
+    const left = land + (col - (inRow - 1) / 2) * gap, top = yMid + (row - (n > per ? 0.5 : 0)) * gap * wh;   // top: yüksekliğe göre %
+    return dieSVG(x.s, x.v, x.x, hidden).replace('class="tv-die', `style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;--d:${d}%" class="tv-die`);
+  }).join('');
+}
+/* Paneldeki zarların uçuşu; ana sahnedeki zarla aynı süre, aynı gecikme ve aynı dönüş (flyDice çağırır).
+   • Kendi atışım: panelin altından büyük çıkar, masanın üstünde uzaklaşıp küçülerek ortada durur.
+   • Karşıdakinin atışı: onun önünden küçük çıkar, bana doğru büyüyerek gelir.
+   • Aynı kenardakinin atışı: oturduğu yana göre panelin alt köşesinden gelir. */
+function povFly(item, dur, delay, fast, turns) {
+  const box = $('#povDice'), c = POV.cur;
+  if (!c || !c.W || !box.children.length) return [];
+  const W = c.W, H = c.H, seat = tv.els.get(item.seat);
+  let sx = W * 0.5, sy = H * 1.08, s0 = 2.2;                          // kendi atışım (ya da koltuğu bilinmeyen)
+  const g3 = seat && item.seat !== meSeat() ? tavGozNokta(item.seat) : null;   // göz hizası 3D: atanın göğsünden
+  if (g3) { sx = g3[0]; sy = g3[1]; s0 = 0.6; }
+  else if (seat && item.seat !== meSeat()) {
+    if (seat._edge !== c.edge) { sx = povPx(c.p, seat._x) / 100 * c.PW - c.left; sy = H * (c.p.edge - 3) / 100; s0 = 0.55; }
+    else { const leftSide = (seat._x < c.x) !== c.p.flip; sx = leftSide ? -W * 0.05 : W * 1.05; sy = H * 0.98; s0 = 1.8; }
+  }
+  const hop = H * 0.05;
+  const T = (x, y, r, s) => `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) rotate(${r}deg) scale(${s.toFixed(3)})`;
+  return $$('.tv-die', box).map((el, i) => {
+    const dx = sx - parseFloat(el.style.left) / 100 * W, dy = sy - parseFloat(el.style.top) / 100 * H, turn = turns[i] || 720;
+    return el.animate([
+      { transform: T(dx, dy, 0, s0), opacity: 0 },
+      { transform: T(dx * 0.85, dy * 0.85, turn * 0.15, s0 * 0.92 + 0.08), opacity: 1, offset: 0.1 },
+      { transform: T(dx * 0.3, dy * 0.3 - hop, turn * 0.55, (s0 + 1) / 2), offset: 0.42 },
+      { transform: T(0, 0, turn * 0.8, 1.02), offset: 0.62 },                    // masaya ilk değiş
+      { transform: T(0, -hop * 0.45, turn * 0.9, 1.01), offset: 0.74 },          // seker
+      { transform: T(0, 0, turn * 0.97, 1), offset: 0.85 },
+      { transform: T(0, -hop * 0.12, turn, 1), offset: 0.93 },                   // bir daha, küçük
+      { transform: T(0, 0, turn, 1) },
+    ], { duration: dur, delay: delay + i * (fast ? 30 : 70), easing: 'cubic-bezier(.3,.7,.4,1)', fill: 'backwards' });
+  });
+}
+
+// Dik telefonda panel küçük bir kutu olarak açılır; zar durduktan 1,5 saniye sonra kaybolur
+function povPop(on) {
+  clearTimeout(POV.popTimer);
+  $('#tvPov').classList.toggle('pop', on);
+  if (on) povRender();                                               // gizliyken ölçülemez: açılınca kur
+}
+function povHideLater() { clearTimeout(POV.popTimer); POV.popTimer = setTimeout(() => povPop(false), 1500); }
+/* Kendi atışımda eli oynatır. Döner: zarın kalkacağı an (ms) — "el açılır" karesinin başı.
+   Hareket azaltılmışsa el oynamaz ve zar beklemez (0). */
+function povThrow(fast) {
+  povClear(); povPop(true);
+  if (reduceMotion.matches) return 0;
+  const hand = $('#povHand');
+  hand.classList.remove('idle');
+  const k = fast ? 0.6 : 1;                                          // sıra uzunsa daha hızlı
+  let t = 0, diceAt = 0;
+  POV.seq.forEach(([f, ms]) => {
+    if (f === '3a') diceAt = t;
+    POV.timers.push(setTimeout(() => povFrame(f), t));
+    t += ms * k;
+  });
+  POV.timers.push(setTimeout(() => { povFrame('2'); hand.classList.add('idle'); }, t));
+  return diceAt;
 }
 
 function addRecent(item) {
+  if (item.hist) { pushHistory(item.hist); item.hist = null; }        // zar tepsisinin geçmişi de ancak şimdi
   tv.recent.push(item);
   tv.recent.sort((a, b) => b.ts - a.ts);
   if (tv.recent.length > 8) tv.recent.length = 8;
@@ -3588,6 +4096,8 @@ function tableRoll(r, opt) {
     label: opt.remote ? opt.title || '' : r.label,
     total: r.total, detail: r.detail, flag: r.flag || '', note: r.note || '',
     dice: cleanDice(r.dice), ts: Date.now(),
+    mine: !opt.remote,                       // bu tarayıcıdaki kişinin kendi atışı mı? (sol paneldeki el yalnızca bunlarda oynar)
+    hist: opt.hist || null,                  // zar tepsisinin geçmişine, zar yere inince eklenecek atış
     // Kendi ekranımda küçük bir hatırlatma: bu zarı kimler görüyor?
     tag: opt.remote ? '' : role === 'dm' ? (mode === 'peek' || store.net.dmSecret ? 'Gizli: oyuncular görmez' : '') : (!net.publicRolls ? 'Yalnızca DM görür' : ''),
   };
@@ -3603,9 +4113,13 @@ async function playNext() {
   tv.busy = true; tv.cur = item;
   const run = ++tv.run, fast = tv.queue.length >= 2;               // sıra uzunsa daha hızlı
   const box = drawThrow(item, true);
-  if (!reduceMotion.matches) await flyDice(box, item, fast);         // hareket azaltılmışsa zar doğrudan sonucuyla belirir
+  // Kendi atışımsa sol paneldeki el oynar; zar (ana sahnede de, panelde de) el açıldığı anda kalkar
+  const delay = item.mine ? povThrow(fast) : 0;
+  if (!reduceMotion.matches) await flyDice(box, item, fast, delay);  // hareket azaltılmışsa zar doğrudan sonucuyla belirir
   if (run !== tv.run) return;                                        // bu arada görünüm kapandı ya da atlandı
+  // Zar yere indi: sonuç ancak şimdi her yerde görünür (masadaki büyük sayı, paneldeki etiket, kara tahta, zar tepsisinin geçmişi)
   reveal(box);
+  if (item.mine) povHideLater();
   tv.cur = null; tv.anims = [];
   addRecent(item);
   tv.timer = setTimeout(() => { if (run === tv.run) playNext(); }, fast ? 600 : 1200);   // sonucu okumaya zaman tanı
@@ -3615,23 +4129,75 @@ function tvFlush() {
   tv.run++; clearTimeout(tv.timer);
   tv.anims.forEach(a => { try { a.cancel(); } catch (e) { /* yok say */ } });
   tv.anims = [];
+  if (tv.cur && tv.cur.mine) { povClear(); if ($('#tvPov').classList.contains('pop')) povHideLater(); }   // paneldeki el de yarıda kalmasın
   if (tv.cur) addRecent(tv.cur);
   tv.queue.forEach(addRecent);
   tv.queue = []; tv.cur = null; tv.busy = false;
 }
 function tvEnter() {
-  if (store.meMin === undefined) store.meMin = window.innerWidth < 1200;     // dar ekranda kutu masanın üstüne bindiği için küçük başlar
-  tvArtCheck();
+  store.meMin = true;                                                         // oyuncu kutusu her girişte küçük başlar: masayı kapatmasın
+  tvArtCheck(); povInit(); tavStart(); tavKick();                             // NPR taverna (BÖLÜM 11b)
+  measureTablebar(); tvLayout();
   renderTable(); renderTableLog(); renderMe(); if (!tv.busy) drawThrow(tv.recent[0], false);
   if (wt.state === 'idle') waiterPlan(5000);                                  // garson birkaç saniye sonra ilk kez görünür
 }
-function tvLeave() { if (tv.busy || tv.queue.length) tvFlush(); waiterStop(); $('#tvLogBox').classList.remove('open'); $('#tvMe').hidden = true; $('.tv-wrap').classList.remove('has-me', 'me-min'); }
+function tvLeave() {
+  if (tv.busy || tv.queue.length) tvFlush(); waiterStop(); $('#tvLogBox').classList.remove('open'); $('#tvMe').hidden = true; $('.tv-wrap').classList.remove('has-me', 'me-min');
+  if (fsElement()) fsToggle(false);                                           // masadan başka ekrana geçince tam ekrandan da çık
+}
+
+/* Sahnenin ölçeği: oyuncu kutusunun içi piksel ölçülüdür; sahne 1600 piksel genişken 1 kat, daha dar ya da genişse
+   o oranda küçülür ya da büyür (--k). Sağ alttaki zar düğmesi sahnenin üstüne biniyorsa kutu onun soluna kayar (--fab-gap). */
+function tvLayout() {
+  if (mode !== 'table') return;
+  const wrap = $('.tv-wrap'), r = wrap.getBoundingClientRect(), fab = $('.fab').getBoundingClientRect();
+  wrap.style.setProperty('--k', clamp(r.width / 1600, 0.62, 1.25).toFixed(3));
+  const over = fab.width && fab.left < r.right && fab.top < r.bottom && fab.bottom > r.top;
+  wrap.style.setProperty('--fab-gap', over ? Math.round(r.right - fab.left + 10) + 'px' : '0px');
+}
+// Masa durum çubuğunun yüksekliği: sahne alanı ekranın kalanını doldursun diye (CSS'te --tablebar-h)
+function measureTablebar() {
+  const bar = $('#tableBar'), on = mode === 'table' && !bar.hidden && !document.body.classList.contains('tv-full');
+  document.documentElement.style.setProperty('--tablebar-h', on ? bar.offsetHeight + 16 + 'px' : '0px');   // 16: üstündeki ve altındaki boşluk
+}
+
+/* ───────── Tam ekran ─────────
+   Sayfanın tamamı tam ekrana alınır (yalnızca sahne değil); böylece zar tepsisi ve bildirimler görünmeye devam eder.
+   Üst çubuk ve durum çubuğu CSS ile gizlenir (body.tv-full). Esc ya da düğmeye yeniden basmak tam ekrandan çıkarır.
+   Tarayıcı desteklemiyorsa (ör. iPhone Safari) düğme hiç görünmez; sahne yine pencereyi doldurur. */
+const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+const fsSupported = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+function fsToggle(on) {
+  const root = document.documentElement;
+  const fn = on ? root.requestFullscreen || root.webkitRequestFullscreen : document.exitFullscreen || document.webkitExitFullscreen;
+  if (!fn) return;
+  try {
+    const p = fn.call(on ? root : document);
+    if (p && p.catch) p.catch(() => { if (on) notify('Tam ekrana geçilemedi', 'Tarayıcı izin vermedi. Klavyede F11 de işe yarar.'); });
+  } catch (e) { /* eski tarayıcı: söz (promise) döndürmez, hata da olabilir */ }
+}
+function fsSync() {
+  const on = !!fsElement() && mode === 'table', btn = $('#tvFull');
+  document.body.classList.toggle('tv-full', on);
+  btn.hidden = !fsSupported();
+  btn.setAttribute('aria-pressed', on);
+  btn.title = on ? 'Tam ekrandan çık (Esc)' : 'Masayı tam ekranda göster';
+  $('use', btn).setAttribute('href', on ? '#i-shrink' : '#i-expand');
+  $('span', btn).textContent = on ? 'Tam ekrandan çık' : 'Tam ekran';
+  if (on) window.scrollTo({ top: 0 });
+  measureTablebar(); tvLayout(); renderTable();
+}
+document.addEventListener('fullscreenchange', fsSync);
+document.addEventListener('webkitfullscreenchange', fsSync);
+fsSync();
 function tvReset() {                                                 // masadan çıkınca her şeyi temizle
   tvFlush(); tv.recent = [];
   tv.els.forEach(el => { clearTimeout(el._out); el.remove(); });
   tv.els.clear();
   tv.mugs.forEach(m => m.remove()); tv.mugs.clear();
   waiterStop(); wt.bag = []; wt.last = '';
+  povClear(); povPop(false); povDiceDraw(null);
+  POV.people.forEach(d => d.remove()); POV.people.clear();
 }
 Object.assign(ACTIONS, {
   'me-min': () => { store.meMin = !store.meMin; save(); renderMe(); },
@@ -3640,6 +4206,12 @@ Object.assign(ACTIONS, {
   'me-look': () => { if (mode !== 'table') return; C.look = C.look === 'f' ? 'm' : 'f'; setInput('look'); changed(); renderTable(); },
   // Kara tahta: dokunmatik ekranda dokununca büyür, bir daha dokununca küçülür
   'log-toggle': () => $('#tvLogBox').classList.toggle('open'),
+  'tv-full': () => fsToggle(!fsElement()),
+  'tav-all': () => tavOverview(!tav.all),
+  'tav-canli': () => { store.tavCanli = !tavCanli(); save(); tavButonlar(); tavKick(); },
+  'tav-goz': () => { store.tavGoz = !tavGozAcik(); save(); tavButonlar(); if (!tavGozAcik()) $('#tvPov').classList.remove('p3'); tavKick(); setTimeout(povRender, 60); },
+  'tav-yakin': () => tavZoom(TAV.adim),
+  'tav-uzak': () => tavZoom(1 / TAV.adim),
   // İlhamı yalnızca DM verir (ya da geri alır). Oyuncunun kağıdında yıldız kendiliğinden yanar.
   'give-insp': b => {
     const p = net.players.get(b.dataset.pid); if (!p || !p.char) return;
@@ -3649,11 +4221,542 @@ Object.assign(ACTIONS, {
     notify(on ? `${p.name} ilham kazandı` : `${p.name} oyuncusunun ilhamı geri alındı`);
   },
 });
-window.addEventListener('resize', () => { if (mode === 'table') renderTable(); });   // ekran dönünce figürler yeniden masaya çevrilsin
+window.addEventListener('resize', () => { if (mode === 'table') { tvLayout(); renderTable(); } });   // ekran dönünce figürler yeniden masaya çevrilsin
+if (window.ResizeObserver) {
+  new ResizeObserver(measureTablebar).observe($('#tableBar'));                // durum çubuğunun yazısı değişip satır atlayınca sahne alanı da ayarlansın
+  new ResizeObserver(() => { if (mode === 'table') { tvLayout(); renderTable(); } }).observe($('.tv-wrap'));
+}
 document.addEventListener('visibilitychange', () => {               // sekme arkaya giderse havadaki zarı beklemeden bitir
   if (document.hidden && tv.busy) { tvFlush(); if (mode === 'table') drawThrow(tv.recent[0], false); }
   if (document.hidden && wt.state !== 'idle') { waiterStop(); waiterPlan(6000); }   // garson da yarı yolda kalmasın
 });
+
+/* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 11b — NPR TAVERNA (canlı 3D, çizim gibi görünür)
+   • NPR (Non-Photorealistic Rendering, "gerçekçi olmayan render"): taverna Blender'da kurulur, site onu tarayıcıda
+     canlı 3D olarak çizer ama sonuç resim gibi görünür:
+       – toon gölgelendirme: ışık yumuşak geçiş yerine birkaç düz basamakla düşer (TAV.toon)
+       – mürekkep çizgisi: derinliğin ya da yüzey yönünün birden değiştiği yerlere koyu çizgi çekilir
+       – fırça dokusu: Kuwahara filtresi (her pikselde çevresindeki en düzgün küçük karenin ortalaması)
+     Sahne masa/taverna-npr.glb (bilgisayardan, file:// ile açılınca masa/taverna-npr.js); ikisini de
+     araclar/taverna_npr_aktar.py üretir. three.js CDN'den, yalnızca masa görünümü ilk açıldığında iner.
+   • İki görünüm, tek 3D tuval (.tv-npr, tablonun arkasında):
+       – Tepeden: ortografik ve eğik kamera (TAV.yon, TAV.egim). Figür kareleri (masa/fig2d/) aynı açıyla çekilir; açı
+         değişirse onlar da yeniden çekilmeli. Figürler, isimlikler ve zarlar 2D'dir ve tablonun (.tv-scene) içindedir.
+         Dünyadaki nokta (metre; x doğu, y kuzey, z yukarı) tablodaki yerine tavProj ile çevrilir.
+       – Göz hizası (birinci şahıs): soldaki panelin (.tv-pov) altına, karakterin koltuğundan bakan perspektif görüntü
+         çizilir. Diğer oyuncular orada 3D blockout manken olarak oturur; tavan, avize ve sarkan bitkiler yalnızca bu
+         görünümde vardır (modelde "pov" etiketi). Kesit uygulanmaz. "Göz hizası" düğmesiyle eski boyalı panele dönülür.
+   • Kesit (tepeden): duvarlar ve duvara asılı parçalar hangi duvarda olduklarını bilir (userData.duvar); kameraya bakan
+     duvarlar TAV.kesik yüksekliğine alçalır, onlara asılı parçalar gizlenir.
+   • Oyun masası ikinci, küçük bir tuvalde de çizilir (.tav-masa): masanın arkasında oturanların bacaklarını örter.
+   • "Canlı" açıkken sahne sürekli çizilir (en çok TAV.fps kare/sn), ışıklar ve alevler titrer. Kapalıyken yalnızca bir şey
+     değişince çizilir (gezinme, pencere boyutu, oturanlar): bilgisayarı daha az yorar. Seçim tarayıcıda hatırlanır.
+   • Uzaktan bakınca dokular karıncalanmasın diye: eğik yüzeylerde keskin doku süzgeci (anizotropik), zemin ve duvarlarda
+     tekrarı kıran geniş renk dalgası (TAV.dalga), uzaklaştıkça fırça ve ince çizgiler azalır, çözünürlük biraz artar.
+   • Garson henüz bu sahneye uyarlanmadı: çıkmaz.
+   ═══════════════════════════════════════════════════════════════════ */
+const TAV = {
+  yon: 30, egim: 45,         // kamera: kuzeyden doğuya dönüş ve yerden yükseklik (derece). Figür kareleriyle aynı olmalı.
+  m: 0.085,                  // tablonun 1 birimi kaç metre (yakın bakış). Küçültürsen her şey büyür.
+  hedef: [0, 0, 0.80],       // oyun masasının üst yüzünün merkezi: tablodaki TV.cx, TV.cy
+  kesik: 0.95,               // öndeki duvarların alçaltılmış yüksekliği (m)
+  seatR: 1.62,               // koltuğun (oturağın ortası) masanın merkezine uzaklığı (m); figür karesinin ortası bu noktadır
+  headZ: 1.33,               // oturan figürün başının yerden yüksekliği (m)
+  fig: { kare_m: 2.6, yon: 16 },   // figür kareleri: kapladığı alan (m) ve yön sayısı
+  yakin: [160, 90],          // yakın bakışta (ölçek 1) gezinilebilen alan (birim)
+  sMax: 1.6,                 // tekerlekle en fazla bu kadar büyütülür
+  adim: 1.35,                // yakınlaştır / uzaklaştır düğmesinin her basışta büyütme oranı
+  maxLights: 14,             // birleştirilmiş ışık sayısı sınırı (her ışık ekran kartını biraz daha yorar)
+  LIGHT: {                   // ışığın türü: [renk, şiddet, erim (m), titreme payı]
+    somine: [0xff7a2a, 35, 10, 0.16],
+    mum:    [0xffa04a, 1.2, 3.2, 0.10],
+    aplik:  [0xff9a48, 6, 5.5, 0.06],
+    sarkit: [0xffa458, 5, 5, 0.06],
+  },
+  AMB: [0x7d6c62, 0x1e140c, 1.5],  // her yere düşen ortam ışığı: gök rengi, yer rengi, şiddet
+  dolgu: [0xffe4c8, 0.85],   // üstten gelen sıcak dolgu ışığı (tepeden bakışta tavan yok; oda karanlıkta kalmasın)
+  ay: [0xa8b2e0, 0.45],      // güneybatıdan serin ay ışığı (dışarısı ve duvarların dışı)
+  pozlama: 1.05,
+  doyum: 0.8,                // renk doygunluğu: 1 = olduğu gibi, küçüldükçe daha soluk (örnek sanattaki gibi)
+  toon: [0.22, 0.5, 0.78, 1.0],   // ışık basamakları (koyudan aydınlığa)
+  cizgi: 1.0,                // mürekkep çizgisinin kalınlığı (piksel)
+  murekkep: [0.07, 0.045, 0.03],
+  firca: 0.55,               // fırça dokusunun payı: 0 = yok, 1 = tamamen
+  dis: [0.15, 0.15, 0.19],   // dış zeminin rengi (taş dokusunu serin, koyu ve morumsu gri yapar)
+  dalga: { olcek: 0.28, guc: 0.16, mat: ['M_Zemin', 'M_Duvar', 'M_Dis_Zemin', 'M_Ahsap', 'M_Ahsap_Koyu'] },   // tekrarı kıran renk dalgası
+  fps: 30,                   // "Canlı" açıkken saniyede en çok bu kadar kare
+  goz: { fov: 84, boy: 1.2, ileri: 0.12, zar: [38, 64] },   // göz hizası: dikey görüş açısı, göz yüksekliği (m), koltuktan öne kayma (m),
+                                                             //   masanın ortasının paneldeki yeri (soldan %, yukarıdan %; zarlar ve boyalı el buna göre)
+  ALPHA: ['M_Yaprak', 'M_Kuru_Ot', 'M_Kalkan_1', 'M_Kalkan_2', 'M_Sancak', 'M_Tabela', 'M_Hali'],   // saydam yerleri kesilerek çizilir
+  LIB: 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/',   // importmap'tekiyle aynı sürüm (Draco çözücüsü buradan iner)
+};
+(function tavYon() {                                 // kameranın yönleri (Blender ekseninde): bakış, sağ, üst
+  const th = TAV.yon * Math.PI / 180, ph = TAV.egim * Math.PI / 180;
+  TAV.bak = [Math.sin(th) * Math.cos(ph), Math.cos(th) * Math.cos(ph), -Math.sin(ph)];
+  TAV.sag = [Math.cos(th), -Math.sin(th), 0];
+  TAV.ust = [Math.sin(ph) * Math.sin(th), Math.sin(ph) * Math.cos(th), Math.cos(ph)];
+})();
+// Katmanlar (three.js layers): 0 her yerde, 1 saydam kartlar (çizgisiz), 4 oyun masası (masa tuvali), 5 mankenler,
+// 6 yalnızca göz hizası, 7 yalnızca göz hizası ve saydam
+const K_ = n => 1 << n;
+const tav = { state: 'off', all: false, view: { s: 1, x: 0, y: 0 }, raf: 0, dirty: true, last: 0, koltuk: [] };
+
+// Dünyadaki nokta (Blender ekseni) → tablodaki yeri [x, y] (birim)
+function tavProj(x, y, z) {
+  const h = TAV.hedef, dx = x - h[0], dy = y - h[1], dz = z - h[2], s = TAV.sag, u = TAV.ust;
+  return [TV.cx + (dx * s[0] + dy * s[1] + dz * s[2]) / TAV.m, TV.cy - (dx * u[0] + dy * u[1] + dz * u[2]) / TAV.m];
+}
+const tavFig = s => (s.dm ? 'blockout-dm' : 'blockout-oyuncu');     // ileride: sınıfa ve görünüme göre karakter
+const tavCanli = () => store.tavCanli !== false;                       // varsayılan: açık
+const tavGozAcik = () => store.tavGoz !== false;
+
+// Sahnenin verisi: https:// üzerinde .glb; bilgisayardan açılınca tarayıcı dosya okutmaz, aynı veri .js içinde metin olarak gelir
+function tavData() {
+  if (location.protocol !== 'file:') return fetch(ART + 'taverna-npr.glb').then(r => { if (!r.ok) throw new Error('taverna-npr.glb ' + r.status); return r.arrayBuffer(); });
+  return new Promise((ok, fail) => {
+    if (window.TAVERNA_NPR) { ok(); return; }
+    const s = document.createElement('script');
+    s.src = ART + 'taverna-npr.js'; s.onload = ok; s.onerror = () => fail(new Error('taverna-npr.js bulunamadı'));
+    document.head.appendChild(s);
+  }).then(() => {
+    const b = atob(window.TAVERNA_NPR), u = new Uint8Array(b.length);
+    for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+    window.TAVERNA_NPR = null;                                            // belleği boşalt
+    return u.buffer;
+  });
+}
+
+async function tavStart() {
+  if (tav.state !== 'off') return;
+  const st = $('#tvStage');
+  if (!window.WebGLRenderingContext) { tav.state = 'fail'; st.classList.add('flat'); return; }
+  tav.state = 'loading';
+  st.classList.add('tav-wait');
+  try {
+    const [THREE, { GLTFLoader }, { DRACOLoader }, buf] = await Promise.all([
+      import('three'), import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js'), tavData()]);
+    const draco = new DRACOLoader(); draco.setDecoderPath(TAV.LIB + 'libs/draco/gltf/');
+    const loader = new GLTFLoader(); loader.setDRACOLoader(draco);
+    const gltf = await new Promise((ok, fail) => loader.parse(buf, '', ok, fail));
+    draco.dispose();
+    tavBuild(THREE, gltf);
+  } catch (e) {
+    tav.state = 'fail';
+    console.warn('NPR taverna açılamadı, çizim masa gösteriliyor:', e);
+    st.classList.remove('tav-wait'); st.classList.add('flat');
+    notify('Taverna açılamadı', 'Sade bir masa gösteriliyor. İnternet bağlantısını ve "masa" klasörünü kontrol et.');
+    if (mode === 'table') { renderTable(); waiterPlan(5000); }
+    return;
+  }
+  tav.state = 'on';
+  waiterStop();
+  $('#tvScene').style.setProperty('--sw', (TAV.fig.kare_m / TAV.m).toFixed(3) + 'cqw');   // figür karesinin genişliği
+  st.classList.add('tav', 'snap'); $('#tvArac').hidden = false; $('#tvZoom').hidden = false;   // .snap: figürler doğrudan otursun
+  tavButonlar();
+  tavSetView(1, 0, 0);
+  if (mode === 'table') renderTable();
+  void st.offsetWidth;                                                  // yeni yerler kayma olmadan uygulansın
+  st.classList.remove('snap', 'tav-wait');
+  tavKick();
+}
+
+/* Çizim hattı: 1) sahnenin rengi (toon) bir ara tuvale, 2) yüzey yönleri ve derinlik başka bir ara tuvale,
+   3) tuvale: renk + Kuwahara fırçası + renk ayarı + yön ya da derinlik birden değişen yerde mürekkep çizgisi.
+   seffaf: arka plan saydam kalır (oyun masası katmanı için). vp: tuvalin yalnızca bir bölgesine çiz (göz hizası paneli). */
+function tavBoru(THREE, R, seffaf) {
+  const rtC = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+  const rtN = new THREE.WebGLRenderTarget(1, 1); rtN.depthTexture = new THREE.DepthTexture(1, 1);
+  const normal = new THREE.MeshNormalMaterial();
+  const ink = new THREE.Color().setRGB(...TAV.murekkep, THREE.SRGBColorSpace);
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { tC: { value: rtC.texture }, tN: { value: rtN.texture }, tD: { value: rtN.depthTexture }, px: { value: new THREE.Vector2(1, 1) },
+      cizgi: { value: TAV.cizgi }, firca: { value: TAV.firca }, poz: { value: TAV.pozlama }, doyum: { value: TAV.doyum }, ink: { value: ink },
+      yakin: { value: 0.1 }, uzak: { value: 120 }, persp: { value: 0 }, seyrek: { value: 0 }, seffaf: { value: seffaf ? 1 : 0 } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: `
+      uniform sampler2D tC, tN, tD; uniform vec2 px; uniform float cizgi, firca, poz, doyum, yakin, uzak, persp, seyrek, seffaf; uniform vec3 ink; varying vec2 vUv;
+      float lum(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+      vec3 aces(vec3 x) { x *= poz; return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
+      vec3 srgb(vec3 c) { return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)); }
+      float derin(vec2 uv) {                                     // metre cinsinden derinlik (ortografik ya da perspektif)
+        float d = texture2D(tD, uv).x;
+        return persp > 0.5 ? 2.0 * yakin * uzak / (uzak + yakin - (d * 2.0 - 1.0) * (uzak - yakin)) : yakin + d * (uzak - yakin);
+      }
+      void main() {
+        vec2 o = px * cizgi;
+        float raw = texture2D(tD, vUv).x, d0 = derin(vUv); vec3 n0 = texture2D(tN, vUv).xyz;
+        float ed = 0.0, en = 0.0;
+        for (int i = 0; i < 4; i++) {
+          vec2 k = i == 0 ? vec2(o.x, 0.0) : i == 1 ? vec2(-o.x, 0.0) : i == 2 ? vec2(0.0, o.y) : vec2(0.0, -o.y);
+          ed = max(ed, abs(derin(vUv + k) - d0)); en = max(en, distance(texture2D(tN, vUv + k).xyz, n0));
+        }
+        if (persp > 0.5) ed /= max(d0, 0.3) * 0.18;              // perspektifte uzaktaki derinlik farkları oranla ölçülür
+        float e = max(smoothstep(0.06, 0.2, ed), smoothstep(0.32, 0.7, en) * (1.0 - 0.65 * seyrek));   // uzaklaşınca ince çizgiler azalır
+        vec4 c0 = texture2D(tC, vUv);
+        vec3 best = c0.rgb; float bv = 1e9;                     // Kuwahara: dört köşedeki 3×3 karelerin en düzgünü
+        for (int q = 0; q < 4; q++) {
+          vec2 s = vec2(q == 0 || q == 2 ? -1.0 : 1.0, q < 2 ? -1.0 : 1.0);
+          vec3 m = vec3(0.0); float l1 = 0.0, l2 = 0.0;
+          for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) {
+            vec3 c = texture2D(tC, vUv + s * vec2(float(x), float(y)) * px).rgb; m += c; float l = lum(c); l1 += l; l2 += l * l;
+          }
+          m /= 9.0; l1 /= 9.0; float v = l2 / 9.0 - l1 * l1;
+          if (v < bv) { bv = v; best = m; }
+        }
+        vec3 c = aces(mix(c0.rgb, best, firca * c0.a * (1.0 - 0.7 * seyrek)));
+        float L = lum(c);
+        c = mix(vec3(L), c, doyum);                             // doygunluk; sonra gölgeler biraz serin, ışıklar biraz sıcak
+        c += (1.0 - smoothstep(0.0, 0.45, L)) * vec3(0.006, 0.0, 0.02) + smoothstep(0.5, 1.0, L) * vec3(0.03, 0.008, -0.02);
+        c = mix(c, ink, e * 0.9);
+        float a = seffaf > 0.5 ? max(step(raw, 0.99999), e) : 1.0;
+        gl_FragColor = vec4(srgb(clamp(c, 0.0, 1.0)), a);
+      }`,
+    depthTest: false, depthWrite: false,
+  });
+  const qs = new THREE.Scene(), qc = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  qs.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
+  let W = 0, H = 0;
+  return {
+    render(scene, cam, katmanRenk, katmanCizgi, w, h, seyrek = 0, vp = null) {
+      if (w !== W || h !== H) { rtC.setSize(w, h); rtN.setSize(w, h); mat.uniforms.px.value.set(1 / w, 1 / h); W = w; H = h; }
+      const u = mat.uniforms; u.yakin.value = cam.near; u.uzak.value = cam.far; u.persp.value = cam.isPerspectiveCamera ? 1 : 0; u.seyrek.value = seyrek;
+      cam.layers.mask = katmanCizgi; scene.overrideMaterial = normal;
+      R.setRenderTarget(rtN); R.setClearColor(0x000000, 1); R.clear(); R.render(scene, cam);
+      cam.layers.mask = katmanRenk; scene.overrideMaterial = null;
+      R.setRenderTarget(rtC); R.setClearColor(0x120c08, seffaf ? 0 : 1); R.clear(); R.render(scene, cam);
+      R.setRenderTarget(null);
+      if (vp) { R.setViewport(...vp); R.setScissor(...vp); R.setScissorTest(true); }
+      R.setClearColor(0x000000, 0); R.clear(); R.render(qs, qc);
+      if (vp) { R.setScissorTest(false); R.setViewport(0, 0, R.domElement.clientWidth, R.domElement.clientHeight); }
+    },
+  };
+}
+
+// Blockout manken (göz hizasında diğer oyuncular): sandalye ve oturan gövde; Blender'daki figür blockout'uyla aynı ölçüler.
+// Yerel düzen Blender ekseninde: koltuğun ortası (0, 0, 0), figür +y'ye (masaya) bakar. three.js'e (x, z, −y) çevrilir.
+function tavManken(THREE, renk) {
+  const g = new THREE.Group(), body = new THREE.Group(), toon = c => new THREE.MeshToonMaterial({ color: new THREE.Color().setRGB(...c, THREE.SRGBColorSpace), gradientMap: tav.ramp });
+  const ahsap = toon([0.20, 0.11, 0.05]), deri = toon([0.25, 0.14, 0.07]), ten = toon(renk);
+  const v = (x, y, z) => new THREE.Vector3(x, z, -y);
+  const kutu = (m, par, x0, x1, y0, y1, z0, z1) => { const o = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, z1 - z0, y1 - y0), m); o.position.copy(v((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2)); par.add(o); };
+  const cubuk = (m, par, a, b, r) => {
+    const A = v(...a), B = v(...b), d = B.clone().sub(A), o = new THREE.Mesh(new THREE.CylinderGeometry(r, r, d.length(), 10), m);
+    o.position.copy(A).add(B).multiplyScalar(0.5); o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); par.add(o);
+  };
+  const kure = (m, par, c, r) => { const o = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 10), m); o.position.copy(v(...c)); par.add(o); };
+  for (const x of [-0.2, 0.2]) for (const y of [-0.2, 0.2]) cubuk(ahsap, g, [x, y, 0], [x, y, 0.45], 0.025);
+  kutu(ahsap, g, -0.23, 0.23, -0.23, 0.23, 0.43, 0.48); kutu(deri, g, -0.2, 0.2, -0.2, 0.2, 0.48, 0.51);
+  for (const x of [-0.2, 0.2]) cubuk(ahsap, g, [x, -0.21, 0.48], [x, -0.24, 1.0], 0.025);
+  kutu(ahsap, g, -0.21, 0.21, -0.25, -0.21, 0.62, 0.96);
+  kutu(ten, body, -0.18, 0.18, -0.12, 0.30, 0.50, 0.64);
+  for (const x of [-0.1, 0.1]) { cubuk(ten, body, [x, 0.28, 0.58], [x, 0.36, 0.06], 0.06); kutu(ten, body, x - 0.05, x + 0.05, 0.30, 0.46, 0, 0.07); }
+  cubuk(ten, body, [0, -0.04, 0.62], [0, 0.04, 1.10], 0.17); kure(ten, body, [0, 0.04, 1.10], 0.17);
+  cubuk(ten, body, [0, 0.05, 1.16], [0, 0.06, 1.24], 0.05); kure(ten, body, [0, 0.07, 1.33], 0.11);
+  for (const s of [-1, 1]) { const o = [0.21 * s, 0.02, 1.04], d = [0.24 * s, 0.20, 0.86], e = [0.14 * s, 0.46, 0.83]; cubuk(ten, body, o, d, 0.055); cubuk(ten, body, d, e, 0.05); kure(ten, body, e, 0.06); }
+  g.add(body); g.userData.body = body;
+  g.traverse(o => o.layers.set(5));
+  return g;
+}
+
+function tavBuild(THREE, gltf) {
+  const S = new THREE.Scene(), root = gltf.scene; S.add(root); root.updateMatrixWorld(true);
+  const R = new THREE.WebGLRenderer({ canvas: $('#tvNpr'), antialias: false, powerPreference: 'high-performance' });
+  const aniso = R.capabilities.getMaxAnisotropy();
+  // Toon malzemeler: ışık TAV.toon basamaklarıyla düşer. Dokular eğik bakışta keskin kalsın (anizotropik süzgeç).
+  const ramp = new THREE.DataTexture(new Uint8Array(TAV.toon.map(v => Math.round(v * 255))), TAV.toon.length, 1, THREE.RedFormat);
+  ramp.minFilter = ramp.magFilter = THREE.NearestFilter; ramp.needsUpdate = true; tav.ramp = ramp;
+  const dalga = sh => {                                            // tekrarı kıran geniş renk dalgası (dünya konumuna göre, değer gürültüsü)
+    sh.vertexShader = 'varying vec3 vDunya;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvDunya = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = `varying vec3 vDunya;
+      float hsh(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float gur(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(hsh(i), hsh(i + vec2(1, 0)), f.x), mix(hsh(i + vec2(0, 1)), hsh(i + vec2(1, 1)), f.x), f.y); }
+      ` + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      { vec2 p = (vDunya.xz + vDunya.y * 0.7) * ${TAV.dalga.olcek.toFixed(3)};
+        float n = gur(p) * 0.65 + gur(p * 2.7) * 0.35;
+        diffuseColor.rgb *= 1.0 + (n - 0.5) * ${(2 * TAV.dalga.guc).toFixed(3)}; }`);
+  };
+  const toon = new Map(), toonOf = m => {
+    if (!toon.has(m)) {
+      const t = new THREE.MeshToonMaterial({ name: m.name, color: m.color, map: m.map, gradientMap: ramp, emissive: m.emissive, emissiveMap: m.emissiveMap,
+        emissiveIntensity: m.emissiveIntensity, transparent: m.transparent, opacity: m.opacity, alphaTest: m.alphaTest, side: m.side, alphaMap: m.alphaMap });
+      if (TAV.ALPHA.includes(m.name)) { t.transparent = false; t.alphaTest = 0.5; t.depthWrite = true; }
+      if (m.name === 'M_Dis_Zemin') t.color.setRGB(...TAV.dis, THREE.SRGBColorSpace);
+      if (TAV.dalga.mat.includes(m.name)) t.onBeforeCompile = dalga;
+      [t.map, t.emissiveMap].forEach(x => { if (x) { x.anisotropy = aniso; x.needsUpdate = true; } });
+      toon.set(m, t);
+    }
+    return toon.get(m);
+  };
+  // Kesit: kameraya bakan duvarlar (içe bakan yüzü kameraya dönük olanlar) alçalır, onlara asılı parçalar gizlenir
+  const th = TAV.yon * Math.PI / 180, ic = { kuzey: [0, -1], guney: [0, 1], bati: [1, 0], dogu: [-1, 0] };
+  const onde = new Set(Object.keys(ic).filter(k => ic[k][0] * Math.sin(th) + ic[k][1] * Math.cos(th) > 0.15));
+  const marks = [], kesik = [], gizli = [], alevler = [];
+  let floor = null, masa = null;
+  const ustte = (o, k) => { for (let p = o; p; p = p.parent) if (p.userData && p.userData[k]) return p.userData[k]; return null; };   // çok malzemeli parçalar grup olarak gelir: etiket üstteki düğümdedir
+  root.traverse(o => {
+    const d = o.userData && o.userData.duvar, pov = ustte(o, 'pov');
+    if (d && onde.has(d)) {
+      if (/^(Duvar|Direk)_/.test(o.name)) { o.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(o); kesik.push({ o, y: TAV.kesik / Math.max(b.max.y, 0.1) }); }
+      else gizli.push(o);
+    }
+    const k = /^isik_(somine|mum|aplik|sarkit)/.exec(o.name);
+    if (k && !(d && onde.has(d))) marks.push({ kind: k[1], p: o.getWorldPosition(new THREE.Vector3()) });
+    if (/^alev_/.test(o.name) && o.isMesh) alevler.push({ o, y: o.scale.y, p: alevler.length * 2.17 });
+    if (o.name === 'Zemin') floor = o;
+    if (o.name === 'Masa_Orta') masa = o;
+    if (o.isMesh) {
+      o.material = Array.isArray(o.material) ? o.material.map(toonOf) : toonOf(o.material);
+      const alfa = [].concat(o.material).some(m => TAV.ALPHA.includes(m.name));
+      o.layers.set(pov ? (alfa ? 7 : 6) : (alfa ? 1 : 0));          // saydam kartlara çizgi çekilmez; "pov" yalnızca göz hizasında
+    }
+  });
+  if (masa) masa.traverse(o => o.layers.enable(4));                     // oyun masası ikinci tuvalde de çizilir
+  // Işıklar: yakın işaretler birleşir; sayı TAV.maxLights'ı geçerse en yakın ikili birleşmeye devam eder
+  const G = marks.map(m => ({ kind: m.kind, p: m.p, w: TAV.LIGHT[m.kind][1], n: 1 }));
+  for (;;) {
+    let bi = -1, bj = -1, bd = Infinity;
+    for (let i = 0; i < G.length; i++) for (let j = i + 1; j < G.length; j++) { const d = G[i].p.distanceTo(G[j].p); if (d < bd) { bd = d; bi = i; bj = j; } }
+    if (bi < 0 || (bd > 1.2 && G.length <= TAV.maxLights)) break;
+    const a = G[bi], b = G[bj], w = a.w + b.w;
+    a.p = a.p.clone().multiplyScalar(a.w / w).add(b.p.clone().multiplyScalar(b.w / w));
+    if (b.w > a.w) a.kind = b.kind;
+    a.w = w; a.n += b.n; G.splice(bj, 1);
+  }
+  const isiklar = G.map((g, i) => {
+    const [col, , range, fl] = TAV.LIGHT[g.kind], L = new THREE.PointLight(col, g.w, range * (1 + 0.25 * (g.n - 1)), 2);
+    L.position.copy(g.p);
+    return { L, base: g.w, fl, a: 7 + (i * 3.7) % 5, b: 13 + (i * 5.3) % 7, p: i * 1.9 };
+  });
+  const sabit = [new THREE.HemisphereLight(TAV.AMB[0], TAV.AMB[1], TAV.AMB[2])];
+  const dolgu = new THREE.DirectionalLight(TAV.dolgu[0], TAV.dolgu[1]); dolgu.position.set(1, 10, 2);
+  const ay = new THREE.DirectionalLight(TAV.ay[0], TAV.ay[1]); ay.position.set(-6, 8, 7);       // güneybatıdan (Blender'da −x, −y)
+  sabit.push(dolgu, ay);
+  [...isiklar.map(x => x.L), ...sabit].forEach(L => { L.layers.enableAll(); S.add(L); });
+  // Kamera: ortografik, Blender ekseninden three.js eksenine (x, z, −y)
+  const b3 = v => new THREE.Vector3(v[0], v[2], -v[1]);
+  const hedef = b3(TAV.hedef), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 120);
+  cam.up.copy(b3(TAV.ust)); cam.position.copy(hedef).addScaledVector(b3(TAV.bak), -60); cam.lookAt(hedef);
+  const cam2 = cam.clone();
+  const camG = new THREE.PerspectiveCamera(TAV.goz.fov, 9 / 16, 0.05, 60);   // göz hizası
+  // Odanın tablodaki kutusu (birim): "Bütün taverna"da hepsi sahneye sığsın
+  const box = new THREE.Box3().setFromObject(floor || root), ku = [], kv = [];
+  for (const x of [box.min.x, box.max.x]) for (const y of [-box.min.z, -box.max.z]) for (const z of [0, 3.2]) { const p = tavProj(x, y, z); ku.push(p[0]); kv.push(p[1]); }
+  const pad = 1.0 / TAV.m, l = Math.min(...ku) - pad, r = Math.max(...ku) + pad, t = Math.min(...kv) - pad, bt = Math.max(...kv) + pad;
+  tav.rg = { l, t, w: r - l, h: bt - t };
+  tav.ry = { l: 50 - TAV.yakin[0] / 2, t: TV.h / 2 - TAV.yakin[1] / 2, w: TAV.yakin[0], h: TAV.yakin[1] };
+  // Masa tuvali: tablonun içinde, küçük; yalnızca oyun masası
+  const mc = document.createElement('canvas'); mc.className = 'tav-img tav-masa'; mc.setAttribute('aria-hidden', 'true');
+  const MU = [-1.25, 1.25, -1.35, 1.05];                                // masa katmanının kamera düzlemindeki kutusu (m): sol/sağ, alt/üst
+  Object.assign(mc.style, { left: (TV.cx + MU[0] / TAV.m) + 'cqw', top: (TV.cy - MU[3] / TAV.m) + 'cqw',
+    width: ((MU[1] - MU[0]) / TAV.m) + 'cqw', height: ((MU[3] - MU[2]) / TAV.m) + 'cqw' });
+  $('#tvScene').prepend(mc);
+  const R2 = new THREE.WebGLRenderer({ canvas: mc, alpha: true, premultipliedAlpha: false, antialias: false });
+  [cam2.left, cam2.right, cam2.bottom, cam2.top] = MU; cam2.updateProjectionMatrix();
+  Object.assign(tav, { THREE, S, cam, cam2, camG, R, R2, mc, isiklar, alevler, kesik, gizli, b3,
+    boru: tavBoru(THREE, R, false), boru2: tavBoru(THREE, R2, true), boruG: tavBoru(THREE, R, false), w: 0, h: 0, w2: 0, h2: 0 });
+  tavKesit(true);
+}
+// Kesit: tepeden bakarken öndeki duvarlar alçak, asılı parçaları gizli; göz hizasında hepsi yerinde
+function tavKesit(on) {
+  tav.kesik.forEach(k => { k.o.scale.y = on ? k.y : 1; });
+  tav.gizli.forEach(o => { o.visible = !on; });
+}
+
+// Işıkların ve alevlerin titremesi ("Canlı" açıkken ve hareket azaltma kapalıyken)
+function tavTitre(now) {
+  const t = now / 1000, still = reduceMotion.matches || !tavCanli();
+  tav.isiklar.forEach(o => {
+    o.L.intensity = still ? o.base : o.base * (1 + o.fl * (0.55 * Math.sin(t * o.a + o.p) + 0.3 * Math.sin(t * o.b + o.p * 2.3) + 0.15 * Math.sin(t * 23.7 + o.p * 5.1)));
+  });
+  tav.alevler.forEach(a => { a.o.scale.y = still ? a.y : a.y * (1 + 0.14 * Math.sin(t * 9.1 + a.p) + 0.08 * Math.sin(t * 17.3 + a.p * 1.7)); });
+}
+
+/* Çizer. Tepeden: kamera tablonun ekrandaki yerine göre ayarlanır; tablo noktası (u, v) birim → kamera düzleminde sağa
+   (u − TV.cx) · m, yukarı −(v − TV.cy) · m metre. Göz hizası: panelin altındaki bölgeye, koltuğumdan perspektif. */
+function tavDraw(now) {
+  const cv = $('#tvNpr'), cr = cv.getBoundingClientRect(), sc = $('#tvScene').getBoundingClientRect();
+  if (!cr.width || !sc.width) return;
+  const sMin = tavBounds(1).sMin, seyrek = clamp((1 - tav.view.s) / (1 - sMin), 0, 1);   // 0 yakın … 1 bütün taverna
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.25) * (1 + 0.25 * seyrek), u = sc.width / 100, m = TAV.m, cam = tav.cam;
+  const w = Math.round(cr.width * dpr), h = Math.round(cr.height * dpr);
+  if (w !== tav.w || h !== tav.h) { tav.R.setPixelRatio(dpr); tav.R.setSize(cr.width, cr.height, false); tav.w = w; tav.h = h; }
+  cam.left = ((cr.left - sc.left) / u - TV.cx) * m; cam.right = ((cr.right - sc.left) / u - TV.cx) * m;
+  cam.top = -((cr.top - sc.top) / u - TV.cy) * m; cam.bottom = -((cr.bottom - sc.top) / u - TV.cy) * m;
+  cam.updateProjectionMatrix();
+  tavTitre(now);
+  tav.boru.render(tav.S, cam, K_(0) | K_(1), K_(0), w, h, seyrek);     // renk: her yer ve saydam kartlar; çizgi: yalnızca 0
+  tavGozDraw(cr, dpr);
+  // Masa katmanı: canlıyken her karede, değilse yalnızca ekrandaki boyutu değişince
+  const mr = tav.mc.getBoundingClientRect(), w2 = Math.round(mr.width * dpr), h2 = Math.round(mr.height * dpr);
+  if (w2 && (w2 !== tav.w2 || h2 !== tav.h2 || tavCanli())) {
+    if (w2 !== tav.w2 || h2 !== tav.h2) { tav.R2.setPixelRatio(dpr); tav.R2.setSize(mr.width, mr.height, false); tav.w2 = w2; tav.h2 = h2; }
+    tav.boru2.render(tav.S, tav.cam2, K_(4), K_(4), w2, h2);
+  }
+}
+// Göz hizası: soldaki panel görünüyorsa, panelin altındaki bölgeye koltuğumdan bakan görüntü
+function tavGozDraw(cr, dpr) {
+  const pov = $('#tvPov'), on = tavGozAcik() && !tav.all && !tvView().compact;
+  pov.classList.toggle('p3', on);
+  const fr = $('#povFrame').getBoundingClientRect();
+  if (!on || !fr.width) return;
+  const k = tav.koltuk.find(x => x.me) || tav.koltuk[0];
+  if (!k) return;
+  const cam = tav.camG, a = k.a, G = TAV.goz, R = TAV.seatR - G.ileri;
+  const goz = tav.b3([R * Math.cos(a), R * Math.sin(a), G.boy]);
+  cam.aspect = fr.width / fr.height; cam.position.copy(goz);
+  // Masanın ortası panelde TAV.goz.zar noktasına düşsün: önce ortaya bak, sonra bakışı o kadar kaydır
+  const merkez = tav.b3([0, 0, 0.8]);
+  cam.up.set(0, 1, 0); cam.lookAt(merkez); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+  const ty = Math.tan(cam.fov * Math.PI / 360), tx = ty * cam.aspect;
+  cam.rotateY(Math.atan((G.zar[0] / 50 - 1) * tx)); cam.rotateX(-Math.atan((1 - G.zar[1] / 50) * ty));
+  cam.updateMatrixWorld();
+  tav.koltuk.forEach(x => { if (x.g) x.g.visible = !x.me; });         // kendi mankenimi görmem (kamera onun içinde)
+  tavKesit(false);
+  const vp = [fr.left - cr.left, cr.bottom - fr.bottom, fr.width, fr.height];   // WebGL'de y aşağıdan
+  tav.boruG.render(tav.S, cam, K_(0) | K_(1) | K_(5) | K_(6) | K_(7), K_(0) | K_(5) | K_(6), Math.round(fr.width * dpr), Math.round(fr.height * dpr), 0, vp);
+  tavKesit(true);
+}
+// Göz hizası panelinde bir koltuğun (oturanın göğsünün) yeri: panelin sol üstünden piksel. Panel kapalıysa null.
+function tavGozNokta(id) {
+  if (tav.state !== 'on' || !$('#tvPov').classList.contains('p3')) return null;
+  const k = tav.koltuk.find(x => x.id === id), fr = $('#povFrame').getBoundingClientRect();
+  if (!k || !fr.width) return null;
+  const p = tav.b3([TAV.seatR * Math.cos(k.a), TAV.seatR * Math.sin(k.a), 0.95]).project(tav.camG);
+  return [(p.x + 1) / 2 * fr.width, (1 - p.y) / 2 * fr.height, p.z < 1];
+}
+
+// Göz hizasındaki mankenler: koltuk sayısı, yeri, DM rengi, bağlı olup olmadığı (renderTable çağırır)
+function tavKoltuklar(lay, seats) {
+  if (tav.state !== 'on') return;
+  const T = tav.THREE;
+  seats.forEach((s, i) => {
+    const o = lay.seats[i]; let k = tav.koltuk[i];
+    if (!k || k.dm !== !!s.dm) {
+      if (k && k.g) tav.S.remove(k.g);
+      k = tav.koltuk[i] = { dm: !!s.dm, g: tavManken(T, s.dm ? [0.36, 0.10, 0.08] : [0.42, 0.44, 0.50]) };
+      tav.S.add(k.g);
+    }
+    Object.assign(k, { id: s.id, me: !!s.me, a: o.wa });
+    k.g.position.copy(tav.b3([TAV.seatR * Math.cos(o.wa), TAV.seatR * Math.sin(o.wa), 0]));
+    k.g.rotation.y = o.wa + Math.PI / 2;                               // +y'ye bakan manken masanın ortasına dönsün
+    k.g.userData.body.visible = !!s.on;                                // bağlantısı kopanın yalnızca sandalyesi kalır
+  });
+  tav.koltuk.splice(seats.length).forEach(k => k.g && tav.S.remove(k.g));
+  tavKick();
+}
+
+// Çizim döngüsü: "Canlı" açıkken sürekli (en çok TAV.fps); değilse yalnızca bir şey değişince ya da tablo kayarken
+function tavKick() { tav.dirty = true; if (!tav.raf && tav.state === 'on' && mode === 'table' && !document.hidden) tav.raf = requestAnimationFrame(tavFrame); }
+function tavFrame(now) {
+  tav.raf = 0;
+  if (tav.state !== 'on' || mode !== 'table' || document.hidden) return;
+  const st = $('#tvStage'), moving = st.classList.contains('ease') || st.classList.contains('drag'), canli = tavCanli() && !reduceMotion.matches;
+  if (tav.dirty || moving || (canli && now - tav.last >= 1000 / TAV.fps - 2)) { tav.dirty = false; tav.last = now; tavDraw(now); }
+  if (moving || canli) tav.raf = requestAnimationFrame(tavFrame);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) tavKick(); });
+window.addEventListener('resize', () => tavKick());
+if (window.ResizeObserver) new ResizeObserver(() => tavKick()).observe($('#tvStage'));
+
+// Düğmeler: Canlı ve Göz hizası (seçim tarayıcıda hatırlanır), yakınlaştır / uzaklaştır
+function tavButonlar() {
+  $('#tvCanli').setAttribute('aria-pressed', String(tavCanli()));
+  $('#tvGoz').setAttribute('aria-pressed', String(tavGozAcik()));
+}
+function tavZoom(k) {
+  if (tav.state !== 'on') return;
+  const v = tav.view, s = clamp(v.s * k, tavBounds(1).sMin, TAV.sMax), q = s / v.s;
+  const px = tav.all ? 50 : (TV.free + 100) / 2, py = TV.h / 2;         // görünen alanın ortası yerinde kalır
+  tavSetView(s, px - (px - v.x) * q, py - (py - v.y) * q, true);
+}
+
+/* Yuvarlak oyun masasında koltuklar: DM masanın arka tarafında (ekranda yukarıda, bar yönü), oyuncular saat yönünde
+   eşit aralıkla. Döner: seatLayout ile aynı biçim; ek olarak wa (koltuğun dünyadaki açısı), k (figür karesinin yönü),
+   fx/fy (karenin ortası, başa göre), back (masanın arkasında mı), bx/by (isimliğin hesaplandığı nokta), outer (ikinci sıra). */
+function seatLayoutTav(n) {
+  const back = Math.atan2(TAV.ust[1], TAV.ust[0]), dirs = TAV.fig.yon, mid = tavProj(0, 0, 0);
+  const seats = [];
+  for (let i = 0; i < n; i++) {
+    const a = back - 2 * Math.PI * i / n, ca = Math.cos(a), sa = Math.sin(a), R = TAV.seatR;
+    const foot = tavProj(R * ca, R * sa, 0), head = tavProj((R - 0.05) * ca, (R - 0.05) * sa, TAV.headZ);
+    const o1 = tavProj(R * ca, R * sa, 0.8), o2 = tavProj((R + 1) * ca, (R + 1) * sa, 0.8);
+    const out = Math.atan2(o2[1] - o1[1], o2[0] - o1[0]);           // masadan dışarı yön, ekranda
+    const k = ((Math.round((a * 180 / Math.PI + 90) / (360 / dirs)) % dirs) + dirs) % dirs;   // kare k kuzeyden k × 22,5° döner; figür merkeze bakar
+    const front = Math.sin(out) > 0.35;                               // masanın önünde (ekranda aşağıda): isimlik ayakların altına
+    seats.push({ edge: foot[1] < mid[1] ? -1 : 1, slot: 0, x: head[0], y: head[1], a: out, wa: a, k,
+      fx: foot[0] - head[0], fy: foot[1] - head[1], back: foot[1] < mid[1],
+      bx: front ? foot[0] : head[0], by: front ? foot[1] - 3 : head[1], outer: n > 6 && i % 2 === 1 });
+  }
+  return { f: 1, gap: 2 * Math.PI * TAV.seatR / TAV.m / Math.max(n, 1), seats };
+}
+
+/* ───────── Gezinme: sürükle, tekerlekle ya da düğmelerle büyüt/küçült, "Bütün taverna" düğmesi ─────────
+   Tablo (.tv-scene) kaydırılır ve ölçeklenir (--vx, --vy: birim; --vs ölçek); 3D kamera tablonun yerine göre ayarlanır.
+   Yakın bakışta (s ≥ 1) masanın çevresinde, uzaklaştıkça bütün tavernanın içinde kalınır (arası kademeli). */
+function tavBounds(s) {
+  const g = tav.rg, y = tav.ry, sMin = Math.max(100 / g.w, TV.h / g.h);
+  const k = clamp((s - sMin) / (1 - sMin), 0, 1), L = (p, q) => p + (q - p) * k;
+  const l = L(g.l, y.l), t = L(g.t, y.t), r = L(g.l + g.w, y.l + y.w), b = L(g.t + g.h, y.t + y.h);
+  return { x0: 100 - s * r, x1: -s * l, y0: TV.h - s * b, y1: -s * t, sMin };
+}
+function tavSetView(s, x, y, ease) {
+  if (tav.state !== 'on') return;
+  s = clamp(s, tavBounds(1).sMin, TAV.sMax);
+  const b = tavBounds(s);
+  x = clamp(x, Math.min(b.x0, b.x1), Math.max(b.x0, b.x1)); y = clamp(y, Math.min(b.y0, b.y1), Math.max(b.y0, b.y1));
+  tav.view = { s, x, y };
+  const st = $('#tvStage'), sc = $('#tvScene');
+  clearTimeout(tav.easeT);
+  st.classList.toggle('ease', !!ease && !reduceMotion.matches);
+  if (ease) tav.easeT = setTimeout(() => { st.classList.remove('ease'); renderTable(); tavKick(); }, 750);
+  sc.style.setProperty('--vs', s.toFixed(4)); sc.style.setProperty('--vx', x.toFixed(3)); sc.style.setProperty('--vy', y.toFixed(3));
+  tav.all = s < 0.7;                                                      // epey uzaklaşınca: sol panel kapanır, düğme "Masaya dön" olur
+  $('.tv-main').classList.toggle('all', tav.all); $('.tv-wrap').classList.toggle('tav-all', tav.all);
+  const btn = $('#tvAll');
+  btn.setAttribute('aria-pressed', tav.all);
+  $('span', btn).textContent = tav.all ? 'Masaya dön' : 'Bütün taverna';
+  $('use', btn).setAttribute('href', tav.all ? '#i-shrink' : '#i-expand');
+  btn.title = tav.all ? 'Oyun masasına yaklaş' : 'Bütün tavernaya bak (sürükleyerek de gezinebilirsin)';
+  tavKick();
+}
+function tavOverview(on) {
+  if (tav.state !== 'on') return;
+  if (on) tavSetView(tavBounds(1).sMin, -1e6, -1e6, true);              // sınırlar tavernayı sahneye tam oturtur
+  else tavSetView(1, 0, 0, true);
+}
+(function tavInput() {
+  const st = $('#tvStage');
+  let d = null;
+  const usable = () => tav.state === 'on' && mode === 'table' && !tvView().compact;   // telefonda (dik ekranda) gezinme yok
+  st.addEventListener('pointerdown', e => {
+    if (!usable() || e.button !== 0) return;
+    d = { id: e.pointerId, x: e.clientX, y: e.clientY, vx: tav.view.x, vy: tav.view.y, moved: false };
+  });
+  st.addEventListener('pointermove', e => {
+    if (!d || e.pointerId !== d.id) return;
+    const dx = e.clientX - d.x, dy = e.clientY - d.y;
+    if (!d.moved && Math.hypot(dx, dy) < 5) return;                      // küçük kıpırtı tıklama sayılır
+    if (!d.moved) { d.moved = true; try { st.setPointerCapture(e.pointerId); } catch (er) { /* yok say */ } st.classList.add('drag'); }
+    const u = st.getBoundingClientRect().width / 100;
+    tavSetView(tav.view.s, d.vx + dx / u, d.vy + dy / u);
+  });
+  const end = e => {
+    if (!d || e.pointerId !== d.id) return;
+    if (d.moved) { st.classList.remove('drag'); renderTable(); tavKick(); }   // isimlikler görünen alana göre yeniden yerleşsin
+    d = null;
+  };
+  st.addEventListener('pointerup', end); st.addEventListener('pointercancel', end);
+  st.addEventListener('wheel', e => {
+    if (!usable()) return;
+    e.preventDefault();
+    const r = st.getBoundingClientRect(), u = r.width / 100, px = (e.clientX - r.left) / u, py = (e.clientY - r.top) / u, v = tav.view;
+    const s = clamp(v.s * Math.exp(-e.deltaY * 0.0015), tavBounds(1).sMin, TAV.sMax), k = s / v.s;
+    tavSetView(s, px - (px - v.x) * k, py - (py - v.y) * k);             // farenin altındaki nokta yerinde kalır
+    clearTimeout(tav.wheelT); tav.wheelT = setTimeout(renderTable, 200);
+  }, { passive: false });
+})();
 
 /* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 12 — BAŞLANGIÇ
