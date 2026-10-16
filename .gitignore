@@ -20,3 +20,7 @@ araclar/test/*.png
 # Blender'ın ve Python'un kendiliğinden bıraktıkları
 *.blend1
 __pycache__/
+
+# Yapay zekâ yardımcısının (Claude) çalışma notları: yalnızca bu bilgisayarda kalır
+CLAUDE.md
+.claude/
