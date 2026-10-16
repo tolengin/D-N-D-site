@@ -1,0 +1,22 @@
+# Git'e (ve GitHub'a) gönderilmeyecekler. Site için gereken yalnızca index.html ve masa/ klasörüdür.
+# araclar/ (betikler) ve prompt dosyaları da gider: küçükler ve geçmişleri saklansın diye.
+
+# Büyük ham dosyalar ve Blender (yüzlerce MB; sitede kullanılmıyor)
+gorseller/
+3d/
+gereksizler/
+
+# Elle alınmış yedekler (içinde bir karakter kaydı da var)
+dnd ssite yedek/
+
+# Başkasının eseri: yalnızca tarz örneği, yayınlanmaz
+ornek sanat.jpg
+taverna ornek.jpg
+
+# Test düzeneğinin her seferinde yeniden ürettiği dosyalar
+araclar/test/test.html
+araclar/test/*.png
+
+# Blender'ın ve Python'un kendiliğinden bıraktıkları
+*.blend1
+__pycache__/

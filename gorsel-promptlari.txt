@@ -1,0 +1,283 @@
+DÖRT ELEMENT — MASA SAHNESİ İÇİN GÖRSEL PROMPTLARI
+====================================================
+
+NASIL KULLANILIR
+1. Önce 1 numaralı promptla taverna arka planını üret. Beğenene kadar yeniden dene.
+2. Beğendiğin arka planı sonraki HER promptla birlikte referans görsel olarak ekle.
+   Promptların başındaki "Match the art style..." cümlesi bunun içindir.
+3. Çıkan her görseli aşağıda yazan dosya adıyla kaydet ve proje klasöründe
+   "gorseller" adlı bir klasöre koy:
+   Masaüstü > DnD-dort element-site > gorseller
+4. Çözünürlük seçeneği varsa 2K seç. En boy oranı promptta yazıyor (3:2, kare ya da 3:1).
+
+HER GÖRSELDE KONTROL ET (tutmuyorsa yeniden üret)
+- Görünüş tam tepeden mi? Yandan ya da çaprazdan (izometrik) çıktıysa olmaz.
+- Karakterler görselin ÜSTÜNE doğru mu bakıyor (elleri yukarıda)?
+- Arka plan tek renk, düz macenta (pembe-mor) mı? Zemin, gölge ya da desen olmamalı.
+  Arka planı ben sileceğim; düz renk olması yeterli.
+- Görselde yazı, harf ya da rakam var mı? Olmamalı.
+- Arka planda: orta masa boş mu, sağda boş kara tahta ve kapı aralığı var mı?
+
+----------------------------------------------------------------------
+1) TAVERNA ARKA PLANI (ilk bunu üret, referans bu olacak)
+   Dosya adı: taverna.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Top-down battle map of the inside of a cozy medieval fantasy tavern: one single room that fills the whole image. Landscape, aspect ratio 3:2.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+
+Layout (follow these positions exactly):
+- FLOOR: worn grey flagstone floor across the whole room, a little scattered straw, and a large faded round rug under the central table.
+- CENTER: ONE large round oak table exactly in the middle of the image, its diameter about 36% of the image width, heavy planks with an iron rim. In the middle of this table lies a round dark-green felt dice mat with a stitched leather edge. Apart from the mat the table top is completely EMPTY: no chairs, no stools, no people, no plates, no mugs, no candles, no dice. Leave a wide empty ring of bare floor all around this table.
+- LEFT SIDE: two more round wooden tables, each one cut in half by the left edge of the image: one in the top-left corner and one in the bottom-left corner. Two tavern patrons sit at each of these tables on stools (hooded travelers, a bearded dwarf, a merchant), seen from directly above, with tankards and plates in front of them.
+- TOP-RIGHT: a long wooden bar counter running horizontally along the top wall, from the middle of the top edge to the top-right corner, with bottles, tankards and a small keg on it.
+- RIGHT SIDE: a wide wooden bar counter running vertically along the right wall, from the top-right corner down to the middle of the image. Lying flat on this counter is a large EMPTY dark slate board in a wooden frame: a tall blank chalkboard that covers most of the counter. The slate is completely blank and clean: nothing written or drawn on it.
+- RIGHT WALL, just below the middle: an open doorway gap in the wall (about one eighth of the image height) leading to a kitchen, with a strip of warm light spilling onto the floor. Nothing stands in or in front of the doorway.
+- BOTTOM-RIGHT CORNER: a shorter wooden counter block with plates, a loaf of bread and bottles on it.
+- WALLS: thick dark timber-and-stone walls, visible only as a thin border along the image edges.
+
+Lighting: warm hearth and lantern glow, soft contact shadows directly under furniture.
+Nobody sits or stands at the central table and there is no waitress anywhere in the image.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+2) BOŞ SANDALYE
+   Dosya adı: sandalye.png     En boy oranı: 1:1 (kare)
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+A single sturdy wooden tavern chair, empty, centered in a square image.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+The chair's backrest is at the BOTTOM of the image and the open front of the seat points to the TOP of the image. Dark oak with a worn leather seat pad and iron studs.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+3) OYUNCU FİGÜRÜ: BARBARIAN (solda erkek, sağda kadın)
+   Dosya adı: barbarian.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male Barbarian. RIGHT token: a female Barbarian.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: bare muscular shoulders under a thick brown fur mantle, leather wrist wraps, tribal war paint, a huge double-bladed battle axe strapped across the back.
+Left (male): wild shaggy dark hair and a braided beard.
+Right (female): a long wild mane of red hair with small braids.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+4) OYUNCU FİGÜRÜ: BARD (solda erkek, sağda kadın)
+   Dosya adı: bard.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male Bard. RIGHT token: a female Bard.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: a wide-brimmed teal hat with one long red feather, a purple doublet with gold trim and puffed sleeves, a lute held in the hands.
+Left (male): short brown hair showing under the hat.
+Right (female): long wavy blonde hair flowing down the back from under the hat.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+5) OYUNCU FİGÜRÜ: CLERIC (solda erkek, sağda kadın)
+   Dosya adı: cleric.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male Cleric. RIGHT token: a female Cleric.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: cream-white robes with a gold-trimmed mantle over the shoulders, a thin golden circlet, a glowing golden sun-shaped holy symbol held between the hands, a round shield strapped on the back.
+Left (male): short grey hair.
+Right (female): long dark hair in a single braid down the back.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+6) OYUNCU FİGÜRÜ: DRUID (solda erkek, sağda kadın)
+   Dosya adı: druid.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male Druid. RIGHT token: a female Druid.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: a moss-green cloak with a collar of leaves and fur, a crown of fresh leaves and small antlers, a gnarled wooden staff across the back, the hands cupping a small green sprout.
+Left (male): shoulder-length brown hair and a short beard.
+Right (female): very long auburn hair with flowers woven in.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+7) OYUNCU FİGÜRÜ: FIGHTER (solda erkek, sağda kadın)
+   Dosya adı: fighter.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male Fighter. RIGHT token: a female Fighter.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: a rounded steel helmet, steel pauldrons over a dark red tabard, chainmail sleeves, steel gauntlets, a longsword in its scabbard strapped diagonally across the back.
+Left (male): broad shoulders, no hair visible under the helmet.
+Right (female): a long black ponytail coming out from under the helmet.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+8) OYUNCU FİGÜRÜ: MONK (solda erkek, sağda kadın)
+   Dosya adı: monk.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male Monk. RIGHT token: a female Monk.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: a simple saffron-orange robe with a dark brown sash, bare forearms with cloth hand wraps, a string of wooden prayer beads around one wrist.
+Left (male): a shaved head with a small topknot.
+Right (female): black hair tied in a tight bun with two wooden pins.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+9) OYUNCU FİGÜRÜ: PALADIN (solda erkek, sağda kadın)
+   Dosya adı: paladin.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male Paladin. RIGHT token: a female Paladin.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: polished silver plate armor with gold trim, large pauldrons, a closed helmet with a white feather plume, a royal-blue cape draped behind, a kite shield with a golden sun emblem on the back.
+Left (male): broad heavy armor, no hair visible.
+Right (female): a long golden braid coming out from under the helmet over the cape.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+10) OYUNCU FİGÜRÜ: RANGER (solda erkek, sağda kadın)
+   Dosya adı: ranger.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male Ranger. RIGHT token: a female Ranger.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: a deep forest-green hooded cloak with the hood up, leather bracers, a leather quiver full of red-fletched arrows and a longbow strapped on the back.
+Left (male): a short dark beard just visible under the hood.
+Right (female): a long chestnut braid falling over one shoulder from under the hood.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+11) OYUNCU FİGÜRÜ: ROGUE (solda erkek, sağda kadın)
+   Dosya adı: rogue.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male Rogue. RIGHT token: a female Rogue.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: a dark charcoal hooded cloak with the hood up, a burgundy scarf, black leather gloves, one hand holding a slim dagger, a small coin pouch at the belt.
+Left (male): the face hidden in the shadow of the hood.
+Right (female): a lock of silver-white hair escaping from the hood.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+12) OYUNCU FİGÜRÜ: SORCERER (solda erkek, sağda kadın)
+   Dosya adı: sorcerer.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male Sorcerer. RIGHT token: a female Sorcerer.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: a crimson robe with gold embroidery, a gold circlet with a red gem, bright orange arcane sparks and small flames crackling between the open hands.
+Left (male): swept-back black hair.
+Right (female): long flowing copper-red hair.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+13) OYUNCU FİGÜRÜ: WARLOCK (solda erkek, sağda kadın)
+   Dosya adı: warlock.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male Warlock. RIGHT token: a female Warlock.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: a deep-violet hooded robe with the hood up and two small curved horn ornaments on the hood, dark gloves, the hands resting on a closed black tome with a glowing purple sigil on its cover.
+Left (male): the face hidden in the shadow of the hood.
+Right (female): long straight black hair falling from under the hood.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+14) OYUNCU FİGÜRÜ: WIZARD (solda erkek, sağda kadın)
+   Dosya adı: wizard.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male Wizard. RIGHT token: a female Wizard.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: a big pointed blue wizard hat decorated with gold stars (seen from above its wide round brim is a large circle and the bent pointed tip leans backward), blue robes with very wide sleeves, the hands resting on an open spellbook, a wooden staff with a crystal strapped on the back.
+Left (male): a long white beard spreading over the chest below the brim.
+Right (female): long silver hair flowing down the back from under the brim.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+15) OYUNCU FİGÜRÜ: COMMON ADVENTURER (NO SPECIAL CLASS) (solda erkek, sağda kadın)
+   Dosya adı: sinifsiz.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two character tokens side by side with a wide gap between them, landscape aspect ratio 3:2. LEFT token: a male common adventurer (no special class). RIGHT token: a female common adventurer (no special class).
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+Each character is SEATED and leaning slightly forward, as if sitting at a table, with both forearms and hands resting forward. We see only what is visible from directly above: the top of the head or headwear, the shoulders, the upper back and the two forearms. Both characters FACE THE TOP of the image (their hands point up). Do NOT draw a table, a chair, a floor or legs.
+Outfit for both: a plain brown traveler's tunic with a short hooded cape pushed back, simple leather bracers, a small backpack on the back.
+Left (male): short brown hair.
+Right (female): long dark hair tied in a low ponytail.
+Both tokens are the same size, each about 38% of the image width, fully inside the image with empty margin around them.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+16) DM FİGÜRÜ
+   Dosya adı: dm.png     En boy oranı: 1:1 (kare)
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+A single character token, centered in a square image: the storyteller and game master of a fantasy adventure.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+A mysterious hooded sage SEATED and leaning slightly forward with both forearms resting forward, facing the TOP of the image. We see only what is visible from directly above: the top of a dark grey-black hood with gold-embroidered trim, the shoulders of heavy dark robes, and two hands resting on a very large open leather-bound book with a quill beside it. A few polyhedral dice lie next to the book. Do NOT draw a table, a chair, a floor or legs.
+The token is about 70% of the image width with empty margin around it.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+17) GARSON KIZ (solda dolu tepsi, sağda boş tepsi)
+   Dosya adı: garson.png     En boy oranı: 3:2
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+Two tokens of the SAME tavern waitress side by side with a wide gap between them, landscape aspect ratio 3:2.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+She is a young tavern waitress WALKING, facing the TOP of the image. From directly above we see: chestnut hair in a bun under a white headscarf, the shoulders of a white blouse, and a dark red skirt with a cream apron spreading around her like a bell.
+LEFT token: she carries a round wooden tray in front of her with three frothy tankards on it.
+RIGHT token: exactly the same waitress, but the round tray is empty and held flat in front of her.
+Same size for both, each about 38% of the image width, fully inside the image with empty margin around them. Do NOT draw a floor.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
+
+----------------------------------------------------------------------
+18) İSİMLİK (oyuncu bilgisinin duracağı boş levha)
+   Dosya adı: isimlik.png     En boy oranı: 3:1
+----------------------------------------------------------------------
+Match the art style, color palette and lighting of the attached reference image exactly.
+A single blank name plate for a game interface, centered, landscape aspect ratio 3:1.
+STRICT top-down orthographic bird's-eye view: the camera is directly overhead looking straight down. No perspective, no horizon, no isometric or three-quarter angle, no side view.
+A small horizontal oak plank sign with rounded corners, iron corner brackets and a strip of blank aged parchment nailed across its middle. The parchment is completely EMPTY: nothing written or drawn on it. The plate fills about 85% of the image width.
+Background: one solid, flat, uniform pure magenta color (#FF00FF) filling everything behind the subject. No floor, no gradient, no texture, no cast shadow on the background.
+Art style: hand-painted digital illustration for a fantasy tabletop RPG virtual-tabletop map, rich painterly textures, warm candle-lit tavern palette (deep browns, amber, muted reds, aged steel), soft even lighting, crisp readable shapes, high detail, professional game-asset quality. No text, no letters, no numbers, no UI, no watermark, no border, no frame.
