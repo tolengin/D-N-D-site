@@ -39,17 +39,25 @@ AYAR = {
     'saksi-toprak': (512, 2.5, (0.70, 0.95), 0.30, 4),
     'demir':       (512,  4.0, (0.40, 0.80), 0.40, 4),
     'cuval':       (512,  4.5, (0.85, 1.00), 0.35, 3),
+    # 3. tur (2026-10-16, elle boyanmış tarz): yeni yüzeyler
+    'duvar-siva':  (1024, 2.5, (0.80, 0.97), 0.30, 8),
+    'tas-blok':    (512,  6.0, (0.75, 0.95), 0.50, 6),
+    'tas-altigen': (1024, 6.0, (0.70, 0.95), 0.50, 8),
+    'dis-zemin':   (512,  6.0, (0.80, 0.97), 0.50, 8),
 }
+# Boyalı dokularda derzlerin ve aralıkların koyuluğu zaten resimde çizili: betiğin eklediği girinti gölgesi bununla
+# çarpılır (1 = eski gerçekçi dokulardaki gibi tam). Çok koyulaşırsa düşür.
+AO_CARPAN = 0.4
 # Tek parça (kesik) görseller: macenta zemin silinir, kırpılır. ad: (en uzun kenar px, normal gücü)
-KESIK = {'kalkan-1': (1024, 4.0), 'kalkan-2': (1024, 4.0), 'tabela': (1024, 4.0), 'sancak': (768, 2.0), 'yaprak-kartlari': (1024, 2.0)}
+KESIK = {'kalkan-1': (1024, 4.0), 'kalkan-2': (1024, 4.0), 'tabela': (1024, 4.0), 'sancak': (768, 2.0), 'yaprak-kartlari': (1024, 2.0),
+         'post': (1024, 2.0)}                                        # post: şömine önündeki hayvan postu (2026-10-16)
 # Çerçeveyi dolduran görseller: yalnızca küçültülür. ad: (genişlik px, normal gücü)
 DOLU = {'harita': (1024, 1.5), 'gorev-panosu': (1024, 3.0), 'kitap-sirtlari': (1024, 3.0)}
 
 def bul(ad):
-    for uz in ('.jpg', '.jpeg', '.png', '.webp'):
-        p = os.path.join(GIRDI, ad + uz)
-        if os.path.exists(p): return p
-    return None
+    """Aynı adla birden çok dosya varsa (ör. eski zemin-ahsap.jpg ve yeni zemin-ahsap.png) en son kaydedileni alır."""
+    adaylar = [p for p in (os.path.join(GIRDI, ad + uz) for uz in ('.jpg', '.jpeg', '.png', '.webp')) if os.path.exists(p)]
+    return max(adaylar, key=os.path.getmtime) if adaylar else None
 
 # ───────── Yardımcılar ─────────
 def bulanik(a, sigma):
@@ -123,7 +131,7 @@ for ad, (N, guc, puruz, ao_guc, r) in AYAR.items():
     img = np.asarray(Image.open(yol).convert('RGB'), float) / 255
     img = doseme(img)
     img = boyut(img, N, N)
-    normal, ao, pur = haritalar(img, guc, puruz, ao_guc, r * N / 1024)
+    normal, ao, pur = haritalar(img, guc, puruz, ao_guc * AO_CARPAN, r * N / 1024)
     kaydet(img * ao[..., None], ad + '.jpg')
     kaydet(normal, ad + '-normal.jpg', 92)
     kaydet(pur, ad + '-puruz.jpg', 85, gri=True)
@@ -207,7 +215,7 @@ for ad, (N, guc) in DOLU.items():
         ys, xs = np.where(a[..., 3] > 20); im = im.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
     im = im.convert('RGB'); im = im.resize((N, round(im.height * N / im.width)), Image.LANCZOS)
     renk = np.asarray(im, float) / 255
-    normal, ao, pur = haritalar(renk, guc, (0.6, 0.95), 0.3, 4)
+    normal, ao, pur = haritalar(renk, guc, (0.6, 0.95), 0.3 * AO_CARPAN, 4)
     kaydet(renk * ao[..., None], ad + '.jpg')
     kaydet(normal, ad + '-normal.jpg', 90)
     kaydet(pur, ad + '-puruz.jpg', 85, gri=True)

@@ -21,6 +21,10 @@ Gerçekçilik için kullanılan taktikler:
   • Pah: kenarlar 1–3 cm yontulur; ışık bu ince yüzeylerde parlar, nesne "kutu" gibi durmaz.
   • Yumuşak gölgeli, sıcak, alçak ışık kaynakları (şömine, mumlar); oda karanlıkta kalır, ışık yerinde parlar.
 
+2026-10-16: sanat tarzı elle boyanmış illüstrasyona döndü (ornek sanat.jpg). Ayarlardaki STİL bölümü: ince parçalar
+kalınlaşır, pahlar büyür, her şey hafifçe yamulur (el yapımı); duvarlar sıva, direkler taş, oyun alanı altıgen taş döşeme,
+şömine önünde post. Yeni dokuların promptları: doku-promptlari-boyali.txt. Doku gelene kadar yeni yüzeyler düz renktir.
+
 Ölçüler METRE. Oda merkezi (0, 0) = oyun masasının merkezi = kameranın ortası. x doğu, y kuzey, z yukarı.
 Outliner düzeni blockout ile aynıdır (01_Yapi, 02_Bar, 03_Masalar, 04_Somine, 05_Isik_Isaretleri, 06_Sablonlar, 99_Onizleme).
 """
@@ -47,7 +51,11 @@ YAN_R, YAN_SANDALYE_R, YAN_SANDALYE = 0.75, 1.18, 4
 # Kuzeydeki masa tabure sırasına fazla yaklaşırsa kendiliğinden aşağı itilir.
 YAN_YERLER = (('Masa_KuzeyBati', -4.9, 1.9), ('Masa_GuneyBati', -3.4, -2.8), ('Masa_GuneyDogu', 1.8, -3.4))
 SOMINE_DUVAR, SOMINE_Y = 'dogu', -0.5   # şömine doğu duvarında (eğik kameradan önü görünsün); y: duvardaki merkezi
-BAR_X = 5.0                            # bar (tezgâh ve arka raf) −BAR_X…+BAR_X arasında; iki ucu boş kalır (2026-10-15)
+# Bar (tezgâh ve arka raf) BAR_BATI…BAR_DOGU arasında; iki ucu boş kalır. 2026-10-16: doğu ucu 5,0'dan 3,6'ya kısaldı
+# (müzik sahnesine 15 cm kalıyordu; şimdi arada ~1,3 m yürüme yolu var). Uçlardaki iki fıçı kaldırıldı.
+BAR_BATI, BAR_DOGU = -5.0, 3.6
+BAR_ORTA = (BAR_BATI + BAR_DOGU) / 2
+def bar_x(t): return BAR_BATI + (BAR_DOGU - BAR_BATI) * t     # barın boyunca t (0 batı ucu … 1 doğu ucu) noktası
 MUTFAK_X, MUTFAK_GEN = -6.6, 1.2       # barın solunda, kuzey (arka) duvarında mutfağa açılan kapı
 SAHNE_R, SAHNE_H = 1.25, 0.3           # müzik sahnesi (barın sağındaki boşlukta, kuzeydoğu köşesi): yarıçap ve yükseklik
 TOHUM = 7
@@ -63,8 +71,23 @@ SOMINE_GEN, SOMINE_H = 3.0, 1.8
 MASA_Z = 0.80                          # masaların üst yüzü
 DETAY = 2.0                            # yuvarlak parçaların inceliği: 1 = kaba, 2 = iki kat kenar + yumuşak profiller (site yorulursa düşür)
 
+# ───────── STİL (2026-10-16): elle boyanmış, hafif stilize tarz (örnek: ornek sanat.jpg) ─────────
+# Hepsi 0 / 1 yapılırsa eski (gerçekçi oranlı) model çıkar.
+STIL_KALIN = 0.45                      # ince çubuklar (ayak, kol, zincir, mum) bu oranda kalınlaşır; 6 cm'den kalın parçalar değişmez
+STIL_PAH = 1.6                         # pahlar (yontulmuş kenarlar) bu kat büyür: kenarlar yumuşak, biraz "oyuncak gibi"
+STIL_EGRI = 0.015                      # el yapımı eğrilik (m): parçalar yatayda hafifçe yamulur, hiçbir şey cetvelle çizilmiş gibi durmaz
+KUPA_OLCEK = 1.2                       # kupalar biraz iri (örnek sanatta eşyalar abartılı büyük)
+SISE_OLCEK = 1.15                      # şişeler biraz tombul (yalnızca genişlik; raflara sığsınlar diye boy aynı)
+TAS_ZEMIN_R = 2.15                    # oyun masasının çevresindeki altıgen taş döşemenin yarıçapı (m); 0 = yok
+POST_EN = 2.3                          # şömine önündeki hayvan postunun eni (m); boyu resmin oranından
+# Yeni dokular gelene kadar kullanılan düz renkler (Blender'ın doğrusal renk düzeninde)
+SIVA_RENK = (0.62, 0.47, 0.30)         # krem / bal rengi sıva
+TAS_RENK = (0.40, 0.35, 0.29)          # açık renk yontma taş (direkler)
+TAS_ZEMIN_RENK = (0.33, 0.29, 0.24)    # altıgen taş döşeme
+
 # Dokunun gerçek boyu (m): doku bu kadar alanda bir tekrar eder
-UVS = {'M_Zemin': 2.0, 'M_Masa': 1.2, 'M_Ahsap': 1.0, 'M_Ahsap_Koyu': 1.0, 'M_Duvar': 2.5, 'M_Somine': 1.5, 'M_Deri': 0.5, 'M_Kul': 1.5}
+UVS = {'M_Zemin': 2.0, 'M_Masa': 1.2, 'M_Ahsap': 1.0, 'M_Ahsap_Koyu': 1.0, 'M_Duvar': 2.5, 'M_Somine': 1.5, 'M_Deri': 0.5, 'M_Kul': 1.5,
+       'M_Tas_Blok': 1.0, 'M_Tas_Zemin': 1.6}
 
 # ───────── Koleksiyonlar ─────────
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -139,23 +162,36 @@ def mat_duz(ad, renk, puruz=0.6, metal=0.0, isik=None, isik_guc=0.0):
     m.diffuse_color = (*renk, 1)
     return m
 
+def doku_var(dosya, alfa=False):
+    return os.path.exists(os.path.join(DOKU, dosya + ('.png' if alfa else '.jpg')))
+
+def mat_yeni(ad, dosya, yedek_renk, **k):
+    """Boyalı tarzın yeni dokusu varsa onu, yoksa düz renk kullanır: görseller gelene kadar sahne yine kurulur."""
+    if doku_var(dosya, k.get('alfa', False)): return mat_doku(ad, dosya, **k)
+    print(f'  {dosya}: doku henüz yok, düz renk kullanılıyor')
+    return mat_duz(ad, yedek_renk, 0.85)
+
 M = {
     'zemin':  mat_doku('M_Zemin', 'zemin-ahsap'),
     'masa':   mat_doku('M_Masa', 'masa-ahsap'),
     'ahsap':  mat_doku('M_Ahsap', 'zemin-ahsap', carpan=(0.62, 0.50, 0.40), normal_guc=0.8),        # mobilya gövdesi
-    'koyu':   mat_doku('M_Ahsap_Koyu', 'zemin-ahsap', carpan=(0.30, 0.24, 0.20), normal_guc=0.8),   # kirişler, direkler, kapı
-    'duvar':  mat_doku('M_Duvar', 'duvar-tas', normal_guc=1.2),
+    'koyu':   mat_doku('M_Ahsap_Koyu', 'zemin-ahsap', carpan=(0.30, 0.24, 0.20), normal_guc=0.8),   # kirişler, kapı
+    # 2026-10-16: duvarlar sıva (önce taştı), direkler açık renk yontma taş, oyun masasının çevresi altıgen taş döşeme
+    'duvar':  mat_yeni('M_Duvar', 'duvar-siva', SIVA_RENK, normal_guc=0.8),
+    'tas':    mat_yeni('M_Tas_Blok', 'tas-blok', TAS_RENK, normal_guc=1.2),
+    'tas_zemin': mat_yeni('M_Tas_Zemin', 'tas-altigen', TAS_ZEMIN_RENK, normal_guc=1.2),
     'somine': mat_doku('M_Somine', 'somine-tas', normal_guc=1.3),
     'kul':    mat_doku('M_Kul', 'somine-tas', carpan=(0.18, 0.16, 0.15), normal_guc=1.0),           # ocağın isli tabanı
     'deri':   mat_doku('M_Deri', 'deri'),
     'hali':   mat_doku('M_Hali', 'hali', puruz=False, puruz_sabit=0.95, alfa=True),
-    'demir':  mat_duz('M_Demir', (0.035, 0.032, 0.03), 0.5, 0.85),
-    'pirinc': mat_duz('M_Pirinc', (0.45, 0.30, 0.10), 0.32, 1.0),
-    'kalay':  mat_duz('M_Kalay', (0.35, 0.34, 0.32), 0.42, 0.9),      # kupalar
-    'mum':    mat_duz('M_Mum', (0.80, 0.70, 0.50), 0.45),
-    'cam_y':  mat_duz('M_Cam_Yesil', (0.02, 0.08, 0.03), 0.12),
-    'cam_k':  mat_duz('M_Cam_Kahve', (0.10, 0.03, 0.005), 0.12),
-    'cam_s':  mat_duz('M_Cam_Saydam', (0.25, 0.25, 0.22), 0.08),
+    # Düz renkler boyalı palete göre (2026-10-16): çok koyu renkler toon gölgelendirmede simsiyah leke oluyordu
+    'demir':  mat_duz('M_Demir', (0.06, 0.06, 0.07), 0.5, 0.85),         # koyu arduvaz grisi
+    'pirinc': mat_duz('M_Pirinc', (0.55, 0.35, 0.09), 0.32, 1.0),
+    'kalay':  mat_duz('M_Kalay', (0.38, 0.36, 0.33), 0.42, 0.9),      # kupalar
+    'mum':    mat_duz('M_Mum', (0.85, 0.72, 0.48), 0.45),
+    'cam_y':  mat_duz('M_Cam_Yesil', (0.05, 0.20, 0.07), 0.12),        # yosun yeşili
+    'cam_k':  mat_duz('M_Cam_Kahve', (0.28, 0.09, 0.015), 0.12),       # kehribar
+    'cam_s':  mat_duz('M_Cam_Saydam', (0.32, 0.40, 0.38), 0.08),       # soluk turkuaz
     'fener':  mat_duz('M_Fener_Cam', (0.12, 0.07, 0.03), 0.1, isik=(1.0, 0.52, 0.2), isik_guc=1.4),   # içinde mum yanan fener camı
     'bira':   mat_duz('M_Bira', (0.45, 0.22, 0.03), 0.15),
     'alev':   mat_duz('M_Alev', (0, 0, 0), 1.0, isik=(1.0, 0.45, 0.10), isik_guc=8.0),
@@ -175,6 +211,11 @@ def b_kutu(x0, x1, y0, y1, z0, z1):
 def _n(n):
     """Yuvarlak parçaların kenar sayısı DETAY ile çarpılır."""
     return max(3, int(round(n * DETAY)))
+
+def _kalin(r):
+    """Stil: ince parçalar kalınlaşır (1 cm'lik çubuk ~%40), 6 cm'den kalınlar olduğu gibi kalır. Sıra bozulmaz:
+    kalın olan yine kalın kalır, böylece tornalı profillerin biçimi korunur."""
+    return r * (1 + STIL_KALIN * max(0.0, 1 - r / 0.06))
 
 def _yumusat(h):
     """Torna profilindeki her iki halka arasına yumuşak (Catmull-Rom) bir ara halka ekler: kıvrımlar yuvarlaklaşır."""
@@ -198,14 +239,14 @@ def b_arasi(p0, p1, r, n=8, r2=None):
     """İki nokta arasında silindir (eğik ayaklar, çubuklar, kütükler)."""
     p0, p1 = Vector(p0), Vector(p1); d = p1 - p0
     bm = bmesh.new()
-    bmesh.ops.create_cone(bm, cap_ends=True, segments=_n(n), radius1=r, radius2=r if r2 is None else r2, depth=d.length)
+    bmesh.ops.create_cone(bm, cap_ends=True, segments=_n(n), radius1=_kalin(r), radius2=_kalin(r if r2 is None else r2), depth=d.length)
     q = d.to_track_quat('Z', 'Y').to_matrix().to_4x4()
     bmesh.ops.transform(bm, matrix=Matrix.Translation((p0 + p1) / 2) @ q, verts=bm.verts)
     return bm
 
 def b_torna(x, y, halkalar, n=12, ust=True, alt=True):
     """Dönen gövde: [(z, yarıçap)] halkaları (şişe, kupa, mum, fıçı, tornalı ayak)."""
-    n = _n(n); halkalar = _yumusat(halkalar)
+    n = _n(n); halkalar = [(z, _kalin(r)) for z, r in _yumusat(halkalar)]
     bm = bmesh.new(); H = []
     for z, r in halkalar:
         H.append([bm.verts.new((x + r * math.cos(2 * math.pi * i / n), y + r * math.sin(2 * math.pi * i / n), z)) for i in range(n)])
@@ -227,6 +268,7 @@ def P(hedef, bm, mi=0, pah=0.0, seg=1, yumusak=False):
     """Parçayı hedefe ekler. pah: keskin kenarları bu kadar yontar (m)."""
     for f in bm.faces:
         f.material_index = mi; f.smooth = yumusak
+    pah *= STIL_PAH
     if pah > 0:
         kenar = [e for e in bm.edges if len(e.link_faces) == 2 and e.calc_face_angle(0) > math.radians(35)]
         if kenar:
@@ -234,9 +276,23 @@ def P(hedef, bm, mi=0, pah=0.0, seg=1, yumusak=False):
     bm.to_mesh(_GECICI); bm.free()
     hedef.from_mesh(_GECICI)
 
+EGRI_YOK = ('Zemin', 'alev_', 'Kapi_Disari_Gece', 'Mutfak_Girisi', 'Tas_Zemin')   # yamulmayanlar
+
+def _egri(bm, konum):
+    """Stil: el yapımı eğrilik. Her köşe yatayda biraz kayar. Kayma, köşenin dünyadaki yerine bağlı yumuşak bir
+    gürültüden gelir: yan yana iki parçanın ortak köşeleri aynı yöne kayar (duvarlar arasında aralık açılmaz) ve
+    yakın noktalar birlikte hareket eder (resim, çerçevesinin arkasına kaçmaz). Yükseklik değişmez: masa ve tezgâh
+    üstleri düz kalır."""
+    from mathutils import noise
+    k = Vector(konum)
+    for v in bm.verts:
+        g = noise.noise_vector((v.co + k) * 1.4)
+        v.co.x += g.x * STIL_EGRI; v.co.y += g.y * STIL_EGRI
+
 def nesne(ad, bm, mats, kol, konum=(0, 0, 0), aci=0.0, uv_ozel=None, koru=()):
     """bmesh'ten nesne kurar. Doku koordinatları (UV): her yüz baktığı yöne göre izdüşümlenir, malzemenin gerçek boyuna göre.
-    koru: bu malzeme sıralarındaki yüzlerin UV'sine dokunulmaz (yaprak kartları kendi UV'siyle gelir)."""
+    koru: bu malzeme sıralarındaki yüzlerin UV'sine dokunulmaz (yaprak kartları kendi UV'siyle gelir).
+    UV'den sonra parça hafifçe yamultulur (STIL_EGRI): doku da şekille birlikte eğilir."""
     bm.normal_update()
     uvl = bm.loops.layers.uv.verify()
     olc = [UVS.get(m.name, 1.0) for m in mats]
@@ -248,6 +304,7 @@ def nesne(ad, bm, mats, kol, konum=(0, 0, 0), aci=0.0, uv_ozel=None, koru=()):
             u, v = (p.x, p.y) if ax == 2 else ((p.y, p.z) if ax == 0 else (p.x, p.z))
             l[uvl].uv = (u / s, v / s)
     if uv_ozel: uv_ozel(bm, uvl)
+    if STIL_EGRI > 0 and not ad.startswith(EGRI_YOK): _egri(bm, konum)
     me = bpy.data.meshes.new(ad); bm.to_mesh(me); bm.free()
     for m in mats: me.materials.append(m)
     yumusak_var = any(p.use_smooth for p in me.polygons)
@@ -283,13 +340,16 @@ for ad, (x0, x1, y0, y1) in DUVARLAR.items():
     bm = bmesh.new()
     P(bm, b_kutu(x0, x1, y0, y1, 0, DH), 0)
     P(bm, b_kutu(x0 - 0.03, x1 + 0.03, y0 - 0.03, y1 + 0.03, DH, DH + 0.18), 1, pah=0.015)        # duvarın üstündeki ahşap kiriş
-    P(bm, b_kutu(x0 - 0.02, x1 + 0.02, y0 - 0.02, y1 + 0.02, 0, 0.14), 1, pah=0.01)                # süpürgelik
+    P(bm, b_kutu(x0 - 0.025, x1 + 0.025, y0 - 0.025, y1 + 0.025, 0, 0.22), 1, pah=0.01)            # süpürgelik (boyalı tarzda biraz yüksek)
     nesne(ad, bm, [M['duvar'], M['koyu']], K_DUVAR)
 
-# Ahşap direkler: duvar boyunca aralıklı, köşelerde ve kapı yanlarında (yarı ahşap iskelet)
+# Taş direkler: duvar boyunca aralıklı, köşelerde ve kapı yanlarında. 2026-10-16'dan beri açık renk yontma taş (önce koyu
+# ahşaptı); örnek sanattaki gibi duvarın üstünden biraz taşar, tepesinde başlık, dibinde kaide var.
 bm = bmesh.new()
 def direk(x, y):
-    P(bm, b_kutu(x - 0.16, x + 0.16, y - 0.16, y + 0.16, 0, DH + 0.18), 0, pah=0.02)
+    P(bm, b_kutu(x - 0.2, x + 0.2, y - 0.2, y + 0.2, 0, 0.24), 0, pah=0.02)                    # kaide
+    P(bm, b_kutu(x - 0.16, x + 0.16, y - 0.16, y + 0.16, 0.24, DH + 0.3), 0, pah=0.02)          # gövde
+    P(bm, b_kutu(x - 0.21, x + 0.21, y - 0.21, y + 0.21, DH + 0.3, DH + 0.4), 0, pah=0.02)      # başlık
 _k = int((IC_X - 1.0) // 3.7)
 DIREK_KUZEY = [i * 3.7 for i in range(-_k, _k + 1)]               # kuzey duvarı (barın arkası): 3,7 m arayla
 DIREK_GUNEY = [-5.0, -2.0, 0.6]                                   # güney duvarı (kapının ve tabak rafının dışında)
@@ -301,7 +361,25 @@ for x in [-IC_X + 0.1, IC_X - 0.1, K0 - 0.12, K1 + 0.12] + DIREK_GUNEY:
     direk(x, -IC_Y + 0.06)
 for y in DIREK_BATI: direk(-IC_X + 0.06, y)
 for y in DIREK_DOGU: direk(IC_X - 0.06, y)
-nesne('Duvar_Direkleri', bm, [M['koyu']], K_DUVAR)
+nesne('Duvar_Direkleri', bm, [M['tas']], K_DUVAR)
+
+# Altıgen taş döşeme: oyun masasının çevresinde yuvarlak bir alan, kenarında ahşap çerçeve (örnek sanattaki gibi oyun
+# alanı ayrı bir bölge olarak okunsun). Zeminin 1,5 cm üstünde.
+def b_halka(r0, r1, z0, z1, n=48):
+    """Yuvarlak çerçeve: iç yarıçap r0, dış r1 (üstü, dış ve iç yüzü)."""
+    n = _n(n); bm = bmesh.new()
+    def cember(r, z): return [bm.verts.new((r * math.cos(2 * math.pi * i / n), r * math.sin(2 * math.pi * i / n), z)) for i in range(n)]
+    A, B, C, D = cember(r1, z0), cember(r1, z1), cember(r0, z1), cember(r0, z0)
+    for a, b in ((A, B), (B, C), (C, D)):
+        for i in range(n):
+            bm.faces.new((a[i], a[(i + 1) % n], b[(i + 1) % n], b[i]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return bm
+if TAS_ZEMIN_R > 0:
+    bm = bmesh.new()
+    P(bm, b_silindir(0, 0, TAS_ZEMIN_R, 0.0, 0.015, n=48), 0)
+    P(bm, b_halka(TAS_ZEMIN_R - 0.02, TAS_ZEMIN_R + 0.14, 0.0, 0.03), 1)
+    nesne('Tas_Zemin_Orta', bm, [M['tas_zemin'], M['koyu']], K_ZEMIN)
 
 # Giriş kapısı: taş eşik, içeri açık iki kanat (dikey tahta + demir kuşak)
 bm = bmesh.new(); P(bm, b_kutu(K0, K1, -DIS_Y, -IC_Y + 0.05, 0, 0.04), 0, pah=0.01); nesne('Kapi_Giris_Esik', bm, [M['somine']], K_KAPI)
@@ -408,11 +486,12 @@ def mum_kur(no, x, y, z, kol, ebeveyn=None):
     return (x, y, z + ust + 0.06)
 
 def kupa_kur(bm, x, y, z, aci=0):
-    P(bm, b_torna(x, y, [(z, 0.04), (z + 0.01, 0.042), (z + 0.11, 0.045), (z + 0.12, 0.047)], n=14, ust=False), 0, yumusak=True)
-    P(bm, b_torna(x, y, [(z + 0.10, 0.043)], n=14, alt=False), 1)
-    a = math.radians(aci)
-    P(bm, b_arasi((x + 0.045 * math.cos(a), y + 0.045 * math.sin(a), z + 0.09), (x + 0.075 * math.cos(a), y + 0.075 * math.sin(a), z + 0.06), 0.009, n=6), 0, yumusak=True)
-    P(bm, b_arasi((x + 0.075 * math.cos(a), y + 0.075 * math.sin(a), z + 0.06), (x + 0.045 * math.cos(a), y + 0.045 * math.sin(a), z + 0.025), 0.009, n=6), 0, yumusak=True)
+    s = KUPA_OLCEK                                          # bütün ölçüler bununla çarpılır (stil: iri kupalar)
+    P(bm, b_torna(x, y, [(z, 0.04 * s), (z + 0.01 * s, 0.042 * s), (z + 0.11 * s, 0.045 * s), (z + 0.12 * s, 0.047 * s)], n=14, ust=False), 0, yumusak=True)
+    P(bm, b_torna(x, y, [(z + 0.10 * s, 0.043 * s)], n=14, alt=False), 1)
+    a = math.radians(aci); c, si = math.cos(a) * s, math.sin(a) * s
+    P(bm, b_arasi((x + 0.045 * c, y + 0.045 * si, z + 0.09 * s), (x + 0.075 * c, y + 0.075 * si, z + 0.06 * s), 0.009 * s, n=6), 0, yumusak=True)
+    P(bm, b_arasi((x + 0.075 * c, y + 0.075 * si, z + 0.06 * s), (x + 0.045 * c, y + 0.045 * si, z + 0.025 * s), 0.009 * s, n=6), 0, yumusak=True)
 
 ISIKLAR = []                                   # (ad, x, y, z) önizleme ışıkları için
 MUM_NO = [0]
@@ -480,46 +559,46 @@ for ad, x0, y0 in YAN_YERLER:
 
 # ───────── 02 Bar ─────────
 bm = bmesh.new()
-P(bm, b_kutu(-BAR_X, BAR_X, TEZ_Y0 + 0.06, TEZ_Y1, 0.10, TEZGAH_H - 0.06), 0)                                      # ön panel (dikey tahtalar)
-P(bm, b_kutu(-BAR_X, BAR_X, TEZ_Y0 + 0.12, TEZ_Y1, 0.0, 0.10), 1)                                                  # içeri çekik süpürgelik
-P(bm, b_kutu(-BAR_X, BAR_X, TEZ_Y0 - 0.06, TEZ_Y1 + 0.03, TEZGAH_H - 0.07, TEZGAH_H), 2, pah=0.015, seg=2)        # tezgâh tablası (taşkın)
-x = -BAR_X + 0.1
-while x < BAR_X:                                                                                                  # ön paneldeki dikmeler
+P(bm, b_kutu(BAR_BATI, BAR_DOGU, TEZ_Y0 + 0.06, TEZ_Y1, 0.10, TEZGAH_H - 0.06), 0)                                      # ön panel (dikey tahtalar)
+P(bm, b_kutu(BAR_BATI, BAR_DOGU, TEZ_Y0 + 0.12, TEZ_Y1, 0.0, 0.10), 1)                                                  # içeri çekik süpürgelik
+P(bm, b_kutu(BAR_BATI, BAR_DOGU, TEZ_Y0 - 0.06, TEZ_Y1 + 0.03, TEZGAH_H - 0.07, TEZGAH_H), 2, pah=0.015, seg=2)        # tezgâh tablası (taşkın)
+x = BAR_BATI + 0.1
+while x < BAR_DOGU:                                                                                                  # ön paneldeki dikmeler
     P(bm, b_kutu(x - 0.05, x + 0.05, TEZ_Y0 + 0.02, TEZ_Y0 + 0.07, 0.10, TEZGAH_H - 0.07), 1, pah=0.01)
     x += 1.6
 nesne('Bar_Tezgah', bm, [M['ahsap'], M['koyu'], M['masa']], K_BAR)
 bm = bmesh.new()                                                                                                 # pirinç ayak çubuğu ve tutucuları
-P(bm, b_arasi((-BAR_X + 0.1, TEZ_Y0 - 0.14, 0.2), (BAR_X - 0.1, TEZ_Y0 - 0.14, 0.2), 0.022, n=12), 0, yumusak=True)
-x = -BAR_X + 0.6
-while x < BAR_X:
+P(bm, b_arasi((BAR_BATI + 0.1, TEZ_Y0 - 0.14, 0.2), (BAR_DOGU - 0.1, TEZ_Y0 - 0.14, 0.2), 0.022, n=12), 0, yumusak=True)
+x = BAR_BATI + 0.6
+while x < BAR_DOGU:
     P(bm, b_arasi((x, TEZ_Y0 - 0.14, 0.2), (x, TEZ_Y0 + 0.06, 0.2), 0.012, n=8), 0, yumusak=True)
     x += 1.6
 nesne('Bar_Ayak_Cubugu', bm, [M['pirinc']], K_BAR)
 
 # Arka raf: alt dolap, üç raf tahtası, dikmeler
 bm = bmesh.new()
-P(bm, b_kutu(-BAR_X, BAR_X, RAF_Y0, IC_Y, 0, 0.9), 0)
-P(bm, b_kutu(-BAR_X, BAR_X, RAF_Y0 - 0.03, IC_Y, 0.9, 0.95), 1, pah=0.01)
+P(bm, b_kutu(BAR_BATI, BAR_DOGU, RAF_Y0, IC_Y, 0, 0.9), 0)
+P(bm, b_kutu(BAR_BATI, BAR_DOGU, RAF_Y0 - 0.03, IC_Y, 0.9, 0.95), 1, pah=0.01)
 for z in (1.35, 1.75, 2.15):
-    P(bm, b_kutu(-BAR_X, BAR_X, IC_Y - 0.32, IC_Y, z, z + 0.04), 1, pah=0.008)
-x = -BAR_X + 0.05
-while x < BAR_X:
+    P(bm, b_kutu(BAR_BATI, BAR_DOGU, IC_Y - 0.32, IC_Y, z, z + 0.04), 1, pah=0.008)
+_n_dik = max(1, round((BAR_DOGU - BAR_BATI - 0.1) / 2.4))       # dikmeler eşit aralıkla, iki uçta da bir tane
+for i in range(_n_dik + 1):
+    x = BAR_BATI + 0.05 + (BAR_DOGU - BAR_BATI - 0.1) * i / _n_dik
     P(bm, b_kutu(x - 0.04, x + 0.04, IC_Y - 0.32, IC_Y, 0.95, 2.3), 1, pah=0.008)
-    x += 2.4
 nesne('Bar_Arka_Raf', bm, [M['ahsap'], M['koyu']], K_BAR)
 
 # Raftaki şişeler ve kupalar (her raf ayrı nesne: kolay seçilsin)
 CAMLAR = [M['cam_y'], M['cam_k'], M['cam_s']]
 for ri, z in enumerate((0.95, 1.39, 1.79, 2.19)):
     bm = bmesh.new()
-    x = -BAR_X + 0.15
-    while x < BAR_X - 0.15:
+    x = BAR_BATI + 0.15
+    while x < BAR_DOGU - 0.15:
         if sus.random() < 0.72:
             yy = IC_Y - 0.16 + sus.uniform(-0.04, 0.04)
             if sus.random() < 0.25:
                 kupa_kur(bm, x, yy, z, sus.uniform(0, 360))
             else:
-                h = sus.uniform(0.22, 0.32); r = sus.uniform(0.032, 0.045)
+                h = sus.uniform(0.22, 0.32); r = sus.uniform(0.032, 0.045) * SISE_OLCEK
                 P(bm, b_torna(x, yy, [(z, r * 0.9), (z + 0.005, r), (z + h * 0.62, r), (z + h * 0.75, r * 0.45), (z + h * 0.95, 0.013), (z + h, 0.014)], n=10),
                   2 + sus.randrange(3), yumusak=True)
         x += sus.uniform(0.11, 0.2)
@@ -534,21 +613,20 @@ def fici(ad, kol, x, y, r=0.3, h=0.9, aci=0):
         P(bm, b_torna(0, 0, [(zz - 0.02, rr), (zz + 0.02, rr)], n=24, ust=False, alt=False), 1, yumusak=True)
     P(bm, b_silindir(0, 0, r * 0.8, h - 0.015, h + 0.005, n=24), 2)
     return nesne(ad, bm, [M['ahsap'], M['demir'], M['masa']], kol, konum=(x, y, 0), aci=aci)
-for i, x in enumerate((-BAR_X + 0.45, BAR_X - 0.45)):
-    fici(f'Bar_Fici_{i + 1}', K_BAR, x, (RAF_Y0 + TEZ_Y1) / 2, aci=sus.uniform(0, 90))
+# (Barın iki ucundaki fıçılar 2026-10-16'da kaldırıldı; kullanıcının isteği.)
 
 # Tezgâhın üstü: dört mum ve birkaç kupa
-for x in (-0.77 * BAR_X, -2.0, 2.0, 0.77 * BAR_X):
+for x in (bar_x(0.12), bar_x(0.38), bar_x(0.62), bar_x(0.88)):
     yeni_mum(x + sus.uniform(-0.2, 0.2), (TEZ_Y0 + TEZ_Y1) / 2 + sus.uniform(-0.08, 0.08), TEZGAH_H, K_BAR)
 bm = bmesh.new()
 for _ in range(9):
-    kupa_kur(bm, sus.uniform(-BAR_X + 0.5, BAR_X - 0.5), (TEZ_Y0 + TEZ_Y1) / 2 + sus.uniform(-0.2, 0.2), TEZGAH_H, sus.uniform(0, 360))
+    kupa_kur(bm, sus.uniform(BAR_BATI + 0.5, BAR_DOGU - 0.5), (TEZ_Y0 + TEZ_Y1) / 2 + sus.uniform(-0.2, 0.2), TEZGAH_H, sus.uniform(0, 360))
 nesne('Bar_Tezgah_Kupalar', bm, [M['kalay'], M['bira']], K_BAR)
 
 # Tabureler: tezgâhın önünde boydan boya, biraz düzensiz
-n_tab = int((2 * BAR_X - 0.8) // TABURE_ARA) + 1
-bas = -(n_tab - 1) * TABURE_ARA / 2
-kok_t = bos('Bar_Tabureleri', K_TABURE, 0, TABURE_Y, boy=0.4)
+n_tab = int((BAR_DOGU - BAR_BATI - 0.8) // TABURE_ARA) + 1
+bas = BAR_ORTA - (n_tab - 1) * TABURE_ARA / 2
+kok_t = bos('Bar_Tabureleri', K_TABURE, BAR_ORTA, TABURE_Y, boy=0.4)
 for i in range(n_tab):
     t = kopya(f'Bar_Tabure_{i + 1:02d}', TABURE, K_TABURE, bas + i * TABURE_ARA + sus.uniform(-0.06, 0.06),
               TABURE_Y + sus.uniform(-0.05, 0.05), sus.uniform(0, 90))
@@ -599,7 +677,13 @@ bos('isik_somine', K_ISIK, 0, SY + 0.6, 0.45, boy=0.12, tur='SPHERE')
 
 # Şömine önü oturma alanı: halı (resmin oranında), iki koltuk, alçak sehpa (üstünde mum ve kupa)
 K_OTUR = koleksiyon('Somine_Oturma_Alani', K_SOM)
-HALI_EN = 3.2; _h = resim('hali.png'); HALI_BOY = HALI_EN * _h.size[1] / _h.size[0]       # halı resminin oranında
+# 2026-10-16: halının yerine hayvan postu (örnek sanattaki gibi). Post görseli (post.png) yoksa eski halı kalır.
+if doku_var('post', alfa=True):
+    M['hali'] = mat_doku('M_Post', 'post', puruz=False, puruz_sabit=0.95, alfa=True)
+    HALI_EN = POST_EN; _h = resim('post.png')
+else:
+    HALI_EN = 3.2; _h = resim('hali.png')
+HALI_BOY = HALI_EN * _h.size[1] / _h.size[0]                     # resmin oranında
 OY = SY + YD + 0.6 + HALI_BOY / 2 + 0.02
 kok_o = bos('Somine_Oturma_Alani', K_OTUR, 0, OY, boy=0.5)
 def hali_uv(bm, uvl):                                   # halı resmi halının üstüne bir kez otursun
@@ -805,7 +889,7 @@ def sarkit(ad, x, y, z_alt, kol):
     bos('isik_' + ad.lower(), kol, x, y, z_alt + 0.18, boy=0.08, tur='SPHERE')
     ISIKLAR.append(('isik_' + ad.lower(), x, y, z_alt + 0.18))
 
-for i, x in enumerate((-(BAR_X - 1.2), -2.2, 2.2, BAR_X - 1.2)):
+for i, x in enumerate((bar_x(0.12), bar_x(0.37), bar_x(0.63), bar_x(0.88))):
     sarkit(f'Sarkit_Bar_{i + 1}', x, (TEZ_Y0 + TEZ_Y1) / 2, 2.05, K_SARKIT)
 for ad, x, y, kok, kol in YAN_MASALAR:
     sarkit(f'Sarkit_{ad}', x, y, 1.95, K_SARKIT)
@@ -883,7 +967,7 @@ def tabela_uv(bm, uvl):                         # arka yüzde resim ayna gibi te
             for l in fc.loops:
                 u = (l.vert.co.x + TW / 2) / TW
                 l[uvl].uv = (u if fc.material_index == 2 else 1 - u, (l.vert.co.z - TZ) / TH)
-duvar_parcasi('Tabela_Bar', K_SUS, 0, (RAF_Y0 + TEZ_Y1) / 2, 180, tabela, [M['koyu'], M['dovme'], M['tabela'], M['tabela']], tabela_uv)
+duvar_parcasi('Tabela_Bar', K_SUS, BAR_ORTA, (RAF_Y0 + TEZ_Y1) / 2, 180, tabela, [M['koyu'], M['dovme'], M['tabela'], M['tabela']], tabela_uv)
 ETIKET.append(('Tabela (asılı) + 4 kalkan (duvarda)', 0, IC_Y - 0.25))
 
 # ───────── Görev panosu ve harita (doğu duvarı) ─────────
@@ -922,7 +1006,7 @@ saksi('Bitki_Kose_GB', -IC_X + 0.6, -IC_Y + 0.6, 1.6, 0.32, kart=12)
 saksi('Bitki_Ozan', -IC_X + 0.55, -0.55, 1.0, 0.24)
 for ad, x, y, kok, kol in YAN_MASALAR:
     saksi(f'Bitki_{ad}', x + 0.28, y - 0.12, 0.34, 0.07, z0=MASA_Z, kart=6)
-for i, x in enumerate((-BAR_X + 0.5, BAR_X - 0.5)):
+for i, x in enumerate((BAR_BATI + 0.5, BAR_DOGU - 0.5)):
     saksi(f'Bitki_Tezgah_{i + 1}', x, (TEZ_Y0 + TEZ_Y1) / 2, 0.55, 0.1, z0=TEZGAH_H, kart=8)
 sarmasik('Sarmasik_Kapi_Bati', K0 - 0.12, -IC_Y + 0.06, 0.2, DH, 0)
 sarmasik('Sarmasik_Kapi_Dogu', K1 + 0.12, -IC_Y + 0.06, 0.2, DH, 0)
@@ -941,7 +1025,7 @@ for xk in [min(KIRISLER, key=lambda k: abs(k - h)) for h in (-6.0, -2.0, 2.0, 6.
 # Kuru ot demetleri: barmen koridorunun üstünde, kirişlerden baş aşağı (eğrelti kartları, kurumuş renkte)
 bm = bmesh.new()
 for xk in KIRISLER:
-    if abs(xk) > IC_X - 0.6: continue
+    if not BAR_BATI + 0.3 < xk < BAR_DOGU - 0.3: continue        # yalnızca barmen koridorunun üstünde
     for dy in (-0.25, 0.25):
         yy = (RAF_Y0 + TEZ_Y1) / 2 + dy + sus.uniform(-0.08, 0.08); boy = sus.uniform(0.3, 0.45)
         P(bm, b_arasi((0, yy, DH - 0.12), (0, yy, DH - 0.2), 0.005, n=4), 0)

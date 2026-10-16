@@ -36,12 +36,17 @@ DISARIDA_AD = ('Masa_Orta_Sandalye_',)               # oyun masasının sandalye
 POV_KOL = {'08_Tavan', 'Avize'}
 POV_AD = ('Kapi_Disari_Gece', 'Sarmasik_Kiris_', 'Kuru_Ot_', 'Bitki_Sarkan_', 'Sarkit_Masa_')
 WEBP_KALITE = 80
-BOY = {'hali': 1024, 'deri': 256, 'zemin-ahsap': 1024, 'duvar-tas': 1024, 'masa-ahsap': 1024,   # yere yakın büyük yüzeyler keskin kalsın 'kalkan-1': 256, 'kalkan-2': 256, 'tabela': 512, 'sancak': 256, 'harita': 512,
+# Dokuların sitedeki en uzun kenarı (px). Yere yakın büyük yüzeyler keskin kalsın.
+# (2026-10-16'ya kadar ikinci satırın başı bir açıklamanın içinde kalmıştı; kalkan, tabela, sancak ve harita 512 oluyordu.)
+BOY = {'hali': 1024, 'post': 512, 'deri': 256, 'zemin-ahsap': 1024, 'duvar-tas': 1024, 'duvar-siva': 1024, 'masa-ahsap': 1024,
+       'tas-altigen': 1024, 'tas-blok': 512, 'dis-zemin': 512,
+       'kalkan-1': 256, 'kalkan-2': 256, 'tabela': 512, 'sancak': 256, 'harita': 512,
        'gorev-panosu': 512, 'kitap-sirtlari': 256, 'demir': 256, 'cuval': 256, 'saksi-toprak': 256}
 VARSAYILAN = 512
 SADELESTIR = {'Bar_Raf_': 0.3}                       # şişeler dosyanın yarısıydı; uzaktan kabalaşmaları fark edilmez
 DUVAR_YAKIN = 0.7                                    # duvara bu kadar yakın parça "duvarda" sayılır (m)
 HALI_R = 2.5                                         # oyun masasının altındaki yuvarlak halının yarıçapı (m)
+OYUN_HALISI = False                                  # oyun masasının altına yuvarlak halı konsun mu? (2026-10-16: kullanıcının isteğiyle kaldırıldı)
 
 bpy.ops.wm.open_mainfile(filepath=BLEND)
 O = bpy.data.objects
@@ -62,15 +67,19 @@ for img in bpy.data.images:                        # kalan renk dokularını kü
     k = BOY.get(ad, VARSAYILAN) / max(img.size)
     if k < 1: img.scale(max(1, round(img.size[0] * k)), max(1, round(img.size[1] * k)))
 
-# 2) Oyun halısı ve dış zemin
-bm = bmesh.new(); bmesh.ops.create_circle(bm, cap_ends=True, radius=HALI_R, segments=72)
-uvk = bm.loops.layers.uv.new()
-for f in bm.faces:
-    for l in f.loops: l[uvk].uv = (0.5 + l.vert.co.x / (2 * HALI_R) * 0.56, 0.5 + l.vert.co.y / (2 * HALI_R))
-me = bpy.data.meshes.new('Oyun_Halisi'); bm.to_mesh(me); bm.free(); me.materials.append(bpy.data.materials.get('M_Hali'))
-hal = bpy.data.objects.new('Oyun_Halisi', me); hal.location = (0, 0, 0.004); hal.rotation_euler.z = math.radians(12)
-bpy.context.scene.collection.objects.link(hal)
-tas = next((i for i in bpy.data.images if 'duvar-tas' in i.name), None)
+# 2) Oyun halısı (OYUN_HALISI açıksa) ve dış zemin
+if OYUN_HALISI:
+    bm = bmesh.new(); bmesh.ops.create_circle(bm, cap_ends=True, radius=HALI_R, segments=72)
+    uvk = bm.loops.layers.uv.new()
+    for f in bm.faces:
+        for l in f.loops: l[uvk].uv = (0.5 + l.vert.co.x / (2 * HALI_R) * 0.56, 0.5 + l.vert.co.y / (2 * HALI_R))
+    me = bpy.data.meshes.new('Oyun_Halisi'); bm.to_mesh(me); bm.free(); me.materials.append(bpy.data.materials.get('M_Hali'))
+    hal = bpy.data.objects.new('Oyun_Halisi', me); hal.location = (0, 0, 0.004); hal.rotation_euler.z = math.radians(12)
+    bpy.context.scene.collection.objects.link(hal)
+# Dış zeminin dokusu: varsa kendi dokusu (dis-zemin, 2026-10-16), yoksa eski taş duvar dokusu (duvarlar artık sıva)
+_dz = next((p for p in (os.path.join(KOK, '3d', 'dokular', a + '.jpg') for a in ('dis-zemin', 'duvar-tas')) if os.path.exists(p)), None)
+tas = bpy.data.images.load(_dz) if _dz else None
+if tas and tas.size[0] > 512: tas.scale(512, round(tas.size[1] * 512 / tas.size[0]))
 mz = bpy.data.materials.new('M_Dis_Zemin'); mz.use_nodes = True                # renk tonunu site verir (serin, morumsu)
 if tas:
     tx = mz.node_tree.nodes.new('ShaderNodeTexImage'); tx.image = tas

@@ -10,7 +10,7 @@ Adresin # kısmı: n (kişi sayısı, DM dahil), all=1, s/x/y (görünüm), dbg=
 cdp.ps1 adım adım komut da çalıştırır: -steps @('wait:800', "js:TT.showRoll({...},{})", 'shot:zar.png')
 """
 import sys, pathlib
-KOK = pathlib.Path(r'C:\Users\PC\Desktop\DnD-dort element-site')
+KOK = pathlib.Path(__file__).resolve().parents[2]            # proje klasörü (araclar/test'in iki üstü)
 OUT = pathlib.Path(sys.argv[0]).parent / 'test.html'
 s = (KOK / 'index.html').read_text(encoding='utf-8')
 s = s.replace('<head>', '<head>\n<base href="' + KOK.as_uri() + '/">', 1)

@@ -13,6 +13,8 @@ Sonra:  python araclar\\figur_2d_hazirla.py   (.webp; masa/fig2d/ klasörüne)
 Kurallar (yeni karakter eklerken de):
   • Koltuğun ortası (oturağın altındaki yer noktası) dünyanın (0, 0, 0) noktasıdır; figür +y yönüne (masaya) bakar.
     Sandalye figürle birlikte çekilir; masanın kenarı +y yönünde ~0,55 m ötededir (eller oraya uzanır).
+    Sandalye tavernadaki sandalyenin aynısıdır (taverna-detay.blend, 'Sandalye_Sablon'); sahnedeki sandalye değişirse
+    bu betik yeniden çalıştırılmalı.
   • Resmin ortası her zaman (0, 0, 0) noktasıdır: site resmi koltuğun yer noktasına ortalayarak koyar.
   • Kare k: figür, kuzeyden (+y) saat yönünün tersine k × 22,5° dönmüş hâlde. k = 0 → kuzeye bakar.
 """
@@ -82,14 +84,27 @@ def manken(bm, boy=1.0):
         o = (0.21 * x, 0.02, 1.04 * s); d = (0.24 * x, 0.20, 0.86); e = (0.14 * x, 0.46, 0.83)
         cubuk(bm, o, d, 0.055); cubuk(bm, d, e, 0.05); kure(bm, e, 0.06)
 
+# Tavernadaki sandalye (2026-10-16'dan beri): taverna-detay.blend'deki 'Sandalye_Sablon', yan masalardakilerin aynısı.
+# Önü +y'de, ortası oturağın altındaki yer noktası; blockout sandalyeyle aynı düzen. Dosya yoksa blockout sandalyeye dönülür.
+BLEND = os.path.join(KOK, '3d', 'taverna-detay.blend')
+def oturak():
+    if not os.path.exists(BLEND):
+        print('UYARI: taverna-detay.blend yok, blockout sandalye çekiliyor')
+        return [nesne('Sandalye', sandalye, M_AHSAP), nesne('Minder', minder, M_DERI)]
+    with bpy.data.libraries.load(BLEND, link=False) as (kaynak, hedef):
+        hedef.objects = ['Sandalye_Sablon']
+    o = hedef.objects[0]
+    sahne.collection.objects.link(o)
+    o.location = (0, 0, 0); o.rotation_euler = (0, 0, 0); o.scale = (1, 1, 1)
+    return [o]
+
 def yap_oyuncu():
-    return [nesne('Sandalye', sandalye, M_AHSAP), nesne('Minder', minder, M_DERI), nesne('Manken', manken, M_GRI)]
+    return oturak() + [nesne('Manken', manken, M_GRI)]
 def yap_dm():
     def kitap(bm): kutu(bm, -0.16, 0.16, 0.40, 0.62, 0.80, 0.86)     # DM'in önünde açık kitap (masanın kenarında)
-    return [nesne('Sandalye', sandalye, M_AHSAP), nesne('Minder', minder, M_DERI),
-            nesne('Manken', lambda bm: manken(bm, 1.04), M_DM), nesne('Kitap', kitap, mat('M_Kitap', (0.85, 0.78, 0.6)))]
+    return oturak() + [nesne('Manken', lambda bm: manken(bm, 1.04), M_DM), nesne('Kitap', kitap, mat('M_Kitap', (0.85, 0.78, 0.6)))]
 def yap_sandalye():
-    return [nesne('Sandalye', sandalye, M_AHSAP), nesne('Minder', minder, M_DERI)]
+    return oturak()
 
 FIGURLER = [('blockout-oyuncu', yap_oyuncu), ('blockout-dm', yap_dm), ('sandalye', yap_sandalye)]
 

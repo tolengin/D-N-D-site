@@ -1,0 +1,161 @@
+3D TAVERNA — ELLE BOYANMIŞ TARZ DOKU PROMPTLARI · Nano Banana 2  (2026-10-16)
+===========================================================================
+Eski fotoğraf gibi dokuların (doku-promptlari.txt) yerine geçer. Tarz örneği: ornek sanat.jpg
+(boyalı illüstrasyon, ince koyu mürekkep çizgileri, sıcak bal/kehribar/ceviz tonları, az ve soluk vurgu rengi).
+
+
+NASIL KULLANILIR
+- Her prompt kendi başına çalışır; olduğu gibi kopyalayıp yapıştır.
+- Çözünürlük: seçebildiğin en yüksek (2K ya da 4K). Oran her promptun başlığında yazıyor.
+- Her dokudan 2–4 deneme üret. Şuna göre seç:
+    • çizim gibi mi (fotoğraf gibi DEĞİL), çizgiler ve fırça izleri belli mi
+    • ışık düz mü (bir köşe aydınlık, öbürü karanlık OLMAMALI), gölge ve perspektif yok mu
+    • tek tip mi (ortada dikkat çeken tek bir leke ya da nesne yok)
+- TARZ BİRLİĞİ İÇİN ÖNEMLİ TAKTİK:
+    1) İlk olarak 1 numarayı (zemin-ahsap) üret ve beğendiğini seç.
+    2) Sonraki her promptta o resmi Nano Banana'ya REFERANS GÖRSEL olarak ekle ve promptun sonuna şu cümleyi yaz:
+       "Match the painting style, brush strokes, line work and color palette of the reference image."
+    Böylece bütün dokular aynı ressamın elinden çıkmış gibi olur.
+- PNG ya da JPG olarak, AŞAĞIDAKİ ADLA şu klasöre kaydet:  gorseller/dokular/
+  Aynı adlı eski dosyaların üstüne yazabilirsin; eskilerin kopyası gorseller/dokular-gercekci/ içinde duruyor.
+- Hepsini bir seferde yapmak zorunda değilsin. Önerilen sıra (en çok görünenler önce): 1, 2, 3, 4, 5, 6, 13.
+  Bir kısmı gelince Claude'a söyle; hazırlayıp sahneye koyar. Gelmeyenler eski dokuyla ya da düz renkle kalır.
+
+NEDEN BÖYLE
+- Sitedeki taverna zaten "çizim gibi" çiziliyor: düz ton basamaklı ışık (toon), mürekkep çizgisi ve fırça dokusu.
+  Fotoğraf gibi dokular bu çizimin içinde yabancı duruyordu. Boyalı dokularla model ve yüzey aynı dili konuşur.
+- Ayrıntılar büyük ve az olmalı: kamera tepeden ve uzaktan bakıyor. İnce fotoğraf ayrıntısı uzaktan gürültüye döner.
+- Işık yine resimde OLMAMALI: ışığı sahnedeki şömine, mumlar ve fenerler veriyor. Yalnızca çok hafif boyalı kenar
+  parlaklığı ve aralıklarda koyulaşma serbest (boyalı oyun dokularında böyledir).
+- Gerçek ölçüler yazılı: tahta, taş ve kupa birbirine göre doğru büyüklükte dursun.
+
+
+=======================================================
+A) DÖŞENEN DOKULAR (kare 1:1, kenarları yan yana gelecek; dikiş yerini Claude'un betiği temizler)
+=======================================================
+
+-------------------------------------------------------
+1) zemin-ahsap.png — tavernanın zemini (en büyük alan)   · oran 1:1
+-------------------------------------------------------
+Seamless tileable hand-painted stylized game texture of a medieval tavern wooden floor, painterly fantasy illustration style like a hand-drawn tavern map: soft visible brush strokes, simplified chunky shapes, thin dark brown ink outlines around every board, gentle painted highlights along the board edges and slightly darker paint in the gaps. Wide worn floorboards running vertically, each board about 28 cm wide, about 7 boards across, the image covers about 2 by 2 meters. Boards of varying lengths with staggered joints, a few simple painted knots and iron nail heads, a few lighter foot-worn areas. Warm walnut and honey brown palette with gentle color variation between boards, slightly desaturated. Not photorealistic, no photographic grain, no tiny noisy detail. Perfectly flat orthographic top-down view, camera exactly perpendicular to the floor, no perspective. Even flat lighting with no light direction, no cast shadows, no glossy reflections, no vignette. Uniform detail across the whole image, nothing that stands out. No objects, no text, no watermark, no border. Square 1:1.
+
+-------------------------------------------------------
+2) duvar-siva.png — duvarlar (YENİ: taş duvarın yerine sıva)   · oran 1:1
+-------------------------------------------------------
+Seamless tileable hand-painted stylized game texture of an old medieval tavern plaster wall, painterly fantasy illustration style like a hand-drawn tavern map: soft visible brush strokes, simplified shapes, thin dark brown ink lines only where the plaster is chipped. Smooth lime plaster in warm cream and pale honey, gentle uneven trowel strokes, subtle warm color variation, a few small chipped patches revealing reddish brick underneath, evenly scattered and small, a few faint cracks. The image covers about 2.5 by 2.5 meters. Slightly desaturated warm palette. Not photorealistic, no photographic grain, no tiny noisy detail. Perfectly flat orthographic front view, camera exactly perpendicular to the wall, no perspective. Even flat lighting with no light direction, no cast shadows, no vignette. Uniform detail across the whole image, nothing that stands out. No windows, no beams, no objects, no text, no watermark, no border. Square 1:1.
+
+-------------------------------------------------------
+3) tas-altigen.png — oyun masasının çevresindeki taş döşeme (YENİ)   · oran 1:1
+-------------------------------------------------------
+Seamless tileable hand-painted stylized game texture of a hexagonal stone tile floor, painterly fantasy illustration style like a hand-drawn tavern map: soft visible brush strokes, simplified chunky shapes, thin dark brown ink outlines around every tile, gentle painted highlights on the tile edges and darker paint in the grout. Hexagonal flagstones, each hexagon about 30 cm across, the image covers about 1.6 by 1.6 meters, laid in a regular honeycomb pattern. Warm grey-beige sandstone with slight color variation from tile to tile, a few worn rounded edges and small chips. Slightly desaturated warm palette. Not photorealistic, no photographic grain, no tiny noisy detail. Perfectly flat orthographic top-down view, camera exactly perpendicular to the floor, no perspective. Even flat lighting with no light direction, no cast shadows, no vignette. Uniform detail across the whole image, nothing that stands out. No objects, no rug, no text, no watermark, no border. Square 1:1.
+
+-------------------------------------------------------
+4) masa-ahsap.png — oyun masası, yan masalar, bar tezgâhı (zarlar buraya düşer)   · oran 1:1
+-------------------------------------------------------
+Seamless tileable hand-painted stylized game texture of a heavy medieval tavern tabletop, painterly fantasy illustration style like a hand-drawn tavern map: soft visible brush strokes, simplified chunky shapes, thin dark brown ink outlines between the planks, gentle painted highlights along the plank edges. Thick planks running horizontally, each plank about 24 cm wide, about 5 planks across, the image covers about 1.2 by 1.2 meters. Simple painted wood grain, a few knife marks and faint mug ring stains. Rich reddish walnut brown with amber tones, slightly desaturated. Not photorealistic, no photographic grain, no tiny noisy detail. Perfectly flat orthographic top-down view, camera exactly perpendicular to the surface, no perspective. Even flat lighting with no light direction, no cast shadows, no glossy reflections, no vignette. Uniform detail across the whole image, nothing that stands out. No objects on the table, no text, no watermark, no border. Square 1:1.
+
+-------------------------------------------------------
+5) tas-blok.png — duvar direkleri (YENİ: açık renk yontma taş)   · oran 1:1
+-------------------------------------------------------
+Seamless tileable hand-painted stylized game texture of dressed sandstone blocks, painterly fantasy illustration style like a hand-drawn tavern map: soft visible brush strokes, simplified chunky shapes, thin dark brown ink outlines around every block, gentle painted highlights on the upper block edges. Rectangular blocks about 40 cm wide and 20 cm tall laid in regular staggered courses with thin mortar lines, the image covers about 1 by 1 meter. Pale cream-grey and light ochre stone with slight variation between blocks, a few chipped corners. Slightly desaturated warm palette. Not photorealistic, no photographic grain, no tiny noisy detail. Perfectly flat orthographic front view, camera exactly perpendicular to the surface, no perspective. Even flat lighting with no light direction, no cast shadows, no vignette. Uniform detail across the whole image, nothing that stands out. No objects, no text, no watermark, no border. Square 1:1.
+
+-------------------------------------------------------
+6) somine-tas.png — şöminenin taşları ve önündeki taş eşik   · oran 1:1
+-------------------------------------------------------
+Seamless tileable hand-painted stylized game texture of old fireplace stonework, painterly fantasy illustration style like a hand-drawn tavern map: soft visible brush strokes, simplified chunky shapes, thin dark brown ink outlines around every stone, gentle painted highlights on top of each stone. Large rounded river stones set in dark mortar, the image covers about 1.5 by 1.5 meters. Warm grey and ochre stones with soft soot darkening between them. Slightly desaturated warm palette. Not photorealistic, no photographic grain, no tiny noisy detail. Perfectly flat orthographic front view, camera exactly perpendicular to the surface, no perspective. Even flat lighting, no glow, no fire, no light direction, no cast shadows, no vignette. Uniform detail across the whole image, nothing that stands out. No objects, no text, no watermark, no border. Square 1:1.
+
+-------------------------------------------------------
+7) deri.png — sandalye minderleri, tabure üstleri, şömine koltukları   · oran 1:1
+-------------------------------------------------------
+Seamless tileable hand-painted stylized game texture of worn leather upholstery, painterly fantasy illustration style: soft visible brush strokes, simplified shapes, a few soft painted creases and lighter worn patches, subtle grain suggested with brush strokes only. Dark chocolate brown leather with warm reddish tones, the image covers about 50 by 50 centimeters. No seams, no stitching, no buttons, no studs. Not photorealistic, no photographic grain. Perfectly flat orthographic view, no perspective. Even flat lighting with no light direction, no cast shadows, no shiny highlights, no vignette. Uniform detail across the whole image. No text, no watermark, no border. Square 1:1.
+
+-------------------------------------------------------
+8) demir.png — dövme demir (fenerler, avize, silah askısı, kılıç kabzaları)   · oran 1:1
+-------------------------------------------------------
+Seamless tileable hand-painted stylized game texture of old hand-forged iron, painterly fantasy illustration style: soft visible brush strokes, simplified shapes, a few painted hammer dents with thin dark ink accents, softly lighter worn areas, small warm rust patches. Dark slate blue-grey metal, the image covers about 30 by 30 centimeters. Not photorealistic, no photographic grain, no reflections. Perfectly flat orthographic view, no perspective. Even flat lighting with no light direction, no cast shadows, no vignette. Uniform detail across the whole image. No text, no watermark, no border. Square 1:1.
+
+-------------------------------------------------------
+9) cuval.png — çuval bezi (erzak çuvalları)   · oran 1:1
+-------------------------------------------------------
+Seamless tileable hand-painted stylized game texture of coarse burlap sack cloth, painterly fantasy illustration style: soft visible brush strokes, a chunky simplified weave drawn with short strokes and thin dark lines, a few soft flour dust smudges. Light tan and warm beige, the image covers about 40 by 40 centimeters. Not photorealistic, no photographic grain. Perfectly flat orthographic view, no perspective. Even flat lighting with no light direction, no cast shadows, no vignette. Uniform detail across the whole image. No text, no printing, no watermark, no border. Square 1:1.
+
+-------------------------------------------------------
+10) saksi-toprak.png — pişmiş toprak saksılar   · oran 1:1
+-------------------------------------------------------
+Seamless tileable hand-painted stylized game texture of a terracotta clay pot surface, painterly fantasy illustration style: soft visible brush strokes, simplified shapes, gentle painted color variation, a few small chips outlined in thin dark ink, faint pale mineral stains. Warm orange-brown fired clay, slightly desaturated, the image covers about 40 by 40 centimeters. Not photorealistic, no photographic grain. Perfectly flat orthographic view, no perspective. Even flat lighting with no light direction, no cast shadows, no vignette. Uniform detail across the whole image. No text, no watermark, no border. Square 1:1.
+
+-------------------------------------------------------
+11) sarmasik.png — sık sarmaşık öbekleri (bitkilerin içi)   · oran 1:1
+-------------------------------------------------------
+Seamless tileable hand-painted stylized game texture of dense ivy foliage, painterly fantasy illustration style: simplified chunky ivy leaves drawn with soft brush strokes and thin dark green-brown ink outlines, overlapping leaves of different sizes with no gaps, a few thin brown stems. Moss green and lighter yellow-green with a touch of teal in the shadows, slightly desaturated. The image covers about 50 by 50 centimeters. Not photorealistic, no photographic grain. Perfectly flat view, no perspective. Even flat lighting with no light direction, no cast shadows, no shiny highlights. Uniform detail across the whole image. No flowers, no text, no watermark, no border. Square 1:1.
+
+-------------------------------------------------------
+12) dis-zemin.png — tavernanın dışındaki kaldırım (YENİ)   · oran 1:1
+-------------------------------------------------------
+Seamless tileable hand-painted stylized game texture of an old cracked flagstone street pavement, painterly fantasy illustration style like a hand-drawn tavern map: soft visible brush strokes, simplified chunky shapes, thin dark ink outlines around every stone, a few cracks and tiny tufts of moss in the gaps. Large irregular flat stones 40 to 70 cm across, the image covers about 1.4 by 1.4 meters. Neutral mid grey stones with very slight variation (the site tints it to a cool night color, so keep it neutral, not dark). Not photorealistic, no photographic grain. Perfectly flat orthographic top-down view, no perspective. Even flat lighting with no light direction, no cast shadows, no vignette. Uniform detail across the whole image, nothing that stands out. No objects, no text, no watermark, no border. Square 1:1.
+
+
+=======================================================
+B) TEK PARÇA RESİMLER — arka plan DÜZ MACENTA (#FF00FF)
+=======================================================
+Claude macentayı silip şekli saydam yapar. Nesnenin içinde pembe ya da mor KULLANMA (silinir).
+
+-------------------------------------------------------
+13) post.png — şömine önündeki hayvan postu (YENİ: halının yerine)   · oran 4:3
+-------------------------------------------------------
+A single bear skin rug lying flat on the floor, seen perfectly from directly above, orthographic top-down view, no perspective, the whole pelt centered and filling about 90% of the frame. Hand-painted stylized fantasy game art, painterly illustration style like a hand-drawn tavern map: soft visible brush strokes, simplified chunky fur shapes, thin dark brown ink outline around the pelt. The pelt is spread out with four legs and claws reaching to the corners and a flattened bear head with closed mouth at the top, shaggy irregular edge. Warm dark brown fur with lighter tan tips and a slightly lighter belly area, slightly desaturated. Even flat lighting, no cast shadows, no light direction. Plain solid flat magenta background (#FF00FF) around the pelt, nothing else in the image, no pink or purple anywhere on the pelt, no floor, no text, no watermark. Aspect ratio 4:3.
+
+-------------------------------------------------------
+14) kalkan-1.png — yuvarlak kalkan (bar üstü ve şömine bacası)   · oran 1:1
+-------------------------------------------------------
+A single round medieval wooden shield seen perfectly from the front, flat orthographic view, no perspective, the shield centered and filling about 90% of the frame. Hand-painted stylized fantasy game art, painterly illustration style: soft visible brush strokes, simplified chunky shapes, thin dark brown ink outlines. Painted heraldry: a deep burgundy red field with a golden stag head emblem, a riveted iron rim and a domed iron boss in the center, worn paint, a few sword nicks showing wood. Slightly desaturated warm palette. Even flat lighting, no light direction, no cast shadows, no shiny highlights. Plain solid flat magenta background (#FF00FF), nothing else in the image, no text, no watermark. Square 1:1.
+
+-------------------------------------------------------
+15) kalkan-2.png — ikinci kalkan (batı duvarı, bar üstü, silah askısı)   · oran 1:1
+-------------------------------------------------------
+A single round medieval wooden shield seen perfectly from the front, flat orthographic view, no perspective, the shield centered and filling about 90% of the frame. Hand-painted stylized fantasy game art, painterly illustration style: soft visible brush strokes, simplified chunky shapes, thin dark brown ink outlines. Painted heraldry: quartered dark teal and ochre field with a black raven emblem, an iron rim with rivets and an iron boss in the center, faded and chipped paint, visible plank seams. Slightly desaturated palette. Even flat lighting, no light direction, no cast shadows, no shiny highlights. Plain solid flat magenta background (#FF00FF), nothing else in the image, no text, no watermark. Square 1:1.
+
+-------------------------------------------------------
+16) tabela.png — barın üstünde asılı taverna tabelası   · oran 21:9 (yoksa 16:9)
+-------------------------------------------------------
+A wide carved wooden tavern sign board seen perfectly from the front, flat orthographic view, no perspective, the board fills the full width of the frame. Hand-painted stylized fantasy game art, painterly illustration style: soft visible brush strokes, simplified chunky shapes, thin dark brown ink outlines. Thick dark walnut planks with a carved gilded border, in the center a carved emblem of a foaming ale mug surrounded by four small symbols for fire, water, earth and air, worn gold paint, iron corner brackets. No letters, no words, no text. Slightly desaturated warm palette. Even flat lighting, no cast shadows. Plain solid flat magenta background (#FF00FF) above and below the sign, no watermark. Wide aspect ratio 21:9.
+
+-------------------------------------------------------
+17) sancak.png — duvar sancağı (doğu ve güney duvarı)   · oran 9:16
+-------------------------------------------------------
+A single hanging medieval cloth banner seen perfectly from the front, flat orthographic view, no perspective, the banner centered and filling most of the frame height. Hand-painted stylized fantasy game art, painterly illustration style: soft visible brush strokes, simplified chunky shapes, thin dark brown ink outlines. Heavy moss green wool fabric with a gold border and a swallowtail (forked) bottom edge, in the center a golden tree emblem, slightly faded. Hanging straight, no folds, no wooden pole visible. Slightly desaturated palette. Even flat lighting, no cast shadows. Plain solid flat magenta background (#FF00FF) around the banner, no text, no watermark. Aspect ratio 9:16.
+
+-------------------------------------------------------
+18) yaprak-kartlari.png — tek tek yaprak dalları (sarkan bitkiler, sarmaşık uçları)   · oran 1:1
+-------------------------------------------------------
+A sprite sheet of 9 separate plant sprigs arranged in a 3 by 3 grid, each sprig isolated with clear space around it, seen perfectly flat from the front. Hand-painted stylized fantasy game art, painterly illustration style: simplified chunky leaves with soft brush strokes and thin dark green-brown ink outlines. Top row: 3 hanging ivy vines with small leaves. Middle row: 3 trailing pothos vines with larger heart-shaped leaves. Bottom row: 3 short fern fronds. Moss green and yellow-green with a touch of teal, slightly desaturated, thin brown stems. Even flat lighting, no cast shadows, no shiny highlights. Plain solid flat magenta background (#FF00FF) between and around all sprigs, no pots, no text, no watermark. Square 1:1.
+
+
+=======================================================
+C) ÇERÇEVEYİ DOLDURAN RESİMLER (kenardan kenara; arka plan yok)
+=======================================================
+
+-------------------------------------------------------
+19) harita.png — batı duvarındaki büyük harita   · oran 4:3
+-------------------------------------------------------
+An old hand-drawn fantasy world map on aged parchment, seen perfectly flat from the front, orthographic, no perspective, the parchment fills the entire frame edge to edge. Hand-painted stylized fantasy game art: ink lines with soft watercolor washes, a continent with mountain ranges, forests, rivers, a coastline with a sea serpent, small castles and villages, a large decorative compass rose, dotted travel routes. Any labels must be illegible ink scribbles, no readable words. Warm yellowed parchment, darker burnt edges, slightly desaturated. Even flat lighting, no cast shadows, no vignette. No frame, no wall, no watermark. Aspect ratio 4:3.
+
+-------------------------------------------------------
+20) gorev-panosu.png — görev panosunun ön yüzü   · oran 4:3
+-------------------------------------------------------
+The front of a medieval tavern quest board seen perfectly straight on, flat orthographic view, no perspective, the board fills the entire frame edge to edge. Hand-painted stylized fantasy game art, painterly illustration style: soft visible brush strokes, simplified chunky shapes, thin dark brown ink outlines. Dark walnut planks covered with overlapping pinned parchment notices: wanted posters with simple ink sketches of faces and monsters, handwritten quest notes, a torn reward notice with a red wax seal, small daggers and nails pinning them, curled paper corners. Any writing must be illegible scribbles, no readable words. Slightly desaturated warm palette. Even flat lighting, no light direction, no cast shadows. No frame, no wall, no watermark. Aspect ratio 4:3.
+
+-------------------------------------------------------
+21) kitap-sirtlari.png — kitaplığın kitap sırtları   · oran 16:9
+-------------------------------------------------------
+A horizontal row of old leather-bound book spines standing on a shelf, seen perfectly from the front, flat orthographic view, no perspective, the books fill the entire frame edge to edge. Hand-painted stylized fantasy game art, painterly illustration style: soft visible brush strokes, simplified chunky shapes, thin dark brown ink outlines around every book. Varied heights and widths, burgundy, brown, moss green, dark teal and black leather, faded gold bands on the spines, a few thin parchment-bound volumes leaning. No readable titles, no letters. Slightly desaturated warm palette. Even flat lighting, no cast shadows. No shelf wood visible, no watermark. Aspect ratio 16:9.
+
+
+=======================================================
+SONRA (Claude yapacak)
+=======================================================
+- python araclar\doku_hazirla.py: döşenenler dikişsiz yapılır; macenta silinir; hepsi 3d/dokular/'a hazırlanır.
+- Blender betiği (taverna_detay_blender.py) yeni dokuları kendiliğinden kullanır. duvar-siva, tas-blok, tas-altigen ve
+  post gelene kadar o yüzeyler düz renk (post yoksa eski halı) kalır.
+- taverna_npr_aktar.py ile siteye aktarılır (dis-zemin varsa dış kaldırımda o kullanılır).
+- Artık gerekmeyen: hali.png (post gelince). Silinmez, yedek olarak kalır.
