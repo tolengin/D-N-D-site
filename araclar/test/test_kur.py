@@ -28,12 +28,12 @@ snip = r'''
   const ow = console.warn; console.warn = (...a) => { L('WARN: ' + a.map(x => x && x.stack || String(x)).join(' ')); ow(...a); };
   const oe = console.error; console.error = (...a) => { L('ERR: ' + a.map(x => x && x.stack || String(x)).join(' ')); oe(...a); };
   if (q.get('cfg')) Object.assign(TAV, JSON.parse(q.get('cfg')));
-  window.TT = { showRoll, tavOverview, tavSetView, tavZoom, tav, renderTable, net, store };
+  window.TT = { showRoll, tavOverview, tavSetView, tavZoom, tav, renderTable, net, store, setMode, setNet, renderNetUI, playerReceive, showChar, get mode() { return mode; } };
   store.tavCanli = q.get('canli') === '1';                 // görünmez Edge'de ekran kartı yok: sürekli çizim çok yavaş (canli=1 ile açılır)
   if (q.get('goz') === '0') store.tavGoz = false;
   store.welcomed = true; store.net.role = 'dm'; store.net.name = 'Usta'; store.net.code = 'ABCDEF'; net.status = 'open';
   const cls = ['fighter','wizard','cleric','rogue','bard','druid','barbarian','ranger'];
-  for (let i = 0; i < N - 1; i++) net.players.set('p' + i, { pid: 'p' + i, name: 'Oyuncu ' + (i + 1), seat: 'sabcd' + i, char: { name: 'Kahraman ' + (i + 1), cls: cls[i], look: i % 2 ? 'f' : 'm', hp: { cur: 10, max: 12 } }, online: true, face: '' });
+  for (let i = 0; i < N - 1; i++) net.players.set('p' + i, { pid: 'p' + i, name: 'Oyuncu ' + (i + 1), seat: 'sabcd' + i, char: normalize({ name: 'Kahraman ' + (i + 1), cls: cls[i], look: i % 2 ? 'f' : 'm', hp: { cur: 10, max: 12 } }), online: true, face: '' });   // normalize: gerçek kağıt gibi eksik alanlar tamamlanır (yoksa DM ekranı çöker)
   setMode('table');
   const t0 = performance.now();
   const iv = setInterval(() => {

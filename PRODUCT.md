@@ -58,6 +58,7 @@ Yayılma planı: önce arkadaş grubu, sonra Reddit ve LinkedIn'de paylaşım.
 
 - **Ad:** "Dört Element". Alt başlık: "D&D karakter defteri".
 - **Dört element teması** (Ateş, Su, Toprak, Hava): her biri ayrı renk paketi ve kendi arka plan parçacıkları (kor, kabarcık, yaprak, rüzgâr). Köşe yuvarlaklığı temanın karakterini taşır: Ateş keskin, Hava yumuşak. Hava tek açık temadır.
+  - **Açık karar (2026-10-18):** sahibi dört element fikrine ısınamadı. Temalar ileride D&D hikâyelerinde popüler olan **hikâye temalarıyla** (ör. Ortaçağ, Cyberpunk, Western) değiştirilecek: o tarzda oynayan oyuncular kendini özel hissetsin. Uzun bir tasarım işi olduğu için yol haritasının sonuna bırakıldı; o zamana kadar dört element geçerli.
 - **Taverna:** elle boyanmış, stilize fantastik tarz (toon gölgelendirme, mürekkep çizgisi, fırça dokusu), kesit görünüm. Bütün masa görselleri bu tarzda üretilir.
 - **Ton:** samimi, sade Türkçe; yeni başlayanı küçümsemeyen, adım adım anlatan.
 - **Yasal metin:** sayfanın altındaki İngilizce Fan Content ve SRD atıf metinleri değiştirilmez.

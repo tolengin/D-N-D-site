@@ -29,6 +29,16 @@
   --font-display:'Grenze','Palatino Linotype','Book Antiqua',Georgia,serif;
   --font-ui:'Hanken Grotesk',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --good:#4ecb8f; --bad:#ff6464; --warn:#f5b942;
+  --on-good:#04160c; --on-bad:#2a0606;
+  --star:#ffc94a;                               /* ilham yıldızının altın sarısı (her temada aynı) */
+  /* Kart çerçevesinin metali: vurgu renginin açık ve koyu tonlarından yansımalı bir geçiş (Ateş'te bakır, Su'da gümüş-camgöbeği…) */
+  --metal:linear-gradient(180deg,color-mix(in srgb,var(--accent) 40%,#fff4e0) 0%,color-mix(in srgb,var(--accent) 62%,#1a0d06) 30%,
+    color-mix(in srgb,var(--accent) 38%,#140a05) 55%,color-mix(in srgb,var(--accent) 55%,#fff4e0) 80%,color-mix(in srgb,var(--accent) 45%,#120804) 100%);
+  --metal-line:color-mix(in srgb,var(--accent) 30%,transparent);   /* metalin içindeki ince açık çizgi */
+  --dia:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M4 0 8 4 4 8 0 4z'/%3E%3C/svg%3E");   /* baklava */
+  /* Arma: ortada baklava taş, iki yanda incelen kanatlar */
+  --crest:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 17'%3E%3Cpath d='M24 0 32.5 8.5 24 17 15.5 8.5zM14 8.5 1 5.2l3.6 3.3L1 11.8zM34 8.5l13-3.3-3.6 3.3 3.6 3.3zM14.6 8.5 9 7.4v2.2zM33.4 8.5 39 7.4v2.2z'/%3E%3C/svg%3E");
+  --del:32px;                                   /* liste satırının sonundaki silme düğmesinin sütunu (dokunmatikte 40px) */          /* yeşil / kırmızı zemin üstündeki yazı (beyaz yazı kırmızıda okunmuyordu) */
 }
 html[data-element="fire"]{
   color-scheme:dark;
@@ -61,7 +71,7 @@ html[data-element="air"]{
   --line:rgba(80,100,165,.24); --text:#1b2540; --muted:#55627f;
   --accent:#5566e8; --on-accent:#ffffff; --accent-2:#9a6be6; --on-accent-2:#ffffff;
   --radius:22px; --shadow:0 18px 44px -18px rgba(60,80,140,.38);
-  --good:#1c8f59; --bad:#cf3636; --warn:#a86e00;
+  --good:#1c8f59; --bad:#cf3636; --warn:#a86e00; --on-bad:#ffffff; --star:#e0a100;   /* açık zeminde daha koyu altın */
 }
 
 /* ───────── 2) TEMEL AYARLAR ───────── */
@@ -152,7 +162,7 @@ html[data-element="air"] .layer.air{opacity:1}
 .topbar-in{max-width:1320px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
 .brand-mark{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:50%;
-  background:var(--accent);color:var(--on-accent);box-shadow:0 0 22px -4px var(--accent)}
+  background:var(--accent);color:var(--on-accent)}
 .brand-mark .ic{width:22px;height:22px}
 .brand-text{display:flex;flex-direction:column;line-height:1.1}
 .brand-text strong{font-family:var(--font-display);font-size:22px;font-weight:600}
@@ -169,61 +179,106 @@ html[data-element="air"] .layer.air{opacity:1}
 .el-btn[data-el="earth"]{--c:#a3c94f;--ink:#151d04}
 .el-btn[data-el="air"]{--c:#6f7ef0;--ink:#ffffff}
 .el-btn:hover{color:var(--c)}
-.el-btn[aria-checked="true"]{background:var(--c);color:var(--ink);box-shadow:0 6px 20px -6px var(--c)}
+.el-btn[aria-checked="true"]{background:var(--c);color:var(--ink)}
 
 .top-actions{display:flex;align-items:center;gap:8px}
 .save-state{font-size:12px;color:var(--muted);min-width:98px;text-align:right}
 .save-state[data-s="error"]{color:var(--bad)}
 
-/* ───────── 5) DÜĞMELER ───────── */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);background:var(--field);
-  border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px;line-height:1.2;white-space:nowrap;
-  transition:border-color .15s,color .15s,background-color .15s,filter .15s}
-.btn:hover{border-color:var(--accent);color:var(--accent)}
-.btn.sm{padding:5px 11px;font-size:12.5px}
-.btn .ic{width:16px;height:16px}
+/* ───────── 5) DÜĞMELER ─────────
+   Tek buton sistemi (ayrıntı: DESIGN.md → Components → Buttons).
+   Boy: .sm 32px, normal 40px, .lg 48px. Dokunmatik ekranda hepsi büyür (parmak için en az 44px).
+   Tür: normal | .accent (ekrandaki tek ana iş) | .bad (silme, ayrılma, hasar) | .good (iyileşme).
+   Yapı: ikon + yazı. İkon tek başınaysa .icon eklenir (yuvarlak) ve düğmeye title + aria-label verilir.
+   Aç/kapa düğmesi (aria-pressed) açıkken vurgu rengine boyanmış zeminle belli olur; kapalıyken soluk değil, normaldir.
+   Parlama yok: durum yalnızca renk ve zeminle anlatılır (DESIGN.md: The Earned Glow Rule). */
+.btn{--h:40px;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:var(--h);padding:0 16px;
+  border:1px solid var(--line);background:var(--field);color:var(--text);border-radius:999px;
+  font-weight:700;font-size:13.5px;line-height:1.2;white-space:nowrap;
+  transition:border-color .15s,color .15s,background-color .15s,filter .15s,transform .1s}
+.btn .ic{width:18px;height:18px}
+.btn:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--field))}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;border-color:var(--line);background:var(--field)}
+.btn.sm{--h:32px;padding:0 12px;gap:6px;font-size:12.5px}
+.btn.sm .ic{width:16px;height:16px}
+.btn.lg{--h:48px;padding:0 22px;gap:9px;font-size:15px}
+.btn.lg .ic{width:20px;height:20px}
+.btn.icon{width:var(--h);padding:0;flex:none}
 .btn.accent{background:var(--accent);color:var(--on-accent);border-color:transparent}
-.btn.accent:hover{color:var(--on-accent);filter:brightness(1.1)}
-.btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.btn.accent:hover{background:var(--accent);filter:brightness(1.08)}
+.btn[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--field))}
+.btn[aria-pressed="true"] .ic{color:var(--accent)}
 .btn.bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 50%,transparent)}
-.btn.bad:hover{background:var(--bad);color:#fff;border-color:transparent}
+.btn.bad:hover{background:var(--bad);color:var(--on-bad);border-color:transparent}
 .btn.good{color:var(--good);border-color:color-mix(in srgb,var(--good) 50%,transparent)}
-.btn.good:hover{background:var(--good);color:#04160c;border-color:transparent}
-.icon-btn{width:30px;height:30px;flex:none;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);
-  background:transparent;color:var(--muted);font-size:17px;line-height:1;padding:0}
-.icon-btn:hover{border-color:var(--bad);color:var(--bad)}
+.btn.good:hover{background:var(--good);color:var(--on-good);border-color:transparent}
+/* Küçük yuvarlak ikon düğmeleri: kapat (×), satır/karakter silme (.del), eksi/artı (stepper), portreyi kaldır */
+.icon-btn,.stepper button,.portrait-x{--h:32px;width:var(--h);height:var(--h);flex:none;display:grid;place-items:center;padding:0;
+  border-radius:50%;border:1px solid var(--line);background:var(--field);color:var(--muted);
+  transition:border-color .15s,color .15s,background-color .15s}
+.icon-btn .ic,.stepper button .ic,.portrait-x .ic{width:16px;height:16px}
+.icon-btn:hover,.stepper button:hover{border-color:var(--accent);color:var(--text)}
+.icon-btn.del:hover,.portrait-x:hover{border-color:var(--bad);color:var(--bad)}
 
 /* Zar atan sayılar: üstüne gelince vurgu rengine döner */
 .roll{border:1px solid var(--line);background:var(--field);border-radius:calc(var(--radius)*.55 + 2px);min-width:48px;
   padding:5px 8px;font-weight:800;font-variant-numeric:tabular-nums;text-align:center;
   transition:background-color .15s,color .15s,transform .15s,box-shadow .15s}
-.roll:hover{background:var(--accent);color:var(--on-accent);border-color:transparent;transform:translateY(-1px);box-shadow:0 8px 18px -8px var(--accent)}
+.roll:hover{background:var(--accent);color:var(--on-accent);border-color:transparent;transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(0,0,0,.7)}
 .roll:active{transform:translateY(0)}
 .roll.die{min-width:36px;padding:5px;display:grid;place-items:center}
 
 .stepper{display:inline-flex;align-items:center;gap:8px}
-.stepper button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--field);font-weight:800;line-height:1;padding:0}
-.stepper button:hover{border-color:var(--accent);color:var(--accent)}
 .stepper b{min-width:28px;text-align:center;font-family:var(--font-display);font-size:30px;font-weight:600;line-height:1}
 .stepper.sm b{font-family:var(--font-ui);font-size:15px;font-weight:800;min-width:18px}
-.stepper.sm button{width:24px;height:24px}
+.stepper.sm button{--h:28px}
 
-.tg{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;min-width:30px;height:30px;
+.tg{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;min-width:32px;height:32px;
   padding:0 9px;font-size:12px;font-weight:800;white-space:nowrap}
 .tg:hover{border-color:var(--accent);color:var(--accent)}
 .tg[aria-pressed="true"]{background:var(--accent);border-color:transparent;color:var(--on-accent)}
 
 .pips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .pip{width:20px;height:20px;border-radius:50%;border:2px solid var(--accent);background:transparent;padding:0;transition:background-color .15s,box-shadow .15s}
-.pip.on{background:var(--accent);box-shadow:0 0 10px -1px var(--accent)}
+.pip.on{background:var(--accent)}
 .pips.bad .pip{border-color:var(--bad)}
-.pips.bad .pip.on{background:var(--bad);box-shadow:0 0 10px -1px var(--bad)}
+.pips.bad .pip.on{background:var(--bad)}
+
+/* Dokunmatik ekran: parmak için daha büyük hedefler (PRODUCT.md: en az 44px) */
+@media (pointer:coarse){
+  .btn{--h:44px}
+  .btn.sm{--h:40px}
+  .btn.lg{--h:52px}
+  .icon-btn,.stepper button,.portrait-x{--h:40px}
+  .stepper.sm button{--h:36px}
+  .tg{min-width:40px;height:40px}
+  :root{--del:40px}
+}
 
 /* ───────── 6) KARTLAR VE ETİKETLER ───────── */
 .app{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:18px 20px 120px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:16px 18px;min-width:0}
-.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+/* Kart = arma çerçeve (DESIGN.md → Cards). Oyunların yükleme ekranı kartları gibi: 3px metal çerçeve (renk geçişli,
+   temanın vurgu renginden: Ateş'te bakır, Su'da gümüş-camgöbeği…), içinde koyu bir kenar ve ince açık bir çizgi,
+   üst ortada kanatlı arma, alt ortada küçük baklava. Metal halka ::before ile çizilir (kartın yarı saydam zemini bozulmasın),
+   arma ve baklava ::after ile. Bir alan tek çerçevedir: kartın içindeki kartlar çerçevesiz bölümlere döner (aşağıda). */
+.card{position:relative;background:var(--surface);background-clip:padding-box;border:3px solid transparent;border-radius:var(--radius);
+  box-shadow:var(--shadow),inset 0 0 0 1px rgba(0,0,0,.5);outline:1px solid var(--metal-line);outline-offset:-7px;
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:20px 22px;min-width:0}
+.card::before{content:"";position:absolute;inset:-3px;padding:3px;border-radius:inherit;pointer-events:none;background:var(--metal);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.card::after{content:"";position:absolute;left:0;right:0;top:-10px;bottom:-8px;z-index:1;pointer-events:none;
+  background:var(--metal) top center/48px 17px no-repeat,var(--metal) bottom center/13px 13px no-repeat;
+  -webkit-mask:var(--crest) top center/48px 17px no-repeat,var(--dia) bottom center/13px 13px no-repeat;
+  mask:var(--crest) top center/48px 17px no-repeat,var(--dia) bottom center/13px 13px no-repeat;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+/* Bir alan, tek çerçeve: çerçevenin içindeki kartlar çerçevesiz bölümdür; aralarını ince çizgiler ayırır */
+/* :where → bu kural .ability, .vital gibi kendi iç boşluğunu belirleyen kurallardan daha zayıftır */
+.card :where(.card){background:none;border:0;border-radius:0;box-shadow:none;outline:0;-webkit-backdrop-filter:none;backdrop-filter:none;padding:16px 18px}
+.card :where(.card)::before,.card :where(.card)::after{display:none}
+/* Kartın başlığı içerikten ince bir çizgiyle ayrılır */
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
 .card-h.sub{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 .card-h h2,.panel-h h3{font-family:var(--font-display);font-weight:500;font-size:20px;line-height:1.15}
 .card-h h2 em,.panel-h h3 em{font-family:var(--font-ui);font-style:normal;font-weight:500;font-size:12.5px;color:var(--muted);margin-left:8px}
@@ -245,9 +300,18 @@ body:not(.guide) .hint:not(.always){display:none}
 .portrait-wrap{position:relative}
 .portrait{width:118px;height:118px;border-radius:50%;padding:0;border:2px solid var(--accent);background:var(--field);overflow:hidden;
   display:grid;place-items:center;color:var(--muted);font-size:12.5px;line-height:1.3;
-  box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 16%,transparent),0 0 34px -8px var(--accent)}
+  box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 16%,transparent)}
 .portrait img{width:100%;height:100%;object-fit:cover;display:block}
-.portrait-x{position:absolute;top:0;right:0;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:var(--bg);line-height:1;padding:0}
+.portrait-ph{display:grid;place-items:center;color:var(--muted);transition:color .15s,transform .15s}
+.portrait-ph .ic{width:34px;height:34px;stroke-width:1.5}
+.portrait:hover .portrait-ph{color:var(--accent);transform:scale(1.08)}
+/* Resim varken sağ altta kalem rozeti; tıklamayı portre düğmesine bırakır */
+.portrait-edit{position:absolute;right:2px;bottom:2px;width:32px;height:32px;display:none;place-items:center;border-radius:50%;pointer-events:none;
+  background:var(--accent);color:var(--on-accent);border:2px solid var(--bg);transition:transform .15s}
+.portrait-edit .ic{width:16px;height:16px}
+.portrait-wrap:has(#portraitImg:not([hidden])) .portrait-edit{display:grid}
+.portrait-wrap:has(.portrait:hover) .portrait-edit{transform:scale(1.1)}
+.portrait-x{position:absolute;top:0;right:0;background:var(--bg)}
 .name-input{font-family:var(--font-display);font-weight:600;font-size:clamp(28px,3.4vw,44px);line-height:1.1;
   padding:0 0 2px!important;border-radius:0!important;border-width:0 0 1px!important;border-bottom-style:dashed!important;
   background:transparent!important;border-color:var(--line)!important;box-shadow:none!important}
@@ -260,15 +324,22 @@ body:not(.guide) .hint:not(.always){display:none}
   border:1px solid var(--line);border-radius:calc(var(--radius)*.8 + 2px);background:var(--surface-2);min-height:82px}
 .stat-big{font-family:var(--font-display);font-size:30px;font-weight:600;line-height:1}
 .stat input{text-align:center;padding:5px 6px;max-width:96px}
+/* İlham: kutu dolmaz; ilham varken yalnızca yıldız altın sarısıyla dolar ve parlar (DESIGN.md: The Earned Glow Rule).
+   Sarı (--star) temadan bağımsızdır: ilham her temada aynı altın yıldızdır. */
 .insp{color:var(--muted)}
-.insp .ic{width:24px;height:24px}
-.insp:hover{border-color:var(--accent-2)}
-.insp[aria-pressed="true"]{background:var(--accent-2);color:var(--on-accent-2);border-color:transparent}
-.insp[aria-pressed="true"] .ic{fill:currentColor}
-.insp[aria-pressed="true"] .f-l{color:inherit}
+.insp .ic{width:28px;height:28px;transition:color .2s,fill .2s,filter .2s,transform .2s}
+.insp:hover{border-color:color-mix(in srgb,var(--star) 60%,var(--line))}
+.insp:hover .ic{color:var(--star)}
+.insp[aria-pressed="true"]{border-color:color-mix(in srgb,var(--star) 55%,var(--line))}
+.insp[aria-pressed="true"] .ic{color:var(--star);fill:var(--star);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--star) 75%,transparent));transform:scale(1.08)}
+.insp[aria-pressed="true"] .f-l{color:var(--text)}
+@media (prefers-reduced-motion:reduce){.insp .ic{transition:none}}
 
 /* ───────── 8) YETENEK SKORLARI ───────── */
+/* Altı yetenek tek çerçevededir (arma çerçeve); aralarını ince dikey çizgiler ayırır */
 .abilities{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin:16px 0}
+.abilities.card{gap:0;padding:8px 6px;margin:26px 0 22px}
+.abilities>.ability+.ability{border-left:1px solid var(--line)}
 .ability{text-align:center;padding:14px 12px}
 .ab-name{font-weight:800;letter-spacing:.14em;font-size:13px;color:var(--accent)}
 .ab-name span{display:block;font-weight:500;letter-spacing:0;color:var(--muted);font-size:12.5px;margin-top:1px}
@@ -277,8 +348,9 @@ body:not(.guide) .hint:not(.always){display:none}
 .ability .hint{text-align:left}
 
 /* ───────── 9) ANA YERLEŞİM ───────── */
-.layout{display:grid;grid-template-columns:336px minmax(0,1fr);gap:16px;align-items:stretch}
-.col{display:grid;gap:16px;min-width:0;align-content:start}
+/* Alt alta çerçeveler arasında 26px: üsttekinin alt baklavası ile alttakinin arması birbirine değmesin */
+.layout{display:grid;grid-template-columns:336px minmax(0,1fr);gap:26px 16px;align-items:stretch}
+.col{display:grid;gap:26px;min-width:0;align-content:start}
 main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 
 .rows{display:grid;gap:2px}
@@ -307,15 +379,18 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 
 /* ───────── 10) SAVAŞ DEĞERLERİ ───────── */
+/* AC, inisiyatif, hız ve can tek çerçevededir: üçü yan yana (aralarında çizgi), can altta tam satır */
 .vitals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.vitals.card{gap:0;padding:4px 6px}
+.vitals>.vital+.vital{border-left:1px solid var(--line)}
+.vitals>.hp{border-top:1px solid var(--line)}
 .vitals .hp{grid-column:1/-1}
 .vital{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px}
 .vital .hint{margin-top:2px;max-width:34ch}
 .ac-opts{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 12px}
 .ac-opts select{width:auto}
 .ac{position:relative;width:92px;height:100px;display:grid;place-items:center}
-.ac svg{position:absolute;inset:0;width:100%;height:100%;fill:var(--surface-2);stroke:var(--accent);stroke-width:3;
-  filter:drop-shadow(0 0 10px color-mix(in srgb,var(--accent) 45%,transparent))}
+.ac svg{position:absolute;inset:0;width:100%;height:100%;fill:var(--surface-2);stroke:var(--accent);stroke-width:3}
 .ac input{position:relative;width:64px;text-align:center;font-family:var(--font-display);font-size:38px;font-weight:600;padding:0;margin-top:-8px}
 .roll.big{font-family:var(--font-display);font-size:38px;font-weight:600;min-width:96px;padding:12px 8px;line-height:1}
 .inline{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
@@ -340,7 +415,10 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 #hpAmount{flex:0 1 120px;width:120px}
 .hp-note{font-size:12.5px;color:var(--warn);margin-top:8px;min-height:1em}
 
+/* Can zarı + ölüm zarları ve durumlar tek çerçevede, aralarında dikey çizgi */
 .vitals2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:14px}
+.vitals2.card{gap:0;padding:4px 6px}
+.vitals2>.card+.card{border-left:1px solid var(--line)}
 .hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .hd select{width:82px}
 .ds{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;align-items:center;font-size:13px}
@@ -348,8 +426,8 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .chip{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--line);background:var(--field);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:700}
 .chip small{font-weight:500;color:var(--muted);font-size:11.5px}
 .chip:hover{border-color:var(--bad)}
-.chip[aria-pressed="true"]{background:var(--bad);border-color:transparent;color:#fff}
-.chip[aria-pressed="true"] small{color:rgba(255,255,255,.85)}
+.chip[aria-pressed="true"]{background:var(--bad);border-color:transparent;color:var(--on-bad)}
+.chip[aria-pressed="true"] small{color:inherit;opacity:.8}
 .exh{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .cond-notes{display:grid;gap:6px;margin-top:10px;font-size:13px}
 .cond-notes p{padding:8px 10px;border-left:3px solid var(--bad);background:var(--surface-2);border-radius:0 6px 6px 0}
@@ -374,9 +452,9 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .li,.li-head{display:grid;gap:8px;align-items:center}
 .li{padding:8px 10px;border:1px solid var(--line);border-radius:calc(var(--radius)*.8 + 2px);background:var(--surface-2)}
 .li-head{padding:0 11px;font-size:11.5px;font-weight:700;color:var(--muted)}
-.atk{grid-template-columns:minmax(110px,1.2fr) 84px 40px 54px 60px minmax(100px,1fr) 38px minmax(90px,1.3fr) 30px}
-.spell{grid-template-columns:96px minmax(120px,1.1fr) 116px 78px 108px 62px minmax(90px,1.2fr) 30px}
-.item{grid-template-columns:62px minmax(140px,1fr) 78px 96px 30px}
+.atk{grid-template-columns:minmax(110px,1.2fr) 84px 40px 54px 60px minmax(100px,1fr) 38px minmax(90px,1.3fr) var(--del)}
+.spell{grid-template-columns:96px minmax(120px,1.1fr) 116px 78px 108px 62px minmax(90px,1.2fr) var(--del)}
+.item{grid-template-columns:62px minmax(140px,1fr) 78px 96px var(--del)}
 .li input,.li select{padding:7px 8px}
 .li input[type=number]{text-align:center;padding-left:4px;padding-right:4px}
 .tgs{display:flex;gap:4px}
@@ -407,10 +485,13 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .align-btn.on small{color:inherit;opacity:.85}
 
 /* ───────── 12) ZAR TEPSİSİ, BİLDİRİM, ÇEKMECE ───────── */
-.fab{position:fixed;right:20px;bottom:20px;z-index:39;width:60px;height:60px;border-radius:50%;border:0;display:grid;place-items:center;
-  background:var(--accent);color:var(--on-accent);box-shadow:0 12px 30px -8px var(--accent);transition:transform .15s}
-.fab:hover{transform:scale(1.06) rotate(-8deg)}
-.fab .ic{width:30px;height:30px;stroke-width:1.4}
+/* Zar tepsisini açan düğme: yazılı hap ("Zar at"), yuvarlak bir "yardım balonu" ile karışmasın diye */
+.fab{position:fixed;right:20px;bottom:20px;z-index:39;height:52px;display:inline-flex;align-items:center;gap:9px;padding:0 22px 0 15px;
+  border:0;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:800;font-size:15px;letter-spacing:.01em;white-space:nowrap;
+  box-shadow:0 10px 24px -10px rgba(0,0,0,.75),0 2px 6px rgba(0,0,0,.35);transition:transform .15s,filter .15s}
+.fab:hover{filter:brightness(1.08);transform:translateY(-2px)}
+.fab:active{transform:none}
+.fab .ic{width:28px;height:28px;stroke-width:1.5}
 .tray{position:fixed;right:20px;bottom:20px;z-index:40;width:min(350px,calc(100vw - 24px));max-height:min(620px,calc(100vh - 100px));
   display:flex;flex-direction:column;gap:10px;padding:16px;background:var(--bar);border:1px solid var(--line);border-radius:var(--radius);
   box-shadow:var(--shadow);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
@@ -443,7 +524,7 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .toast-body span{display:block;font-size:12.5px;color:var(--muted)}
 .toast-body em{display:block;font-style:normal;font-weight:800;font-size:12.5px;margin-top:2px}
 .toast.crit-hit{border-color:var(--good)} .toast.crit-hit .toast-total{background:var(--good);color:#04160c} .toast.crit-hit em{color:var(--good)}
-.toast.crit-miss{border-color:var(--bad)} .toast.crit-miss .toast-total{background:var(--bad);color:#fff} .toast.crit-miss em{color:var(--bad)}
+.toast.crit-miss{border-color:var(--bad)} .toast.crit-miss .toast-total{background:var(--bad);color:var(--on-bad)} .toast.crit-miss em{color:var(--bad)}
 
 .scrim{position:fixed;inset:0;z-index:44;background:rgba(0,0,0,.5)}
 .drawer{position:fixed;top:0;right:0;bottom:0;z-index:45;width:min(380px,100vw);display:flex;flex-direction:column;gap:12px;padding:18px;
@@ -468,13 +549,23 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 
 /* ───────── 13) MASA: çok oyunculu ekranlar ───────── */
 .dot{display:inline-block;width:9px;height:9px;flex:none;border-radius:50%;background:var(--muted)}
-.dot.on{background:var(--good);box-shadow:0 0 8px var(--good)}
+.dot.on{background:var(--good)}
 .dot.wait{background:var(--warn);animation:pulse 1.2s ease-in-out infinite}
 .dot.err{background:var(--bad)}
 @keyframes pulse{50%{opacity:.3}}
 .tablebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 14px;margin-bottom:14px;border:1px solid var(--line);
   border-radius:var(--radius);background:var(--surface);font-size:13.5px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .tablebar .txt{flex:1;min-width:200px}
+/* Bağlantı kurulamıyor ya da koptuysa çubuk göze çarpsın: bekleme sarı, hata kırmızı */
+.tablebar[data-s="wait"]{border-color:var(--warn)}
+.tablebar[data-s="err"]{border-color:var(--bad)}
+.tablebar[data-s="wait"] .txt,.tablebar[data-s="err"] .txt{font-weight:600}
+/* Masadakiler: ad + bağlı mı noktası (yeşil bağlı, gri çevrimdışı) */
+.tb-who{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none;font-size:12.5px}
+.tb-who li{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2)}
+.tb-who li.off{color:var(--muted)}
+.tb-who small{color:var(--muted)}
+.tb-who .lbl{border:0;background:none;padding:2px 0;color:var(--muted)}
 .net-status{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;font-weight:600;line-height:1.4}
 .net-status .dot{margin-top:5px}
 .choice{display:grid;gap:10px;padding:14px;border:1px solid var(--line);border-radius:calc(var(--radius)*.8 + 2px);background:var(--surface-2)}
@@ -492,7 +583,7 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .dm-act{display:grid;gap:8px}
 .dm-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;align-items:start}
 .dm-grid>div>.card-h{margin:4px 2px 12px}
-.party{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:14px}
+.party{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:26px 14px}
 .pc{display:grid;gap:12px;align-content:start}
 .pc.off{opacity:.6}
 .pc-top{display:flex;align-items:center;gap:10px}
@@ -580,12 +671,15 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
   .col{display:contents}
   .vitals{order:1}.vitals2{order:2}.c-saves{order:3}.c-passive{order:4}.c-skills{order:5}.tabs-card{order:6}
   .abilities{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .abilities>.ability:nth-child(4){border-left:0}
+  .abilities>.ability:nth-child(n+4){border-top:1px solid var(--line)}
   .hero-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
   .elements{order:3;margin:0;width:100%;justify-content:center}
   .top-actions{margin-left:auto}
 }
 @media (max-width:820px){
   .vitals2{grid-template-columns:minmax(0,1fr)}
+  .vitals2>.card+.card{border-left:0;border-top:1px solid var(--line)}
   .hp-body{grid-template-columns:minmax(0,1fr)}
   .hp-nums{justify-content:center}
 }
@@ -602,6 +696,7 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
   .hero-side{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
   .abilities{gap:10px}
   .ability{padding:12px 8px}
+  .ab-name span{min-height:2.9em}                              /* Türkçe ad iki satıra kayınca bile kutular aynı hizada başlasın */
   .ability .hint{display:none}
   .ab-mod{font-size:34px}
   .mini-stat .f-l i,.stat .f-l i{display:block;margin-left:0}
@@ -618,7 +713,7 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
   .coins input{padding-left:2px;padding-right:2px}
   .toast{left:12px;right:12px;bottom:92px;max-width:none}
   .tray{right:12px;bottom:12px}
-  .fab{right:14px;bottom:14px}
+  .fab{right:14px;bottom:14px;height:50px;padding:0 18px 0 13px;font-size:14px}
 }
 
 /* ───────── 16) MASA GÖRÜNÜMÜ: NPR taverna, oturan figürler, garson ve uçan zarlar ─────────
@@ -704,13 +799,12 @@ body.tv-on .tablebar{margin:8px 12px}
 .tv-ust{position:absolute;z-index:9;left:calc(var(--povw) + .7 * var(--u));top:1.2%;display:flex;gap:6px;flex-wrap:wrap}
 .tv-arac{display:flex;gap:6px;flex-wrap:wrap}
 .tv-arac[hidden],.tv-zoom[hidden]{display:none}
+/* Taverna üstündeki düğmeler taverna zeminini alır; açık olan (aria-pressed) vurgu rengine boyanır, kapalı olan soluklaşmaz */
 :is(.tv-ust,.tv-zoom) .btn{background:var(--surface);color:var(--text)}
-.tv-arac .btn[aria-pressed="false"]{opacity:.62}
-.tv-arac .btn[aria-pressed="true"]:not(#tvAll) .ic{color:var(--accent)}
+:is(.tv-ust,.tv-zoom) .btn:hover{background:color-mix(in srgb,var(--accent) 14%,var(--surface))}
+:is(.tv-ust,.tv-zoom) .btn[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 24%,var(--surface))}
 #tvGoz span{font-weight:800;letter-spacing:.06em}
-:is(.tv-ust,.tv-zoom) .ic{width:15px;height:15px}
 .tv-zoom{position:absolute;z-index:9;left:calc(var(--povw) + .7 * var(--u));bottom:1.8%;display:flex;flex-direction:column;gap:6px}
-.tv-zoom .btn{width:36px;height:36px;padding:0;justify-content:center}
 /* POV paneli yalnızca 3D taverna açıkken ve "POV" düğmesi basılıyken görünür (.pov-on); uzaklaşıp yakınlaşınca kendiliğinden kapanmaz */
 .tv-wrap:not(.pov-on) .tv-pov{display:none}
 
@@ -949,7 +1043,7 @@ body.tv-full #tableView{height:100dvh}
   .tv-stage{position:relative;inset:auto;aspect-ratio:6/5;--z:1.5}
   /* Büyütülen tablo, masanın merkezi (64,6 ; 27,9 birim) sahnenin ortasına gelecek şekilde kaydırılır */
   .tv-scene{left:calc(50% - var(--z) * 64.6%);top:calc(41.667cqw - var(--z) * 27.9cqw)}
-  .tv-me{position:fixed;left:10px;right:auto;bottom:10px;z-index:38;width:min(286px,calc(100vw - 100px));max-height:calc(100dvh - var(--topbar-h,66px) - 36px);--k:1}
+  .tv-me{position:fixed;left:10px;right:auto;bottom:10px;z-index:38;width:min(286px,calc(100vw - 150px));   /* sağda "Zar at" düğmesine yer kalsın */max-height:calc(100dvh - var(--topbar-h,66px) - 36px);--k:1}
   .tv-ust{display:contents}
   .tv-fs{position:absolute;z-index:9;top:8px;left:8px}
   .tv-zoom,#tvAll,#tvGoz{display:none}                        /* telefonda tavernada gezinme ve POV düğmesi yok */
@@ -1001,7 +1095,10 @@ body.tv-full #tableView{height:100dvh}
   <symbol id="i-water" viewBox="0 0 24 24"><path d="M12 2.5c3.2 4.2 6.5 7.8 6.5 11.7a6.5 6.5 0 0 1-13 0C5.5 10.3 8.8 6.7 12 2.5z"/></symbol>
   <symbol id="i-earth" viewBox="0 0 24 24"><path d="M1.5 20 9 6.5l3.6 6.2 2.2-3.5L22.5 20z"/></symbol>
   <symbol id="i-air" viewBox="0 0 24 24"><path d="M3 9h10.5a2.8 2.8 0 1 0-2.8-2.8M3 13.5h15a2.8 2.8 0 1 1-2.8 2.8M3 18h6.5"/></symbol>
-  <symbol id="i-d20" viewBox="0 0 24 24"><path d="M12 2l9 5v10l-9 5-9-5V7zM12 6.5l5 8.5H7zM12 2v4.5M3 7l9-.5 9 .5M3 7l4 8M21 7l-4 8M3 17l4-2 5 7 5-7 4 2"/></symbol>
+  <!-- d20: altıgen dış çizgi, ortada dolgulu ön yüz, köşelere giden kenarlar (klasik D&D zarı) -->
+  <symbol id="i-d20" viewBox="0 0 24 24"><path d="M12 2.2l8.6 4.9v9.8L12 21.8l-8.6-4.9V7.1z"/><path d="M12 7.3l4.7 8.1H7.3z" fill="currentColor" fill-opacity=".22"/><path d="M12 2.2v5.1M12 7.3 3.4 7.1M12 7.3l8.6-.2M7.3 15.4 3.4 7.1M16.7 15.4l3.9-8.3M7.3 15.4l-3.9 1.5M16.7 15.4l3.9 1.5M7.3 15.4 12 21.8l4.7-6.4"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4.5 19.5l1-4.3L15.8 4.9a2 2 0 0 1 2.8 0l.5.5a2 2 0 0 1 0 2.8L8.8 18.5zM14.2 6.5l3.3 3.3M5.5 15.2l3.3 3.3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
   <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M16.5 13.6c2.6.2 4.5 2 4.5 4.9"/></symbol>
   <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5C6.5 4.5 9.5 4.6 12 6c2.5-1.4 5.5-1.5 8-.5v13c-2.5-1-5.5-.9-8 .5-2.5-1.4-5.5-1.5-8-.5zM12 6v13"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6l-5.4 2.9 1.2-6L3.3 9.3l6.1-.7z"/></symbol>
@@ -1012,7 +1109,8 @@ body.tv-full #tableView{height:100dvh}
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
   <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
   <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 21c-3.6 0-6-2.4-6-5.6 0-3.5 3-5.4 3.6-9.4 2.6 1.6 3.4 4 3.2 5.8 1-.6 1.7-1.7 1.9-3 1.7 1.6 3.3 4 3.3 6.6 0 3.2-2.4 5.6-6 5.6z"/></symbol>
-  <symbol id="i-table" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.6"/><circle cx="5.5" cy="17.5" r="2.6"/><circle cx="18.5" cy="17.5" r="2.6"/><path d="M10.7 7.8 6.8 15.2M13.3 7.8l3.9 7.4M8.1 17.5h7.8"/></symbol>
+  <!-- Masa: kalın tahtalı, iki ayaklı taverna masası ve üstünde bir bira kupası -->
+  <symbol id="i-table" viewBox="0 0 24 24"><path d="M2.5 10h19v2.6h-19zM5.6 12.6l-1 7.9M18.4 12.6l1 7.9M5.1 16.6h13.8M9.4 10V5.2h4.4V10M13.8 6.1h1.1a1.2 1.2 0 0 1 1.2 1.2v.4a1.2 1.2 0 0 1-1.2 1.2h-1.1"/></symbol>
 </svg>
 
 <!-- ═════════ ÜST ÇUBUK: logo, element seçici, menü ═════════ -->
@@ -1034,7 +1132,7 @@ body.tv-full #tableView{height:100dvh}
       <span class="save-state" id="saveState" role="status">Otomatik kayıt açık</span>
       <button class="btn" id="guideBtn" data-act="guide" aria-pressed="true" title="Kutuların altındaki açıklama yazılarını aç ya da kapat"><svg class="ic"><use href="#i-book"/></svg><span class="btn-label">Açıklamalar</span></button>
       <button class="btn" data-act="chars-open" title="Karakter değiştir, yeni karakter aç, dışa aktar"><svg class="ic"><use href="#i-users"/></svg><span class="btn-label">Karakterler</span></button>
-      <button class="btn" data-act="table-open" title="Arkadaşlarınla aynı masada oyna: DM kağıtları ve zarları canlı görür"><span class="dot" id="tableDot"></span><svg class="ic"><use href="#i-table"/></svg><span class="btn-label">Masa</span></button>
+      <button class="btn" id="tableBtn" data-act="table-open" title="Arkadaşlarınla aynı masada oyna: DM kağıtları ve zarları canlı görür"><span class="dot" id="tableDot"></span><svg class="ic"><use href="#i-table"/></svg><span class="btn-label" id="tableBtnLabel">Masa</span></button>
     </div>
   </div>
 </header>
@@ -1042,7 +1140,7 @@ body.tv-full #tableView{height:100dvh}
 <div class="app">
 
   <!-- Masaya bağlıyken görünen durum çubuğu -->
-  <div class="tablebar" id="tableBar" hidden><span class="dot" id="tableBarDot"></span><span class="txt" id="tableBarText"></span><button class="btn sm accent" id="tableBarView" data-act="mode-table" hidden><svg class="ic"><use href="#i-table"/></svg>Masayı göster</button><button class="btn sm" id="tableBarBtn"></button></div>
+  <div class="tablebar" id="tableBar" hidden><span class="dot" id="tableBarDot"></span><span class="txt" id="tableBarText"></span><button class="btn sm accent" id="tableBarView" data-act="mode-table" hidden><svg class="ic"><use href="#i-table"/></svg>Masayı göster</button><button class="btn sm" id="tableBarBtn"></button><ul class="tb-who" id="tableBarWho" aria-label="Masadakiler" hidden></ul></div>
 
   <!-- ═════════ DM EKRANI: yalnızca masayı kuran kişi görür ═════════ -->
   <section id="dmScreen" hidden>
@@ -1078,8 +1176,8 @@ body.tv-full #tableView{height:100dvh}
         </div>
       </div>
       <div class="tv-zoom" id="tvZoom" hidden>
-        <button class="btn sm" data-act="tav-yakin" title="Yakınlaştır" aria-label="Yakınlaştır"><svg class="ic"><use href="#i-plus"/></svg></button>
-        <button class="btn sm" data-act="tav-uzak" title="Uzaklaştır" aria-label="Uzaklaştır"><svg class="ic"><use href="#i-minus"/></svg></button>
+        <button class="btn icon" data-act="tav-yakin" title="Yakınlaştır" aria-label="Yakınlaştır"><svg class="ic"><use href="#i-plus"/></svg></button>
+        <button class="btn icon" data-act="tav-uzak" title="Uzaklaştır" aria-label="Uzaklaştır"><svg class="ic"><use href="#i-minus"/></svg></button>
       </div>
       <div class="tv-main">
         <div class="tv-stage" id="tvStage">
@@ -1120,19 +1218,21 @@ body.tv-full #tableView{height:100dvh}
       <p>Bu defter karakterini bu tarayıcıda saklar ve sen yazdıkça kendiliğinden kaydeder. Yukarıdaki dört elementten birine basınca arka plan ve tüm renkler değişir. Kutu içindeki sayılara basınca zar atılır. Nasıl göründüğünü merak ediyorsan örnek karakteri yükleyebilirsin.</p>
     </div>
     <div class="welcome-act">
-      <button class="btn accent" data-act="sample">Örnek karakteri yükle</button>
-      <button class="btn" data-act="welcome-close">Boş sayfayla başla</button>
+      <button class="btn accent lg" data-act="sample">Örnek karakteri yükle</button>
+      <button class="btn lg" data-act="welcome-close">Boş sayfayla başla</button>
     </div>
   </section>
 
   <!-- ═════════ KARAKTER BAŞLIĞI ═════════ -->
   <section class="card hero">
     <div class="portrait-wrap">
-      <button class="portrait" data-act="portrait" title="Portre yüklemek için tıkla" aria-label="Portre yükle">
+      <!-- Portre: boşken ortada kalem; resim varken sağ altta küçük kalem rozeti (ikisi de "değiştir" demek) -->
+      <button class="portrait" data-act="portrait" title="Portre seç ya da değiştir" aria-label="Portre seç ya da değiştir">
         <img id="portraitImg" alt="" hidden>
-        <span id="portraitPh">Portre<br>ekle</span>
+        <span id="portraitPh" class="portrait-ph"><svg class="ic"><use href="#i-pencil"/></svg></span>
       </button>
-      <button class="portrait-x" id="portraitX" data-act="portrait-remove" title="Portreyi kaldır" aria-label="Portreyi kaldır" hidden>×</button>
+      <span class="portrait-edit" aria-hidden="true"><svg class="ic"><use href="#i-pencil"/></svg></span>
+      <button class="portrait-x" id="portraitX" data-act="portrait-remove" title="Portreyi kaldır" aria-label="Portreyi kaldır" hidden><svg class="ic"><use href="#i-x"/></svg></button>
       <input type="file" id="portraitInput" accept="image/*" hidden>
     </div>
 
@@ -1156,9 +1256,9 @@ body.tv-full #tableView{height:100dvh}
       <div class="stat">
         <span class="f-l">Level<i>Seviye</i></span>
         <div class="stepper">
-          <button data-act="lvl" data-d="-1" aria-label="Seviyeyi azalt">−</button>
+          <button data-act="lvl" data-d="-1" aria-label="Seviyeyi azalt"><svg class="ic"><use href="#i-minus"/></svg></button>
           <b data-out="level">1</b>
-          <button data-act="lvl" data-d="1" aria-label="Seviyeyi artır">+</button>
+          <button data-act="lvl" data-d="1" aria-label="Seviyeyi artır"><svg class="ic"><use href="#i-plus"/></svg></button>
         </div>
       </div>
       <div class="stat" title="Yetkin olduğun zarlara eklenir. Seviyene göre kendiliğinden hesaplanır.">
@@ -1177,7 +1277,7 @@ body.tv-full #tableView{height:100dvh}
   </section>
 
   <!-- ═════════ ALTI YETENEK SKORU (JS doldurur) ═════════ -->
-  <section class="abilities" id="abilities" aria-label="Yetenek skorları"></section>
+  <section class="abilities card" id="abilities" aria-label="Yetenek skorları"></section>
 
   <div class="layout">
 
@@ -1210,7 +1310,7 @@ body.tv-full #tableView{height:100dvh}
     <!-- ───── SAĞ SÜTUN ───── -->
     <main class="col">
 
-      <div class="vitals">
+      <div class="vitals card">
         <section class="card vital">
           <span class="f-l">Armor Class<i>Zırh sınıfı</i></span>
           <div class="ac">
@@ -1267,7 +1367,7 @@ body.tv-full #tableView{height:100dvh}
         </section>
       </div>
 
-      <div class="vitals2">
+      <div class="vitals2 card">
         <section class="card">
           <div class="card-h"><h2>Hit Dice<em>Can zarı</em></h2></div>
           <div class="hd">
@@ -1295,9 +1395,9 @@ body.tv-full #tableView{height:100dvh}
           <div class="exh">
             <span class="f-l">Exhaustion<i>Bitkinlik</i></span>
             <div class="stepper sm">
-              <button data-act="exh" data-d="-1" aria-label="Bitkinliği azalt">−</button>
+              <button data-act="exh" data-d="-1" aria-label="Bitkinliği azalt"><svg class="ic"><use href="#i-minus"/></svg></button>
               <b data-out="exh">0</b>
-              <button data-act="exh" data-d="1" aria-label="Bitkinliği artır">+</button>
+              <button data-act="exh" data-d="1" aria-label="Bitkinliği artır"><svg class="ic"><use href="#i-plus"/></svg></button>
             </div>
             <span class="sub-note" data-out="exhNote"></span>
           </div>
@@ -1323,7 +1423,7 @@ body.tv-full #tableView{height:100dvh}
               <h3>Weapons &amp; attacks<em>Silahlar ve saldırılar</em></h3>
               <p class="hint">Saldırı bonusu kendiliğinden hesaplanır: seçtiğin yeteneğin modifiyesi, yetkinsen yetkinlik bonusu ve varsa ek bonus. Hasar kutusuna zarı yaz (örnek: 1d8+3), yanındaki zar düğmesine bas.</p>
             </div>
-            <button class="btn accent sm" data-act="add" data-list="attacks">+ Saldırı ekle</button>
+            <button class="btn accent sm" data-act="add" data-list="attacks"><svg class="ic"><use href="#i-plus"/></svg>Saldırı ekle</button>
           </div>
           <div class="list" id="attacks"></div>
         </div>
@@ -1358,7 +1458,7 @@ body.tv-full #tableView{height:100dvh}
             <h3>Spells<em>Büyüler</em></h3>
             <div class="btns">
               <button class="btn sm" data-act="sort-spells">Seviyeye göre sırala</button>
-              <button class="btn accent sm" data-act="add" data-list="spells">+ Büyü ekle</button>
+              <button class="btn accent sm" data-act="add" data-list="spells"><svg class="ic"><use href="#i-plus"/></svg>Büyü ekle</button>
             </div>
           </div>
           <div class="list" id="spells"></div>
@@ -1371,7 +1471,7 @@ body.tv-full #tableView{height:100dvh}
               <h3>Equipment<em>Ekipman</em></h3>
               <p class="hint">Ağırlığı libre (lb) olarak yaz. Toplam yük ve taşıma kapasiten aşağıda kendiliğinden hesaplanır.</p>
             </div>
-            <button class="btn accent sm" data-act="add" data-list="items">+ Eşya ekle</button>
+            <button class="btn accent sm" data-act="add" data-list="items"><svg class="ic"><use href="#i-plus"/></svg>Eşya ekle</button>
           </div>
           <div class="list" id="items"></div>
           <p class="sub-note mt" data-out="carry"></p>
@@ -1430,7 +1530,7 @@ body.tv-full #tableView{height:100dvh}
               <h3>Feats<em>Hünerler</em></h3>
               <p class="hint">Geçmişinden ya da seviye atlayınca kazandığın özel yetenekler.</p>
             </div>
-            <button class="btn accent sm" data-act="add" data-list="feats">+ Hüner ekle</button>
+            <button class="btn accent sm" data-act="add" data-list="feats"><svg class="ic"><use href="#i-plus"/></svg>Hüner ekle</button>
           </div>
           <div class="list" id="feats"></div>
         </div>
@@ -1483,7 +1583,8 @@ body.tv-full #tableView{height:100dvh}
   </div><!-- /#sheet -->
 
   <!-- Yasal notlar: bu iki İngilizce cümle Wizards of the Coast'un istediği kalıptır, sözcükleri değiştirme -->
-  <footer class="foot">
+  <!-- Yalnızca karakter kağıdında görünür (kendi kağıdım ve DM'in izlediği kağıt); masada ve DM ekranında JS gizler (setMode) -->
+  <footer class="foot" id="foot">
     <p>Hayran yapımı, resmî olmayan ve ücretsiz bir karakter defteridir. Wizards of the Coast ile bir bağlantısı yoktur.</p>
     <p lang="en">Dört Element is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</p>
     <p lang="en">This work includes material from the System Reference Document 5.2.1 (“SRD 5.2.1”) by Wizards of the Coast LLC, available at <a href="https://www.dndbeyond.com/srd" target="_blank" rel="noopener">https://www.dndbeyond.com/srd</a>. The SRD 5.2.1 is licensed under the Creative Commons Attribution 4.0 International License, available at <a href="https://creativecommons.org/licenses/by/4.0/legalcode" target="_blank" rel="noopener">https://creativecommons.org/licenses/by/4.0/legalcode</a>.</p>
@@ -1491,9 +1592,9 @@ body.tv-full #tableView{height:100dvh}
 </div>
 
 <!-- ═════════ ZAR TEPSİSİ ═════════ -->
-<button class="fab" data-act="dice-toggle" aria-label="Zar tepsisini aç" title="Zar tepsisi"><svg class="ic"><use href="#i-d20"/></svg></button>
+<button class="fab" data-act="dice-toggle" aria-label="Zar tepsisini aç" title="Zar tepsisi: serbest zar at, avantaj / dezavantaj seç"><svg class="ic"><use href="#i-d20"/></svg><span>Zar at</span></button>
 <aside class="tray" id="tray" aria-label="Zar tepsisi">
-  <div class="tray-h"><strong>Zar tepsisi</strong><button class="icon-btn" data-act="dice-toggle" aria-label="Kapat">×</button></div>
+  <div class="tray-h"><strong>Zar tepsisi</strong><button class="icon-btn" data-act="dice-toggle" title="Kapat" aria-label="Zar tepsisini kapat"><svg class="ic"><use href="#i-x"/></svg></button></div>
   <div class="seg" role="radiogroup" aria-label="d20 atış türü">
     <button role="radio" aria-checked="false" data-act="dice-mode" data-mode="dis">Dezavantaj</button>
     <button role="radio" aria-checked="true"  data-act="dice-mode" data-mode="normal">Normal</button>
@@ -1511,7 +1612,7 @@ body.tv-full #tableView{height:100dvh}
   </div>
   <form class="dice-custom" id="diceForm">
     <input id="diceExpr" placeholder="Kendi zarın: 2d6+3" aria-label="Zar ifadesi" autocomplete="off">
-    <button class="btn accent sm" type="submit">Zarı at</button>
+    <button class="btn accent" type="submit">Zarı at</button>
   </form>
   <div class="tray-h"><span class="f-l">Son atışlar</span><button class="btn sm" data-act="history-clear">Temizle</button></div>
   <ol class="history" id="history"></ol>
@@ -1521,11 +1622,12 @@ body.tv-full #tableView{height:100dvh}
 <!-- ═════════ KARAKTERLER ÇEKMECESİ ═════════ -->
 <div class="scrim" id="scrim" data-act="drawers-close" hidden></div>
 <aside class="drawer" id="drawer" aria-label="Karakterler">
-  <div class="tray-h"><strong>Karakterler</strong><button class="icon-btn" data-act="chars-close" aria-label="Kapat">×</button></div>
+  <div class="tray-h"><strong>Karakterler</strong><button class="icon-btn" data-act="chars-close" title="Kapat" aria-label="Karakterler çekmecesini kapat"><svg class="ic"><use href="#i-x"/></svg></button></div>
   <p class="hint always" style="margin:0">Karakterler yalnızca bu tarayıcıda saklanır. Başka bir cihaza taşımak ya da arkadaşına göndermek için “Dışa aktar” ile dosyaya kaydet, öbür tarafta “İçe aktar” ile aç.</p>
+  <p class="hint always" id="charNetHint" style="margin:0" hidden><b>Masadasın.</b> Seçtiğin karakter masaya geçer; DM onun kağıdını görür.</p>
   <div class="char-list" id="charList"></div>
   <div class="drawer-act">
-    <button class="btn accent" data-act="char-new">+ Yeni karakter</button>
+    <button class="btn accent" data-act="char-new"><svg class="ic"><use href="#i-plus"/></svg>Yeni karakter</button>
     <button class="btn" data-act="sample">Örnek karakter</button>
     <button class="btn" data-act="char-export">Dışa aktar</button>
     <button class="btn" data-act="char-import">İçe aktar</button>
@@ -1536,7 +1638,7 @@ body.tv-full #tableView{height:100dvh}
 
 <!-- ═════════ MASA ÇEKMECESİ (içini JS doldurur) ═════════ -->
 <aside class="drawer" id="tableDrawer" aria-label="Masa">
-  <div class="tray-h"><strong>Masa</strong><button class="icon-btn" data-act="drawers-close" aria-label="Kapat">×</button></div>
+  <div class="tray-h"><strong>Masa</strong><button class="icon-btn" data-act="drawers-close" title="Kapat" aria-label="Masa çekmecesini kapat"><svg class="ic"><use href="#i-x"/></svg></button></div>
   <div class="drawer-body" id="tableBody"></div>
 </aside>
 
@@ -2021,7 +2123,7 @@ function renderStatic() {
 }
 
 const TG = (f, on, text, title) => `<button class="tg" data-act="row-tg" data-f="${f}" aria-pressed="${!!on}" title="${title}">${text}</button>`;
-const DEL = '<button class="icon-btn" data-act="row-del" title="Satırı sil" aria-label="Satırı sil">×</button>';
+const DEL = '<button class="icon-btn del" data-act="row-del" title="Satırı sil" aria-label="Satırı sil"><svg class="ic"><use href="#i-x"/></svg></button>';
 const D20 = '<svg class="ic"><use href="#i-d20"/></svg>';
 
 function renderLists() {
@@ -2084,9 +2186,9 @@ function renderSlots() {
       <span class="slot-lv">${i + 1}<small>. sv</small></span>
       <div class="pips">${pips || '<span class="none">Yuva yok</span>'}</div>
       <div class="stepper sm">
-        <button data-act="slot-total" data-i="${i}" data-d="-1" aria-label="${i + 1}. seviye yuva sayısını azalt">−</button>
+        <button data-act="slot-total" data-i="${i}" data-d="-1" aria-label="${i + 1}. seviye yuva sayısını azalt"><svg class="ic"><use href="#i-minus"/></svg></button>
         <b>${s.t}</b>
-        <button data-act="slot-total" data-i="${i}" data-d="1" aria-label="${i + 1}. seviye yuva sayısını artır">+</button>
+        <button data-act="slot-total" data-i="${i}" data-d="1" aria-label="${i + 1}. seviye yuva sayısını artır"><svg class="ic"><use href="#i-plus"/></svg></button>
       </div></div>`;
   }).join('');
 }
@@ -2302,11 +2404,12 @@ function renderChars() {
         <span class="char-av">${c.portrait ? `<img src="${esc(c.portrait)}" alt="">` : esc((c.name.trim()[0] || '?').toUpperCase())}</span>
         <span style="min-width:0"><b>${esc(c.name.trim() || 'İsimsiz karakter')}</b><small>${c.level}. seviye${sub ? ' ' + esc(sub) : ''}</small></span>
       </button>
-      <button class="icon-btn" data-act="char-del" data-id="${esc(id)}" title="Karakteri sil" aria-label="Karakteri sil">×</button>
+      <button class="icon-btn del" data-act="char-del" data-id="${esc(id)}" title="Karakteri sil" aria-label="Karakteri sil"><svg class="ic"><use href="#i-x"/></svg></button>
     </div>`;
   }).join('');
 }
-function switchChar(id) { if (!store.chars[id]) return; store.activeId = id; C = store.chars[id]; showChar(); save(); }
+// Masa görünümündeyken de çalışır: sahne yeni karakterle yeniden çizilir, kağıt DM'e save() ile gider
+function switchChar(id) { if (!store.chars[id]) return; store.activeId = id; C = store.chars[id]; showChar(); save(); renderTable(); }
 function isUntouched(c) { const b = blankChar(); b.id = c.id; return JSON.stringify(b) === JSON.stringify(c); }
 function adopt(c) {                       // yeni gelen karakteri listeye ekler; açık olan boşsa onun yerine koyar
   c.id = uid();
@@ -2314,7 +2417,17 @@ function adopt(c) {                       // yeni gelen karakteri listeye ekler;
   else addChar(c);
   switchChar(c.id);
 }
-function openDrawer(open) { $('#drawer').classList.toggle('open', open); if (open) { $('#tableDrawer').classList.remove('open'); renderChars(); $('#legacyBtn').hidden = !legacyRaw(); } syncScrim(); }
+function openDrawer(open) {
+  $('#drawer').classList.toggle('open', open);
+  if (open) {
+    $('#tableDrawer').classList.remove('open'); renderChars(); $('#legacyBtn').hidden = !legacyRaw();
+    // Masadaki oyuncuya: seçtiği karakterin DM'e ve masaya geçeceğini söyle
+    $('#charNetHint').hidden = store.net.role !== 'player';
+  }
+  syncScrim();
+}
+// Masa görünümünden çekmeceyle karakter değiştirince sayfa kaydırılmaz (masa ekranı yerinde kalır)
+const toTop = () => { if (mode !== 'table') window.scrollTo({ top:0 }); };
 
 function exportChar() {
   const blob = new Blob([JSON.stringify({ app:'dort-element', v:1, character: C }, null, 2)], { type:'application/json' });
@@ -2334,7 +2447,7 @@ function importChar(file) {
       const old = convertLegacy(raw);                                 // eski sitenin kayıt biçimi de kabul edilir
       if (!old && (!raw || typeof raw !== 'object' || typeof raw.abilities !== 'object')) throw new Error('biçim');
       adopt(old || normalize(clone(raw)));
-      openDrawer(false); window.scrollTo({ top:0 });
+      openDrawer(false); toTop();
       notify('Karakter içe aktarıldı', C.name || 'İsimsiz karakter');
     } catch (e) { notify('Bu dosya okunamadı', 'Bu siteden “Dışa aktar” ile kaydedilmiş bir .json dosyası seç.'); }
   };
@@ -2467,7 +2580,7 @@ const ACTIONS = {
   roll: b => doRoll(b),
 
   'welcome-close': () => { store.welcomed = true; $('#welcome').hidden = true; save(); },
-  sample: () => { store.welcomed = true; $('#welcome').hidden = true; adopt(sampleChar()); openDrawer(false); window.scrollTo({ top:0 }); },
+  sample: () => { store.welcomed = true; $('#welcome').hidden = true; adopt(sampleChar()); openDrawer(false); toTop(); },
 
   lvl: b => { C.level = clamp(C.level + int(b.dataset.d), 1, 20); C.hdUsed = clamp(C.hdUsed, 0, C.level); changed(); renderChars(); },
   insp: () => {
@@ -2559,10 +2672,12 @@ const ACTIONS = {
   'dice-quick': b => { const s = int(b.dataset.s); if (s === 20) rollD20('d20', [], { free:true }); else rollExpr('1d' + s, 'd' + s); },
   'history-clear': () => { rolls.length = 0; renderHistory(); },
 
-  'chars-open': () => { if (mode !== 'sheet') setMode('sheet'); openDrawer(true); },
+  // Masa görünümünde çekmece masanın üstünde açılır; DM ekranı ve izleme modunda kendi kağıdına geçilir
+  'chars-open': () => { if (mode !== 'sheet' && mode !== 'table') setMode('sheet'); openDrawer(true); },
   'chars-close': () => openDrawer(false),
-  'char-pick': b => { switchChar(b.dataset.id); openDrawer(false); window.scrollTo({ top:0 }); },
-  'char-new': () => { const c = addChar(blankChar()); switchChar(c.id); openDrawer(false); window.scrollTo({ top:0 }); $('.name-input').focus(); },
+  'char-pick': b => { switchChar(b.dataset.id); openDrawer(false); toTop(); },
+  // Yeni karakter boş gelir, doldurulsun diye her zaman kağıda geçilir
+  'char-new': () => { const c = addChar(blankChar()); switchChar(c.id); openDrawer(false); if (mode !== 'sheet') setMode('sheet'); window.scrollTo({ top:0 }); $('.name-input').focus(); },
   'char-del': async b => {
     const c = store.chars[b.dataset.id]; if (!c) return;
     if (!await confirmBox(`“${c.name.trim() || 'İsimsiz karakter'}” silinsin mi? Bu işlem geri alınamaz.`, 'Sil')) return;
@@ -2576,7 +2691,7 @@ const ACTIONS = {
   'legacy-import': () => {
     const c = readLegacy();
     if (!c) { notify('Eski siteden kayıt bulunamadı', 'Eski siteyi açtığın tarayıcıda ve aynı yoldan açtığından emin ol.'); return; }
-    adopt(c); openDrawer(false); window.scrollTo({ top:0 });
+    adopt(c); openDrawer(false); toTop();
     notify('Eski sitendeki karakter aktarıldı', 'Sayıları bir kontrol et; saldırı bonusları artık kendiliğinden hesaplanıyor.');
   },
 };
@@ -2645,6 +2760,7 @@ const net = {
   players: new Map(), feed: [],                              // DM tarafı: oyuncular ve zar akışı
   conn: null, dmName:'', roster: [], publicRolls: true, lastPong: 0, sentPortrait: null, welcomed: false,   // oyuncu tarafı
   mySeat: '', faces: new Map(),                              // oyuncu tarafı: kendi koltuk kimliğim, öbürlerinin küçük portreleri
+  dropped: false,                                            // oyuncu tarafı: bağlantı koptu, "yeniden bağlandın" bildirimi bekleniyor
 };
 let mode = 'sheet';        // sheet = kendi kağıdım, dm = DM ekranı, peek = DM bir oyuncunun kağıdına bakıyor, table = masa görünümü
 let peekPid = '';
@@ -2694,7 +2810,7 @@ function stopNet(clearRole = true) {
   net.peer = null; net.conn = null;
   if (peer) { try { peer.destroy(); } catch (e) { /* zaten kapalı */ } }
   net.players.clear(); net.feed = []; net.roster = []; net.dmName = ''; net.sentPortrait = null;
-  net.mySeat = ''; net.faces.clear();
+  net.mySeat = ''; net.faces.clear(); net.dropped = false;
   if (clearRole) { tvReset(); store.net.role = ''; save(); if (mode !== 'sheet') setMode('sheet'); }
   setNet('off', '');
 }
@@ -2733,7 +2849,7 @@ async function startDM() {
   // 17 saniyedir ses vermeyen oyuncuyu çevrimdışı say
   net.timers.watch = setInterval(() => {
     let changed = false;
-    net.players.forEach(p => { if (p.online && Date.now() - p.seen > 17000) { p.online = false; try { p.conn.close(); } catch (e) { /* yok say */ } p.conn = null; changed = true; } });
+    net.players.forEach(p => { if (p.online && Date.now() - p.seen > 17000) { p.online = false; try { p.conn.close(); } catch (e) { /* yok say */ } p.conn = null; changed = true; dropNote(p); } });
     if (changed) { broadcastRoster(); renderParty(); renderNetUI(); }
   }, 5000);
 }
@@ -2755,16 +2871,23 @@ function dmAccept(conn) {
       // seat: öbür oyuncuların göreceği rastgele koltuk kimliği (gizli pid'den bağımsız)
       p = { pid, name, seat: 's' + newCode().toLowerCase(), char: null, lastRoll: null, face: '', faceSrc: '' };
       net.players.set(pid, p); notify(`${name} masaya katıldı`);
-    }
+    } else if (!p.online) notify(p.left ? `${name} masaya döndü` : `${name} yeniden bağlandı`);
     Object.assign(p, { name, conn, online: true, left: false, seen: Date.now() });
     broadcastRoster(); sendFaces(p); renderParty(); renderNetUI();
   });
   conn.on('data', msg => dmReceive(pid, conn, msg));
   conn.on('close', () => {
     const p = net.players.get(pid);
-    if (p && p.conn === conn) { p.online = false; p.conn = null; broadcastRoster(); renderParty(); renderNetUI(); }
+    if (p && p.conn === conn) { p.online = false; p.conn = null; dropNote(p); broadcastRoster(); renderParty(); renderNetUI(); }
   });
   conn.on('error', () => { /* kapanış olayı ayrıca gelir */ });
+}
+
+// DM'e: bir oyuncu gitti. "Masadan ayrıl" ile mi gitti, bağlantısı mı koptu, ayırt edilir.
+function dropNote(p) {
+  if (!net.peer) return;                                            // DM masayı kendisi kapatıyor: herkes için ayrı bildirim çıkmasın
+  if (p.left) notify(`${p.name} masadan ayrıldı`);
+  else notify(`${p.name}: bağlantı koptu`, 'Koltuğu boş bekliyor. Sayfayı yeniden açınca kendiliğinden geri bağlanır.');
 }
 
 function dmReceive(pid, conn, msg) {
@@ -2817,7 +2940,7 @@ const seatSig = c => (c ? [c.name, classKey(c), c.look].join('|') : '');
 function broadcastRoster() {
   const roster = rosterList(), dm = short(store.net.name || 'DM', 30);
   net.players.forEach(p => send(p.conn, { t:'roster', roster, you: p.seat, dm }));   // you = alıcının kendi koltuğu
-  renderTable();
+  renderNetUI();                                                     // DM'in kendi "Masada:" listesi ve masa görünümü
 }
 // Bir oyuncunun portresinden 96 piksellik kopya yapar ve öbür oyunculara YALNIZCA değiştiğinde yollar
 function updateFace(p) {
@@ -2886,7 +3009,11 @@ function playerDial() {
   conn.on('close', () => {
     if (net.conn !== conn) return;
     net.conn = null; net.roster = [];
-    if (store.net.role === 'player') { setNet('waiting', 'Bağlantı koptu, yeniden bağlanılıyor…'); retry(playerDial, 3000); }
+    if (store.net.role === 'player') {
+      // Bildirim yalnızca bir kez: yeniden bağlanma denemeleri sürerken tekrar tekrar çıkmasın
+      if (net.welcomed && !net.dropped) { net.dropped = true; notify('Masayla bağlantı koptu', 'Yeniden bağlanılıyor. Bu sırada attığın zarlar DM\'e gitmez.'); }
+      setNet('waiting', 'Bağlantı koptu, yeniden bağlanılıyor…'); retry(playerDial, 3000);
+    }
   });
   conn.on('error', () => { /* kapanış olayı ayrıca gelir */ });
 }
@@ -2902,7 +3029,11 @@ function playerReceive(conn, msg) {
   if (msg.t === 'welcome') {
     net.dmName = short(msg.dm, 30); net.publicRolls = !!msg.publicRolls;
     if (msg.roster) net.roster = readRoster(msg.roster);
-    if (!net.welcomed) { net.welcomed = true; notify('Masaya bağlandın', `${net.dmName || 'DM'} artık kağıdını ve zarlarını görüyor.`); }
+    if (!net.welcomed) {
+      net.welcomed = true;
+      if (net.dropped) { net.dropped = false; notify('Masaya yeniden bağlandın'); }
+      else notify('Masaya bağlandın', `${net.dmName || 'DM'} artık kağıdını ve zarlarını görüyor.`);
+    }
     renderNetUI();
   }
   else if (msg.t === 'pong') { if (msg.want) { net.sentPortrait = null; pushSheet(); } }
@@ -2963,6 +3094,7 @@ function setMode(m, pid) {
   $('#dmScreen').hidden = m !== 'dm';
   $('#sheet').hidden = m === 'dm' || m === 'table';
   $('#tableView').hidden = m !== 'table';
+  $('#foot').hidden = m !== 'sheet' && m !== 'peek';             // yasal notlar yalnızca karakter kağıdında
   C = m === 'peek' ? p.char : ownChar();
   if (m === 'dm') { renderDMHead(); renderParty(); renderFeed(); document.title = 'DM ekranı — Dört Element'; }
   else { showChar(); applyReadonly(); }
@@ -2977,9 +3109,24 @@ function applyReadonly() { const ro = mode === 'peek'; $$('#sheet input, #sheet 
 const dotClass = () => (net.status === 'open' ? 'dot on' : net.status === 'error' ? 'dot err' : net.status === 'off' ? 'dot' : 'dot wait');
 const hhmm = ts => new Date(ts).toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
 
+// Bağlantı durumu tek kelimeyle (üst çubuktaki Masa düğmesinin açıklaması için)
+const netWord = () => (net.status === 'open' ? 'bağlı' : net.status === 'error' ? 'bağlantı hatası' : net.status === 'off' ? 'kapalı' : 'bağlantı bekleniyor');
+// Masadakiler: önce DM, sonra oyuncular; her birinin bağlı olup olmadığı. Oyuncu yalnızca DM'den gelen listeyi görür.
+function whoList() {
+  const live = net.status === 'open';
+  if (store.net.role === 'dm') return [{ name: short(store.net.name || 'DM', 30), tag: 'DM, sen', on: live }]
+    .concat(seated().map(p => ({ name: p.name, tag: p.char ? short(p.char.name.trim(), 40) : '', on: !!p.online })));
+  if (store.net.role === 'player') return [{ name: net.dmName || 'DM', tag: 'DM', on: live }]
+    .concat(net.roster.map(r => r.id && r.id === net.mySeat ? { name: r.name, tag: 'sen', on: live } : { name: r.name, tag: r.char, on: live && r.on }));
+  return [];
+}
 function renderNetUI() {
   const role = store.net.role, code = prettyCode(store.net.code);
   $('#tableDot').className = role ? dotClass() : 'dot';
+  // Üst çubuk: masadayken düğmede masa kodu yazar, üstüne gelince durum görünür
+  $('#tableBtnLabel').textContent = role ? `Masa · ${code}` : 'Masa';
+  $('#tableBtn').title = role ? `Masa ${code} (${role === 'dm' ? 'DM sensin' : 'oyuncusun'}): ${netWord()}. Ayrıntılar için bas.`
+    : 'Arkadaşlarınla aynı masada oyna: DM kağıtları ve zarları canlı görür';
   const bar = $('#tableBar'), btn = $('#tableBarBtn');
   let text = '';
   if (role && mode === 'table') {
@@ -2999,8 +3146,13 @@ function renderNetUI() {
     btn.textContent = 'DM ekranına dön'; btn.dataset.act = 'mode-dm';
   }
   bar.hidden = !text;
+  bar.dataset.s = mode === 'peek' || net.status === 'open' ? 'ok' : net.status === 'error' ? 'err' : 'wait';
   $('#tableBarText').textContent = text;
   $('#tableBarDot').className = mode === 'peek' ? 'dot on' : dotClass();
+  // Masadakiler listesi. Masa görünümünde gizli: isimlikler aynı şeyi zaten gösteriyor.
+  const who = $('#tableBarWho'), list = role && mode !== 'table' ? whoList() : [];
+  who.hidden = !list.length;
+  who.innerHTML = list.length ? '<li class="lbl">Masada:</li>' + list.map(w => `<li class="${w.on ? '' : 'off'}" title="${w.on ? 'Bağlı' : 'Çevrimdışı'}"><span class="dot${w.on ? ' on' : ''}"></span>${esc(w.name)}${w.tag ? ` <small>${esc(w.tag)}</small>` : ''}</li>`).join('') : '';
   $('#tableBarView').hidden = !(role === 'player' && mode === 'sheet');
   if ($('#tableDrawer').classList.contains('open')) renderTableDrawer();
   if (mode === 'dm') renderDMHead();
@@ -3708,7 +3860,7 @@ function renderMe() {
   const av = c.portrait ? `<img src="${esc(c.portrait)}" alt="">` : esc((c.name.trim()[0] || '?').toUpperCase());
   const head = `<header class="me-h"><span class="tv-av">${av}</span>
       <div class="me-id"><b>${esc(c.name.trim() || 'İsimsiz karakter')}</b><small>${min ? `${cur} / ${max} can, AC ${int(c.ac)}` : `${c.level}. seviye${who ? ' ' + esc(who) : ''}`}</small></div>
-      <button class="icon-btn" data-act="me-min" title="${min ? 'Kutuyu aç' : 'Kutuyu küçült'}" aria-label="${min ? 'Kutuyu aç' : 'Kutuyu küçült'}">${min ? '+' : '−'}</button></header>`;
+      <button class="icon-btn" data-act="me-min" title="${min ? 'Kutuyu aç' : 'Kutuyu küçült'}" aria-label="${min ? 'Kutuyu aç' : 'Kutuyu küçült'}">${min ? '<svg class="ic"><use href="#i-plus"/></svg>' : '<svg class="ic"><use href="#i-minus"/></svg>'}</button></header>`;
   if (min) { box.innerHTML = head; return; }
   const down = cur <= 0;
   const amount = document.activeElement && document.activeElement.id === 'meAmount' ? document.activeElement.value : '';
@@ -3726,7 +3878,7 @@ function renderMe() {
       <button class="me-stat" data-act="roll" data-roll="init" title="İnisiyatif zarı at"><b>${sign(mod('dex') + int(c.initBonus))}</b><span>İnisiyatif</span></button>
       <div class="me-stat" title="Bir turda yürüyebileceğin mesafe"><b>${int(c.speed)}</b><span>Hız (ft)</span></div>
     </div>
-    ${c.insp ? '<button class="me-insp" data-act="insp" title="Kullanınca bas: bir d20 zarını yeniden atabilirsin">★ İlhamın var: kullan</button>' : ''}
+    ${c.insp ? '<button class="me-insp" data-act="insp" title="Kullanınca bas: bir d20 zarını yeniden atabilirsin"><svg class="ic"><use href="#i-star"/></svg>İlhamın var: kullan</button>' : ''}
     <div class="seg me-seg" role="radiogroup" aria-label="Zar türü">
       <button role="radio" aria-checked="${kind === 'ability'}" data-act="me-kind" data-k="ability">Yetenek zarı</button>
       <button role="radio" aria-checked="${kind === 'save'}" data-act="me-kind" data-k="save">Kurtarma zarı</button>
