@@ -87,7 +87,7 @@ TAS_ZEMIN_RENK = (0.33, 0.29, 0.24)    # altıgen taş döşeme
 
 # Dokunun gerçek boyu (m): doku bu kadar alanda bir tekrar eder
 UVS = {'M_Zemin': 2.0, 'M_Masa': 1.2, 'M_Ahsap': 1.0, 'M_Ahsap_Koyu': 1.0, 'M_Duvar': 2.5, 'M_Somine': 1.5, 'M_Deri': 0.5, 'M_Kul': 1.5,
-       'M_Tas_Blok': 1.0, 'M_Tas_Zemin': 1.6}
+       'M_Tas_Blok': 1.0, 'M_Tas_Zemin': (0.90, 1.00)}   # altıgen doku kare değil (3 × 5 desen adımı, her altıgen ~30 cm)
 
 # ───────── Koleksiyonlar ─────────
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -299,10 +299,11 @@ def nesne(ad, bm, mats, kol, konum=(0, 0, 0), aci=0.0, uv_ozel=None, koru=()):
     for f in bm.faces:
         if f.material_index in koru: continue
         n = f.normal; ax = max(range(3), key=lambda k: abs(n[k])); s = olc[min(f.material_index, len(olc) - 1)]
+        su, sv = s if isinstance(s, tuple) else (s, s)                  # kare olmayan doku: (en, boy)
         for l in f.loops:
             p = l.vert.co
             u, v = (p.x, p.y) if ax == 2 else ((p.y, p.z) if ax == 0 else (p.x, p.z))
-            l[uvl].uv = (u / s, v / s)
+            l[uvl].uv = (u / su, v / sv)
     if uv_ozel: uv_ozel(bm, uvl)
     if STIL_EGRI > 0 and not ad.startswith(EGRI_YOK): _egri(bm, konum)
     me = bpy.data.meshes.new(ad); bm.to_mesh(me); bm.free()

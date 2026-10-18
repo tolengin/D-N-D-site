@@ -96,14 +96,14 @@ Seamless tileable hand-painted stylized game texture of an old cracked flagstone
 
 
 =======================================================
-B) TEK PARÇA RESİMLER — arka plan DÜZ MACENTA (#FF00FF)
+B) TEK PARÇA RESİMLER — arka plan DÜZ MACENTA (#FF00FF)------------- buradayım şuan
 =======================================================
 Claude macentayı silip şekli saydam yapar. Nesnenin içinde pembe ya da mor KULLANMA (silinir).
 
 -------------------------------------------------------
 13) post.png — şömine önündeki hayvan postu (YENİ: halının yerine)   · oran 4:3
 -------------------------------------------------------
-A single bear skin rug lying flat on the floor, seen perfectly from directly above, orthographic top-down view, no perspective, the whole pelt centered and filling about 90% of the frame. Hand-painted stylized fantasy game art, painterly illustration style like a hand-drawn tavern map: soft visible brush strokes, simplified chunky fur shapes, thin dark brown ink outline around the pelt. The pelt is spread out with four legs and claws reaching to the corners and a flattened bear head with closed mouth at the top, shaggy irregular edge. Warm dark brown fur with lighter tan tips and a slightly lighter belly area, slightly desaturated. Even flat lighting, no cast shadows, no light direction. Plain solid flat magenta background (#FF00FF) around the pelt, nothing else in the image, no pink or purple anywhere on the pelt, no floor, no text, no watermark. Aspect ratio 4:3.
+	
 
 -------------------------------------------------------
 14) kalkan-1.png — yuvarlak kalkan (bar üstü ve şömine bacası)   · oran 1:1

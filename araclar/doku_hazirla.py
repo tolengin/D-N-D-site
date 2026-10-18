@@ -48,6 +48,10 @@ AYAR = {
 # Boyalı dokularda derzlerin ve aralıkların koyuluğu zaten resimde çizili: betiğin eklediği girinti gölgesi bununla
 # çarpılır (1 = eski gerçekçi dokulardaki gibi tam). Çok koyulaşırsa düşür.
 AO_CARPAN = 0.4
+# Düzenli desenler (altıgen ızgara): kıvrımlı kesim ızgaranın adımını bozuyordu (ortada baklava şeridi). Kesim şeridi tam
+# bir desen adımı kadar seçilir (ham resimde ölçülen, px: yatay, dikey); üst üste gelen şeritler neredeyse aynı olur,
+# ızgara bozulmaz. Sonuç kare olmaz; oran korunur (Blender'da tekrar boyu en × boy ayrı verilir: UVS).
+DESEN = {'tas-altigen': (512, 342)}
 # Tek parça (kesik) görseller: macenta zemin silinir, kırpılır. ad: (en uzun kenar px, normal gücü)
 KESIK = {'kalkan-1': (1024, 4.0), 'kalkan-2': (1024, 4.0), 'tabela': (1024, 4.0), 'sancak': (768, 2.0), 'yaprak-kartlari': (1024, 2.0),
          'post': (1024, 2.0)}                                        # post: şömine önündeki hayvan postu (2026-10-16)
@@ -129,8 +133,14 @@ for ad, (N, guc, puruz, ao_guc, r) in AYAR.items():
     if not yol:
         print(f'{ad}: bulunamadı, atlandı'); continue
     img = np.asarray(Image.open(yol).convert('RGB'), float) / 255
-    img = doseme(img)
-    img = boyut(img, N, N)
+    if ad in DESEN:
+        kx, ky = DESEN[ad]
+        img = yatay_doseme(img, kx)
+        img = yatay_doseme(img.transpose(1, 0, 2), ky).transpose(1, 0, 2)
+        img = boyut(img, N, round(N * img.shape[0] / img.shape[1]))
+    else:
+        img = doseme(img)
+        img = boyut(img, N, N)
     normal, ao, pur = haritalar(img, guc, puruz, ao_guc * AO_CARPAN, r * N / 1024)
     kaydet(img * ao[..., None], ad + '.jpg')
     kaydet(normal, ad + '-normal.jpg', 92)
@@ -173,12 +183,54 @@ def macenta_temizle(rgba):
     al[al < 12] = 0
     return np.stack([r, g, b, al], 2).clip(0, 255).astype(np.uint8)
 
+def daire_kes(ham, a):
+    """Kalkanlar (2026-10-17): Nano Banana altlarına ahşap duvar şeridi çizmişti; macenta silmek onu gidermez. Kalkanın dairesi
+    resmin üst yarısından ölçülür (en sol/sağ ve en üst kalkan pikseli), dışı saydam olur. İçerideki renklere dokunulmaz
+    (bordo/mor boya macenta sanılıp delinmesin); macenta temizliği yalnızca dış kenarın 12 piksellik şeridinde geçerli."""
+    pembe = np.minimum(ham[..., 0], ham[..., 2]).astype(int) - ham[..., 1]
+    h, w = pembe.shape
+    ys, xs = np.where(pembe[:h // 2] < 60)
+    cx, r = (xs.min() + xs.max()) / 2, (xs.max() - xs.min() + 1) / 2
+    cy = ys.min() + r
+    Y, X = np.mgrid[:h, :w]
+    d = np.sqrt((X - cx) ** 2 + (Y - cy) ** 2)
+    disk = np.clip(r - d, 0, 1) * 255                                 # kenarda 1 piksellik yumuşak geçiş
+    al = np.where(d < r - 12, 255, np.minimum(a[..., 3], disk))
+    a = a.copy(); a[..., 3] = al.astype(np.uint8)
+    return a
+
+def tahta_sil(a):
+    """Yaprak kartları (2026-10-17): alt satırdaki eğreltilerin yarısı ahşap duvar şeridinin üstüne çizilmişti.
+    Tahtanın başladığı satır bulunur (satırın yarısından çoğu kızıl-kahve); oradan (ve 100 px yukarıdaki pembe parıltıdan)
+    aşağıda yalnızca yeşil yapraklar ve koyu saplar kalır, tahta saydam olur. Kalan tek tük tahta lekeleri süzülür."""
+    r, g, b = (a[..., i].astype(int) for i in range(3))
+    h = a.shape[0]
+    kahve = (r > g + 25) & (np.minimum(r, b) - g < 20)
+    satir = kahve.mean(1)
+    aday = [y for y in range(2 * h // 3, h) if satir[y] > 0.5]
+    if not aday: return a, None
+    y0 = max(2 * h // 3, aday[0] - 100)
+    tut = (g >= r - 12) | (np.maximum(np.maximum(r, g), b) < 75)       # yeşil yaprak ya da koyu sap
+    m = Image.fromarray((tut * 255).astype(np.uint8)).filter(ImageFilter.MinFilter(5)).filter(ImageFilter.MaxFilter(7))
+    tut = np.asarray(m) > 127
+    a = a.copy()
+    alt = np.zeros(h, bool); alt[y0:] = True
+    a[..., 3] = np.where(alt[:, None] & ~tut, 0, a[..., 3])
+    return a, y0
+
 import json
+from PIL import ImageFilter
 for ad, (N, guc) in KESIK.items():
     yol = bul(ad)
     if not yol:
         print(f'{ad}: bulunamadı'); continue
-    a = macenta_temizle(np.asarray(Image.open(yol).convert('RGBA')))
+    ham = np.asarray(Image.open(yol).convert('RGBA'))
+    a = macenta_temizle(ham)
+    if ad.startswith('kalkan'):
+        a = daire_kes(ham, a)
+    if ad == 'yaprak-kartlari':
+        a, y0 = tahta_sil(a)
+        if y0: print(f'  yaprak-kartlari: {y0}. satırdan aşağısı tahtadan temizlendi')
     kalinti = ((np.minimum(a[..., 0], a[..., 2]).astype(int) - a[..., 1] > 40) & (a[..., 3] > 20)).mean() * 100
     im = Image.fromarray(a, 'RGBA')
     if ad == 'yaprak-kartlari':
@@ -220,4 +272,4 @@ for ad, (N, guc) in DOLU.items():
     kaydet(normal, ad + '-normal.jpg', 90)
     kaydet(pur, ad + '-puruz.jpg', 85, gri=True)
     print(f'{ad}: {im.size[0]}x{im.size[1]} px (en/boy {im.size[0] / im.size[1]:.2f})')
-print('bitti →', CIKTI)
+print('bitti:', CIKTI)                                                # (ok işareti Windows konsolunda hata veriyordu)
