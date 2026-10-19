@@ -28,7 +28,7 @@ snip = r'''
   const ow = console.warn; console.warn = (...a) => { L('WARN: ' + a.map(x => x && x.stack || String(x)).join(' ')); ow(...a); };
   const oe = console.error; console.error = (...a) => { L('ERR: ' + a.map(x => x && x.stack || String(x)).join(' ')); oe(...a); };
   if (q.get('cfg')) Object.assign(TAV, JSON.parse(q.get('cfg')));
-  window.TT = { showRoll, stopNet, tavOverview, tavSetView, tavZoom, tav, renderTable, net, store, setMode, setNet, renderNetUI, playerReceive, showChar, SES, ses, sesBaslat, sesAyar, sesSeviye, sesDisari, acilisGoster, SAVAS, npcler, hedefUI, hasarAl, koltukAc, renderNpcs, get mode() { return mode; } };
+  window.TT = { showRoll, stopNet, tavOverview, tavSetView, tavZoom, tav, renderTable, net, store, setMode, setNet, renderNetUI, playerReceive, showChar, SES, ses, sesBaslat, sesAyar, sesSeviye, sesDisari, acilisGoster, SAVAS, npcler, hedefUI, hasarAl, koltukAc, renderNpcs, savasBaslat, siraIleri, savasBitir, renderSira, renderDus, dmReceive, siraAl, get mode() { return mode; } };
   store.tavCanli = q.get('canli') === '1';                 // görünmez Edge'de ekran kartı yok: sürekli çizim çok yavaş (canli=1 ile açılır)
   if (q.get('goz') === '0') store.tavGoz = false;
   store.welcomed = true;

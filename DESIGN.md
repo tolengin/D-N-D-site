@@ -318,12 +318,23 @@ Sağ üstte, meşe çerçeveli koyu tahta; son atışlar Caveat ile tebeşir yaz
 ### Kağıt Masada (2026-10-19, madde 7)
 Masadan kağıda geçince kağıt ayrı bir sayfa olmaz: kamera koltuğa yaklaşır, kağıt tavernanın üstünde kendi içinde kayan bir katman olarak aşağıdan kalkar (0,42 sn, hafif büyüyerek), arkada taverna kararır ve bulanıklaşır (blur 7px, parlaklık %45). Üstte sabit "Masaya dön" (Esc de kapatır); kapatınca kağıt iner, kamera eski yerine döner. Yasal yazı kağıdın içinde, en altta; karanlık taverna üstünde her temada açık renk. Telefonda ve hareket azaltmada kamera kımıldamaz.
 
+**Kamera inişi (7a):** kağıt ya da DM ekranı açılırken figürler ve POV paneli çekilir, kamera koltuğun arkasından ve yukarısından (tavanın altında) masaya bakarak göz hizasına iner (0,9 sn, yumuşak başlayıp yumuşak durur); kağıt bu sırada kalkar. Kapanınca kamera yükselir (0,7 sn), eğik görünüm ve figürler geri gelir.
+
+### Kayan Üst Çubuklar ve Büyütme Tutamağı (2026-10-19, madde 9 ve 11)
+- **Masa ekranında üst çubuk ve durum çubuğu yukarı kayar**, sahne bütün ekranı kaplar. Üst ortada asılı küçük bir "Menü" tutamağı (çubuk zemini, alt köşeleri yuvarlak); fareyle en üst kenara gelince ya da tutamağa basınca çubuklar sahnenin üstüne iner, fare çekilince yarım saniye sonra yine kayar. Telefonda ve tam ekranda yok.
+- **Büyütme tutamağı:** köşede 22 px'lik yarı saydam kare, iki çapraz açık çizgi; üstüne gelince belirginleşir. POV panelinin sağ altında (panel %45–100), sağ sütunun sol altında (sütun %70–180). Büyüklük tarayıcıda hatırlanır. Telefonda yok.
+
 ### Hedef Etiketi ve İsimlik Kutusu (2026-10-19, Aşama 4)
 - **Hedef etiketi:** seçili hedef "Zar at"ın hemen üstünde, vurgu kenarlı hap: hedef ikonu, "→ Goblin (5/7 can, AC 12)", × ile kaldırma. DM bir düşman adına atıyorsa başta düşmanın adı.
 - **Seçili hedefin isimliği:** çevresinde kesikli vurgu halkası (parlama değil; The Earned Glow Rule).
 - **İsimlik kutusu:** isimliğe basınca açılan küçük kart (taverna zemini, ince çizgi, kart gölgesi): ad (Grenze), oy toplamı (kalkan = güvenilir, hançer = hain), DM için "Hedef yap", oyuncu için "Güvenilir / Hain" aç/kapa düğmeleri.
 - **Oy çipleri:** isimliğin altında parşömen renkli küçük haplar (ikon + sayı); oy yoksa görünmez. Yeşil / kırmızı kullanılmaz (The Meaning Is Fixed Rule): anlam ikonla verilir.
 - **Düşman kartı (DM ekranı):** her düşman ince çizgili bir iç kutu: ad alanı, Can / En çok / AC sayı alanları, "Masada" ve "Can görünsün" aç/kapa düğmeleri, silme. Canı biten düşman %60 soluk.
+
+### Masada Sağ Sütun ve Savaş Sırası (2026-10-19)
+- **Sağ sütun:** üstte kara tahta (son atışlar), altında **Düşmanlar panosu**: aynı meşe çerçeve, ama yüzeyi parşömen (#e9d8b2) ve yazı mürekkep (Grenze). Her düşman bir satır: yuvarlak görsel (yoksa baş harf), ad, "6/10 can · AC 15" (oyuncuda yalnızca DM izin verdiyse), can çubuğu. Satıra basınca hedef seçilir (kesikli vurgu çerçevesi); sırası gelen düşmanın satırı altın tonla dolar; canı biten soluk ve üstü çizili. İkisi de başlıktaki −/+ düğmesiyle kapanır (yalnızca başlık kalır). Telefonda sahnenin altında alt alta.
+- **Savaş sırası şeridi:** savaş açıkken araç çubuğunun altında, masa kartı zemininde yatay şerit: solda "Savaş · Tur N" ve kimin sırası olduğu, ortada inisiyatife göre dizili yuvarlak portreler (altında inisiyatif sayısı ve ad; düşmanların halkası kesikli), sağda DM için "Sıradaki / Sırayı başlat" (ana iş) ve "Bitir", oyuncu için zar atmadıysa "İnisiyatif at". Sırası gelenin halkası vurgu renginde ve %12 büyük (parlama değil). Telefonda sahnenin altında.
+- **Düşman görselleri:** hazır beş düşman (goblin, ork, iskelet, haydut, kurt) aynı tarzda: elle boyanmış, mürekkep çizgili, mum ışıklı, düz koyu kahve zeminli büst portresi; sitede yuvarlak kesilir.
 
 ## Do's and Don'ts
 
