@@ -1,0 +1,152 @@
+Sesler Freesound.org'dan indirildi (onizleme dosyasi, 128 kbps mp3).
+Ham halleri gorseller/ses-ham/ icinde; buradakiler araclar/ses_hazirla.py ile kirpilip kucultuldu.
+Not: ambiyans, ambiyans-2, ates, gece dongu olarak kisaltildi.
+Freesound'dan gelenlerin hepsi Creative Commons 0 (CC0): serbestce kullanilabilir, ad yazmak gerekmez.
+muzik.mp3 ise kullanicinin Suno sarkisi (en altta).
+
+zar-salla.mp3
+  Ne icin : Zari elde sallama
+  Kaynak  : Dice Shaking in Hand by Flem0527
+  Sahibi  : Flem0527
+  Link    : https://freesound.org/s/629983/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+zar-yuvarlan-1.mp3
+  Ne icin : Zar masada yuvarlanir
+  Kaynak  : Dice Rolling Sound - WOOD SURFACE by Christopherderp
+  Sahibi  : Christopherderp
+  Link    : https://freesound.org/s/342202/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+zar-yuvarlan-2.mp3
+  Ne icin : Zar masada yuvarlanir (tek zar)
+  Kaynak  : GAMEMisc_Dice Roll On Wood_Jaku5.wav by jakubp.jp
+  Sahibi  : jakubp.jp
+  Link    : https://freesound.org/s/558204/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+zar-yuvarlan-3.mp3
+  Ne icin : Zar masada yuvarlanir
+  Kaynak  : Rolling Dice_ wooden surface.wav by ARodLRU2018
+  Sahibi  : ARodLRU2018
+  Link    : https://freesound.org/s/662320/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+kagit-ac.mp3
+  Ne icin : Kagit acilir (katli harita)
+  Kaynak  : Unfold a map by Breviceps
+  Sahibi  : Breviceps
+  Link    : https://freesound.org/s/447931/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+kagit-ac-rulo.mp3
+  Ne icin : Kagit acilir (rulo parsomen, daha uzun)
+  Kaynak  : Unrolling Scroll.wav by spookymodem
+  Sahibi  : spookymodem
+  Link    : https://freesound.org/s/202107/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+kagit-kapa.mp3
+  Ne icin : Kagit kapanir (katlama)
+  Kaynak  : paper_double.wav by XTYL33
+  Sahibi  : XTYL33
+  Link    : https://freesound.org/s/68224/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+kapi-ac.mp3
+  Ne icin : Taverna kapisi gicirdayarak acilir (acilis)
+  Kaynak  : Opening a creaking door by Ryding
+  Sahibi  : Ryding
+  Link    : https://freesound.org/s/125957/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+gecis.mp3
+  Ne icin : Kamera gecisi (whoosh)
+  Kaynak  : Whoosh by qubodup
+  Sahibi  : qubodup
+  Link    : https://freesound.org/s/60013/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+ambiyans.mp3
+  Ne icin : Taverna ambiyansi (gercek taverna, gulusmeler)
+  Kaynak  : Tavern_Ambience_Inside_Laughter.WAV by ivolipa
+  Sahibi  : ivolipa
+  Link    : https://freesound.org/s/326313/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+ambiyans-2.mp3
+  Ne icin : Taverna ambiyansi yedegi (kucuk kalabalik ugultusu)
+  Kaynak  : Small Crowd Walla by IENBA
+  Sahibi  : IENBA
+  Link    : https://freesound.org/s/653920/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+ates.mp3
+  Ne icin : Somine citirtisi (dongu)
+  Kaynak  : Crackling Fire by samarobryn
+  Sahibi  : samarobryn
+  Link    : https://freesound.org/s/414767/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+gece.mp3
+  Ne icin : Disarisi gece, cirkirlar (acilis)
+  Kaynak  : AMBIENCE NIGHT FIELD CRICKET 01.wav by sengjinn
+  Sahibi  : sengjinn
+  Link    : https://freesound.org/s/175020/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+adim.mp3
+  Ne icin : Tasta ayak sesleri (acilis)
+  Kaynak  : Hiking Boot Footsteps on Stone by Fission9
+  Sahibi  : Fission9
+  Link    : https://freesound.org/s/521590/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+kupa.mp3
+  Ne icin : Garson kupayi masaya birakir
+  Kaynak  : putting down a mug on a table.wav by squidge316
+  Sahibi  : squidge316
+  Link    : https://freesound.org/s/404922/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+tik.mp3
+  Ne icin : Buton tiklamasi (tahta)
+  Kaynak  : Wooden Click by BenjaminNelan
+  Sahibi  : BenjaminNelan
+  Link    : https://freesound.org/s/321083/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+dogal-20.mp3
+  Ne icin : Dogal 20
+  Kaynak  : GASP_Chimes_Success_4.wav by Rob_Marion
+  Sahibi  : Rob_Marion
+  Link    : https://freesound.org/s/541985/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+dogal-1.mp3
+  Ne icin : Dogal 1 (bos tok davul vurusu)
+  Kaynak  : Yamaha Oak Custom Tom Low.wav by pjcohen
+  Sahibi  : pjcohen
+  Link    : https://freesound.org/s/46553/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+ilham.mp3
+  Ne icin : Ilham verilmesi (parilti)
+  Kaynak  : achievement-sparkle by SkySpeira
+  Sahibi  : SkySpeira
+  Link    : https://freesound.org/s/715067/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+katildi.mp3
+  Ne icin : Oyuncu katildi / ayrildi (kucuk zil)
+  Kaynak  : Bing1.wav by BMacZero
+  Sahibi  : BMacZero
+  Link    : https://freesound.org/s/96132/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
+muzik.mp3  (ham adi: Mead and Moonlight.mp3)
+  Ne icin : Taverna muzigi
+  Kaynak  : Kullanicinin Suno ile yaptigi sarki (2026-10-19)
+  Lisans  : Suno UCRETSIZ plan -> yalnizca ticari olmayan kullanim.
+            Siteden para kazanilmaya baslanirsa: sarki ucretli planla yeniden yapilmali
+            ya da kaldirilmali (ucretsiz planda yapilan sarki sonradan ticari olmaz).

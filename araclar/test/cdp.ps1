@@ -1,12 +1,12 @@
 ﻿# Edge'i görünmez açar, test sayfasını yükler, title 'HAZIR' olana kadar bekler; sonra adımları uygular.
 # Adım: "js:<kod>" (çalıştır, sonucu yaz) | "shot:<dosya.png>" | "wait:<ms>"
-param([string]$hash = 'n=5', [string[]]$steps = @('shot:cdp.png'), [int]$w = 1920, [int]$h = 1080, [string]$page = 'test.html', [int]$port = 9333)
+param([string]$hash = 'n=5', [string[]]$steps = @('shot:cdp.png'), [int]$w = 1920, [int]$h = 1080, [string]$page = 'test.html', [int]$port = 9333, [string]$root = '')
 $ErrorActionPreference = 'Stop'
 $d = Split-Path -Parent $MyInvocation.MyCommand.Path
 $edge = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-$url = ([System.Uri](Join-Path $d $page)).AbsoluteUri + '#' + $hash
+$url = $(if ($root) { "$root/araclar/test/$page" } else { ([System.Uri](Join-Path $d $page)).AbsoluteUri }) + '#' + $hash   # -root http://127.0.0.1:8765: sunucudan aç
 $prof = Join-Path $env:TEMP 'dnd-test-edge'      # geçici tarayıcı profili (proje klasörüne yazılmasın)
-$proc = Start-Process -FilePath $edge -ArgumentList @('--headless=new', "--user-data-dir=$prof", '--no-first-run', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--hide-scrollbars', "--window-size=$w,$h", "--remote-debugging-port=$port", 'about:blank') -PassThru
+$proc = Start-Process -FilePath $edge -ArgumentList @('--headless=new', "--user-data-dir=$prof", '--no-first-run', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--hide-scrollbars', '--autoplay-policy=no-user-gesture-required', "--window-size=$w,$h", "--remote-debugging-port=$port", 'about:blank') -PassThru
 $ws = $null
 try {
   $list = $null

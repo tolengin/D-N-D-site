@@ -184,6 +184,76 @@ html[data-element="air"] .layer.air{opacity:1}
 .top-actions{display:flex;align-items:center;gap:8px}
 .save-state{font-size:12px;color:var(--muted);min-width:98px;text-align:right}
 .save-state[data-s="error"]{color:var(--bad)}
+/* Savaş (BÖLÜM 10b): zar tepsisinde atan / hedef / hasar, "Zar at"ın üstünde seçili hedef, DM ekranında düşmanlar */
+.hedef-blok{display:grid;gap:10px;padding:12px 0 2px;border-top:1px solid var(--line)}
+.hedef-blok[hidden],.hedef-chip[hidden]{display:none}
+.hedef-chip{position:fixed;right:20px;bottom:84px;z-index:39;display:flex;align-items:center;gap:8px;max-width:min(320px,calc(100vw - 40px));
+  padding:4px 4px 4px 12px;border-radius:999px;background:linear-gradient(var(--bar),var(--bar)) var(--bg);border:1px solid var(--accent);
+  box-shadow:0 10px 24px -10px rgba(0,0,0,.75);font-size:13px;font-weight:700}
+.hedef-chip>.ic{color:var(--accent)}
+.hedef-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hedef-chip span em{font-style:normal;font-weight:500;color:var(--muted)}
+.hedef-chip .icon-btn{flex:none}
+.npc-kart,.oy-kart{margin-top:30px}
+.npc-list{display:grid;gap:10px}
+.npc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:calc(var(--radius) * .8 + 2px);background:var(--surface-2)}
+.npc.dustu{opacity:.6}
+.npc-ust{display:flex;gap:8px;align-items:center;min-width:0}
+.npc-ust input{font-weight:700}
+.npc-say{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;grid-column:1 / -1}
+.npc-say .f{width:74px}
+.npc-say .f input{text-align:center}
+.npc-say .btns{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.npc-bos{margin:0;color:var(--muted);font-size:13.5px}
+
+/* Açılış (BÖLÜM 11d): bütün ekranı kaplayan perde. Video ekranı doldurur (kenarlardan kırpılır); ad ve düğme alt
+   üçte birde, videonun boş bıraktığı kaldırım üstünde. Video oynarken yazılar çekilir; bitince perde solarak kalkar. */
+.acilis{position:fixed;inset:0;z-index:200;overflow:hidden;background:#0b0710 url(video/acilis-poster.jpg) center/cover no-repeat;
+  transition:opacity var(--bitis,.9s) ease}
+.acilis[hidden]{display:none}
+.acilis.bitti{opacity:0;pointer-events:none}
+.acilis-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#acilisVideo{opacity:0;transition:opacity .35s}
+.acilis.oynuyor #acilisVideo{opacity:1}
+.acilis-on{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
+  padding:18vh 20px max(9vh,48px);background:linear-gradient(transparent,rgba(8,5,12,.7));transition:opacity .45s,transform .45s}
+.acilis.oynuyor .acilis-on{opacity:0;transform:translateY(14px);pointer-events:none}
+.acilis-ad{font-family:var(--font-display);font-weight:600;font-size:clamp(42px,6vw,78px);line-height:1;color:#fbeedd;text-shadow:0 3px 18px rgba(0,0,0,.75)}
+.acilis-alt{font-size:clamp(14px,1.4vw,17px);color:#ead6c0;margin-bottom:16px;text-shadow:0 2px 10px rgba(0,0,0,.85)}
+.acilis-gec{position:absolute;right:20px;bottom:20px}
+@media (prefers-reduced-motion:reduce){.acilis-on{transition:none}}
+
+/* Ses düğmesi ve ayar kutusu (BÖLÜM 11c). Kutu bir arma çerçeveli kart (.card: metal kenar, üstte arma, altta baklava);
+   her satırda ikon (basınca o kanal susar), ad, değer ve oyuk bir yivde metal düğmeli sürgü. */
+.ses-wrap{position:relative}
+.ses-pop.card{position:absolute;right:0;top:calc(100% + 18px);z-index:45;width:min(312px,calc(100vw - 24px));padding:20px 20px 22px;
+  display:flex;flex-direction:column;gap:16px;
+  background:linear-gradient(var(--surface),var(--surface)) var(--bg)}   /* opak: üst çubuğun bulanıklığı içindeki kutuya geçmez */
+.ses-pop[hidden]{display:none}
+.ses-pop .card-h{margin-bottom:0}
+.ses-row{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;column-gap:12px;row-gap:6px;align-items:center}
+.ses-ic{grid-row:1 / 3}
+.ses-ic[data-sus]{color:var(--muted)}
+.ses-ad{font-weight:700;font-size:14px;color:var(--text);line-height:1.2;cursor:pointer}
+.ses-ad small{font-weight:500;font-size:12px;color:var(--muted);margin-left:7px}
+.ses-v{font-family:var(--font-display);font-weight:600;font-size:19px;line-height:1;font-variant-numeric:tabular-nums;min-width:2.2ch;text-align:right}
+.ses-sur{grid-column:2 / 4;--v:50%;-webkit-appearance:none;appearance:none;width:100%;height:22px;margin:0;padding:0;border:0;background:none;cursor:pointer}
+.ses-sur:focus{box-shadow:none}
+/* Yiv: koyu ve gömük; dolu kısmı vurgu renginde. Düğme: kart çerçevesiyle aynı metal. */
+.ses-sur::-webkit-slider-runnable-track{height:8px;border-radius:999px;border:1px solid var(--line);box-shadow:inset 0 1px 3px rgba(0,0,0,.6);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 55%,#000),var(--accent)) 0 0/var(--v) 100% no-repeat,var(--field)}
+.ses-sur::-moz-range-track{height:8px;border-radius:999px;border:1px solid var(--line);box-shadow:inset 0 1px 3px rgba(0,0,0,.6);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 55%,#000),var(--accent)) 0 0/var(--v) 100% no-repeat,var(--field)}
+.ses-sur::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;margin-top:-6px;border-radius:50%;
+  background:var(--metal);border:1px solid rgba(0,0,0,.6);box-shadow:0 2px 4px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .12s}
+.ses-sur::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
+  background:var(--metal);border:1px solid rgba(0,0,0,.6);box-shadow:0 2px 4px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .12s}
+.ses-sur:hover::-webkit-slider-thumb,.ses-sur:active::-webkit-slider-thumb{transform:scale(1.15)}
+.ses-sur:hover::-moz-range-thumb,.ses-sur:active::-moz-range-thumb{transform:scale(1.15)}
+.ses-pop.kapali .ses-row{opacity:.55}
+.ses-pop.kapali .ses-ic:disabled{opacity:1}                            /* satır zaten soluk: ikon ikinci kez soluklaşmasın */
+.ses-pop.kapali .ses-sur,.ses-pop.kapali .ses-ad{cursor:default}
+.ses-row input:disabled{cursor:default;opacity:.45}
 
 /* ───────── 5) DÜĞMELER ─────────
    Tek buton sistemi (ayrıntı: DESIGN.md → Components → Buttons).
@@ -731,6 +801,22 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
    --u "birim"dir: alana sığan en büyük 16:9 kutunun genişliğinin %1'i. Panel, kara tahta, oyuncu kutusu ve tablo
    bununla ölçülür; böylece ekran genişleyince büyümezler, yalnızca tavernanın daha çok yeri görünür. */
 body.tv-on .app{max-width:none;padding:0}
+/* Kağıt masada (madde 7, BÖLÜM 11 kagitAc): kağıt tavernanın üstünde kendi içinde kayan bir katmandır; aşağıdan kalkarak
+   açılır, inerek kapanır. Arkada taverna kararır ve bulanıklaşır, tıklanmaz. Üstte sabit "Masaya dön". */
+.kagit-ust{display:none}
+body.kagit-ustte #sheet{position:fixed;left:0;right:0;bottom:0;top:calc(var(--topbar-h,66px) + var(--tablebar-h,0px));z-index:25;
+  overflow-y:auto;overscroll-behavior:contain;padding:0 max(20px,calc((100% - 1320px) / 2)) 120px;
+  animation:kagitKalk .42s cubic-bezier(.2,.8,.25,1)}
+body.kagit-iner #sheet{animation:kagitIn .26s ease-in forwards}
+@keyframes kagitKalk{from{opacity:0;transform:translateY(48px) scale(.97)}}
+@keyframes kagitIn{to{opacity:0;transform:translateY(48px) scale(.97)}}
+body.kagit-ustte .kagit-ust{position:sticky;top:0;z-index:3;display:flex;justify-content:flex-end;padding:14px 0 10px;pointer-events:none}
+body.kagit-ustte .kagit-ust .btn{pointer-events:auto;box-shadow:0 10px 24px -10px rgba(0,0,0,.75)}
+#tableView .tv-wrap{transition:filter .4s ease}
+body.kagit-ustte #tableView{pointer-events:none}
+body.kagit-ustte .foot,body.kagit-ustte .foot a{color:#d9c7ae}          /* yasal yazı kararmış tavernanın üstünde: her temada açık renk */
+body.kagit-ustte #tableView .tv-wrap{filter:blur(7px) brightness(.45) saturate(.8)}
+@media (prefers-reduced-motion:reduce){body.kagit-ustte #sheet,body.kagit-iner #sheet{animation:none}#tableView .tv-wrap{transition:none}}
 body.tv-on .tablebar{margin:8px 12px}
 #tableView{position:relative;display:grid;place-items:center;overflow:hidden;container-type:size;
   height:calc(100dvh - var(--topbar-h,66px) - var(--tablebar-h,0px));
@@ -868,6 +954,24 @@ body.tv-on .tablebar{margin:8px 12px}
 .tv-seat.me .tv-tag .tv-av{border-color:var(--accent)}
 .tv-seat.off .tv-tag{opacity:.66}
 .tv-seat.off .tv-av img{filter:grayscale(1)}
+/* İsimliğe basılabilir (hedef, oy: BÖLÜM 10b). Seçili hedef: isimliğin çevresinde kesikli vurgu halkası (parlama değil) */
+.tv-seat .tv-tag{cursor:pointer}
+.tv-seat.hedef .tv-tag::after{content:"";position:absolute;inset:-12% -5% -12% -14%;border:max(2px,.2cqw) dashed var(--accent);border-radius:.8cqw;pointer-events:none}
+/* Oy toplamı: isimliğin altında küçük parşömen çipler (kalkan = güvenilir, hançer = hain) */
+.tv-oy{position:absolute;left:50%;top:100%;translate:-50% .25cqw;display:flex;gap:.35cqw;pointer-events:none}
+.tv-oy span{display:flex;align-items:center;gap:.2cqw;padding:.12cqw .45cqw;border-radius:999px;background:#ecdcb4;color:#2a1c10;
+  font-weight:800;font-size:clamp(9px,.78cqw,12px);line-height:1.2;box-shadow:0 0 0 1px #6a4526,0 .15cqw .3cqw rgba(0,0,0,.5)}
+.tv-oy .ic{width:1.1em;height:1.1em;stroke-width:2.2}
+/* İsimliğe basınca açılan küçük kutu */
+.koltuk-pop{position:absolute;z-index:30;width:240px;display:grid;gap:10px;padding:12px 14px 14px;color:var(--text);
+  background:linear-gradient(var(--surface),var(--surface)) var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
+.koltuk-pop[hidden]{display:none}
+.koltuk-pop .kp-ad{font-family:var(--font-display);font-weight:600;font-size:18px;line-height:1.15}
+.koltuk-pop .kp-ad small{display:block;font-family:var(--font-ui);font-weight:500;font-size:12.5px;color:var(--muted);margin-top:2px}
+.koltuk-pop .kp-oy{display:flex;gap:8px;font-size:13px;color:var(--muted)}
+.koltuk-pop .kp-oy b{color:var(--text)}
+.koltuk-pop .kp-btn{display:flex;flex-wrap:wrap;gap:8px}
+.koltuk-pop .kp-btn .btn{flex:1 1 auto}
 
 /* Masanın ortası: zarlar, toplam ve kimin neyi attığı */
 .tv-center{position:absolute;z-index:7;left:64.6cqw;top:27.9cqw;width:26cqw;translate:-50% -50%;
@@ -1080,6 +1184,18 @@ body.tv-full #tableView{height:100dvh}
 </head>
 <body class="guide">
 
+<!-- ═════════ AÇILIŞ: tavernanın kapısı (BÖLÜM 11d). Bekleme döngüsü; "Tavernaya gir" ile açılış videosu oynar. ═════════ -->
+<div class="acilis" id="acilis" role="dialog" aria-label="Tavernanın kapısı" hidden>
+  <video class="acilis-v" id="acilisDongu" poster="video/acilis-poster.jpg" muted loop playsinline preload="auto" aria-hidden="true"></video>
+  <video class="acilis-v" id="acilisVideo" muted playsinline preload="auto" aria-hidden="true"></video>
+  <div class="acilis-on">
+    <p class="acilis-ad">Dört Element</p>
+    <p class="acilis-alt">D&amp;D karakter defteri ve masası</p>
+    <button class="btn lg accent" data-act="acilis-gir"><svg class="ic"><use href="#i-kapi"/></svg>Tavernaya gir</button>
+  </div>
+  <button class="btn sm acilis-gec" data-act="acilis-gec" hidden><svg class="ic"><use href="#i-gec"/></svg>Geç</button>
+</div>
+
 <!-- ═════════ ARKA PLAN: dört katman + parçacık tuvali ═════════ -->
 <div class="backdrop" aria-hidden="true">
   <div class="layer fire"></div>
@@ -1100,11 +1216,21 @@ body.tv-full #tableView{height:100dvh}
   <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4.5 19.5l1-4.3L15.8 4.9a2 2 0 0 1 2.8 0l.5.5a2 2 0 0 1 0 2.8L8.8 18.5zM14.2 6.5l3.3 3.3M5.5 15.2l3.3 3.3"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
   <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M16.5 13.6c2.6.2 4.5 2 4.5 4.9"/></symbol>
+  <!-- Karakter kağıdı: üstü ve altı rulo parşömen, üstünde iki satır yazı -->
+  <symbol id="i-scroll" viewBox="0 0 24 24"><path d="M7 4h11.5a2 2 0 0 1 0 4H17v10.5a2 2 0 0 1-2 2H5.5a2 2 0 0 1 0-4H7zM7 16.5h8.5M7 4a2 2 0 0 0-2 2v2h2M10 10h4.5M10 13h4.5"/></symbol>
   <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5C6.5 4.5 9.5 4.6 12 6c2.5-1.4 5.5-1.5 8-.5v13c-2.5-1-5.5-.9-8 .5-2.5-1.4-5.5-1.5-8-.5zM12 6v13"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6l-5.4 2.9 1.2-6L3.3 9.3l6.1-.7z"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5z"/></symbol>
   <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
   <symbol id="i-shrink" viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></symbol>
+  <symbol id="i-ses" viewBox="0 0 24 24"><path d="M3.5 9.5h3.6L12 5.3v13.4l-4.9-4.2H3.5zM15.6 9.2a4 4 0 0 1 0 5.6M18.4 6.4a8 8 0 0 1 0 11.2"/></symbol>
+  <symbol id="i-ses-yok" viewBox="0 0 24 24"><path d="M3.5 9.5h3.6L12 5.3v13.4l-4.9-4.2H3.5zM16 9.5l5 5M21 9.5l-5 5"/></symbol>
+  <symbol id="i-hedef" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/></symbol>
+  <symbol id="i-kalkan" viewBox="0 0 24 24"><path d="M12 2.8 19.5 5.6v6c0 4.6-3.2 8-7.5 9.6-4.3-1.6-7.5-5-7.5-9.6v-6z"/><path d="M8.6 12.1l2.4 2.4 4.4-4.6"/></symbol>
+  <symbol id="i-hancer" viewBox="0 0 24 24"><path d="M14.5 3.5h6v6L10.8 19.2 4.8 13.2zM8 16l-3.3 3.3M5.6 13.9l4.5 4.5M3.4 18.3l2.3 2.3"/></symbol>
+  <symbol id="i-kapi" viewBox="0 0 24 24"><path d="M6 21V10.5a6 6 0 0 1 12 0V21M3.5 21h17M14.6 14.2v1.6M12 4.5V21"/></symbol>
+  <symbol id="i-gec" viewBox="0 0 24 24"><path d="M5 6.5l6.5 5.5L5 17.5zM12.5 6.5 19 12l-6.5 5.5z"/></symbol>
+  <symbol id="i-nota" viewBox="0 0 24 24"><path d="M9 17.5V5.8l10-2.3v11.7"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.2" r="2.5"/><path d="M9 9.3l10-2.3"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
   <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
@@ -1133,6 +1259,27 @@ body.tv-full #tableView{height:100dvh}
       <button class="btn" id="guideBtn" data-act="guide" aria-pressed="true" title="Kutuların altındaki açıklama yazılarını aç ya da kapat"><svg class="ic"><use href="#i-book"/></svg><span class="btn-label">Açıklamalar</span></button>
       <button class="btn" data-act="chars-open" title="Karakter değiştir, yeni karakter aç, dışa aktar"><svg class="ic"><use href="#i-users"/></svg><span class="btn-label">Karakterler</span></button>
       <button class="btn" id="tableBtn" data-act="table-open" title="Arkadaşlarınla aynı masada oyna: DM kağıtları ve zarları canlı görür"><span class="dot" id="tableDot"></span><svg class="ic"><use href="#i-table"/></svg><span class="btn-label" id="tableBtnLabel">Masa</span></button>
+      <div class="ses-wrap">
+        <button class="btn icon" id="sesBtn" data-act="ses-menu" aria-expanded="false" aria-controls="sesPop" title="Ses: müzik, ortam ve efektler" aria-label="Ses ayarları"><svg class="ic"><use href="#i-ses"/></svg></button>
+        <div class="ses-pop card" id="sesPop" role="dialog" aria-label="Ses ayarları" hidden>
+          <div class="card-h"><h2>Sound<em>Ses</em></h2><button class="btn sm" id="sesOn" data-act="ses-on" aria-pressed="true"><svg class="ic"><use href="#i-ses"/></svg><span>Açık</span></button></div>
+          <div class="ses-row" data-k="muzik">
+            <button class="btn icon sm ses-ic" data-act="ses-sustur" data-k="muzik" data-ic="i-nota"><svg class="ic"><use href="#i-nota"/></svg></button>
+            <label class="ses-ad" for="sesMuzik">Müzik<small>taverna şarkısı</small></label><output class="ses-v" for="sesMuzik"></output>
+            <input class="ses-sur" id="sesMuzik" type="range" min="0" max="100" step="1" data-ses="muzik">
+          </div>
+          <div class="ses-row" data-k="ortam">
+            <button class="btn icon sm ses-ic" data-act="ses-sustur" data-k="ortam" data-ic="i-flame"><svg class="ic"><use href="#i-flame"/></svg></button>
+            <label class="ses-ad" for="sesOrtam">Ortam<small>uğultu, şömine</small></label><output class="ses-v" for="sesOrtam"></output>
+            <input class="ses-sur" id="sesOrtam" type="range" min="0" max="100" step="1" data-ses="ortam">
+          </div>
+          <div class="ses-row" data-k="efekt">
+            <button class="btn icon sm ses-ic" data-act="ses-sustur" data-k="efekt" data-ic="i-d20"><svg class="ic"><use href="#i-d20"/></svg></button>
+            <label class="ses-ad" for="sesEfekt">Efektler<small>zar, kağıt, kupa</small></label><output class="ses-v" for="sesEfekt"></output>
+            <input class="ses-sur" id="sesEfekt" type="range" min="0" max="100" step="1" data-ses="efekt">
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -1149,6 +1296,16 @@ body.tv-full #tableView{height:100dvh}
       <div>
         <div class="card-h"><h2>Party<em>Oyuncular</em></h2></div>
         <div class="party" id="party"></div>
+        <!-- Düşmanlar ve NPC'ler: DM ekler, canını ve görünürlüğünü belirler; oyuncular hedef seçip hasar verir (BÖLÜM 10b) -->
+        <section class="card npc-kart">
+          <div class="card-h"><h2>Enemies &amp; NPCs<em>Düşmanlar</em></h2><button class="btn sm" data-act="npc-ekle"><svg class="ic"><use href="#i-plus"/></svg>Ekle</button></div>
+          <p class="hint always" style="margin:0 0 12px"><b>Masada</b> açıksa oyuncular onu hedef seçip hasar verebilir. <b>Can görünsün</b> açıksa oyuncular canını ve AC'sini de görür. Bir düşman adına zar atmak için zar tepsisinde "Atan"dan onu seç.</p>
+          <div class="npc-list" id="npcList"></div>
+        </section>
+        <section class="card oy-kart">
+          <div class="card-h"><h2>Trust vote<em>Güvenilir / hain oyları</em></h2><button class="btn sm" data-act="oy-sifirla">Oyları sıfırla</button></div>
+          <p class="hint always" style="margin:0">Oyuncular masada birbirinin isimliğine basıp gizlice oy verir; toplamı herkes isimliklerde görür. Kimin ne verdiğini kimse (sen de) görmez.</p>
+        </section>
       </div>
       <aside class="card dm-feed">
         <div class="card-h"><h2>Dice log<em>Zar akışı</em></h2><button class="btn sm" data-act="feed-clear">Temizle</button></div>
@@ -1166,6 +1323,8 @@ body.tv-full #tableView{height:100dvh}
       <div class="tv-ust">
         <!-- Tam ekran: tarayıcı desteklemiyorsa (ör. iPhone Safari) JS gizler -->
         <button class="btn sm tv-fs" id="tvFull" data-act="tv-full" aria-pressed="false" hidden><svg class="ic"><use href="#i-expand"/></svg><span>Tam ekran</span></button>
+        <!-- Karakter kağıdını açar (şimdilik ayrı ekran; ileride kamera koltuğa yaklaşır, kağıt masanın üstünde açılır) -->
+        <button class="btn sm" id="tvKagit" data-act="mode-sheet" title="Karakter kağıdını aç"><svg class="ic"><use href="#i-scroll"/></svg><span>Kağıdım</span></button>
         <!-- NPR taverna yüklenince görünür: bütün tavernaya bakmak / masaya dönmek -->
         <div class="tv-arac" id="tvArac" hidden>
           <button class="btn sm" id="tvAll" data-act="tav-all" aria-pressed="false"><svg class="ic"><use href="#i-expand"/></svg><span>Bütün taverna</span></button>
@@ -1200,6 +1359,8 @@ body.tv-full #tableView{height:100dvh}
           </div>
         </div>
         <!-- Duvardaki kara tahta: son atışlar. Üstüne gelince (telefonda dokununca) büyür. -->
+        <!-- İsimliğe basınca: hedef yap (DM), güvenilir / hain oyu (oyuncular), oy toplamı (BÖLÜM 10b) -->
+        <div class="koltuk-pop" id="koltukPop" role="dialog" hidden></div>
         <aside class="tv-log" id="tvLogBox" tabindex="0" data-act="log-toggle" aria-label="Son atışlar" title="Son atışlar: ayrıntı için üstüne gel">
           <h2>Son atışlar<em>en yenisi üstte</em></h2>
           <ol id="tvLog"></ol>
@@ -1210,6 +1371,9 @@ body.tv-full #tableView{height:100dvh}
 
   <!-- ═════════ KARAKTER KAĞIDI ═════════ -->
   <div id="sheet">
+
+  <!-- Kağıt masanın üstünde açıkken (madde 7) üstte sabit kalan dönüş düğmesi -->
+  <div class="kagit-ust"><button class="btn" data-act="mode-table" title="Kağıdı kapat, masaya dön (Esc)"><svg class="ic"><use href="#i-table"/></svg>Masaya dön</button></div>
 
   <!-- İlk açılışta görünen karşılama kutusu -->
   <section class="card welcome" id="welcome" hidden>
@@ -1580,15 +1744,16 @@ body.tv-full #tableView{height:100dvh}
     </main>
   </div>
 
-  </div><!-- /#sheet -->
 
   <!-- Yasal notlar: bu iki İngilizce cümle Wizards of the Coast'un istediği kalıptır, sözcükleri değiştirme -->
-  <!-- Yalnızca karakter kağıdında görünür (kendi kağıdım ve DM'in izlediği kağıt); masada ve DM ekranında JS gizler (setMode) -->
+  <!-- Yalnızca karakter kağıdında görünür (kendi kağıdım ve DM'in izlediği kağıt); masada ve DM ekranında JS gizler (setMode). Kağıdın içinde durur ki kağıt masanın üstünde açılınca da altında görünsün -->
   <footer class="foot" id="foot">
     <p>Hayran yapımı, resmî olmayan ve ücretsiz bir karakter defteridir. Wizards of the Coast ile bir bağlantısı yoktur.</p>
     <p lang="en">Dört Element is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</p>
     <p lang="en">This work includes material from the System Reference Document 5.2.1 (“SRD 5.2.1”) by Wizards of the Coast LLC, available at <a href="https://www.dndbeyond.com/srd" target="_blank" rel="noopener">https://www.dndbeyond.com/srd</a>. The SRD 5.2.1 is licensed under the Creative Commons Attribution 4.0 International License, available at <a href="https://creativecommons.org/licenses/by/4.0/legalcode" target="_blank" rel="noopener">https://creativecommons.org/licenses/by/4.0/legalcode</a>.</p>
   </footer>
+  </div><!-- /#sheet -->
+
 </div>
 
 <!-- ═════════ ZAR TEPSİSİ ═════════ -->
@@ -1601,6 +1766,12 @@ body.tv-full #tableView{height:100dvh}
     <button role="radio" aria-checked="false" data-act="dice-mode" data-mode="adv">Avantaj</button>
   </div>
   <p class="hint" style="margin:0">Avantajda iki d20 atılır, yüksek olan alınır. Dezavantajda düşük olan alınır. Sayfadaki bütün d20 atışlarına uygulanır.</p>
+  <!-- Masada: zarı kim atıyor (DM bir düşman adına atabilir), zar kime gidiyor, hasar mı (BÖLÜM 10b) -->
+  <div class="hedef-blok" id="hedefBlok" hidden>
+    <label class="f" id="atanAlan" hidden><span class="f-l">Atan<i>kimin adına</i></span><select id="atanSec"></select></label>
+    <label class="f"><span class="f-l">Hedef<i>zar kime gidiyor</i></span><select id="hedefSec"></select></label>
+    <button class="btn sm" id="hasarBtn" data-act="hasar-sec" aria-pressed="false" hidden title="Açıksa tepsiden atacağın bir sonraki zar hasar sayılır ve hedefin canından düşer"><svg class="ic"><use href="#i-hancer"/></svg>Sonraki zar hasar</button>
+  </div>
   <div class="dice-grid">
     <button class="roll" data-act="dice-quick" data-s="4">d4</button>
     <button class="roll" data-act="dice-quick" data-s="6">d6</button>
@@ -1618,6 +1789,8 @@ body.tv-full #tableView{height:100dvh}
   <ol class="history" id="history"></ol>
 </aside>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<!-- Seçili hedef: "Zar at"ın üstünde durur; × ile kaldırılır (BÖLÜM 10b) -->
+<div class="hedef-chip" id="hedefChip" hidden><svg class="ic"><use href="#i-hedef"/></svg><span id="hedefChipAd"></span><button class="icon-btn" data-act="hedef-kaldir" title="Hedefi kaldır" aria-label="Hedefi kaldır"><svg class="ic"><use href="#i-x"/></svg></button></div>
 
 <!-- ═════════ KARAKTERLER ÇEKMECESİ ═════════ -->
 <div class="scrim" id="scrim" data-act="drawers-close" hidden></div>
@@ -1948,6 +2121,7 @@ let critRow = -1;          // doğal 20 atılan saldırı satırı: bir sonraki 
 /* r.dice = [{ s: zarın yüz sayısı, v: gelen sayı, x: 1 ise hesaba katılmayan zar }]
    Bu liste yalnızca masa görünümündeki zar çizimi içindir; sonucu etkilemez. */
 function showRoll(r, opt = {}) {
+  if (!opt.remote) zarHedefle(r);        // masadaysan: kimin adına, kime, hasar mı (BÖLÜM 10b)
   if (mode !== 'table') {                // masa görünümünde sonucu zar yere inince masa söyler; bildirim kutusu erken söylemesin
     const t = $('#toast');
     t.className = 'toast show' + (r.flag ? ' ' + r.flag : '');
@@ -1956,10 +2130,11 @@ function showRoll(r, opt = {}) {
     toastTimer = setTimeout(() => t.classList.remove('show'), 7000);
   }
   // Masa görünümünde zar tepsisinin geçmişine de zar yere inince yazılır (sonuç hiçbir yerde zardan önce görünmesin)
-  if (mode === 'table' && store.net.role) opt = Object.assign({}, opt, { hist: r });
+  if (mode === 'table') opt = Object.assign({}, opt, { hist: r });
   else pushHistory(r);
   tableRoll(r, opt);                      // masadaysan: masa görünümünde zarı yuvarla, son atışlar listesine ekle
   if (!opt.remote) shareRoll(r);          // masadaysan zarı DM'e (ve izin varsa diğerlerine) bildir
+  if (!opt.remote && r.hasar) hasarUygula(r.hedef, r.total, (atanNpc() || {}).ad || myName());   // DM'in kendi hasar zarı
 }
 function pushHistory(r) {
   rolls.unshift(r);
@@ -1996,7 +2171,7 @@ function rollD20(label, parts, opt = {}) {
   const tag = mode === 'adv' ? ' (avantaj)' : mode === 'dis' ? ' (dezavantaj)' : '';
   const dice = [{ s:20, v:a }];
   if (b) { dice.push({ s:20, v:b }); dice[(mode === 'adv' ? a < b : a > b) ? 0 : 1].x = 1; }   // atılan (düşük ya da yüksek) zarı işaretle
-  showRoll({ label: label + tag, total, detail, flag, note, dice });
+  showRoll({ label: label + tag, total, detail, flag, note, dice, d20: true });   // d20: hasar sayılmaz (BÖLÜM 10b)
   return { kept, total };
 }
 
@@ -2030,7 +2205,7 @@ function rollExpr(expr, label, opt = {}) {
       detail += `${op}${n}d${t.s} (${r.join(', ')})`;
     } else { total += t.neg ? -t.k : t.k; detail += op + t.k; }
   });
-  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : '', dice });
+  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : '', dice, hasar: !!opt.hasar });
   return total;
 }
 
@@ -2057,7 +2232,7 @@ function doRoll(btn) {
   else if (kind === 'damage') {
     const a = C.attacks[i]; if (!a) return;
     if (!String(a.dmg).trim()) { notify('Önce hasar zarını yaz', 'Örnek: 1d8+3 slashing'); return; }
-    rollExpr(a.dmg, `${a.name || 'Saldırı'}: hasar`, { crit: critRow === i });
+    rollExpr(a.dmg, `${a.name || 'Saldırı'}: hasar`, { crit: critRow === i, hasar: true });   // hedef seçiliyse hedefin canından düşer
     critRow = -1;
   }
   else if (kind === 'death' && mode !== 'peek') rollDeath();
@@ -2588,7 +2763,7 @@ const ACTIONS = {
       if (!C.insp) { notify('İlhamı yalnızca DM verebilir', 'DM verdiğinde yıldız kendiliğinden yanar.'); return; }
       C.insp = false; changed(); notify('İlhamını kullandın', 'Bir d20 zarını yeniden atabilirsin.'); return;
     }
-    C.insp = !C.insp; changed();
+    C.insp = !C.insp; changed(); if (C.insp) ses('ilham');
   },
   'apply-class': () => {
     const cl = findClass(); if (!cl) return;
@@ -2761,9 +2936,11 @@ const net = {
   conn: null, dmName:'', roster: [], publicRolls: true, lastPong: 0, sentPortrait: null, welcomed: false,   // oyuncu tarafı
   mySeat: '', faces: new Map(),                              // oyuncu tarafı: kendi koltuk kimliğim, öbürlerinin küçük portreleri
   dropped: false,                                            // oyuncu tarafı: bağlantı koptu, "yeniden bağlandın" bildirimi bekleniyor
+  npcs: [],                                                  // oyuncu tarafı: DM'in masaya koyduğu düşmanlar (BÖLÜM 10b)
 };
 let mode = 'sheet';        // sheet = kendi kağıdım, dm = DM ekranı, peek = DM bir oyuncunun kağıdına bakıyor, table = masa görünümü
 let peekPid = '';
+let kagitUstte = false;    // kağıt masanın üstünde mi açık? (masadan kağıda geçince; arkada taverna bulanık durur, madde 7)
 
 const short = (v, n) => String(v ?? '').slice(0, n);
 const cleanCode = v => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
@@ -2810,8 +2987,9 @@ function stopNet(clearRole = true) {
   net.peer = null; net.conn = null;
   if (peer) { try { peer.destroy(); } catch (e) { /* zaten kapalı */ } }
   net.players.clear(); net.feed = []; net.roster = []; net.dmName = ''; net.sentPortrait = null;
-  net.mySeat = ''; net.faces.clear(); net.dropped = false;
-  if (clearRole) { tvReset(); store.net.role = ''; save(); if (mode !== 'sheet') setMode('sheet'); }
+  net.mySeat = ''; net.faces.clear(); net.dropped = false; net.npcs = [];
+  SAVAS.oylar.clear(); SAVAS.benimOy.clear();                      // oylar masayla birlikte biter
+  if (clearRole) { tvReset(); store.net.role = ''; save(); if (mode !== 'sheet') setMode('table'); }   // DM ekranından ya da masadan: tek başına masaya
   setNet('off', '');
 }
 
@@ -2870,8 +3048,8 @@ function dmAccept(conn) {
     if (!p) {
       // seat: öbür oyuncuların göreceği rastgele koltuk kimliği (gizli pid'den bağımsız)
       p = { pid, name, seat: 's' + newCode().toLowerCase(), char: null, lastRoll: null, face: '', faceSrc: '' };
-      net.players.set(pid, p); notify(`${name} masaya katıldı`);
-    } else if (!p.online) notify(p.left ? `${name} masaya döndü` : `${name} yeniden bağlandı`);
+      net.players.set(pid, p); notify(`${name} masaya katıldı`); ses('katildi');
+    } else if (!p.online) { notify(p.left ? `${name} masaya döndü` : `${name} yeniden bağlandı`); ses('katildi'); }
     Object.assign(p, { name, conn, online: true, left: false, seen: Date.now() });
     broadcastRoster(); sendFaces(p); renderParty(); renderNetUI();
   });
@@ -2896,7 +3074,7 @@ function dmReceive(pid, conn, msg) {
   dbg('rx', msg);
   p.seen = Date.now();
   if (msg.t === 'ping') send(conn, { t:'pong', want: !p.char });        // kağıt henüz gelmediyse yeniden iste
-  else if (msg.t === 'hello') send(conn, { t:'welcome', dm: store.net.name || 'DM', publicRolls: !!store.net.publicRolls, roster: rosterList(), you: p.seat });
+  else if (msg.t === 'hello') send(conn, { t:'welcome', dm: store.net.name || 'DM', publicRolls: !!store.net.publicRolls, roster: rosterList(), you: p.seat, npcs: npcRoster() });
   else if (msg.t === 'sheet' && msg.char && typeof msg.char === 'object') {
     const portrait = typeof msg.portrait === 'string' ? msg.portrait : (p.char ? p.char.portrait : '');
     const c = normalize(Object.assign({}, msg.char, { portrait }));
@@ -2911,12 +3089,22 @@ function dmReceive(pid, conn, msg) {
     const roll = cleanRoll(msg.roll);
     // Koltuk kimliğini oyuncu yollamaz; DM zarın hangi bağlantıdan geldiğine bakarak kendisi ekler
     const entry = Object.assign({}, roll, { who: p.name, char: p.char ? p.char.name : '', seat: p.seat, ts: Date.now() });
+    // Hedef: masadaki bir düşman ya da başka bir oyuncu olmalı; hasarı DM uygular (BÖLÜM 10b)
+    const hedef = cleanHedef(msg.hedef);
+    if (hedef && msg.hasar && (npcler().some(n => n.id === hedef && n.gor) || seated().some(o => o.seat === hedef && o.pid !== pid))) hasarUygula(hedef, roll.total, entry.char.trim() || p.name);
     p.lastRoll = entry;
     pushFeed(entry);
     // Öbür oyunculara yalnızca zar sonucu gider (DM bunu kapatabilir). Kağıt asla gitmez.
     if (store.net.publicRolls) net.players.forEach(o => { if (o.pid !== pid) send(o.conn, { t:'roll', who: p.name, char: entry.char, seat: p.seat, roll }); });
     showRemoteRoll(entry);
     renderParty();
+  }
+  else if (msg.t === 'oy') {                                         // güvenilir / hain oyu (BÖLÜM 10b): yalnızca DM'de durur
+    const hedef = cleanSeat(msg.hedef), oy = ['g', 'h'].includes(msg.oy) ? msg.oy : '';
+    if (!hedef || hedef === p.seat || !seated().some(o => o.seat === hedef)) return;
+    let m = SAVAS.oylar.get(pid); if (!m) SAVAS.oylar.set(pid, m = new Map());
+    if (oy) m.set(hedef, oy); else m.delete(hedef);
+    broadcastRoster(); renderTable();
   }
   else if (msg.t === 'bye') { if (msg.leave) p.left = true; try { conn.close(); } catch (e) { /* yok say */ } }
 }
@@ -2935,11 +3123,12 @@ const classKey = c => {      // figür için sınıf anahtarı. Türkçe yazıla
   }
   return '';
 };
-const rosterList = () => seated().map(p => ({ id: p.seat, name: p.name, char: p.char ? short(p.char.name.trim(), 40) : '', on: !!p.online, cls: classKey(p.char), look: p.char ? p.char.look : '' }));
+const rosterList = () => seated().map(p => ({ id: p.seat, name: p.name, char: p.char ? short(p.char.name.trim(), 40) : '', on: !!p.online, cls: classKey(p.char), look: p.char ? p.char.look : '', ...oySay(p.seat) }));   // g / h: oy toplamı
 const seatSig = c => (c ? [c.name, classKey(c), c.look].join('|') : '');
 function broadcastRoster() {
   const roster = rosterList(), dm = short(store.net.name || 'DM', 30);
-  net.players.forEach(p => send(p.conn, { t:'roster', roster, you: p.seat, dm }));   // you = alıcının kendi koltuğu
+  const npcs = npcRoster();                                          // masadaki düşmanlar (BÖLÜM 10b)
+  net.players.forEach(p => send(p.conn, { t:'roster', roster, you: p.seat, dm, npcs }));   // you = alıcının kendi koltuğu
   renderNetUI();                                                     // DM'in kendi "Masada:" listesi ve masa görünümü
 }
 // Bir oyuncunun portresinden 96 piksellik kopya yapar ve öbür oyunculara YALNIZCA değiştiğinde yollar
@@ -3024,11 +3213,13 @@ function playerReceive(conn, msg) {
   net.lastPong = Date.now();
   // Masadakiler: koltuk kimliği, ad, karakter adı, bağlı mı. Başka hiçbir alan okunmaz.
   const readRoster = list => (Array.isArray(list) ? list : []).slice(0, 12).filter(r => r && typeof r === 'object')
-    .map(r => ({ id: cleanSeat(r.id), name: short(r.name, 30), char: short(r.char, 40), on: r.on !== false, cls: FIG_CLASSES.includes(r.cls) ? r.cls : '', look: ['f', 'm'].includes(r.look) ? r.look : '' }));
+    .map(r => ({ id: cleanSeat(r.id), name: short(r.name, 30), char: short(r.char, 40), on: r.on !== false, cls: FIG_CLASSES.includes(r.cls) ? r.cls : '', look: ['f', 'm'].includes(r.look) ? r.look : '',
+      g: clamp(int(r.g), 0, 20), h: clamp(int(r.h), 0, 20) }));
   if (msg.you) net.mySeat = cleanSeat(msg.you);
   if (msg.t === 'welcome') {
     net.dmName = short(msg.dm, 30); net.publicRolls = !!msg.publicRolls;
     if (msg.roster) net.roster = readRoster(msg.roster);
+    net.npcs = readNpcs(msg.npcs);
     if (!net.welcomed) {
       net.welcomed = true;
       if (net.dropped) { net.dropped = false; notify('Masaya yeniden bağlandın'); }
@@ -3041,9 +3232,12 @@ function playerReceive(conn, msg) {
   else if (msg.t === 'insp') {                                       // ilhamı DM verir ya da geri alır
     const own = ownChar(), on = !!msg.on;
     if (own.insp !== on) { own.insp = on; changed(); }
+    if (on) ses('ilham');
     notify(on ? 'DM sana ilham verdi' : 'DM ilhamını geri aldı', on ? 'Bir d20 zarını yeniden atabilirsin. Kullanınca yıldıza bas.' : '');
   }
-  else if (msg.t === 'roster') { net.roster = readRoster(msg.roster); if (msg.dm) net.dmName = short(msg.dm, 30); renderNetUI(); }
+  else if (msg.t === 'roster') { net.roster = readRoster(msg.roster); net.npcs = readNpcs(msg.npcs); if (msg.dm) net.dmName = short(msg.dm, 30); renderNetUI(); renderTable(); }
+  else if (msg.t === 'hasar') hasarAl(clamp(int(msg.miktar), 0, 9999), short(msg.kimden, 40));   // DM'in uyguladığı hasar (BÖLÜM 10b)
+  else if (msg.t === 'oy-sifir') { SAVAS.benimOy.clear(); notify('DM oyları sıfırladı'); }
   else if (msg.t === 'face') {                                       // bir koltuğun küçük portresi (yalnızca değişince gelir)
     const id = cleanSeat(msg.id), img = cleanImg(msg.img);
     if (id && id !== 'dm') {
@@ -3070,7 +3264,7 @@ function queueSheet() { if (store.net.role !== 'player') return; clearTimeout(ne
 
 /* ───────── Zarların paylaşılması ───────── */
 function shareRoll(r) {
-  if (store.net.role === 'player') send(net.conn, { t:'roll', roll: cleanRoll(r) });
+  if (store.net.role === 'player') send(net.conn, { t:'roll', roll: cleanRoll(r), hedef: r.hedef || '', hasar: !!r.hasar });
   else if (store.net.role === 'dm' && net.peer) {
     const secret = mode === 'peek' || !!store.net.dmSecret;
     pushFeed(Object.assign(cleanRoll(r), { who:'DM', char: mode === 'peek' ? `${C.name.trim() || 'oyuncu'} adına` : '', ts: Date.now(), secret }));
@@ -3087,16 +3281,22 @@ function showRemoteRoll(e) {
 function setMode(m, pid) {
   const p = m === 'peek' ? net.players.get(pid) : null;
   if (m === 'peek' && !(p && p.char)) m = 'dm';
-  if (m === 'table' ? !store.net.role : (m !== 'sheet' && store.net.role !== 'dm')) m = 'sheet';   // masa görünümü: masadaki herkes
+  if (m !== 'sheet' && m !== 'table' && store.net.role !== 'dm') m = 'sheet';   // masa görünümü herkese açık (masada değilsen tek başına oturursun)
+  if (mode === 'table' && m === 'sheet') ses('kagit-ac');            // masadan kağıda: kağıt açılır; kağıttan masaya: kapanır
+  else if (mode === 'sheet' && m === 'table') ses('kagit-kapa');
+  // Masadan kağıda geçince kağıt masanın üstünde açılır (taverna arkada bulanık kalır); DM ekranından geçince ayrı sayfadır
+  kagitUstte = m === 'sheet' && (mode === 'table' || (mode === 'sheet' && kagitUstte));
   mode = m; peekPid = m === 'peek' ? pid : '';
   document.body.classList.toggle('peek', m === 'peek');
-  document.body.classList.toggle('tv-on', m === 'table');
+  document.body.classList.toggle('tv-on', m === 'table' || kagitUstte);
+  document.body.classList.toggle('kagit-ustte', kagitUstte);
   $('#dmScreen').hidden = m !== 'dm';
   $('#sheet').hidden = m === 'dm' || m === 'table';
-  $('#tableView').hidden = m !== 'table';
+  $('#tableView').hidden = m !== 'table' && !kagitUstte;
+  if (kagitUstte) $('#sheet').scrollTop = 0;
   $('#foot').hidden = m !== 'sheet' && m !== 'peek';             // yasal notlar yalnızca karakter kağıdında
   C = m === 'peek' ? p.char : ownChar();
-  if (m === 'dm') { renderDMHead(); renderParty(); renderFeed(); document.title = 'DM ekranı — Dört Element'; }
+  if (m === 'dm') { renderDMHead(); renderParty(); renderFeed(); renderNpcs(); document.title = 'DM ekranı — Dört Element'; }
   else { showChar(); applyReadonly(); }
   if (m === 'table') { tvEnter(); document.title = 'Masa — Dört Element'; }
   else tvLeave();
@@ -3137,6 +3337,9 @@ function renderNetUI() {
   } else if (role === 'player') {
     text = net.status === 'open' ? `Masa ${code}: bağlısın. ${net.dmName || 'DM'} açık olan kağıdını ve attığın zarları canlı görüyor.` : `Masa ${code}: ${net.note || 'bağlanılıyor…'}`;
     btn.textContent = 'Masa ayrıntıları'; btn.dataset.act = 'table-open';
+  } else if (!role && mode === 'sheet' && !kagitUstte) {               // kağıt masanın üstündeyse kendi "Masaya dön"ü var
+    text = 'Karakter kağıdındasın. Attığın zarlar masada yuvarlansın istersen masaya dön.';
+    btn.textContent = 'Masaya dön'; btn.dataset.act = 'mode-table';
   } else if (role === 'dm' && mode === 'sheet') {
     text = net.status === 'open' ? `Masa ${code} açık, ${onlineCount()} oyuncu bağlı. Şu an kendi kağıtlarına bakıyorsun.` : `Masa ${code}: ${net.note}`;
     btn.textContent = 'DM ekranına dön'; btn.dataset.act = 'mode-dm';
@@ -3146,7 +3349,8 @@ function renderNetUI() {
     btn.textContent = 'DM ekranına dön'; btn.dataset.act = 'mode-dm';
   }
   bar.hidden = !text;
-  bar.dataset.s = mode === 'peek' || net.status === 'open' ? 'ok' : net.status === 'error' ? 'err' : 'wait';
+  hedefUI();                                                         // tepsideki hedef listesi masadakilere göre (BÖLÜM 10b)
+  bar.dataset.s = !role || mode === 'peek' || net.status === 'open' ? 'ok' : net.status === 'error' ? 'err' : 'wait';
   $('#tableBarText').textContent = text;
   $('#tableBarDot').className = mode === 'peek' ? 'dot on' : dotClass();
   // Masadakiler listesi. Masa görünümünde gizli: isimlikler aynı şeyi zaten gösteriyor.
@@ -3307,8 +3511,8 @@ Object.assign(ACTIONS, {
     store.net.code = newCode(); await startDM(); setMode('dm');
   },
   'mode-dm': () => { openTable(false); setMode('dm'); },
-  'mode-sheet': () => setMode('sheet'),
-  'mode-table': () => { openTable(false); setMode('table'); },
+  'mode-sheet': () => kagitAc(),
+  'mode-table': () => { openTable(false); kagitUstte ? kagitKapa() : setMode('table'); },
   peek: b => setMode('peek', b.dataset.pid),
   kick: async b => {
     const p = net.players.get(b.dataset.pid); if (!p) return;
@@ -3341,11 +3545,224 @@ window.addEventListener('resize', measureTopbar);
 
 function resumeTable() {
   const m = /[#&]masa=([A-Za-z0-9-]+)/.exec(location.hash);
-  if (store.net.role === 'dm') { startDM(); setMode('dm'); }
+  if (store.net.role === 'dm') startDM();
   else if (store.net.role === 'player' && cleanCode(store.net.code).length === 6) startPlayer();
   else { store.net.role = ''; if (m) { store.net.code = cleanCode(m[1]); openTable(true); } }
   renderNetUI();
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 10b — SAVAŞ: düşmanlar (NPC), hedef, hasar, güvenilir / hain oyları (yol haritası Aşama 4)
+   • Düşmanlar ve NPC'ler (store.npcs) yalnızca DM'de durur; DM ekranında eklenir: ad, can, AC ve iki ayar: "Masada"
+     (oyuncular görür ve hedef seçebilir) ve "Can görünsün" (oyuncular canını ve AC'sini de görür). Oyunculara yalnızca
+     masadakiler gider; canları yalnızca izin varsa.
+   • Hedef (store.hedef): zar tepsisinde ya da isimliğe basarak seçilir, × ile kaldırılana kadar seçili kalır. DM
+     oyuncuları ve düşmanları, oyuncular masadaki düşmanları hedefler (oyuncular birbirine genelde hasar vermez).
+     Zarın adına "→ hedef" eklenir; kara tahtada, zar akışında ve bildirimde öyle görünür.
+   • DM bir düşman adına zar atabilir (store.atan, tepside "Atan"): zarın adının başına düşmanın adı gelir.
+   • Hasar: hedef seçiliyken kağıttaki "hasar" zarları ve tepside "Sonraki zar hasar" açıkken atılan (d20 olmayan) zar
+     hasar sayılır. Hasarı her zaman DM uygular: düşmansa canından düşer; oyuncuysa o oyuncuya 'hasar' mesajı gider ve
+     oyuncunun kendi tarayıcısı canından düşer (önce geçici can; kağıt oyuncunundur). Sonuç zardan önce görünmesin diye
+     hasar zar yere indikten sonra (SAVAS.gecikme) uygulanır.
+   • Oylar: oyuncular masada başka bir oyuncunun isimliğine basıp "güvenilir" ya da "hain" der (gizli, değiştirilebilir).
+     Oylar yalnızca DM'de toplanır; toplam isimliklerde herkese görünür, kimin ne verdiği hiçbir yere gönderilmez.
+     DM sıfırlayabilir. Oylar kaydedilmez: masa kapanınca biter.
+   ═══════════════════════════════════════════════════════════════════ */
+const SAVAS = { gecikme: 1500, hasarSecili: false, oylar: new Map(), benimOy: new Map(), npcT: 0 };
+const cleanHedef = v => (/^[sn][a-z0-9]{4,10}$/.test(String(v || '')) ? String(v) : '');   // 's…' oyuncu koltuğu, 'n…' düşman
+const npcler = () => (Array.isArray(store.npcs) ? store.npcs : (store.npcs = []));
+// Oyunculara giden düşman listesi: yalnızca masadakiler; can ve AC yalnızca DM izin verdiyse
+const npcRoster = () => npcler().filter(n => n.gor).map(n => (n.canGor ? { id: n.id, ad: n.ad, can: int(n.can), max: int(n.max), ac: int(n.ac) } : { id: n.id, ad: n.ad }));
+const readNpcs = list => (Array.isArray(list) ? list : []).slice(0, 30).filter(n => n && typeof n === 'object' && cleanHedef(n.id).startsWith('n'))
+  .map(n => ({ id: n.id, ad: short(n.ad, 40), can: n.can === undefined ? null : clamp(int(n.can), -999, 9999),
+    max: n.max === undefined ? null : clamp(int(n.max), 0, 9999), ac: n.ac === undefined ? null : clamp(int(n.ac), 0, 99) }));
+
+// Seçilebilir hedefler: DM'de masadaki oyuncular ve bütün düşmanlar; oyuncuda masadaki düşmanlar; tek başınayken yok
+function hedefler() {
+  const role = store.net.role;
+  // ek: düşmanın canı ve AC'si (DM her zaman görür; oyuncu yalnızca DM "Can görünsün" dediyse)
+  const ek = n => (n.max ? `${Math.max(0, int(n.can))}/${int(n.max)} can` : '') + (n.ac ? `${n.max ? ', ' : ''}AC ${int(n.ac)}` : '');
+  if (role === 'dm') return seated().map(p => ({ id: p.seat, ad: (p.char && p.char.name.trim()) || p.name, tur: 'Oyuncular' }))
+    .concat(npcler().map(n => ({ id: n.id, ad: n.ad || 'İsimsiz düşman', tur: 'Düşmanlar', ek: ek(n) })));
+  if (role === 'player') return net.npcs.map(n => ({ id: n.id, ad: n.ad || 'İsimsiz düşman', tur: 'Düşmanlar', ek: ek(n) }));
+  return [];
+}
+const hedefAd = id => (hedefler().find(h => h.id === id) || {}).ad || '';
+function gecerliHedef() { const h = cleanHedef(store.hedef); return h && hedefler().some(x => x.id === h) ? h : ''; }
+const atanNpc = () => (store.net.role === 'dm' ? npcler().find(n => n.id === store.atan) || null : null);
+
+// Kendi atışım (showRoll'dan): kimin adına, kime, hasar mı? Zarın adı buna göre yazılır.
+function zarHedefle(r) {
+  const h = gecerliHedef(), a = atanNpc();
+  if (a) r.label = `${a.ad || 'Düşman'}: ${r.label}`;
+  r.hasar = !!h && !!(r.hasar || (SAVAS.hasarSecili && !r.d20));
+  if (h) { r.hedef = h; r.label += ` → ${hedefAd(h)}`; }
+  if (r.hasar && SAVAS.hasarSecili) { SAVAS.hasarSecili = false; hedefUI(); }   // "Sonraki zar hasar" tek zarlıktır
+}
+// DM'de: hasarı uygular (zar yere indikten sonra). Düşmansa canından düşer, oyuncuysa oyuncuya gider.
+function hasarUygula(hedef, miktar, kimden) {
+  miktar = clamp(int(miktar), 0, 9999);
+  if (!miktar || store.net.role !== 'dm') return;
+  setTimeout(() => {
+    const n = npcler().find(x => x.id === hedef);
+    if (n) {
+      if (!int(n.max) && !int(n.can)) { notify(`${n.ad || 'Düşman'} ${miktar} hasar aldı`, 'Canı yazılı değil: DM ekranından canını gir.'); return; }
+      n.can = Math.max(0, int(n.can) - miktar); save(); renderNpcs(); npcDegisti(true);
+      notify(`${n.ad || 'Düşman'} ${miktar} hasar aldı`, n.can <= 0 ? 'Canı bitti: yere düştü.' : `Kalan can: ${n.can} / ${int(n.max)}`);
+      return;
+    }
+    const p = seated().find(x => x.seat === hedef);
+    if (p && !send(p.conn, { t:'hasar', miktar, kimden: short(kimden, 40) })) notify(`${p.name} şu an bağlı değil`, `${miktar} hasarı kağıdından elle düş.`);
+  }, SAVAS.gecikme);
+}
+// Oyuncuda: DM'den gelen hasar kendi canımdan düşer (önce geçici can)
+function hasarAl(miktar, kimden) {
+  if (!miktar) return;
+  const c = ownChar(); let kalan = miktar;
+  const t = int(c.hp.temp);
+  if (t > 0) { const d = Math.min(t, kalan); c.hp.temp = t - d; kalan -= d; }
+  c.hp.cur = Math.max(0, int(c.hp.cur) - kalan);
+  if (C === c) { setInput('hp.cur'); setInput('hp.temp'); }
+  changed();
+  if (mode === 'table') { renderMe(); renderTable(); }
+  notify(`${kimden || 'Bir düşman'} sana ${miktar} hasar verdi`, c.hp.cur <= 0 ? 'Canın bitti: baygınsın. Sıran gelince ölüm zarı at.' : `Kalan can: ${c.hp.cur} / ${int(c.hp.max)}`);
+}
+
+/* ───────── Tepsideki atan / hedef / hasar ve "Zar at"ın üstündeki hedef etiketi ───────── */
+function hedefUI() {
+  const role = store.net.role, dm = role === 'dm', list = hedefler(), h = gecerliHedef(), a = atanNpc();
+  $('#hedefBlok').hidden = !role || (!dm && !list.length);
+  $('#atanAlan').hidden = !dm;
+  if (dm) $('#atanSec').innerHTML = `<option value="">${esc(myName())} (DM)</option>`
+    + npcler().map(n => `<option value="${n.id}"${n.id === store.atan ? ' selected' : ''}>${esc(n.ad || 'İsimsiz düşman')}</option>`).join('');
+  const grup = {};
+  list.forEach(x => (grup[x.tur] = grup[x.tur] || []).push(x));
+  $('#hedefSec').innerHTML = '<option value="">Hedef yok</option>' + Object.entries(grup).map(([t, xs]) =>
+    `<optgroup label="${t}">${xs.map(x => `<option value="${x.id}"${x.id === h ? ' selected' : ''}>${esc(x.ad)}${x.ek ? ` (${esc(x.ek)})` : ''}</option>`).join('')}</optgroup>`).join('');
+  const hx = list.find(x => x.id === h);
+  const hb = $('#hasarBtn');
+  hb.hidden = !h; hb.setAttribute('aria-pressed', String(!!h && SAVAS.hasarSecili));
+  $('#hedefChip').hidden = !h && !a;
+  $('#hedefChipAd').innerHTML = (a ? `${esc(a.ad || 'Düşman')} ` : '') + (h ? `<em>→</em> ${esc(hedefAd(h))}${hx && hx.ek ? ` <em>(${esc(hx.ek)})</em>` : ''}` : '<em>adına atıyorsun</em>')
+    + (h && SAVAS.hasarSecili ? ' <em>· sonraki zar hasar</em>' : '');
+}
+$('#hedefSec').addEventListener('change', e => { store.hedef = cleanHedef(e.target.value); SAVAS.hasarSecili = false; save(); hedefUI(); renderTable(); });
+$('#atanSec').addEventListener('change', e => { store.atan = cleanHedef(e.target.value); save(); hedefUI(); });
+
+/* ───────── DM ekranı: düşmanlar ve NPC'ler ───────── */
+function renderNpcs() {
+  const box = $('#npcList');
+  const list = npcler();
+  box.innerHTML = list.length ? list.map(n => {
+    const dus = int(n.max) > 0 && int(n.can) <= 0;
+    return `<div class="npc${dus ? ' dustu' : ''}" data-id="${n.id}">
+      <div class="npc-ust"><input data-npc="ad" value="${esc(n.ad)}" placeholder="Adı: Goblin, Kurt, Han sahibi…" aria-label="Adı" maxlength="40"></div>
+      <button class="icon-btn del" data-act="npc-sil" data-id="${n.id}" title="Sil" aria-label="${esc(n.ad || 'Düşmanı')} sil"><svg class="ic"><use href="#i-x"/></svg></button>
+      <div class="npc-say">
+        <label class="f"><span class="f-l">Can</span><input type="number" data-npc="can" value="${int(n.can)}"></label>
+        <label class="f"><span class="f-l">En çok</span><input type="number" data-npc="max" value="${int(n.max)}" min="0"></label>
+        <label class="f"><span class="f-l">AC</span><input type="number" data-npc="ac" value="${int(n.ac)}" min="0"></label>
+        <div class="btns">
+          <button class="btn sm" data-act="npc-gor" data-id="${n.id}" aria-pressed="${!!n.gor}" title="Açıksa oyuncular onu görür ve hedef seçebilir"><svg class="ic"><use href="#i-eye"/></svg>Masada</button>
+          <button class="btn sm" data-act="npc-can" data-id="${n.id}" aria-pressed="${!!n.canGor}" title="Açıksa oyuncular canını ve AC'sini de görür"><svg class="ic"><use href="#i-kalkan"/></svg>Can görünsün</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') : '<p class="npc-bos">Henüz düşman yok. "Ekle" ile bir düşman ya da NPC ekle.</p>';
+}
+// Düşmanlar değişti: oyunculara bildir (yazarken her harfte değil, biraz bekleyip), tepsiyi yenile
+function npcDegisti(hemen) {
+  hedefUI();
+  clearTimeout(SAVAS.npcT);
+  SAVAS.npcT = setTimeout(() => { if (store.net.role === 'dm') broadcastRoster(); }, hemen ? 0 : 400);
+}
+$('#npcList').addEventListener('input', e => {
+  const k = e.target.dataset.npc, row = e.target.closest('.npc'), n = row && npcler().find(x => x.id === row.dataset.id);
+  if (!k || !n) return;
+  n[k] = k === 'ad' ? short(e.target.value, 40) : clamp(int(e.target.value), k === 'can' ? -999 : 0, 9999);
+  row.classList.toggle('dustu', int(n.max) > 0 && int(n.can) <= 0);
+  save(); npcDegisti();
+});
+
+/* ───────── Oylar ───────── */
+// Bir koltuğun oy toplamı (yalnızca DM hesaplar; masadan ayrılanların oyu sayılmaz)
+function oySay(seat) {
+  const ok = new Set(seated().map(p => p.pid)); let g = 0, h = 0;
+  SAVAS.oylar.forEach((m, pid) => { if (!ok.has(pid)) return; const o = m.get(seat); if (o === 'g') g++; else if (o === 'h') h++; });
+  return { g, h };
+}
+
+/* ───────── İsimliğe basınca: hedef yap, oy ver, oy toplamı ───────── */
+function koltukAc(el, tag) {
+  const s = el._s, role = store.net.role, pop = $('#koltukPop');
+  if (!s || !role) return;                                           // tek başınayken masada yalnızca sen varsın
+  const hedeflenir = role === 'dm' && !s.dm && !s.me, oylanir = role === 'player' && !s.dm && !s.me;
+  const oy = SAVAS.benimOy.get(s.id) || '', h = gecerliHedef() === s.id;
+  pop.innerHTML = `<div class="kp-ad">${esc(s.char || s.name)}<small>${s.dm ? 'DM' : esc(s.char ? s.name : '')}${s.me ? ' (sen)' : ''}</small></div>
+    ${s.dm ? '' : `<div class="kp-oy"><span><svg class="ic"><use href="#i-kalkan"/></svg> <b>${int(s.g)}</b> güvenilir</span><span><svg class="ic"><use href="#i-hancer"/></svg> <b>${int(s.h)}</b> hain</span></div>`}
+    ${hedeflenir || oylanir ? `<div class="kp-btn">
+      ${hedeflenir ? `<button class="btn sm${h ? '' : ' accent'}" data-act="hedef-yap" data-id="${s.id}"><svg class="ic"><use href="#i-hedef"/></svg>${h ? 'Hedefi kaldır' : 'Hedef yap'}</button>` : ''}
+      ${oylanir ? `<button class="btn sm" data-act="oy-ver" data-id="${s.id}" data-oy="g" aria-pressed="${oy === 'g'}"><svg class="ic"><use href="#i-kalkan"/></svg>Güvenilir</button>
+        <button class="btn sm" data-act="oy-ver" data-id="${s.id}" data-oy="h" aria-pressed="${oy === 'h'}"><svg class="ic"><use href="#i-hancer"/></svg>Hain</button>` : ''}
+    </div>` : ''}
+    ${oylanir ? '<p class="hint always" style="margin:0">Oyun gizli: kimse kimin ne verdiğini görmez, yalnızca toplamı.</p>' : ''}`;
+  pop.hidden = false; pop.dataset.id = s.id;
+  pop.setAttribute('aria-label', s.char || s.name);
+  const m = $('.tv-main').getBoundingClientRect(), r = tag.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+  let y = r.bottom - m.top + 12;
+  if (y + ph > m.height - 8) y = r.top - m.top - ph - 12;           // altta yer yoksa isimliğin üstüne
+  pop.style.left = clamp(r.left + r.width / 2 - m.left - pw / 2, 8, m.width - pw - 8) + 'px';
+  pop.style.top = clamp(y, 8, m.height - ph - 8) + 'px';
+}
+const koltukKapa = () => { $('#koltukPop').hidden = true; };
+(function koltukTik() {
+  const sc = $('#tvScene'); let bas = null;
+  sc.addEventListener('pointerdown', e => { bas = [e.clientX, e.clientY]; });
+  sc.addEventListener('click', e => {
+    const tag = e.target.closest('.tv-tag'), el = tag && tag.closest('.tv-seat');
+    if (!el || !bas || Math.hypot(e.clientX - bas[0], e.clientY - bas[1]) > 6) return;   // sürüklemenin sonu tıklama sayılmaz
+    if (!$('#koltukPop').hidden && $('#koltukPop').dataset.id === el.dataset.id) return koltukKapa();
+    koltukAc(el, tag);
+  });
+  document.addEventListener('pointerdown', e => { if (!$('#koltukPop').hidden && !e.target.closest('#koltukPop, .tv-tag')) koltukKapa(); }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') koltukKapa(); });
+})();
+
+Object.assign(ACTIONS, {
+  'hedef-kaldir': () => { store.hedef = ''; SAVAS.hasarSecili = false; save(); hedefUI(); renderTable(); },
+  'hasar-sec': () => { SAVAS.hasarSecili = !SAVAS.hasarSecili && !!gecerliHedef(); hedefUI(); },
+  'hedef-yap': b => {
+    store.hedef = gecerliHedef() === b.dataset.id ? '' : cleanHedef(b.dataset.id);
+    SAVAS.hasarSecili = false; save(); koltukKapa(); hedefUI(); renderTable();
+  },
+  'oy-ver': b => {
+    if (store.net.role !== 'player') return;
+    const id = cleanSeat(b.dataset.id), oy = SAVAS.benimOy.get(id) === b.dataset.oy ? '' : b.dataset.oy;
+    if (!send(net.conn, { t:'oy', hedef: id, oy })) { notify('Masayla bağlantı yok', 'Oyun gönderilemedi; bağlanınca yeniden dene.'); return; }
+    if (oy) SAVAS.benimOy.set(id, oy); else SAVAS.benimOy.delete(id);
+    const el = tv.els.get(id); if (el) koltukAc(el, $('.tv-tag', el));   // düğme hemen basılı görünsün; toplam DM'den gelince yenilenir
+  },
+  'oy-sifirla': () => {
+    SAVAS.oylar.clear();
+    net.players.forEach(p => send(p.conn, { t:'oy-sifir' }));
+    broadcastRoster(); renderTable(); notify('Oylar sıfırlandı');
+  },
+  'npc-ekle': () => {
+    npcler().push({ id: 'n' + newCode().toLowerCase(), ad: '', can: 10, max: 10, ac: 12, gor: true, canGor: false });
+    save(); renderNpcs(); npcDegisti(true);
+    const inp = $$('#npcList .npc input[data-npc="ad"]').pop(); if (inp) inp.focus();
+  },
+  'npc-sil': b => {
+    const list = npcler(), i = list.findIndex(n => n.id === b.dataset.id);
+    if (i < 0) return;
+    list.splice(i, 1);
+    if (store.hedef === b.dataset.id) store.hedef = '';
+    if (store.atan === b.dataset.id) store.atan = '';
+    save(); renderNpcs(); npcDegisti(true);
+  },
+  'npc-gor': b => { const n = npcler().find(x => x.id === b.dataset.id); if (n) { n.gor = !n.gor; save(); renderNpcs(); npcDegisti(true); } },
+  'npc-can': b => { const n = npcler().find(x => x.id === b.dataset.id); if (n) { n.canGor = !n.canGor; save(); renderNpcs(); npcDegisti(true); } },
+});
 
 /* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 11 — MASA GÖRÜNÜMÜ: taverna masası, oturan figürler ve uçan zarlar
@@ -3580,23 +3997,27 @@ function tvArtCheck() {
 // Koltuklar: önce DM, sonra oyuncular. Oyuncunun ekranına yalnızca DM'den gelen liste (ad, karakter adı, bağlı mı) ve küçük portreler girer.
 function seatList() {
   const me = meSeat(), own = ownChar(), live = net.status === 'open';
+  // Masaya bağlı değilsen tek başına oturursun: masada yalnızca senin koltuğun
+  if (!store.net.role) return [{ id: me, me:true, name: myName(), char: own.name.trim(), img: own.portrait, on:true, cls: classKey(own), look: own.look }];
   if (store.net.role === 'dm') {
     return [{ id:'dm', dm:true, me:true, name: myName(), on: live }]
       .concat(seated().map(p => ({ id: p.seat, name: p.name, char: p.char ? p.char.name.trim() : '', img: p.face, on: !!p.online,
         cls: classKey(p.char), look: p.char ? p.char.look : '',
-        hp: p.char ? p.char.hp : null, insp: !!(p.char && p.char.insp) })));   // can çubuğu ve ilham yıldızı yalnızca DM'in kendi ekranında, hiçbir yere gönderilmez
+        hp: p.char ? p.char.hp : null, insp: !!(p.char && p.char.insp), ...oySay(p.seat) })));   // can çubuğu ve ilham yıldızı yalnızca DM'in kendi ekranında, hiçbir yere gönderilmez
   }
   const list = [{ id:'dm', dm:true, name: net.dmName || 'DM', on: live }]
     .concat(net.roster.map((r, i) => {
       const mine = !!r.id && r.id === me;
       return { id: r.id || 'x' + i, me: mine, name: r.name, char: r.char, on: mine ? live : r.on, img: mine ? own.portrait : net.faces.get(r.id) || '',
-        cls: mine ? classKey(own) : r.cls, look: mine ? own.look : r.look };
+        cls: mine ? classKey(own) : r.cls, look: mine ? own.look : r.look, g: r.g, h: r.h };
     }));
   if (!list.some(s => s.me)) list.push({ id: me, me:true, name: myName(), char: own.name.trim(), img: own.portrait, on: live, cls: classKey(own), look: own.look });   // liste gelmeden de kendi koltuğum görünsün
   return list;
 }
 
 function seatHTML(s) {
+  // Oy toplamı (BÖLÜM 10b): isimliğin altında; hiç oy yoksa görünmez
+  const oy = !s.dm && (s.g || s.h) ? `<span class="tv-oy">${s.g ? `<span title="${s.g} güvenilir oyu"><svg class="ic"><use href="#i-kalkan"/></svg>${s.g}</span>` : ''}${s.h ? `<span title="${s.h} hain oyu"><svg class="ic"><use href="#i-hancer"/></svg>${s.h}</span>` : ''}</span>` : '';
   // İsimlikteki küçük resim: DM'de her zaman zar simgesi (DM'in hazırladığı NPC portresi oyunculara sızmasın diye)
   const av = s.dm ? '<svg class="ic"><use href="#i-d20"/></svg>'
     : s.img ? `<img src="${esc(s.img)}" alt="">`
@@ -3615,7 +4036,7 @@ function seatHTML(s) {
        <div class="tv-figw"><div class="tv-fig"><img src="${ART}${figFile(s)}.webp" alt="" draggable="false"></div></div>`;
   return `${fig}
     <div class="tv-tag"><span class="tv-av">${av}<span class="dot${s.on ? ' on' : ''}"></span></span>
-      <span class="tv-nm"><b>${esc(s.name)}${s.insp ? '<span class="tv-star" title="İlhamı var">★</span>' : ''}</b>${s.dm ? '<small>DM</small>' : s.char ? `<small>${esc(s.char)}</small>` : ''}${hp}</span></div>`;
+      <span class="tv-nm"><b>${esc(s.name)}${s.insp ? '<span class="tv-star" title="İlhamı var">★</span>' : ''}</b>${s.dm ? '<small>DM</small>' : s.char ? `<small>${esc(s.char)}</small>` : ''}${hp}</span>${oy}</div>`;
 }
 
 /* Ekranda tablonun hangi parçası görünüyor? (Telefonda tablo büyütülür, kenarları görünmez.) Değerler tablonun birimiyle.
@@ -3706,6 +4127,7 @@ function renderTable() {
     el.style.setProperty('--ox', cx.toFixed(3));
     el.style.setProperty('--oy', sy.toFixed(3));
     el.classList.toggle('dm', !!s.dm); el.classList.toggle('me', !!s.me); el.classList.toggle('off', !s.on);
+    el.dataset.id = s.id; el.classList.toggle('hedef', s.id === gecerliHedef());   // seçili hedefin isimliği kesikli halkalı (BÖLÜM 10b)
     el.title = `${s.name}${s.char ? ', ' + s.char : ''}${s.dm ? ' (DM)' : ''}${s.me ? ' (sen)' : ''}: ${s.on ? 'bağlı' : 'çevrimdışı'}`;
     const html = seatHTML(s);
     if (el._html !== html) {                                         // değişmediyse dokunma (portre titremesin)
@@ -3724,6 +4146,8 @@ function renderTable() {
     const mug = tv.mugs.get(id); if (mug) { mug.remove(); tv.mugs.delete(id); }
   });
   if (tav.state === 'on') tavKoltuklar(lay, seats);                    // göz hizasındaki 3D mankenler (BÖLÜM 11b)
+  const pop = $('#koltukPop');                                       // isimlik kutusu açıksa yeni bilgiyle yenilenir
+  if (!pop.hidden) { const el = tv.els.get(pop.dataset.id); if (el) koltukAc(el, $('.tv-tag', el)); else koltukKapa(); }
   povRender();                                                        // göz hizası paneli: kim karşımda, pencere nerede
 }
 
@@ -3830,7 +4254,7 @@ function waiterTick(ts) {
         const m = document.createElement('img'), p = mugPos(el);
         m.className = 'tv-mug'; m.src = ART + 'kupa.webp'; m.alt = ''; m.onerror = () => m.remove();
         m.style.setProperty('--x', p[0].toFixed(2)); m.style.setProperty('--y', p[1].toFixed(2)); m.style.setProperty('--r', (figHash(wt.seat) % 360) + 'deg');
-        $('#tvScene').appendChild(m); tv.mugs.set(wt.seat, m);
+        $('#tvScene').appendChild(m); tv.mugs.set(wt.seat, m); ses('kupa');
       }
     }
     if (wt.hold > 2.9) { wt.state = 'back'; box.classList.add('walk'); box.dataset.state = 'back'; }
@@ -3849,7 +4273,7 @@ function waiterStop() {
 /* Oyuncunun sağ alttaki kutusu: kendi canı, AC'si ve hızlı zarları. Bilerek sade; ayrıntı kağıtta. */
 function renderMe() {
   const box = $('#tvMe');
-  const show = mode === 'table' && store.net.role === 'player';
+  const show = mode === 'table' && store.net.role !== 'dm';
   box.hidden = !show;
   $('.tv-wrap').classList.toggle('has-me', show);
   $('.tv-wrap').classList.toggle('me-min', show && !!store.meMin);
@@ -3933,6 +4357,11 @@ function flyDice(box, item, fast, delay = 0) {
   const seat = tv.els.get(item.seat);
   const fx = seat ? seat._x : TV.cx, fy = seat ? seat._y : TV.cy + TV.R + 8;   // zar atanın başının olduğu yerden çıkar; koltuğu bilinmiyorsa masanın alt kenarından
   const dur = fast ? 650 : 1150;
+  // Sesler (BÖLÜM 11c): sayı yazılmadan (son zar durduğunda) bitmiş olurlar. Kendi atışımda önce elde sallanır,
+  // zar masaya inerken yuvarlanır.
+  const sayi = delay + ($$('.tv-die', box).length - 1) * (fast ? 30 : 70) + dur - 60, iner = delay + dur * 0.35;
+  if (item.mine && !fast) ses('zar-salla', 0, iner);
+  ses('zar-yuvarlan', iner, sayi);
   const turns = [];
   tv.anims = [];
   $$('.tv-die', box).forEach((d, i) => {
@@ -4115,8 +4544,7 @@ function renderTableLog() {
 /* showRoll buraya gelir: atışı sıraya alır. Masa görünümü kapalıysa ya da sekme
    arkadaysa animasyon atlanır ama atış yine de son atışlar listesine girer. */
 function tableRoll(r, opt) {
-  if (!store.net.role) return;
-  const role = store.net.role;
+  const role = store.net.role;                                      // boşsa tek başınasın: zar yine masaya yuvarlanır
   const item = {
     seat: opt.remote ? opt.seat || '' : meSeat(),
     who: opt.remote ? opt.who || '' : myName(),
@@ -4126,9 +4554,12 @@ function tableRoll(r, opt) {
     mine: !opt.remote,                       // bu tarayıcıdaki kişinin kendi atışı mı? (sol paneldeki el yalnızca bunlarda oynar)
     hist: opt.hist || null,                  // zar tepsisinin geçmişine, zar yere inince eklenecek atış
     // Kendi ekranımda küçük bir hatırlatma: bu zarı kimler görüyor?
-    tag: opt.remote ? '' : role === 'dm' ? (mode === 'peek' || store.net.dmSecret ? 'Gizli: oyuncular görmez' : '') : (!net.publicRolls ? 'Yalnızca DM görür' : ''),
+    tag: opt.remote || !role ? '' : role === 'dm' ? (mode === 'peek' || store.net.dmSecret ? 'Gizli: oyuncular görmez' : '') : (!net.publicRolls ? 'Yalnızca DM görür' : ''),
   };
-  if (mode !== 'table') { addRecent(item); return; }
+  if (mode !== 'table') {                                           // kağıtta sonuç hemen yazılır: zar sesi olmaz (sayıdan sonra çalardı)
+    if (item.mine) sesSonuc(item.flag);
+    addRecent(item); return;
+  }
   if (document.hidden) { tvFlush(); addRecent(item); drawThrow(tv.recent[0], false); return; }
   tv.queue.push(item);
   while (tv.queue.length > 6) addRecent(tv.queue.shift());          // çok birikirse en eskiler animasyonsuz listeye geçer
@@ -4146,6 +4577,7 @@ async function playNext() {
   if (run !== tv.run) return;                                        // bu arada görünüm kapandı ya da atlandı
   // Zar yere indi: sonuç ancak şimdi her yerde görünür (masadaki büyük sayı, paneldeki etiket, kara tahta, zar tepsisinin geçmişi)
   reveal(box);
+  sesSonuc(item.flag);                                               // doğal 20 / 1 sesi de sonuçla birlikte
   if (item.mine) povHideLater();
   tv.cur = null; tv.anims = [];
   addRecent(item);
@@ -4169,9 +4601,45 @@ function tvEnter() {
   if (wt.state === 'idle') waiterPlan(5000);                                  // garson birkaç saniye sonra ilk kez görünür
 }
 function tvLeave() {
-  if (tv.busy || tv.queue.length) tvFlush(); waiterStop(); $('#tvLogBox').classList.remove('open'); $('#tvMe').hidden = true; $('.tv-wrap').classList.remove('has-me', 'me-min');
+  if (tv.busy || tv.queue.length) tvFlush(); waiterStop(); koltukKapa(); $('#tvLogBox').classList.remove('open'); $('#tvMe').hidden = true; $('.tv-wrap').classList.remove('has-me', 'me-min');
   if (fsElement()) fsToggle(false);                                           // masadan başka ekrana geçince tam ekrandan da çık
 }
+
+/* ───────── Kağıt masada (yol haritası madde 7) ─────────
+   "Kağıdım": kamera kendi koltuğuna yaklaşır, sonra kağıt masanın üstünde aşağıdan kalkarak açılır; arkada taverna kararır
+   ve bulanıklaşır (CSS: body.kagit-ustte). "Masaya dön" ya da Esc: kağıt iner, kamera eski yerine döner. Kağıt açıkken
+   mode 'sheet'tir: zarlar kağıttaki gibi sonucu hemen gösterir (taverna bulanıkken masada yuvarlanmaz; başkaları yine
+   masada görür). Telefonda (dik ekran), 3D açılamadıysa ya da hareket azaltılmışsa kamera kımıldamaz, kağıt doğrudan açılır. */
+const KAGIT = { view: null, t: 0, yaklas: 1.7, bekle: 430, in: 260 };   // yaklaşma oranı, kamera ile kağıt arası (ms), kağıdın inişi (ms)
+function kagitAc() {
+  if (mode !== 'table') return setMode('sheet');
+  const el = tv.els.get(meSeat()), kamera = el && tav.state === 'on' && !reduceMotion.matches && !tvView().compact;
+  if (!kamera) { setMode('sheet'); measureTablebar(); return; }
+  KAGIT.view = { ...tav.view };
+  const a = tvAlan(), s = Math.min(TAV.sMax, Math.max(tav.view.s, 1) * KAGIT.yaklas);
+  const x = (2 * el._x + TV.cx) / 3, y = (2 * el._y + TV.cy) / 3;      // koltuğum ile masanın ortası arası (masaya oturmuş bakış)
+  tavSetView(s, (a.pov + a.w) / 2 - s * x, a.h / 2 - s * y, true);
+  clearTimeout(KAGIT.t);
+  KAGIT.t = setTimeout(() => { if (mode === 'table') { setMode('sheet'); measureTablebar(); } }, KAGIT.bekle);
+}
+function kagitKapa() {
+  if (!kagitUstte) return setMode('table');
+  clearTimeout(KAGIT.t);
+  const geri = () => {
+    document.body.classList.remove('kagit-iner');
+    setMode('table');
+    if (KAGIT.view && tav.state === 'on') tavSetView(KAGIT.view.s, KAGIT.view.x, KAGIT.view.y, true);   // kamera eski yerine
+    KAGIT.view = null;
+  };
+  if (reduceMotion.matches) return geri();
+  document.body.classList.add('kagit-iner');
+  KAGIT.t = setTimeout(geri, KAGIT.in);
+}
+// Esc: açık çekmece, pencere ya da zar tepsisi yoksa kağıdı kapatır (onları kapatan Esc'den önce bakılır)
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || !kagitUstte || !$('#modal').hidden || $('.drawer.open') || $('#tray').classList.contains('open')) return;
+  kagitKapa();
+}, true);
 
 /* Sahnenin ölçeği: oyuncu kutusunun içi piksel ölçülüdür; sahne 1600 piksel genişken 1 kat, daha dar ya da genişse
    o oranda küçülür ya da büyür (--k). Sağ alttaki zar düğmesi sahnenin üstüne biniyorsa kutu onun soluna kayar (--fab-gap). */
@@ -4184,7 +4652,7 @@ function tvLayout() {
 }
 // Masa durum çubuğunun yüksekliği: sahne alanı ekranın kalanını doldursun diye (CSS'te --tablebar-h)
 function measureTablebar() {
-  const bar = $('#tableBar'), on = mode === 'table' && !bar.hidden && !document.body.classList.contains('tv-full');
+  const bar = $('#tableBar'), on = (mode === 'table' || kagitUstte) && !bar.hidden && !document.body.classList.contains('tv-full');
   document.documentElement.style.setProperty('--tablebar-h', on ? bar.offsetHeight + 16 + 'px' : '0px');   // 16: üstündeki ve altındaki boşluk
 }
 
@@ -4243,7 +4711,7 @@ Object.assign(ACTIONS, {
     const p = net.players.get(b.dataset.pid); if (!p || !p.char) return;
     const on = !p.char.insp;
     if (!send(p.conn, { t:'insp', on })) { notify(`${p.name} şu an bağlı değil`, 'Bağlanınca yeniden dene.'); return; }
-    p.char.insp = on; renderParty(); renderTable();
+    p.char.insp = on; renderParty(); renderTable(); if (on) ses('ilham');
     notify(on ? `${p.name} ilham kazandı` : `${p.name} oyuncusunun ilhamı geri alındı`);
   },
 });
@@ -4830,6 +5298,273 @@ function tavOverview(on) {
 })();
 
 /* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 11c — SESLER
+   Efektler (zar, kağıt, kupa, doğal 20 / 1, ilham, oyuncu katıldı), ortam (taverna uğultusu + şömine, döngü) ve müzik.
+   • Dosyalar ses/ klasöründe; araclar/ses_hazirla.py hazırlar (döngüler dikişsiz, efektlerin başı kırpık).
+     Kaynakları ve lisansları ses/LISANS.txt içinde.
+   • Tarayıcı, ziyaretçi sayfaya tıklamadan ses çalmaz: her şey ilk tıklamada başlar (ileride açılıştaki "Tavernaya gir").
+   • Site http(s) ile açıldıysa Web Audio: döngüler dikişsiz, ses seviyesi iPhone'da da çalışır. Bilgisayardan dosya olarak
+     (file://) açıldıysa tarayıcı ses dosyasını okumaya izin vermez; düz <audio> çalınır (döngü başa dönerken minik bir boşluk olabilir).
+   • Sekme arkadayken ortam ve müzik susar, dönünce sürer. Efektler zaten yalnızca bir şey olunca çalar.
+   • Ayarlar store.ses içinde (açık mı; müzik, ortam, efekt seviyesi 0–1) ve tarayıcıda hatırlanır. Ağa hiçbir şey gitmez.
+   ═══════════════════════════════════════════════════════════════════ */
+const SES = {
+  yol: 'ses/',
+  varsayilan: { on: true, muzik: 0.35, ortam: 0.5, efekt: 0.8 },
+  // Efektlerin kendi aralarındaki dengesi (dosyalar aynı güçte hazırlandı; burada kulağa göre ayarlanır)
+  vol: { 'zar-salla': 0.55, 'zar-yuvarlan': 0.9, 'kagit-ac': 0.7, 'kagit-kapa': 0.6, kupa: 0.6, tik: 0.3, 'dogal-20': 0.7, 'dogal-1': 0.8,
+         ilham: 0.6, katildi: 0.5, gecis: 0.6, 'kapi-ac': 0.8, adim: 0.7 },
+  secenek: { 'zar-yuvarlan': ['zar-yuvarlan-1', 'zar-yuvarlan-2', 'zar-yuvarlan-3'] },   // her seferinde biri, tekrar gibi durmasın
+  degis: new Set(['zar-salla', 'zar-yuvarlan', 'tik', 'kupa']),        // bunların perdesi her çalışta biraz oynar (yine tekrar duyulmasın)
+  dongu: { ortam: ['ambiyans', 'ates'], muzik: ['muzik'], gece: ['gece'] },   // kanal → birlikte çalan döngüler
+  dongVol: { ambiyans: 0.55, ates: 0.7, muzik: 1, gece: 0.8 },
+  // Kapının neresindesin? (açılışta, BÖLÜM 11d) hz: içerinin sesi bu frekansın üstünü kaybeder (boğuk duyulur),
+  // kat: içerinin sesinin çarpanı, gece: dışarının (gece) sesi. İçerideyken 20000 / 1 / 0.
+  dis: { hz: 20000, kat: 1, gece: 0 },
+  web: /^https?:$/.test(location.protocol) && !!(window.AudioContext || window.webkitAudioContext),
+  ctx: null, kanal: {}, buf: new Map(), calan: new Map(), basladi: false,
+};
+function sesAyar() {                                                 // eski kayıtlarda yoksa ya da eksikse varsayılanla tamamlar
+  if (!store.ses || typeof store.ses !== 'object') store.ses = {};
+  for (const [k, v] of Object.entries(SES.varsayilan)) if (typeof store.ses[k] !== typeof v) store.ses[k] = v;
+  return store.ses;
+}
+function sesBaglam() {                                               // Web Audio: ana ses ve dört kanal (müzik, ortam, efekt, gece)
+  if (SES.ctx) return SES.ctx;
+  const AC = window.AudioContext || window.webkitAudioContext, ctx = new AC(), ana = ctx.createGain(), fil = ctx.createBiquadFilter();
+  ana.connect(ctx.destination);
+  fil.type = 'lowpass'; fil.frequency.value = SES.dis.hz; fil.connect(ana);   // içerinin sesi (müzik + ortam) bundan geçer
+  ['muzik', 'ortam', 'efekt', 'gece'].forEach(k => {
+    const g = ctx.createGain(); g.gain.value = 0; g.connect(k === 'muzik' || k === 'ortam' ? fil : ana); SES.kanal[k] = g;
+  });
+  SES.ctx = ctx; SES.filtre = fil;
+  return ctx;
+}
+// Kapının dışından içeri: içerinin sesini boğar / açar, gece sesini açar / kısar. sure (sn): geçişin süresi
+function sesDisari(hz, kat, gece, sure = 0.8) {
+  Object.assign(SES.dis, { hz, kat, gece });
+  if (SES.ctx) SES.filtre.frequency.setTargetAtTime(hz, SES.ctx.currentTime, Math.max(0.01, sure / 3));
+  if (gece > 0 && SES.basladi) sesDongu();
+  sesSeviye(sure);
+}
+function sesYukle(ad) {                                              // Web Audio: dosyayı bir kez indirip çözer (bulunamazsa null)
+  if (!SES.buf.has(ad)) SES.buf.set(ad, fetch(SES.yol + ad + '.mp3').then(r => { if (!r.ok) throw new Error(ad); return r.arrayBuffer(); })
+    .then(b => new Promise((ok, no) => SES.ctx.decodeAudioData(b, ok, no))).catch(() => null));
+  return SES.buf.get(ad);
+}
+// İlk tıklamada çağrılır: ses bağlamı açılır, efektler önceden indirilir, ortam ve müzik başlar
+function sesBaslat() {
+  if (SES.ctx && SES.ctx.state === 'suspended') SES.ctx.resume().catch(() => {});   // iPhone bazen bağlamı askıya alır
+  if (!sesAyar().on) return;
+  if (SES.basladi) { sesSeviye(); return; }                          // iPhone ilk dokunuşta müziği başlatmadıysa şimdi dener
+  SES.basladi = true;
+  if (SES.web) {
+    sesBaglam();
+    Object.keys(SES.vol).flatMap(ad => SES.secenek[ad] || [ad]).forEach(sesYukle);
+  }
+  sesDongu();
+}
+function sesDongu() {                                                // ortam ve müzik döngülerini başlatır (zaten çalıyorsa dokunmaz)
+  for (const [kanal, adlar] of Object.entries(SES.dongu)) for (const ad of adlar) {
+    if (SES.calan.has(ad) || (kanal === 'gece' && !SES.dis.gece)) continue;   // gece yalnızca kapının dışındayken gerekir
+    if (!SES.web || ad === 'muzik') {                                // müzik uzun: belleğe açılmaz, <audio> ile akar
+      const el = new Audio(SES.yol + ad + '.mp3'); el.loop = true; el.preload = 'auto';
+      if (SES.web) sesBaglam().createMediaElementSource(el).connect(SES.kanal[kanal]);
+      SES.calan.set(ad, { el, kanal });
+      continue;
+    }
+    SES.calan.set(ad, { kanal });                                    // yüklenirken ikinci kez başlatılmasın
+    sesYukle(ad).then(b => {
+      if (!b) return;
+      const s = SES.ctx.createBufferSource(), g = SES.ctx.createGain();
+      s.buffer = b; s.loop = true; g.gain.value = SES.dongVol[ad] ?? 1;
+      s.connect(g).connect(SES.kanal[kanal]);
+      s.start(0, Math.random() * b.duration);                         // her açılışta döngünün başka yerinden
+    });
+  }
+  sesSeviye();
+}
+// Ayarlara göre kanalların sesini ayarlar; kapalıyken ya da sekme arkadayken ortam ve müzik susar
+function sesSeviye(sure = 0.75) {
+  const a = sesAyar(), duy = a.on && !document.hidden, d = SES.dis;
+  // Kanalların duyulan seviyesi: ayar × kapının neresindesin (gece sesi ortam ayarına bağlı)
+  const sev = { muzik: a.muzik * d.kat, ortam: a.ortam * d.kat, gece: a.ortam * d.gece, efekt: a.efekt };
+  if (SES.ctx) {
+    const t = SES.ctx.currentTime, tc = Math.max(0.01, sure / 3);
+    ['muzik', 'ortam', 'gece'].forEach(k => SES.kanal[k].gain.setTargetAtTime(duy ? sev[k] : 0, t, tc));
+    SES.kanal.efekt.gain.setTargetAtTime(a.on ? a.efekt : 0, t, 0.05);
+  }
+  SES.calan.forEach(({ el, kanal }, ad) => {
+    if (!el) return;
+    const v = duy ? (SES.ctx ? 1 : clamp(sev[kanal] * (SES.dongVol[ad] ?? 1), 0, 1)) : 0;   // Web Audio'da sesi kanal ayarlar
+    if (!SES.ctx) el.volume = v;
+    if (v > 0 && (SES.ctx ? sev[kanal] > 0 : true)) { if (el.paused) el.play().catch(() => {}); }
+    else if (!el.paused) el.pause();
+  });
+}
+// Efekt çalar. gecikme (ms): animasyonla eşzamanlı olsun diye (ör. zar masaya değdiğinde).
+// bitis (ms, şimdiden): ses en geç bu anda bitmiş olmalı (ör. zarın sayısı yazılmadan). Sığmazsa önce biraz hızlanır
+// (en çok %25), yine sığmazsa son 0,12 sn'de kısılarak kesilir; hiç yer yoksa (0,25 sn'den az) hiç çalmaz.
+function ses(ad, gecikme = 0, bitis = 0) {
+  const a = sesAyar();
+  if (!a.on || !a.efekt || !SES.basladi || document.hidden) return;
+  const liste = SES.secenek[ad], dosya = liste ? liste[Math.floor(Math.random() * liste.length)] : ad;
+  const v = SES.vol[ad] ?? 0.7, hiz = SES.degis.has(ad) ? 0.94 + Math.random() * 0.12 : 1;
+  if (bitis && bitis - gecikme < 250) return;
+  if (SES.ctx) {
+    const ctx = SES.ctx, t0 = ctx.currentTime + gecikme / 1000, tSon = bitis ? ctx.currentTime + bitis / 1000 : 0;
+    sesYukle(dosya).then(b => {
+      if (!b) return;
+      const bas = Math.max(t0, ctx.currentTime), yer = tSon - bas;
+      if (tSon && yer < 0.25) return;                                // yüklenirken vakit geçti
+      const s = ctx.createBufferSource(), g = ctx.createGain();
+      let h = hiz;
+      if (tSon && b.duration / h > yer) h = Math.min(hiz * 1.25, b.duration / yer);   // sığsın diye biraz hızlan
+      s.buffer = b; s.playbackRate.value = h; g.gain.value = v;
+      s.connect(g).connect(SES.kanal.efekt);
+      s.start(bas);
+      if (tSon && b.duration / h > yer) {                            // yine sığmadı: sonda kısılarak biter
+        g.gain.setValueAtTime(v, tSon - 0.12); g.gain.linearRampToValueAtTime(0, tSon); s.stop(tSon);
+      }
+    });
+  } else {
+    const el = new Audio(SES.yol + dosya + '.mp3');
+    el.volume = clamp(v * a.efekt, 0, 1); el.playbackRate = hiz; el.preservesPitch = false;
+    setTimeout(() => el.play().catch(() => {}), gecikme);
+    if (bitis) setTimeout(() => el.pause(), bitis);
+  }
+}
+const sesSonuc = flag => { if (flag === 'crit-hit') ses('dogal-20'); else if (flag === 'crit-miss') ses('dogal-1'); };
+
+const SES_AD = { muzik: 'Müziği', ortam: 'Ortamı', efekt: 'Efektleri' };
+function sesSatir(k) {                                               // bir satırın değeri, dolu yivi ve ikonu
+  const a = sesAyar(), v = Math.round(a[k] * 100), row = $(`.ses-row[data-k="${k}"]`), ic = $('.ses-ic', row);
+  const sur = $('.ses-sur', row); sur.value = v; sur.style.setProperty('--v', v + '%'); sur.disabled = !a.on;
+  $('.ses-v', row).textContent = v;
+  ic.toggleAttribute('data-sus', !v); ic.disabled = !a.on;
+  $('use', ic).setAttribute('href', v ? '#' + ic.dataset.ic : '#i-ses-yok');
+  ic.title = v ? `${SES_AD[k]} sustur` : `${SES_AD[k]} aç`; ic.setAttribute('aria-label', ic.title);
+}
+function sesUI() {
+  const a = sesAyar();
+  $('#sesBtn use').setAttribute('href', a.on ? '#i-ses' : '#i-ses-yok');
+  $('#sesBtn').title = a.on ? 'Ses: müzik, ortam ve efektler' : 'Ses kapalı';
+  const on = $('#sesOn'); on.setAttribute('aria-pressed', String(a.on));
+  $('use', on).setAttribute('href', a.on ? '#i-ses' : '#i-ses-yok'); $('span', on).textContent = a.on ? 'Açık' : 'Kapalı';
+  $('#sesPop').classList.toggle('kapali', !a.on);
+  Object.keys(SES_AD).forEach(sesSatir);
+}
+function sesMenu(ac) {
+  const p = $('#sesPop'); p.hidden = !ac;
+  $('#sesBtn').setAttribute('aria-expanded', String(ac));
+  if (ac) sesUI();
+}
+Object.assign(ACTIONS, {
+  'ses-menu': () => sesMenu($('#sesPop').hidden),
+  'ses-on': () => {
+    const a = sesAyar(); a.on = !a.on; flush(); sesUI();
+    if (a.on) { sesBaslat(); sesDongu(); } else sesSeviye();
+  },
+  // Satırın ikonu: o kanalı susturur; yeniden basınca eski seviyesine döner
+  'ses-sustur': b => {
+    const a = sesAyar(), k = b.dataset.k;
+    if (a[k] > 0) { SES.onceki = Object.assign(SES.onceki || {}, { [k]: a[k] }); a[k] = 0; }
+    else a[k] = (SES.onceki && SES.onceki[k]) || SES.varsayilan[k];
+    flush(); sesSatir(k); sesSeviye();
+  },
+});
+$('#sesPop').addEventListener('input', e => {
+  const k = e.target.dataset.ses; if (!k) return;
+  sesAyar()[k] = clamp(int(e.target.value) / 100, 0, 1);
+  sesSatir(k); sesSeviye();
+});
+$('#sesPop').addEventListener('change', () => flush());             // sürgü bırakılınca bir kez kaydet
+// İlk dokunuşta ses başlar; ayar kutusu dışına tıklayınca ya da Esc ile kapanır
+document.addEventListener('pointerdown', e => {
+  sesBaslat();
+  if (!$('#sesPop').hidden && !e.target.closest('.ses-wrap')) sesMenu(false);
+}, true);
+document.addEventListener('click', sesBaslat, true);                 // iPhone sesi ancak dokunuş bitince (click) açar
+document.addEventListener('keydown', e => { sesBaslat(); if (e.key === 'Escape' && !$('#sesPop').hidden) sesMenu(false); }, true);
+document.addEventListener('visibilitychange', () => sesSeviye());
+// Düğmelerde hafif bir tahta tıkı (kendi sesi olanlar hariç: zarlar, ilham, kağıda geçiş, sesin kendisi)
+document.addEventListener('click', e => {
+  const b = e.target.closest('button[data-act]');
+  if (b && !/roll|dice-quick|insp|mode-|ses-|acilis-/.test(b.dataset.act)) ses('tik');
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 11d — AÇILIŞ: tavernanın kapısı
+   Site açılınca ekranı tavernanın dış cephesi kaplar: sessiz bekleme döngüsü, ortada ad ve "Tavernaya gir". Bu sırada
+   arkada masa görünümü ve 3D taverna yüklenir. Tarayıcı tıklamadan ses çalmadığı için sesler bu tıklamayla başlar.
+   • İlk gelişte açılış videosu oynar: kapıya yürünür, kapı açılır, içeri girilir, kamera yükselir. Sesler videonun
+     anlarına bağlıdır (ACILIS.an). Dışarıdayken taverna boğuk ve kısık duyulur (sesDisari), kapı aralanınca sızar,
+     içeri girince tam açılır; gece sesi söner. Video bitince perde solarak kalkar, canlı taverna görünür.
+   • Sonraki gelişlerde uzun video inmez ve oynamaz: kapı sesiyle kısa bir geçiş (store.acilisGordu).
+   • "Geç" (ya da Esc) videoyu her an bitirir. Hareket azaltma açıksa video oynamaz, kısa geçiş olur.
+   Videolar geçici (Nano Banana kareleri + Veo); ileride Blender sahnesinden çekilecek. Yeni video gelince video/
+   içindeki dosyalar ve ACILIS.an'daki saniyeler değişir. Ham hâlleri giris-videosu/ içinde (GitHub'a gitmez).
+   ═══════════════════════════════════════════════════════════════════ */
+const ACILIS = {
+  an: { adim: 0.4, kapi: 4.4, gecis: 11.6, iceri: 12.0, vinc: 19.3 },   // videodaki anlar (sn)
+  bitis: 900, kisa: 700,                                                // perdenin kalkış süresi (ms): videodan sonra / kısa geçişte
+  raf: 0,
+};
+function acilisGoster() {
+  const el = $('#acilis'), d = $('#acilisDongu');
+  el.hidden = false; el.classList.remove('oynuyor', 'bitti');
+  if (!reduceMotion.matches) {
+    d.src = 'video/acilis-dongu.mp4'; d.play().catch(() => {});        // sessiz video tıklamasız oynayabilir
+    if (!store.acilisGordu) $('#acilisVideo').src = 'video/acilis.mp4';   // uzun video yalnızca ilk gelişte iner
+  }
+  sesDisari(450, 0.3, 1, 0);                                            // dışarıdasın: taverna boğuk ve kısık, gece sesi açık
+  $('[data-act="acilis-gir"]').focus({ preventScroll: true });
+}
+function acilisGir() {
+  const el = $('#acilis'), v = $('#acilisVideo');
+  if (el.classList.contains('oynuyor') || el.classList.contains('bitti')) return;
+  const ilk = !store.acilisGordu;
+  store.acilisGordu = true; flush();
+  if (!ilk || reduceMotion.matches || !v.src) return acilisKisa();
+  el.classList.add('oynuyor'); $('.acilis-gec').hidden = false;
+  v.onended = () => acilisBitir(ACILIS.bitis);
+  v.currentTime = 0;
+  v.play().then(acilisZaman).catch(acilisKisa);                         // video oynamazsa (bozuk, inmedi) kısa geçiş
+}
+function acilisKisa() { ses('kapi-ac'); sesDisari(20000, 1, 0, 1.2); acilisBitir(ACILIS.kisa); }
+function acilisGec() { if ($('#acilis').classList.contains('bitti')) return; $('#acilisVideo').pause(); sesDisari(20000, 1, 0, 0.6); acilisBitir(500); }
+// Videonun saatine bakarak sesleri zamanında çalar (geç kalınan an 1 sn'den eskiyse sessiz geçilir)
+function acilisZaman() {
+  const v = $('#acilisVideo'), an = ACILIS.an, olan = new Set();
+  const anlar = [
+    [an.adim, () => ses('adim')],
+    [an.kapi, () => { ses('kapi-ac'); sesDisari(1500, 0.6, 0.7, 1.5); }],   // kapı aralanır: içerinin sesi sızar
+    [an.gecis, () => ses('gecis')],
+    [an.iceri, () => sesDisari(20000, 1, 0, 1)],                          // eşikten geçtin: taverna tam, gece söner
+    [an.vinc, () => ses('gecis')],
+  ];
+  const tik = () => {
+    anlar.forEach(([t, f], i) => {
+      if (olan.has(i) || v.currentTime < t) return;
+      olan.add(i); if (v.currentTime - t < 1 || i === 3) f();             // "içeri" anı her durumda uygulanır
+    });
+    if (!v.ended && !$('#acilis').classList.contains('bitti')) ACILIS.raf = requestAnimationFrame(tik);
+  };
+  tik();
+}
+function acilisBitir(ms) {
+  cancelAnimationFrame(ACILIS.raf);
+  const el = $('#acilis');
+  el.style.setProperty('--bitis', ms + 'ms'); el.classList.add('bitti');
+  setTimeout(() => {
+    el.hidden = true;
+    ['#acilisDongu', '#acilisVideo'].forEach(s => { const v = $(s); v.pause(); v.removeAttribute('src'); v.load(); });   // belleği boşalt
+  }, ms);
+}
+Object.assign(ACTIONS, { 'acilis-gir': acilisGir, 'acilis-gec': acilisGec });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#acilis').classList.contains('oynuyor')) acilisGec(); });
+
+/* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 12 — BAŞLANGIÇ
    ═══════════════════════════════════════════════════════════════════ */
 load();
@@ -4842,6 +5577,8 @@ showChar();
 $('#welcome').hidden = !!store.welcomed;
 measureTopbar();
 resumeTable();
+setMode('table');                       // ana ekran masadır (masada değilsen tek başına oturursun)
+acilisGoster();                         // önce tavernanın kapısı; masa ve 3D arkada yüklenir (BÖLÜM 11d)
 if (migrated) { flush(); notify('Eski sitendeki karakter buraya aktarıldı', 'Sayıları bir kontrol et; saldırı bonusları artık kendiliğinden hesaplanıyor.'); }
 })();
 

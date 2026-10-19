@@ -299,6 +299,10 @@ Daire, vurgu renginde 2px kenar ve 6px soluk halka. Boşken ortada kalem ikonu (
 - **Hover:** kenar vurguya doğru yarı karışım.
 - **Özel:** karakter adı alanı çerçevesizdir; yalnızca kesikli alt çizgi ve Grenze display.
 - **Disabled:** DM bir oyuncunun kağıdını izlerken bütün alanlar salt okunurdur.
+- **Sürgü (range, 2026-10-19, ilk kullanım ses paneli):** gömük, koyu bir yiv (8px, hap, `--field` + içe gölge, ince `--line` kenar); dolu kısmı vurgu renginde, koyudan açığa geçişli. Düğme 18px yuvarlak, kart çerçevesiyle aynı metal (`--metal`), hafif aşağı gölge; üstüne gelince %15 büyür. Değer sağda Grenze rakamla yazılır. Tarayıcının hazır sürgüsü kullanılmaz.
+
+### Ses Paneli
+Üst çubuğun sağ ucundaki hoparlör ikonundan açılan, arma çerçeveli küçük kart (`.ses-pop.card`). Başlık "Sound · Ses", yanında ses aç/kapa düğmesi (aria-pressed). Üç satır (Müzik, Ortam, Efektler): solda kanalın ikonu (nota, alev, d20; basınca o kanal susar ve ikon üstü çizili hoparlöre döner), ad + soluk Türkçe açıklama, sağda değer, altta sürgü. Ses kapalıyken satırlar %55 görünür. Zemin opaktır (üst çubuğun bulanıklığı iç içe çalışmaz).
 
 ### Navigation
 - **Üst çubuk:** yapışkan, temanın `--bar` rengi, bulanık. Solda logo (elementin ikonu, vurgu dairesinde), ortada element seçici (hap içinde dört hap; seçili olan kendi elementinin rengiyle dolar), sağda kayıt durumu, Açıklamalar, Karakterler ve Masa (masadayken masa kodu ve bağlantı noktası).
@@ -310,6 +314,16 @@ Ahşap levha görseli: ad parşömen şeridinde Grenze 700, karakter adı alt ç
 
 ### Kara Tahta (imza parçası)
 Sağ üstte, meşe çerçeveli koyu tahta; son atışlar Caveat ile tebeşir yazısı. Doğal 20 açık yeşil, doğal 1 açık kırmızı tebeşir. Üstüne gelince sola doğru büyür ve ayrıntılar okunur.
+
+### Kağıt Masada (2026-10-19, madde 7)
+Masadan kağıda geçince kağıt ayrı bir sayfa olmaz: kamera koltuğa yaklaşır, kağıt tavernanın üstünde kendi içinde kayan bir katman olarak aşağıdan kalkar (0,42 sn, hafif büyüyerek), arkada taverna kararır ve bulanıklaşır (blur 7px, parlaklık %45). Üstte sabit "Masaya dön" (Esc de kapatır); kapatınca kağıt iner, kamera eski yerine döner. Yasal yazı kağıdın içinde, en altta; karanlık taverna üstünde her temada açık renk. Telefonda ve hareket azaltmada kamera kımıldamaz.
+
+### Hedef Etiketi ve İsimlik Kutusu (2026-10-19, Aşama 4)
+- **Hedef etiketi:** seçili hedef "Zar at"ın hemen üstünde, vurgu kenarlı hap: hedef ikonu, "→ Goblin (5/7 can, AC 12)", × ile kaldırma. DM bir düşman adına atıyorsa başta düşmanın adı.
+- **Seçili hedefin isimliği:** çevresinde kesikli vurgu halkası (parlama değil; The Earned Glow Rule).
+- **İsimlik kutusu:** isimliğe basınca açılan küçük kart (taverna zemini, ince çizgi, kart gölgesi): ad (Grenze), oy toplamı (kalkan = güvenilir, hançer = hain), DM için "Hedef yap", oyuncu için "Güvenilir / Hain" aç/kapa düğmeleri.
+- **Oy çipleri:** isimliğin altında parşömen renkli küçük haplar (ikon + sayı); oy yoksa görünmez. Yeşil / kırmızı kullanılmaz (The Meaning Is Fixed Rule): anlam ikonla verilir.
+- **Düşman kartı (DM ekranı):** her düşman ince çizgili bir iç kutu: ad alanı, Can / En çok / AC sayı alanları, "Masada" ve "Can görünsün" aç/kapa düğmeleri, silme. Canı biten düşman %60 soluk.
 
 ## Do's and Don'ts
 
