@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#141414;--pan:#1f1f22;--line:#3a3328;--gold:#c9a227;--red:#a4161a;--ink:#e8e2d6;--mut:#9c958a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1440px;height:900px;overflow:hidden;font-family:Figtree,sans-serif;color:var(--ink);background:var(--bg)}
+.stage{position:absolute;inset:0;background:radial-gradient(60% 55% at 50% 50%,#8a4a22 0,#5a2c14 45%,#2a160c 80%,#160b06 100%)}
+.table{position:absolute;left:510px;top:260px;width:420px;height:260px;border-radius:50%;background:radial-gradient(#b8743c,#8c5226);box-shadow:0 0 0 70px rgba(120,70,40,.55)}
+.top{position:absolute;left:0;right:0;top:0;height:56px;background:rgba(20,20,20,.92);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:18px;padding:0 20px}
+.brand{font:700 22px Cinzel;color:var(--gold)}.c{font:600 14px Figtree;color:var(--mut)}.sp{flex:1}
+.ib{width:36px;height:36px;border:1px solid var(--line);border-radius:6px}
+.panel{position:absolute;background:rgba(31,31,34,.94);border:1px solid var(--line);border-radius:8px}
+.panel h2{font:700 22px Cinzel;color:var(--gold);padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.turn{left:50%;transform:translateX(-50%);top:70px;display:flex;gap:8px;padding:8px}
+.turn div{width:52px;height:52px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font:700 22px Cinzel}
+.turn .on{border-color:var(--gold)}
+.log{right:16px;top:70px;width:310px;bottom:16px}
+.r{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.r span{font:400 14px Figtree;color:var(--mut)}.r b{font:700 28px Cinzel}
+.me{left:16px;bottom:16px;width:880px;height:150px;display:grid;grid-template-columns:250px repeat(6,1fr);align-items:center}
+.who{padding:0 18px}.who b{font:700 26px Cinzel;display:block}.who span{font:400 13px Figtree;color:var(--mut)}
+.hpb{height:8px;background:#000;border-radius:4px;margin-top:10px}.hpb i{display:block;height:100%;width:86%;background:var(--red);border-radius:4px}
+.ab{text-align:center;border-left:1px solid var(--line)}.ab small{font:700 12px Figtree;color:var(--gold)}.ab b{font:700 34px Cinzel;display:block}
+.roll{position:absolute;left:912px;bottom:16px;width:190px;height:150px;background:var(--red);border:1px solid var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font:700 28px Cinzel}
+</style></head><body>
+<div class="stage"><div class="table"></div></div>
+<div class="top"><span class="brand">Taverna Masası</span><span class="c">Masa ABC-DEF · 5 kişi</span><span class="sp"></span><span class="ib"></span><span class="ib"></span><span class="ib"></span></div>
+<div class="panel turn"><div>19</div><div class="on">17</div><div>14</div><div>12</div><div>9</div></div>
+<div class="panel log"><h2>Son atışlar</h2>
+<div class="r"><span>Dorn Vale · Uzun kılıç</span><b>23</b></div>
+<div class="r"><span>Goblin → Mira</span><b>6</b></div>
+<div class="r"><span>Mira · Ateş Topu</span><b>31</b></div>
+<div class="r"><span>Ser Alaz · İnisiyatif</span><b>17</b></div></div>
+<div class="panel me"><div class="who"><b>Ser Alaz</b><span>3. seviye Human Paladin · AC 18 · 24/28 can</span><div class="hpb"><i></i></div></div>
+<div class="ab"><small>STR</small><b>+3</b></div><div class="ab"><small>DEX</small><b>+0</b></div><div class="ab"><small>CON</small><b>+2</b></div><div class="ab"><small>INT</small><b>−1</b></div><div class="ab"><small>WIS</small><b>+1</b></div><div class="ab"><small>CHA</small><b>+3</b></div></div>
+<div class="roll">Zar at</div>
+</body></html>

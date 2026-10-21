@@ -1,362 +1,508 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-18T13:08:27+00:00",
-  "title": "Design System: Dört Element",
+  "generatedAt": "2026-10-21T12:00:00Z",
+  "title": "Design System: Kervansaray",
   "extensions": {
     "colorMeta": {
-      "ember-orange": {
-        "role": "primary",
-        "displayName": "Kor Turuncusu",
-        "canonical": "oklch(72.5% 0.181 45.3)",
-        "tonalRamp": [
-          "#240000",
-          "#4b0800",
-          "#742300",
-          "#a03f00",
-          "#ce5b19",
-          "#fd7932",
-          "#ffa469",
-          "#ffcf9b"
-        ]
-      },
-      "ember-gold": {
-        "role": "secondary",
-        "displayName": "Kor Altını",
-        "canonical": "oklch(86.2% 0.142 82.7)",
-        "tonalRamp": [
-          "#150800",
-          "#342100",
-          "#573d00",
-          "#7b5b10",
-          "#a27b27",
-          "#cb9d3c",
-          "#f5c052",
-          "#ffe682"
-        ]
-      },
-      "tide-cyan": {
-        "role": "primary",
-        "displayName": "Gelgit Camgöbeği",
-        "canonical": "oklch(76.9% 0.127 220.4)",
-        "tonalRamp": [
-          "#000f1b",
-          "#002c3c",
-          "#004b60",
-          "#006d87",
-          "#0d91af",
-          "#2db6da",
-          "#60dbff",
-          "#98ffff"
-        ]
-      },
-      "moss-green": {
-        "role": "primary",
-        "displayName": "Yosun Yeşili",
-        "canonical": "oklch(78.4% 0.155 124.5)",
-        "tonalRamp": [
-          "#060f00",
-          "#1c2b00",
-          "#374a00",
-          "#536c13",
-          "#718f2b",
-          "#91b442",
-          "#b4d967",
-          "#dbfe99"
-        ]
-      },
-      "sky-indigo": {
-        "role": "primary",
-        "displayName": "Gök Çividi",
-        "canonical": "oklch(57.0% 0.196 272.9)",
-        "tonalRamp": [
-          "#07003d",
-          "#151168",
-          "#2a3196",
-          "#4350c6",
-          "#6073f1",
-          "#839aff",
-          "#a9c1ff",
-          "#d2e9ff"
-        ]
-      },
-      "hearth-black": {
+      "lead": {
         "role": "neutral",
-        "displayName": "Ocak Karası",
-        "canonical": "oklch(14.9% 0.019 26.8)",
+        "displayName": "Kurşun / Lead",
+        "canonical": "#0a080d",
+        "oklch": "oklch(14.0% 0.012 303.9)",
         "tonalRamp": [
-          "#120807",
-          "#2d2221",
-          "#4a3f3e",
-          "#685f5d",
-          "#89807f",
-          "#aba3a2",
-          "#cec7c7",
-          "#f3edec"
+          "#0c0a0f",
+          "#252329",
+          "#413e45",
+          "#5f5c63",
+          "#7f7c83",
+          "#a09da4",
+          "#c5c2ca",
+          "#f0edf5"
         ]
       },
-      "ash-white": {
+      "night": {
         "role": "neutral",
-        "displayName": "Kül Beyazı",
-        "canonical": "oklch(96.0% 0.018 54.0)",
+        "displayName": "Gece / Night",
+        "canonical": "#100d14",
+        "oklch": "oklch(16.6% 0.015 304.3)",
         "tonalRamp": [
-          "#0d0a09",
-          "#282422",
-          "#46413e",
-          "#66605c",
-          "#88817c",
-          "#aca39d",
-          "#d2c7c0",
-          "#f8ece4"
+          "#0d0a10",
+          "#26222a",
+          "#413e46",
+          "#5f5c65",
+          "#7f7b85",
+          "#a09ca6",
+          "#c6c2cc",
+          "#f1ecf7"
         ]
       },
-      "ember-dust": {
+      "lead-bar": {
         "role": "neutral",
-        "displayName": "Kor Tozu",
-        "canonical": "oklch(77.0% 0.054 43.7)",
+        "displayName": "Kurşun Çubuk / Lead Bar",
+        "canonical": "#17141c",
+        "oklch": "oklch(19.9% 0.016 302.0)",
         "tonalRamp": [
-          "#140804",
-          "#312019",
-          "#523c33",
-          "#765a4f",
-          "#9b7a6c",
-          "#c29b8b",
-          "#e7bfaf",
-          "#ffe6d7"
+          "#0c0a11",
+          "#25222b",
+          "#413e47",
+          "#5f5c66",
+          "#7f7b86",
+          "#a09ca7",
+          "#c6c2cd",
+          "#f0ecf8"
         ]
       },
-      "ember-ink": {
+      "smoke-pane": {
         "role": "neutral",
-        "displayName": "Kor Mürekkebi",
-        "canonical": "oklch(17.3% 0.037 45.6)",
+        "displayName": "Duman Camı / Smoke Pane",
+        "canonical": "#1c1823",
+        "oklch": "oklch(21.9% 0.022 301.2)",
         "tonalRamp": [
-          "#170601",
-          "#332017",
-          "#503d35",
-          "#6f5d55",
-          "#8f7e77",
-          "#b0a29b",
-          "#d2c6c1",
-          "#f7ece7"
+          "#0d0913",
+          "#26222d",
+          "#423d4a",
+          "#605b68",
+          "#7f7a89",
+          "#a09baa",
+          "#c6c1d0",
+          "#f1ebfb"
         ]
       },
-      "luck-green": {
-        "role": "tertiary",
-        "displayName": "Şans Yeşili",
-        "canonical": "oklch(75.7% 0.142 159.1)",
-        "tonalRamp": [
-          "#001203",
-          "#003016",
-          "#00502f",
-          "#10734a",
-          "#2c9867",
-          "#46bf85",
-          "#74e3aa",
-          "#a7ffd2"
-        ]
-      },
-      "wound-red": {
-        "role": "tertiary",
-        "displayName": "Yara Kırmızısı",
-        "canonical": "oklch(70.2% 0.190 23.3)",
-        "tonalRamp": [
-          "#270000",
-          "#4f0006",
-          "#7a151c",
-          "#a73134",
-          "#d64d4e",
-          "#ff6c6b",
-          "#ff9995",
-          "#ffc6bf"
-        ]
-      },
-      "lamp-amber": {
-        "role": "tertiary",
-        "displayName": "Lamba Kehribarı",
-        "canonical": "oklch(82.1% 0.147 80.7)",
-        "tonalRamp": [
-          "#170700",
-          "#372000",
-          "#5a3b00",
-          "#7f5a00",
-          "#a77917",
-          "#d09b2f",
-          "#f9be4b",
-          "#ffe584"
-        ]
-      },
-      "tavern-floor": {
+      "smoke-pane-raised": {
         "role": "neutral",
-        "displayName": "Taverna Zemini",
-        "canonical": "oklch(19.0% 0.019 62.5)",
+        "displayName": "Açık Duman Camı / Raised Smoke Pane",
+        "canonical": "#251f2e",
+        "oklch": "oklch(25.3% 0.029 302.7)",
         "tonalRamp": [
-          "#110904",
-          "#2b231c",
-          "#48403a",
-          "#676059",
-          "#88817b",
-          "#aaa49f",
-          "#cdc8c4",
-          "#f2eeea"
+          "#0e0815",
+          "#272130",
+          "#433c4d",
+          "#615a6b",
+          "#80798c",
+          "#a29aae",
+          "#c7c0d4",
+          "#f2ebfd"
         ]
       },
-      "tavern-candle": {
+      "well": {
         "role": "neutral",
-        "displayName": "Mum Işığı",
-        "canonical": "oklch(94.2% 0.027 78.2)",
+        "displayName": "Kuyu / Well",
+        "canonical": "#0f0c13",
+        "oklch": "oklch(16.2% 0.015 304.3)",
         "tonalRamp": [
-          "#0d0b07",
-          "#28241f",
-          "#46413a",
-          "#666057",
-          "#898176",
-          "#ada496",
-          "#d2c8b8",
-          "#f9eddb"
+          "#0d0a10",
+          "#26222a",
+          "#413e46",
+          "#5f5c65",
+          "#7f7b85",
+          "#a09ca6",
+          "#c6c2cc",
+          "#f1ecf7"
         ]
       },
-      "tavern-dust": {
+      "hairline": {
         "role": "neutral",
-        "displayName": "Taverna Tozu",
-        "canonical": "oklch(82.6% 0.045 78.4)",
+        "displayName": "İnce Çizgi / Hairline",
+        "canonical": "#352e40",
+        "oklch": "oklch(31.6% 0.033 302.3)",
+        "tonalRamp": [
+          "#0e0817",
+          "#272031",
+          "#433c4e",
+          "#61596d",
+          "#81798e",
+          "#a29ab0",
+          "#c8bfd6",
+          "#f2ebfe"
+        ]
+      },
+      "opal": {
+        "role": "neutral",
+        "displayName": "Sedef Yazı / Opal",
+        "canonical": "#f4ede0",
+        "oklch": "oklch(94.8% 0.019 83.1)",
         "tonalRamp": [
           "#0f0a04",
-          "#2b2419",
-          "#4a4032",
-          "#6b5f4d",
-          "#8e806b",
-          "#b3a289",
-          "#d9c6aa",
-          "#fdecd1"
+          "#28231a",
+          "#453f35",
+          "#635d52",
+          "#837c71",
+          "#a49e92",
+          "#cac3b7",
+          "#f5eee1"
         ]
       },
-      "chalkboard": {
+      "lilac-mist": {
         "role": "neutral",
-        "displayName": "Kara Tahta",
-        "canonical": "oklch(30.6% 0.014 248.3)",
+        "displayName": "Leylak Sisi / Lilac Mist",
+        "canonical": "#b4abbf",
+        "oklch": "oklch(75.5% 0.030 305.9)",
         "tonalRamp": [
-          "#070c10",
-          "#20262b",
-          "#3d4349",
-          "#5c6268",
-          "#7e8388",
-          "#a1a6aa",
-          "#c6cace",
-          "#ebeff2"
+          "#0e0815",
+          "#282030",
+          "#443c4d",
+          "#625a6b",
+          "#81798c",
+          "#a39aae",
+          "#c9c0d4",
+          "#f3eaff"
         ]
       },
-      "board-oak": {
+      "lit-ink": {
         "role": "neutral",
-        "displayName": "Meşe Çerçeve",
-        "canonical": "oklch(43.8% 0.065 63.9)",
+        "displayName": "Cam Mürekkebi / Lit Ink",
+        "canonical": "#0b0910",
+        "oklch": "oklch(14.6% 0.015 297.7)",
         "tonalRamp": [
-          "#180600",
-          "#371e04",
-          "#593b1d",
-          "#7a5a3b",
-          "#9a7c60",
-          "#bb9f86",
-          "#ddc4ae",
-          "#ffead7"
+          "#0c0a11",
+          "#25232b",
+          "#403e47",
+          "#5e5c65",
+          "#7e7b85",
+          "#9f9da7",
+          "#c5c2cd",
+          "#efecf8"
         ]
       },
-      "nameplate-ink": {
+      "on-cobalt": {
         "role": "neutral",
-        "displayName": "İsimlik Mürekkebi",
-        "canonical": "oklch(24.1% 0.031 61.2)",
+        "displayName": "Kobalt Üstü Yazı / On Cobalt",
+        "canonical": "#08101f",
+        "oklch": "oklch(17.4% 0.034 261.9)",
         "tonalRamp": [
-          "#140802",
-          "#302216",
-          "#4d3f34",
-          "#6b5e54",
-          "#8c8076",
-          "#ada39a",
-          "#d0c7c0",
-          "#f4ede7"
+          "#040b19",
+          "#1b2435",
+          "#364052",
+          "#535e71",
+          "#727e92",
+          "#939fb4",
+          "#b8c5db",
+          "#e6effe"
         ]
       },
-      "brass": {
+      "on-amber": {
         "role": "neutral",
-        "displayName": "Pirinç",
-        "canonical": "oklch(73.7% 0.101 82.7)",
+        "displayName": "Kehribar Üstü Yazı / On Amber",
+        "canonical": "#1f1402",
+        "oklch": "oklch(20.1% 0.037 79.9)",
+        "tonalRamp": [
+          "#130900",
+          "#2e220e",
+          "#4a3e29",
+          "#695c46",
+          "#897b64",
+          "#ab9c85",
+          "#d1c2aa",
+          "#fcecd3"
+        ]
+      },
+      "glass-cobalt": {
+        "role": "primary",
+        "displayName": "Kobalt Cam / Cobalt Glass",
+        "canonical": "#4b7bec",
+        "oklch": "oklch(60.8% 0.178 264.4)",
+        "tonalRamp": [
+          "#000036",
+          "#010178",
+          "#0c309c",
+          "#2853c0",
+          "#4675e6",
+          "#719bf8",
+          "#a9c4fc",
+          "#e7effe"
+        ]
+      },
+      "glass-amber": {
+        "role": "secondary",
+        "displayName": "Kehribar Cam / Amber Glass",
+        "canonical": "#f2b33d",
+        "oklch": "oklch(80.6% 0.147 79.0)",
         "tonalRamp": [
           "#150800",
-          "#332200",
-          "#543e0f",
-          "#775d27",
-          "#9c7d3f",
-          "#c49f59",
-          "#e7c483",
-          "#ffeab0"
+          "#332000",
+          "#563a00",
+          "#7a5608",
+          "#a3730d",
+          "#ca9329",
+          "#f7b843",
+          "#feecd0"
+        ]
+      },
+      "glass-violet": {
+        "role": "secondary",
+        "displayName": "Mor Cam / Violet Glass",
+        "canonical": "#9a6ae3",
+        "oklch": "oklch(62.9% 0.178 299.6)",
+        "tonalRamp": [
+          "#13002c",
+          "#31005d",
+          "#51148d",
+          "#6f3cb1",
+          "#8e5ed6",
+          "#b080fc",
+          "#ceb5ff",
+          "#f1ebfe"
+        ]
+      },
+      "glass-teal": {
+        "role": "secondary",
+        "displayName": "Turkuaz Cam / Teal Glass",
+        "canonical": "#25b4c6",
+        "oklch": "oklch(70.7% 0.115 208.2)",
+        "tonalRamp": [
+          "#000f12",
+          "#002a2f",
+          "#064851",
+          "#186974",
+          "#228c9a",
+          "#21b2c4",
+          "#57d9eb",
+          "#cdf8fe"
+        ]
+      },
+      "glass-rose": {
+        "role": "secondary",
+        "displayName": "Gül Cam / Rose Glass",
+        "canonical": "#e46aa4",
+        "oklch": "oklch(68.7% 0.164 352.5)",
+        "tonalRamp": [
+          "#20000e",
+          "#470029",
+          "#740747",
+          "#9d2866",
+          "#c24c86",
+          "#e96ea8",
+          "#fba7cb",
+          "#fee7f0"
+        ]
+      },
+      "glass-copper": {
+        "role": "secondary",
+        "displayName": "Bakır Cam / Copper Glass",
+        "canonical": "#e07d43",
+        "oklch": "oklch(68.9% 0.142 49.0)",
+        "tonalRamp": [
+          "#1e0200",
+          "#401500",
+          "#662d07",
+          "#954201",
+          "#be5f20",
+          "#e48047",
+          "#fbb088",
+          "#feeadf"
+        ]
+      },
+      "glass-citrine": {
+        "role": "secondary",
+        "displayName": "Limon Cam / Citrine Glass",
+        "canonical": "#e2d35a",
+        "oklch": "oklch(85.6% 0.141 102.3)",
+        "tonalRamp": [
+          "#0f0b00",
+          "#292500",
+          "#484104",
+          "#685f13",
+          "#8b7f1b",
+          "#b0a118",
+          "#d6c74d",
+          "#fff289"
+        ]
+      },
+      "glass-ice": {
+        "role": "secondary",
+        "displayName": "Buz Cam / Ice Glass",
+        "canonical": "#9cc3ea",
+        "oklch": "oklch(80.3% 0.070 248.7)",
+        "tonalRamp": [
+          "#000b21",
+          "#012544",
+          "#1f4263",
+          "#3d6183",
+          "#5c81a5",
+          "#7da3c8",
+          "#a1c9f0",
+          "#e2f0ff"
+        ]
+      },
+      "glass-nacre": {
+        "role": "secondary",
+        "displayName": "Sedef Cam (DM) / Nacre Glass",
+        "canonical": "#ddd5ea",
+        "oklch": "oklch(88.6% 0.030 303.0)",
+        "tonalRamp": [
+          "#0e0815",
+          "#272130",
+          "#433c4d",
+          "#615a6c",
+          "#81798c",
+          "#a29aae",
+          "#c8c0d4",
+          "#f2ebfe"
+        ]
+      },
+      "glass-garnet": {
+        "role": "secondary",
+        "displayName": "Lal Cam (düşman) / Garnet Glass",
+        "canonical": "#c8465f",
+        "oklch": "oklch(58.0% 0.165 12.4)",
+        "tonalRamp": [
+          "#210004",
+          "#4b0015",
+          "#7b0029",
+          "#a52343",
+          "#cb4962",
+          "#f26c82",
+          "#fcaab3",
+          "#ffe8ea"
+        ]
+      },
+      "state-good": {
+        "role": "tertiary",
+        "displayName": "Şifa Yeşili / Mend Green",
+        "canonical": "#3fc38a",
+        "oklch": "oklch(73.1% 0.142 160.7)",
+        "tonalRamp": [
+          "#001006",
+          "#002d1a",
+          "#004d31",
+          "#0d6f4a",
+          "#139463",
+          "#31b981",
+          "#61e0a5",
+          "#c2ffde"
+        ]
+      },
+      "state-bad": {
+        "role": "tertiary",
+        "displayName": "Yara Kırmızısı / Wound Red",
+        "canonical": "#f06070",
+        "oklch": "oklch(67.7% 0.177 16.5)",
+        "tonalRamp": [
+          "#210003",
+          "#4a0011",
+          "#7a0623",
+          "#aa1939",
+          "#d14357",
+          "#f86877",
+          "#fbabaf",
+          "#fee8e9"
+        ]
+      },
+      "on-good": {
+        "role": "neutral",
+        "displayName": "Yeşil Üstü Yazı / On Good",
+        "canonical": "#03170d",
+        "oklch": "oklch(18.3% 0.035 160.4)",
+        "tonalRamp": [
+          "#000f06",
+          "#14291e",
+          "#2f463a",
+          "#4d6457",
+          "#6c8476",
+          "#8ca597",
+          "#b1cbbd",
+          "#dbf6e7"
+        ]
+      },
+      "on-bad": {
+        "role": "neutral",
+        "displayName": "Kırmızı Üstü Yazı / On Bad",
+        "canonical": "#26050a",
+        "oklch": "oklch(18.3% 0.057 14.7)",
+        "tonalRamp": [
+          "#1d0105",
+          "#3b171b",
+          "#5a3336",
+          "#7a5053",
+          "#9c7073",
+          "#bf9093",
+          "#e7b6b8",
+          "#ffe8e9"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Karakter adı."
+        "purpose": "Kağıttaki karakter adı."
       },
       "numeral": {
-        "displayName": "Büyük sayı",
-        "purpose": "Modifiye, can, AC, hız, pasifler."
+        "displayName": "Numeral",
+        "purpose": "Her camın tek dev sayısı (yetenek 46px, can 52px, AC/inisiyatif 40px, kendi camında 36px)."
       },
       "headline": {
-        "displayName": "Başlık",
-        "purpose": "Kart ve panel başlıkları (Türkçe karşılık yanında)."
+        "displayName": "Headline",
+        "purpose": "Cam başlıkları, yanında Türkçe karşılık."
       },
       "title": {
-        "displayName": "Sekme / satır",
-        "purpose": "Sekmeler, satır adları."
+        "displayName": "Title",
+        "purpose": "Düğmeler, sekmeler, satır adları."
       },
       "body": {
-        "displayName": "Metin",
-        "purpose": "Genel metin ve açıklamalar."
+        "displayName": "Body",
+        "purpose": "Genel metin; açıklamalar 72–74ch."
       },
       "label": {
-        "displayName": "Etiket",
-        "purpose": "Alan etiketleri."
+        "displayName": "Label",
+        "purpose": "Alan etiketleri; okunacak yazının alt sınırı 12px."
       },
-      "chalk": {
-        "displayName": "Tebeşir",
-        "purpose": "Yalnızca kara tahta."
+      "abbr": {
+        "displayName": "Abbreviation",
+        "purpose": "Yetenek kısaltmaları (STR, DEX…)."
       }
     },
     "shadows": [
       {
-        "name": "card",
-        "value": "0 18px 44px -14px rgba(0,0,0,.65)",
-        "purpose": "Kartlar, tepsi, çekmece, bildirim."
+        "name": "pane",
+        "value": "0 16px 34px -14px rgba(0,0,0,.75)",
+        "purpose": "Camlar, şeritler, ızgaralar, tepsi, bildirim (--shadow)."
       },
       {
-        "name": "focus-ring",
-        "value": "0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)",
-        "purpose": "Alan odakta."
+        "name": "floating-button",
+        "value": "0 10px 24px -10px rgba(0,0,0,.75), 0 2px 6px rgba(0,0,0,.35)",
+        "purpose": "Zar at ve hedef etiketi."
       },
       {
-        "name": "earned-glow",
-        "value": "0 0 28px -6px var(--accent)",
-        "purpose": "Yalnızca zar sonucu, doğal 20/1, 'sen' halkası, ilham."
+        "name": "sheet-strip",
+        "value": "0 14px 28px -18px rgba(0,0,0,.85)",
+        "purpose": "Kağıdın yapışkan üst şeridi."
       }
     ],
     "motion": [
       {
+        "name": "backlight-fade",
+        "value": "1.6s cubic-bezier(.2,.7,.3,1)",
+        "purpose": "En yeni son atış satırı atanın renginde ışık alıp söner."
+      },
+      {
+        "name": "lancet-lit",
+        "value": ".25s ease",
+        "purpose": "Sırası gelen pencere dolar ve uzar."
+      },
+      {
         "name": "state",
         "value": ".15s",
-        "purpose": "Hover ve basılı durum geçişleri."
+        "purpose": "Düğme, alan ve zar atan sayı durum geçişleri."
       },
       {
-        "name": "panel",
-        "value": ".2s-.25s",
-        "purpose": "Tepsi, çekmece, bildirim açılışı."
+        "name": "sheet-rise",
+        "value": ".42s cubic-bezier(.2,.8,.25,1)",
+        "purpose": "Kağıt tavernanın üstünde aşağıdan kalkar."
       },
       {
-        "name": "seat-slide",
-        "value": ".7s cubic-bezier(.4,0,.2,1)",
-        "purpose": "Koltukların kayması, sahne kayması."
+        "name": "camera-descent",
+        "value": "900ms iniş / 700ms yükseliş, smoothstep",
+        "purpose": "Kağıt açılırken kamera göz hizasına iner."
       },
       {
-        "name": "result-pop",
-        "value": ".45s cubic-bezier(.3,1.6,.5,1)",
-        "purpose": "Zar sonucunun belirmesi."
+        "name": "combat-enter",
+        "value": ".8s ease",
+        "purpose": "Orman açıklığı parlaktan ve bulanıktan açılır."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation:none; transition-duration:.01ms",
+        "purpose": "Hareket azaltmada her şey anında."
       }
     ],
     "breakpoints": [
@@ -365,172 +511,222 @@
         "value": "1180px"
       },
       {
-        "name": "desktop",
-        "value": "1100px"
-      },
-      {
-        "name": "labels-hide",
+        "name": "single-column",
         "value": "980px"
       },
       {
-        "name": "single-column",
+        "name": "tablet",
         "value": "820px"
+      },
+      {
+        "name": "phone-portrait-table",
+        "value": "640px"
       },
       {
         "name": "phone",
         "value": "560px"
       },
       {
-        "name": "table-portrait",
-        "value": "640px portrait"
+        "name": "coarse-pointer",
+        "value": "(pointer: coarse)"
       }
     ]
   },
   "components": [
     {
-      "name": "Buton",
+      "name": "Button",
       "kind": "button",
       "refersTo": "button",
-      "description": "Varsayılan hap buton: ikon + yazı; üstüne gelince vurgu rengine döner.",
-      "html": "<button class=\"ds-btn\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\"><circle cx=\"9\" cy=\"8\" r=\"3.2\"/><path d=\"M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5\"/><path d=\"M16 5.5a3 3 0 0 1 0 5.6M18 14.4c1.5.7 2.4 2.4 2.6 4.6\"/></svg>Karakterler</button>",
-      "css": ".ds-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line,rgba(255,150,95,.24));background:var(--field,rgba(0,0,0,.30));color:var(--text,#fcefe7);border-radius:999px;min-height:40px;padding:0 16px;font:700 13.5px/1.2 'Hanken Grotesk',system-ui,sans-serif;cursor:pointer;transition:border-color .15s,color .15s}.ds-btn:hover{border-color:var(--accent,#ff7a33);color:var(--accent,#ff7a33)}.ds-btn:focus-visible{outline:2px solid var(--accent,#ff7a33);outline-offset:2px}.ds-ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}"
+      "description": "Normal köşesiz cam düğme; üstüne gelince senin camının rengiyle ışık alır.",
+      "html": "<button class=\"ds-btn\"><svg viewBox=\"0 0 24 24\"><path d=\"M12 5v14M5 12h14\"/></svg>Saldırı ekle</button>",
+      "css": ":host{--lead:#0a080d;--bar:#17141c;--surface:#1c1823;--surface-2:#251f2e;--field:#0f0c13;--line:#352e40;--text:#f4ede0;--muted:#b4abbf;--accent:#4b7bec;--on-accent:#08101f;--accent-2:#f2b33d;--on-accent-2:#1f1402;--good:#3fc38a;--bad:#f06070;--on-good:#03170d;--on-bad:#26050a;--lw:3px;--lit:color-mix(in srgb,var(--accent) 34%,var(--surface));--shadow:0 16px 34px -14px rgba(0,0,0,.75)} .ds-btn{--h:40px;--ic:18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--h);padding:0 calc(var(--h) - 2px - var(--ic));border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:0;font-family:'Figtree',system-ui,sans-serif;font-weight:700;font-size:14px;line-height:1.2;cursor:pointer;transition:border-color .15s,background-color .15s,filter .15s,transform .1s} .ds-btn svg{width:var(--ic);height:var(--ic);fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .ds-btn:hover{border-color:color-mix(in srgb,var(--accent) 70%,var(--line));background:var(--lit)} .ds-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px} .ds-btn:active{transform:translateY(1px)} "
     },
     {
-      "name": "Ana buton",
+      "name": "Accent Button",
       "kind": "button",
       "refersTo": "button-accent",
-      "description": "Ekrandaki tek ana iş için vurgu renginde dolu buton.",
-      "html": "<button class=\"ds-btn-accent\">+ Yeni karakter</button>",
-      "css": ".ds-btn-accent{border:0;background:var(--accent,#ff7a33);color:var(--on-accent,#1d0a03);border-radius:999px;min-height:40px;padding:0 16px;font:700 13.5px/1.2 'Hanken Grotesk',system-ui,sans-serif;cursor:pointer;transition:filter .15s}.ds-btn-accent:hover{filter:brightness(1.1)}.ds-btn-accent:focus-visible{outline:2px solid var(--accent,#ff7a33);outline-offset:2px}"
+      "description": "Ekrandaki tek ana iş; senin camının rengiyle dolu.",
+      "html": "<button class=\"ds-btn ds-btn-accent\">Masaya katıl</button>",
+      "css": ":host{--lead:#0a080d;--bar:#17141c;--surface:#1c1823;--surface-2:#251f2e;--field:#0f0c13;--line:#352e40;--text:#f4ede0;--muted:#b4abbf;--accent:#4b7bec;--on-accent:#08101f;--accent-2:#f2b33d;--on-accent-2:#1f1402;--good:#3fc38a;--bad:#f06070;--on-good:#03170d;--on-bad:#26050a;--lw:3px;--lit:color-mix(in srgb,var(--accent) 34%,var(--surface));--shadow:0 16px 34px -14px rgba(0,0,0,.75)} .ds-btn{--h:40px;--ic:18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--h);padding:0 calc(var(--h) - 2px - var(--ic));border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:0;font-family:'Figtree',system-ui,sans-serif;font-weight:700;font-size:14px;line-height:1.2;cursor:pointer;transition:border-color .15s,background-color .15s,filter .15s,transform .1s} .ds-btn svg{width:var(--ic);height:var(--ic);fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .ds-btn:hover{border-color:color-mix(in srgb,var(--accent) 70%,var(--line));background:var(--lit)} .ds-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px} .ds-btn:active{transform:translateY(1px)} .ds-btn-accent{background:var(--accent);color:var(--on-accent);border-color:transparent} .ds-btn-accent:hover{background:var(--accent);filter:brightness(1.12)}"
     },
     {
-      "name": "Tehlike butonu",
+      "name": "Bad Button",
       "kind": "button",
-      "refersTo": "button-danger",
-      "description": "Silme, ayrılma, masayı kapatma: yalnızca kenar ve yazı kırmızı, üstüne gelince dolar.",
-      "html": "<button class=\"ds-btn-bad\">Masadan ayrıl</button>",
-      "css": ".ds-btn-bad{border:1px solid color-mix(in srgb,var(--bad,#ff6464) 50%,transparent);background:transparent;color:var(--bad,#ff6464);border-radius:999px;min-height:40px;padding:0 16px;font:700 13.5px/1.2 'Hanken Grotesk',system-ui,sans-serif;cursor:pointer}.ds-btn-bad:hover{background:var(--bad,#ff6464);color:#1d0a03;border-color:transparent}"
+      "refersTo": "button-bad",
+      "description": "Silme, ayrılma, hasar; üstüne gelince kırmızıyla dolar, yazı koyu.",
+      "html": "<button class=\"ds-btn ds-btn-bad\"><svg viewBox=\"0 0 24 24\"><path d=\"M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13\"/></svg>Sil</button>",
+      "css": ":host{--lead:#0a080d;--bar:#17141c;--surface:#1c1823;--surface-2:#251f2e;--field:#0f0c13;--line:#352e40;--text:#f4ede0;--muted:#b4abbf;--accent:#4b7bec;--on-accent:#08101f;--accent-2:#f2b33d;--on-accent-2:#1f1402;--good:#3fc38a;--bad:#f06070;--on-good:#03170d;--on-bad:#26050a;--lw:3px;--lit:color-mix(in srgb,var(--accent) 34%,var(--surface));--shadow:0 16px 34px -14px rgba(0,0,0,.75)} .ds-btn{--h:40px;--ic:18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--h);padding:0 calc(var(--h) - 2px - var(--ic));border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:0;font-family:'Figtree',system-ui,sans-serif;font-weight:700;font-size:14px;line-height:1.2;cursor:pointer;transition:border-color .15s,background-color .15s,filter .15s,transform .1s} .ds-btn svg{width:var(--ic);height:var(--ic);fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round} .ds-btn:hover{border-color:color-mix(in srgb,var(--accent) 70%,var(--line));background:var(--lit)} .ds-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px} .ds-btn:active{transform:translateY(1px)} .ds-btn-bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--line))} .ds-btn-bad:hover{background:var(--bad);color:var(--on-bad);border-color:transparent}"
     },
     {
-      "name": "Zar atan sayı",
+      "name": "Roll Number",
       "kind": "custom",
       "refersTo": "roll-number",
-      "description": "İmza parçası: kağıttaki her zar atan sayı bir düğmedir; üstüne gelince vurguyla dolup yükselir.",
-      "html": "<button class=\"ds-roll\">+5</button> <button class=\"ds-roll ds-roll-big\">+3</button>",
-      "css": ".ds-roll{border:1px solid var(--line,rgba(255,150,95,.24));background:var(--field,rgba(0,0,0,.30));color:var(--text,#fcefe7);border-radius:6px;min-width:48px;padding:5px 8px;font:800 15px/1.2 'Hanken Grotesk',system-ui,sans-serif;font-variant-numeric:tabular-nums;cursor:pointer;transition:background-color .15s,color .15s,transform .15s}.ds-roll:hover{background:var(--accent,#ff7a33);color:var(--on-accent,#1d0a03);border-color:transparent;transform:translateY(-1px)}.ds-roll-big{font:600 38px/1 Grenze,Georgia,serif;min-width:96px;padding:12px 8px}"
+      "description": "Zar atan sayı: koyu kuyu, kalın rakam, sağ altta zar köşesi; üstüne gelince senin renginle dolar.",
+      "html": "<button class=\"ds-roll\">+5</button> <button class=\"ds-roll ds-roll-big\">+2</button>",
+      "css": ":host{--lead:#0a080d;--bar:#17141c;--surface:#1c1823;--surface-2:#251f2e;--field:#0f0c13;--line:#352e40;--text:#f4ede0;--muted:#b4abbf;--accent:#4b7bec;--on-accent:#08101f;--accent-2:#f2b33d;--on-accent-2:#1f1402;--good:#3fc38a;--bad:#f06070;--on-good:#03170d;--on-bad:#26050a;--lw:3px;--lit:color-mix(in srgb,var(--accent) 34%,var(--surface));--shadow:0 16px 34px -14px rgba(0,0,0,.75)} .ds-roll{position:relative;border:1px solid var(--line);background:var(--field);color:var(--text);border-radius:0;min-width:48px;padding:5px 8px;font-family:'Figtree',system-ui,sans-serif;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums lining-nums;cursor:pointer;transition:background-color .15s,color .15s,border-color .15s} .ds-roll::after{content:'';position:absolute;right:2px;bottom:2px;width:6px;height:6px;background:linear-gradient(135deg,transparent 50%,color-mix(in srgb,var(--accent) 75%,var(--muted)) 50%)} .ds-roll:hover{background:var(--accent);color:var(--on-accent);border-color:var(--accent)} .ds-roll:hover::after{background:linear-gradient(135deg,transparent 50%,var(--on-accent) 50%)} .ds-roll:focus-visible{outline:2px solid var(--accent);outline-offset:2px} .ds-roll-big{font-family:'Eczar',Georgia,serif;font-size:40px;font-weight:700;min-width:96px;padding:12px 8px 8px;line-height:1}"
     },
     {
-      "name": "Durum çipi",
-      "kind": "chip",
-      "refersTo": "chip",
-      "description": "İngilizce ad + Türkçe karşılık; seçili durum kırmızıyla dolar.",
-      "html": "<button class=\"ds-chip\">Poisoned<small>Zehirli</small></button> <button class=\"ds-chip on\">Prone<small>Yerde</small></button>",
-      "css": ".ds-chip{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--line,rgba(255,150,95,.24));background:var(--field,rgba(0,0,0,.30));color:var(--text,#fcefe7);border-radius:999px;padding:5px 11px;font:700 13px 'Hanken Grotesk',system-ui,sans-serif;cursor:pointer}.ds-chip small{font-weight:500;font-size:11.5px;opacity:.75}.ds-chip:hover{border-color:var(--bad,#ff6464)}.ds-chip.on{background:var(--bad,#ff6464);color:#1d0a03;border-color:transparent}"
+      "name": "Zar At",
+      "kind": "button",
+      "refersTo": "dice-button",
+      "description": "Sağ altta sabit, yazılı kehribar cam; zar tepsisini açar.",
+      "html": "<button class=\"ds-fab\"><svg viewBox=\"0 0 24 24\"><path d=\"M12 2 21 7v10l-9 5-9-5V7z\"/><path d=\"M12 2 7.5 14.5h9zM3 7l4.5 7.5M21 7l-4.5 7.5M7.5 14.5 12 22l4.5-7.5\"/></svg>Zar at · Avantaj</button>",
+      "css": ":host{--lead:#0a080d;--bar:#17141c;--surface:#1c1823;--surface-2:#251f2e;--field:#0f0c13;--line:#352e40;--text:#f4ede0;--muted:#b4abbf;--accent:#4b7bec;--on-accent:#08101f;--accent-2:#f2b33d;--on-accent-2:#1f1402;--good:#3fc38a;--bad:#f06070;--on-good:#03170d;--on-bad:#26050a;--lw:3px;--lit:color-mix(in srgb,var(--accent) 34%,var(--surface));--shadow:0 16px 34px -14px rgba(0,0,0,.75)} .ds-fab{height:52px;display:inline-flex;align-items:center;gap:9px;padding:0 26px 0 24px;border:var(--lw) solid var(--lead);border-radius:0;background:var(--accent-2);color:var(--on-accent-2);font-family:'Figtree',system-ui,sans-serif;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 10px 24px -10px rgba(0,0,0,.75),0 2px 6px rgba(0,0,0,.35);transition:filter .15s} .ds-fab svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round} .ds-fab:hover{filter:brightness(1.1)} .ds-fab:focus-visible{outline:2px solid var(--text);outline-offset:2px}"
     },
     {
-      "name": "Kart",
-      "kind": "card",
-      "refersTo": "card",
-      "description": "Arma çerçeve: metal kenar (temanın vurgu renginden), üst ortada kanatlı arma, alt ortada baklava; bir alan tek çerçeve.",
-      "html": "<section class=\"ds-card\"><h2>Saving Throws<em>Kurtarma zarları</em></h2><p>Bir tehlikeye karşı direnmek için atılır.</p></section>",
-      "css": ".ds-card{background:var(--surface,rgba(38,18,13,.78));border:3px solid #b8693a;outline:1px solid rgba(255,122,51,.3);outline-offset:-7px;border-radius:var(--radius,7px);box-shadow:0 18px 44px -14px rgba(0,0,0,.65);padding:18px 20px;color:var(--text,#fcefe7);font:15px/1.45 'Hanken Grotesk',system-ui,sans-serif;max-width:340px}.ds-card h2{margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--line,rgba(255,150,95,.24));font:500 20px/1.15 Grenze,Georgia,serif}.ds-card h2 em{font:500 12.5px 'Hanken Grotesk',system-ui,sans-serif;font-style:normal;color:var(--muted,#d3aa99);margin-left:8px}.ds-card p{margin:0;font-size:12.5px;color:var(--muted,#d3aa99)}"
-    },
-    {
-      "name": "Alan",
+      "name": "Input",
       "kind": "input",
       "refersTo": "input",
-      "description": "Koyu alan; odakta vurgu kenarı ve yumuşak halka.",
-      "html": "<label class=\"ds-f\"><span>Class <i>Sınıf</i></span><input class=\"ds-input\" value=\"Ranger\"></label>",
-      "css": ".ds-f{display:flex;flex-direction:column;gap:4px;font:700 12px 'Hanken Grotesk',system-ui,sans-serif;color:var(--muted,#d3aa99);max-width:220px}.ds-f i{font-style:normal;font-weight:500;margin-left:6px}.ds-input{background:var(--field,rgba(0,0,0,.30));border:1px solid var(--line,rgba(255,150,95,.24));color:var(--text,#fcefe7);border-radius:6px;padding:8px 10px;font:15px 'Hanken Grotesk',system-ui,sans-serif;outline:none}.ds-input:focus{border-color:var(--accent,#ff7a33);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent,#ff7a33) 22%,transparent)}"
+      "description": "Kurşun çerçeveli koyu oyuk; yazarken kenar senin renginde.",
+      "html": "<label class=\"ds-f\"><span>Species <i>Tür</i></span><input class=\"ds-input\" value=\"Dwarf\"></label>",
+      "css": ":host{--lead:#0a080d;--bar:#17141c;--surface:#1c1823;--surface-2:#251f2e;--field:#0f0c13;--line:#352e40;--text:#f4ede0;--muted:#b4abbf;--accent:#4b7bec;--on-accent:#08101f;--accent-2:#f2b33d;--on-accent-2:#1f1402;--good:#3fc38a;--bad:#f06070;--on-good:#03170d;--on-bad:#26050a;--lw:3px;--lit:color-mix(in srgb,var(--accent) 34%,var(--surface));--shadow:0 16px 34px -14px rgba(0,0,0,.75)} .ds-f{display:flex;flex-direction:column;gap:4px;font-family:'Figtree',system-ui,sans-serif;} .ds-f span{font-size:12px;font-weight:700;color:var(--muted)} .ds-f i{font-style:normal;font-weight:500;margin-left:6px} .ds-input{background:var(--field);border:1px solid var(--line);border-radius:0;padding:8px 10px;color:var(--text);font:15px 'Figtree',system-ui,sans-serif;outline:none;transition:border-color .15s,box-shadow .15s} .ds-input:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))} .ds-input:focus{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}"
     },
     {
-      "name": "Sekmeler",
+      "name": "Ability Pane Lattice",
+      "kind": "card",
+      "refersTo": "pane",
+      "description": "Bir alan, tek kurşun ızgara: parçalar 3px kurşunla ayrılmış ayrı camlar, her camda tek dev sayı.",
+      "html": "<div class=\"ds-grid\"><div class=\"ds-ab\"><b>STR</b><small>Strength, Güç</small><span>+3</span><em>17</em></div><div class=\"ds-ab\"><b>DEX</b><small>Dexterity, Çeviklik</small><span>+0</span><em>10</em></div><div class=\"ds-ab\"><b>CON</b><small>Constitution</small><span>+2</span><em>14</em></div></div>",
+      "css": ":host{--lead:#0a080d;--bar:#17141c;--surface:#1c1823;--surface-2:#251f2e;--field:#0f0c13;--line:#352e40;--text:#f4ede0;--muted:#b4abbf;--accent:#4b7bec;--on-accent:#08101f;--accent-2:#f2b33d;--on-accent-2:#1f1402;--good:#3fc38a;--bad:#f06070;--on-good:#03170d;--on-bad:#26050a;--lw:3px;--lit:color-mix(in srgb,var(--accent) 34%,var(--surface));--shadow:0 16px 34px -14px rgba(0,0,0,.75)} .ds-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--lw);padding:0;background:var(--lead);border:var(--lw) solid var(--lead);box-shadow:var(--shadow)} .ds-ab{background:var(--surface);color:var(--text);text-align:center;padding:16px 12px;font-family:'Figtree',system-ui,sans-serif;} .ds-ab b{display:block;font-weight:800;letter-spacing:.14em;font-size:13px;color:color-mix(in srgb,var(--accent) 50%,#fff)} .ds-ab small{display:block;font-size:12.5px;color:var(--muted)} .ds-ab span{display:block;font-family:'Eczar',Georgia,serif;font-size:46px;font-weight:700;line-height:1;margin:10px 0 6px} .ds-ab em{font-style:normal;font-size:13px;font-weight:700;color:var(--muted)}"
+    },
+    {
+      "name": "Turn Lancets",
+      "kind": "custom",
+      "refersTo": "turn-lancet",
+      "description": "Sıra pencereleri: kemerli, sahibinin camıyla boyalı; sırası gelen koltuk rengiyle dolar ve uzar.",
+      "html": "<ol class=\"ds-sira\"><li style=\"--g:#4b7bec\" class=\"on\"><i>B</i><b>18</b><small>Borin</small></li><li style=\"--g:#9a6ae3\"><i>K</i><b>14</b><small>Kara</small></li><li style=\"--g:#c8465f\"><i>G</i><b>9</b><small>Goblin</small></li></ol>",
+      "css": ":host{--lead:#0a080d;--bar:#17141c;--surface:#1c1823;--surface-2:#251f2e;--field:#0f0c13;--line:#352e40;--text:#f4ede0;--muted:#b4abbf;--accent:#4b7bec;--on-accent:#08101f;--accent-2:#f2b33d;--on-accent-2:#1f1402;--good:#3fc38a;--bad:#f06070;--on-good:#03170d;--on-bad:#26050a;--lw:3px;--lit:color-mix(in srgb,var(--accent) 34%,var(--surface));--shadow:0 16px 34px -14px rgba(0,0,0,.75)} .ds-sira{list-style:none;margin:0;display:inline-flex;align-items:flex-end;gap:var(--lw);padding:var(--lw);background:var(--lead);box-shadow:var(--shadow);font-family:'Figtree',system-ui,sans-serif;} .ds-sira li{display:grid;justify-items:center;align-content:end;gap:3px;width:66px;height:102px;padding:6px 4px;border-radius:31px 31px 0 0;background:color-mix(in srgb,var(--g) 18%,var(--surface));color:var(--text);transition:height .25s,background-color .25s} .ds-sira i{display:grid;place-items:center;width:40px;height:44px;border-radius:20px 20px 0 0;border:2px solid var(--lead);background:color-mix(in srgb,var(--g) 35%,var(--lead));font-style:normal;font-family:'Eczar',Georgia,serif;font-weight:700;font-size:18px} .ds-sira b{font-family:'Eczar',Georgia,serif;font-size:20px;font-weight:700;line-height:1} .ds-sira small{font-size:12px;color:var(--muted)} .ds-sira li.on{height:114px;background:var(--g);color:#0b0910} .ds-sira li.on small{color:#0b0910;font-weight:800}"
+    },
+    {
+      "name": "Log Row Backlight",
+      "kind": "custom",
+      "refersTo": "pane",
+      "description": "Son atışlar: her satır atanın camıyla boyalı; en yeni satır kendi renginde ışık alıp 1,6 sn'de söner.",
+      "html": "<div class=\"ds-log\"><h2>Son atışlar</h2><ol><li class=\"yeni\" style=\"--g:#4b7bec\"><span>Borin</span><b>25</b></li><li style=\"--g:#9a6ae3\"><span>Kara</span><b>7</b></li></ol></div>",
+      "css": ":host{--lead:#0a080d;--bar:#17141c;--surface:#1c1823;--surface-2:#251f2e;--field:#0f0c13;--line:#352e40;--text:#f4ede0;--muted:#b4abbf;--accent:#4b7bec;--on-accent:#08101f;--accent-2:#f2b33d;--on-accent-2:#1f1402;--good:#3fc38a;--bad:#f06070;--on-good:#03170d;--on-bad:#26050a;--lw:3px;--lit:color-mix(in srgb,var(--accent) 34%,var(--surface));--shadow:0 16px 34px -14px rgba(0,0,0,.75)} .ds-log{width:260px;border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);box-shadow:var(--shadow);font-family:'Figtree',system-ui,sans-serif;} .ds-log h2{margin:0;padding:8px 12px;background:var(--bar);font-family:'Eczar',Georgia,serif;font-weight:700;font-size:19px} .ds-log ol{list-style:none;margin:var(--lw) 0 0;padding:0;display:grid;gap:var(--lw)} .ds-log li{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:color-mix(in srgb,var(--g) 16%,var(--surface));font-weight:600;font-size:14px} .ds-log li b{font-family:'Eczar',Georgia,serif;font-size:26px;font-weight:700;line-height:1} .ds-log li.yeni{animation:ds-isik 1.6s cubic-bezier(.2,.7,.3,1) infinite} .ds-log:hover li.yeni{animation-play-state:paused} @keyframes ds-isik{from{background:color-mix(in srgb,var(--g) 62%,var(--surface))}} @media (prefers-reduced-motion:reduce){.ds-log li.yeni{animation:none}}"
+    },
+    {
+      "name": "Tabs",
       "kind": "nav",
       "refersTo": "tab",
-      "description": "Alt çizgili sekmeler; seçili olan vurgu renginde.",
-      "html": "<nav class=\"ds-tabs\"><button class=\"on\">Actions</button><button>Spells</button><button>Inventory</button></nav>",
-      "css": ".ds-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line,rgba(255,150,95,.24))}.ds-tabs button{border:0;border-bottom:2px solid transparent;background:none;padding:11px 15px;margin-bottom:-1px;font:700 14px 'Hanken Grotesk',system-ui,sans-serif;color:var(--muted,#d3aa99);cursor:pointer}.ds-tabs button:hover{color:var(--text,#fcefe7)}.ds-tabs button.on{color:var(--accent,#ff7a33);border-color:var(--accent,#ff7a33)}"
-    },
-    {
-      "name": "Kara tahta",
-      "kind": "custom",
-      "refersTo": "chalkboard-log",
-      "description": "Tavernadaki son atışlar: meşe çerçeveli tahta, tebeşir yazısı.",
-      "html": "<aside class=\"ds-board\"><h3>Son atışlar</h3><ol><li><b>17</b>Dorn · Saldırı</li><li class=\"hit\"><b>20</b>Lira · Algı</li><li class=\"miss\"><b>1</b>Usta · Gizlilik</li></ol></aside>",
-      "css": ".ds-board{width:220px;background:#2a3036;border:10px solid #6b4a2a;border-radius:5px;box-shadow:0 0 0 2px #3a2412,inset 0 0 24px rgba(0,0,0,.55);padding:6px 10px 10px;font-family:Caveat,'Segoe Print',cursive;color:#e8ecee}.ds-board h3{margin:0 0 4px;text-align:center;font-size:21px;border-bottom:1.5px solid rgba(232,236,238,.4)}.ds-board ol{list-style:none;margin:0;padding:0}.ds-board li{font-size:19px}.ds-board b{display:inline-block;width:1.8em;text-align:right;margin-right:.4em}.ds-board .hit{color:#a5ecb9}.ds-board .miss{color:#ffa79a}"
+      "description": "Alt çizgili sekmeler; seçili sekme senin renginde.",
+      "html": "<div class=\"ds-tabs\"><button aria-selected=\"true\">Attacks</button><button>Inventory</button><button>Notes</button></div>",
+      "css": ":host{--lead:#0a080d;--bar:#17141c;--surface:#1c1823;--surface-2:#251f2e;--field:#0f0c13;--line:#352e40;--text:#f4ede0;--muted:#b4abbf;--accent:#4b7bec;--on-accent:#08101f;--accent-2:#f2b33d;--on-accent-2:#1f1402;--good:#3fc38a;--bad:#f06070;--on-good:#03170d;--on-bad:#26050a;--lw:3px;--lit:color-mix(in srgb,var(--accent) 34%,var(--surface));--shadow:0 16px 34px -14px rgba(0,0,0,.75)} .ds-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);font-family:'Figtree',system-ui,sans-serif;} .ds-tabs button{border:0;background:transparent;padding:11px 22px;font-weight:700;font-size:14px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;font-family:inherit} .ds-tabs button:hover{color:var(--text)} .ds-tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px} .ds-tabs button[aria-selected=true]{color:var(--accent);border-color:var(--accent)}"
     }
   ],
   "narrative": {
-    "northStar": "Tavernadaki Masa",
-    "overview": "Dört Element'te her şey bir masanın etrafında olur. Karakter kağıdı, zar, kara tahta ve isimlik, oyuncuların önünde duran gerçek eşyalardır; ekran, bir ayar sayfası değil, oturulan bir yerdir. Yeni bir parça tasarlanırken sorulan soru şudur: \"Bu, tavernadaki masanın üstünde duran bir şey gibi mi görünüyor, yoksa bir yazılımın penceresi gibi mi?\" İkincisiyse yeniden düşünülür.\n\nSistem iki dünyadan oluşur ve ikisi bilerek ayrıdır. **Defter** (karakter kağıdı, DM ekranı, çekmeceler) oyuncunun seçtiği **elementin** rengini taşır: Ateş, Su, Toprak, Hava. Her tema kendi renk paketi, kendi köşe yuvarlaklığı ve kendi arka plan parçacıklarıyla gelir. **Taverna** (masa görünümü) ise herkes için aynıdır: elle boyanmış, sıcak kahve tonlu, mürekkep çizgili bir mekân. Temadan tavernaya yalnızca vurgu rengi geçer; böylece her oyuncu, hangi elementi seçmiş olursa olsun, aynı odada olduğunu hisseder.\n\nYoğunluk orta-yüksektir: D&D kağıdı çok sayı taşır ve bu gizlenmez; ama her sayı yeni başlayana kendini sade Türkçeyle açıklar. His **sakin ve net**tir: parlama, büyüme ve titreme yalnızca önemli anlara (zar sonucu, doğal 20, \"sen\" işareti) saklanır.\n\n**Açık karar (2026-10-18, sonraya bırakıldı):** Kullanıcı dört element temasına ısınamadı. Temalar ileride D&D hikâyelerinde sevilen **hikâye temalarıyla** (ör. Ortaçağ, Cyberpunk, Western) değiştirilecek; böylece o tarzda oynayan masa kendine özel bir görünüme kavuşur. Bu bir tasarım işi olarak yol haritasının sonuna bırakıldı. O zamana kadar dört element geçerlidir; ama yeni kod temayı **yalnızca değişkenlerden** (`--accent`, `--surface`, `--radius`…) okumalı ki temalar değişince hiçbir parça elle düzeltilmek zorunda kalmasın.\n\n**Hedef yön (kararlaştırıldı, henüz uygulanmadı):** Karakter kağıdı zamanla tavernanın malzemesini alacak: parşömen yüzey, mürekkep çizgi, tebeşir ve ahşap ayrıntılar. Bugünkü koyu, yarı saydam kartlar geçerli kuraldır; yeni yapılan paneller ve butonlar bu hedefe doğru adım atar (daha belirgin çerçeve, kağıt hissi), ama eski kartları tek seferde değiştirmez.",
+    "northStar": "Arkadan Işık Alan Cam",
+    "overview": "Kervansaray'ın ekranı koyu bir kurşun ızgarasıdır; arayüzün her parçası bu ızgaraya oturtulmuş bir camdır. Cam, figürsüz ve geometriktir (revzen pencereleri gibi), süslü çerçevesi yoktur. Bir cam yalnızca başına bir şey gelince arkadan ışık alır: sıran gelince senin penceren, zar inince o zarı atanın satırı, üstüne gelince zar atan sayı. Işık bir hale değildir; camın kendi renginin açılmasıdır. Yeni bir parça tasarlanırken sorulan soru şudur: \"Bu, kurşuna oturmuş bir cam mı ve ne zaman ışık alıyor?\"\n\nTavernanın kendisi (3D, elle boyanmış, mürekkep çizgili) olduğu gibi kalır; vitray onun önünde duran arayüzdür. Masa ana yerdir: sahne ekranın tamamını kaplar, camlar kenarlara yaslanır. Oyuncunun oyun sırasında gereken her şey alttaki **kendi camında** durur (Oyna yüzü); kağıt kurulum ve ayrıntı içindir (Kur yüzü) ve masanın üstüne gelir.\n\nHer oyuncunun masada kendi **koltuk camı** vardır (kobalt, kehribar, mor, turkuaz, gül, bakır, limon, buz; DM sedef, düşmanlar lal). Bir kişi her yerde aynı renktedir: isimliği, son atışlardaki satırı, sıra penceresi, zarları. Senin camının rengi bütün sitenin vurgusu olur. Yoğunluk orta-yüksektir; D&D kağıdı çok sayı taşır ve bu gizlenmez, ama her camda tek bir dev sayı öne çıkar ve her terim yeni başlayana kendini sade Türkçeyle açıklar.\n\nDört element teması (Ateş, Su, Toprak, Hava), metal arma çerçeveler, hap düğmeler, parşömen karakter kartı ve kara tahta 2026-10-21'de kalktı. **Açık karar:** ileride hikâye temaları (Ortaçağ, Cyberpunk…) gelince yalnızca cam renkleri değişir, kurşun ızgara kalır; bu yüzden kod renkleri yalnızca değişkenlerden okur.",
     "keyCharacteristics": [
-      "İki dünya: element temalı defter + herkes için aynı taverna.",
-      "Köşe yuvarlaklığı temanın karakteridir: Ateş keskin (7px), Hava yumuşak (22px).",
-      "Başlık ve büyük sayılar Grenze (gotik kitap harfi), arayüz Hanken Grotesk, kara tahta Caveat (tebeşir el yazısı).",
-      "Terimler çift dilli: İngilizce terim + Türkçe açıklama yan yana.",
-      "Sonuç zardan önce hiçbir yerde görünmez; animasyon yalnızca gösterimdir."
+      "Tek kalınlıkta kurşun çizgi (3px) her camı ayırır; çerçeve, arma, metal yok.",
+      "Camlar köşesizdir; kemer yalnızca sıra şeridindeki pencerelerdedir (kemer = sıra).",
+      "Her oyuncu tek bir cam rengine sahiptir ve o renk her yerde onu gösterir.",
+      "Işık dolgudur, hale değil: olay olunca cam kendi renginin açık tonuyla dolar.",
+      "Başlık ve büyük sayılar Eczar, arayüz Figtree; terimler İngilizce önde, Türkçe yanında.",
+      "Sonuç zar yere inmeden hiçbir yerde görünmez."
     ],
     "rules": [
       {
-        "name": "The One Hearth Rule",
-        "body": "Taverna temanın renklerini almaz; yalnızca `--accent` geçer (zar, \"sen\" halkası, POV çerçevesi). Masa görünümüne yeni bir parça eklerken tema değişkenleri değil taverna paleti kullanılır.",
+        "name": "The Three Values Rule",
+        "body": "Bir camda üç değer vardır: kurşun, cam, sedef yazı. Dördüncü değer yalnızca ışıktır (camın kendi renginin açılması). Gradyan, doku ya da süs tonu eklenmez.",
         "section": "colors"
       },
       {
-        "name": "The Variables Only Rule",
-        "body": "Defterde yeni kod sabit renk yazmaz; `--accent`, `--surface`, `--line`, `--text`, `--muted`, `--good`, `--bad`, `--warn` kullanır. Tema değişince her şey birlikte değişmelidir. (İstisna: taverna paleti ve element seçici düğmelerinin kendi renkleri.)",
+        "name": "The Seat Glass Rule",
+        "body": "Bir kişi her yerde tek renktir: isimlik, son atış satırı, sıra penceresi, zar ve savaş kartı aynı koltuk camını taşır. Koltuk camları arasında kırmızı ve yeşil yoktur, çünkü onlar durum anlatır.",
         "section": "colors"
       },
       {
         "name": "The Meaning Is Fixed Rule",
-        "body": "Yeşil, kırmızı ve kehribar yalnızca durum anlatır (bağlı / tehlike / bekliyor). Süs için kullanılmaz; vurgu rengi de durum anlatmak için kullanılmaz.",
+        "body": "Yeşil, kırmızı ve kehribar yalnızca durum anlatır (iyi / tehlike / bekliyor). Süs için kullanılmaz; koltuk camı da durum anlatmak için kullanılmaz.",
         "section": "colors"
       },
       {
+        "name": "The Variables Only Rule",
+        "body": "Yeni kod sabit renk yazmaz; `--lead`, `--surface`, `--line`, `--text`, `--muted`, `--accent`, `--g-…`, `--good`, `--bad`, `--warn` kullanır. Hikâye temaları geldiğinde yalnızca bu değerler değişecek.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Giant Number Rule",
+        "body": "Her camda tek bir dev sayı vardır ve göz önce ona gider (yetenekte modifiye, canda kalan can, AC'de zırh sınıfı). Skor, en çok can gibi ikinci sayılar küçük ve soluktur.",
+        "section": "typography"
+      },
+      {
         "name": "The Two Tongues Rule",
-        "body": "Her D&D terimi iki dilde durur: İngilizce terim önde ve kalın, Türkçe karşılığı yanında ya da altında, soluk ve ince. Sıra hiçbir yerde ters çevrilmez.",
+        "body": "Her D&D terimi iki dilde durur: İngilizce terim önde ve kalın, Türkçe karşılığı yanında ya da altında, soluk ve ince. Sıra hiçbir yerde ters çevrilmez. İngilizce büyük harfli etiketlerde `lang=\"en\"` kullanılır (Türkçe büyük harf kuralı \"HİT POİNTS\" yazmasın).",
         "section": "typography"
       },
       {
         "name": "The Hint Floor Rule",
-        "body": "Okunması gereken hiçbir yazı 12px'in altına inmez. (Bilinen sorun: yetenek etiketleri 10,5px; düzeltilecek.)",
+        "body": "Okunması gereken hiçbir yazı 12px'in altına inmez.",
         "section": "typography"
       },
       {
         "name": "The Stage Owns The Screen Rule",
-        "body": "Masa görünümünde sahne ekranın tamamıdır; arayüz parçaları kenarlara yaslanır ve sahnenin ortasını (oyun masasını) asla kapatmaz.",
+        "body": "Masada sahne ekranın tamamıdır; camlar kenarlara yaslanır ve oyun masasının ortasını asla kapatmaz.",
         "section": "layout"
       },
       {
-        "name": "The Earned Glow Rule",
-        "body": "Parlama bir ödüldür: zar sonucu, doğal 20 / doğal 1, masadaki \"sen\" halkası ve ilham. Durağan bir düğme ya da çerçeve parlamaz. Yeni parçalara parlama eklenmez; mevcut süs parlamaları zamanla kaldırılır.",
+        "name": "The Two Faces Rule",
+        "body": "Oyuncu oyun sırasında kağıdı açmak zorunda kalmaz: can, AC, altı yetenek, saldırılar ve \"Kağıdım\" alttaki kendi camındadır (Oyna). Kağıt kurulum ve ayrıntı içindir (Kur) ve masanın üstüne gelir.",
+        "section": "layout"
+      },
+      {
+        "name": "The Backlight Rule",
+        "body": "Işık bir olaya cevaptır ve hale değil dolgudur: cam, kendi renginin açık tonuyla (`--lit`: vurgu %34 + cam) ya da tam koltuk rengiyle dolar. Sırası gelenin penceresi koltuk rengiyle dolar ve uzar; en yeni zar satırı atanın renginde ışık alıp 1,6 sn'de söner; zar atan sayı üstüne gelince senin renginle dolar. Hareket azaltma açıkken geçiş yoktur. Durağan bir düğme, çerçeve ya da logo ışık almaz.",
         "section": "elevation"
       },
       {
-        "name": "The One Frame Per Area Rule",
-        "body": "Birbirine ait parçalar tek arma çerçevede durur; çerçeve içine çerçeve konmaz, iç bölümleri ince çizgiler ayırır.",
-        "section": "layout"
+        "name": "The Sheet Over Tavern Rule",
+        "body": "Kağıt ve DM ekranı ayrı bir sayfa olmaz; kararmış ve bulanık tavernanın üstünde açılır (`filter: blur(7px) brightness(.45) saturate(.8)`).",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Lead Weight Rule",
+        "body": "Kurşun her yerde 3px'tir (`--lw`): camların arası, camın dış kenarı, şeritler. İkinci bir kalınlık, metal çerçeve, arma ya da iç süs çizgisi yoktur. Camın içindeki ayrımlar 1px ince çizgidir.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Arch Means Turn Rule",
+        "body": "Kemer yalnızca sıra şeridinde görülür. Portre, kart, düğme ya da panel kemerli olmaz; ekranda bir kemer görülürse o, savaşta kimin sırası olduğunu gösteren penceredir.",
+        "section": "shapes"
+      },
+      {
+        "name": "The One Pane Per Area Rule",
+        "body": "Birbirine ait parçalar (altı yetenek; AC + inisiyatif + hız + can; can zarı + durumlar) tek bir kurşun ızgarada durur; çerçeve içine çerçeve konmaz.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Never Hide Data Rule",
+        "body": "Sade dolu bir alanı asla saklamaz; içi dolu parça görünür kalır. Yazarken bir alan yalnız görünür hâle geçebilir; gizlenmesi görünüm ya da karakter değişince olur.",
+        "section": "components"
+      },
+      {
+        "name": "The Four Choices Rule",
+        "body": "Bir ekranda en çok dört seçenek: önce yeni başlayana önerilen dört, gerisi \"Bütün seçenekler (N)\"; \"Önerilen\" etiketi yalnız hepsi açıkken görünür.",
+        "section": "components"
       }
     ],
     "dos": [
-      "**Do** yeni bir parçayı önce \"masanın üstünde duran bir eşya mı?\" sorusuyla tasarla (Tavernadaki Masa).",
-      "**Do** defterde yalnızca tema değişkenlerini kullan (`--accent`, `--surface`, `--line`, `--text`, `--muted`); masa görünümünde taverna paletini.",
-      "**Do** her D&D terimini İngilizce + Türkçe ver; açıklamayı sade, yeni başlayanı küçümsemeyen bir dille yaz.",
-      "**Do** iç içe köşeleri `--radius`'tan türet (kart, iç kutu ×.8 + 2px, alan ×.55 + 2px).",
-      "**Do** dokunma hedeflerini en az 44px, metin zıtlığını en az 4,5:1 yap (PRODUCT.md hedefi).",
-      "**Do** ikon tek başına kaldığında ona açıklama (title ve aria-label) ver.",
-      "**Do** butonları yalnızca üç boydan (32 / 40 / 48px) ve dört türden (normal, accent, bad, good) seç; yeni bir buton biçimi icat etme.",
-      "**Do** \"Hareket azaltma\" açıkken animasyonu atla, sonucu doğrudan göster."
+      "**Do** yeni bir parçayı önce \"kurşuna oturmuş bir cam mı, ne zaman ışık alıyor?\" sorusuyla tasarla (Arkadan Işık Alan Cam).",
+      "**Do** kurşunu her yerde 3px (`--lw`) kullan; bir alanın parçalarını kurşun zeminli bir ızgarada ayrı camlar olarak diz.",
+      "**Do** bir kişiyi her yerde kendi koltuk camıyla göster (`--g`); senin camın `--accent`'tir.",
+      "**Do** ışığı dolguyla ver (`--lit` ya da koltuk rengi); hareket azaltmada geçişsiz.",
+      "**Do** her camda tek bir dev Eczar sayı öne çıkar; ikinci sayıları küçült ve soldur.",
+      "**Do** her D&D terimini İngilizce önde, Türkçe yanında ver; açıklamayı sade, yeni başlayanı küçümsemeyen bir dille yaz.",
+      "**Do** butonları yalnız üç boydan (32 / 40 / 48px) ve dört türden (normal, accent, bad, good) seç; iç boşluğu boydan hesapla.",
+      "**Do** dokunma hedeflerini en az 44px, metin zıtlığını en az 4,5:1 yap.",
+      "**Do** ikon tek başına kaldığında ona `title` ve `aria-label` ver."
     ],
     "donts": [
-      "**Don't** durağan düğme, çerçeve ya da logoya vurgu parlaması ekleme (The Earned Glow Rule).",
-      "**Don't** zar sonucunu zar yere inmeden hiçbir yerde gösterme (bildirim, tahta, sayı, geçmiş).",
-      "**Don't** tavernaya temanın zemin, kart ya da çizgi renklerini taşıma; yalnızca vurgu geçer.",
-      "**Don't** Yara Kırmızısı (#ff6464) üstüne beyaz yazı koyma (zıtlık 2,9:1); `--on-bad` (koyu) kullan.",
+      "**Don't** metal çerçeve, arma, baklava, gradyan süs ya da hale ekleme; ışık camın kendi renginin açılmasıdır.",
+      "**Don't** kemeri sıra şeridi dışında hiçbir yere verme (portre, kart, düğme, panel, logo kare kalır).",
+      "**Don't** zar sonucunu zar yere inmeden hiçbir yerde gösterme (bildirim, son atışlar, sayı, geçmiş).",
+      "**Don't** koltuk camları arasına kırmızı ya da yeşil koyma; yeşil / kırmızı / kehribarı süs için kullanma.",
+      "**Don't** Yara Kırmızısı ya da Şifa Yeşili dolgusu üstüne beyaz yazı koyma; `--on-bad` / `--on-good` (koyu) kullan.",
       "**Don't** ×, −, + gibi klavye işaretlerini ya da emojiyi ikon yerine kullanma; ikonlar aynı çizgi kalınlığında SVG'dir.",
       "**Don't** kapalı bir aç/kapa düğmesini soluklaştırma.",
       "**Don't** 12px'in altında okunması gereken yazı kullanma.",
-      "**Don't** yeşil / kırmızı / kehribarı süs için kullanma; bunlar yalnızca durum anlatır.",
       "**Don't** sayfanın altındaki İngilizce Fan Content ve SRD atıf metnine dokunma."
     ]
   }

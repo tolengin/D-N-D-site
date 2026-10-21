@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700;800&family=Figtree:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--lead:#0c0a0f;--bar:#17141c;--smoke:#231f2a;--ink:#f4ede0;--mut:#b7aec2;
+--cob:#3b6fe0;--rub:#d23a4a;--eme:#22a774;--amb:#f2b33d;--vio:#8b5bd6;--tea:#1fa6b8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1440px;height:900px;overflow:hidden;font-family:Figtree,sans-serif;color:var(--ink);background:var(--lead)}
+.stage{position:absolute;inset:0;background:radial-gradient(60% 55% at 52% 52%,#8a4a22 0,#5a2c14 45%,#2a160c 80%,#160b06 100%)}
+.table{position:absolute;left:520px;top:290px;width:420px;height:260px;border-radius:50%;background:radial-gradient(#b8743c,#8c5226);box-shadow:0 0 0 70px rgba(120,70,40,.55)}
+.seat{position:absolute;width:46px;height:46px;border-radius:50%;border:4px solid var(--lead)}
+/* üst çubuk: kurşun ızgara */
+.top{position:absolute;left:0;right:0;top:0;height:60px;background:var(--bar);border-bottom:3px solid var(--lead);display:flex;align-items:center;padding:0 18px;gap:16px}
+.brand{font:800 24px 'Alegreya SC';letter-spacing:.02em}
+.code{font:700 14px Figtree;color:var(--mut);padding:6px 12px;border:3px solid var(--lead);background:var(--smoke)}
+.spacer{flex:1}
+.ib{width:40px;height:40px;background:var(--smoke);border:3px solid var(--lead)}
+/* sıra: dik camlar */
+.turn{position:absolute;top:60px;left:50%;transform:translateX(-50%);display:flex;gap:0;background:var(--lead);padding:0 3px 3px}
+.lan{width:74px;height:92px;background:var(--smoke);border:3px solid var(--lead);border-radius:37px 37px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:8px}
+.lan b{font:800 26px 'Alegreya SC'}
+.lan.on{background:linear-gradient(#7fa4ff,var(--cob));color:#0b1022}
+.lan.foe{background:#2b1418}
+/* sol araç şeridi */
+.rail{position:absolute;left:0;top:200px;display:flex;flex-direction:column;background:var(--lead);gap:3px;padding:3px}
+.rail .ib{border:0}
+/* sağ: son atışlar */
+.log{position:absolute;right:0;top:60px;bottom:0;width:320px;background:var(--bar);border-left:3px solid var(--lead);display:flex;flex-direction:column}
+.log h2{font:800 26px 'Alegreya SC';padding:18px 20px 12px}
+.row{display:grid;grid-template-columns:10px 1fr auto;align-items:center;gap:14px;border-top:3px solid var(--lead);padding:12px 20px 12px 0;background:var(--smoke)}
+.row i{height:100%;min-height:52px}
+.row .w{font:600 14px Figtree;color:var(--mut)}
+.row .n{font:800 34px 'Alegreya SC'}
+.row.lit{background:linear-gradient(90deg,rgba(34,167,116,.55),rgba(34,167,116,.15))}
+/* rehber satırı */
+.guide{position:absolute;left:340px;width:760px;bottom:178px;background:var(--lead);padding:3px}
+.guide div{background:#2a2433;padding:12px 18px;font:700 24px Figtree}
+.guide em{font-style:normal;color:#9fbaff}
+/* alt: benim camım */
+.hot{position:absolute;left:340px;width:760px;bottom:16px;height:156px;background:var(--lead);display:grid;grid-template-columns:240px repeat(6,1fr) 150px;gap:3px;padding:3px}
+.me{background:linear-gradient(160deg,rgba(59,111,224,.55),rgba(59,111,224,.15)),var(--smoke);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.me .nm{font:800 28px 'Alegreya SC'}
+.me .sub{font:600 13px Figtree;color:var(--mut)}
+.hp{display:flex;align-items:baseline;gap:8px;margin-top:auto}
+.hp b{font:800 40px 'Alegreya SC'}.hp span{font:700 22px 'Alegreya SC';color:var(--mut)}
+.bar{height:10px;background:var(--lead)}.bar i{display:block;height:100%;width:86%;background:var(--eme)}
+.ab{background:var(--smoke);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.ab small{font:800 13px Figtree;letter-spacing:.12em;color:var(--mut)}
+.ab b{font:800 40px 'Alegreya SC'}
+.ab span{font:600 13px Figtree;color:var(--mut)}
+.roll{background:linear-gradient(#ffd27a,var(--amb));color:#1c1204;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.roll b{font:800 28px 'Alegreya SC'}
+.ac{position:absolute;left:250px;bottom:16px;width:84px;height:156px;background:var(--lead);padding:3px}
+.ac div{height:100%;background:var(--smoke);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ac b{font:800 40px 'Alegreya SC'}
+.sheet{position:absolute;left:24px;bottom:16px;width:220px;height:156px;background:var(--lead);padding:3px}
+.sheet div{height:100%;background:var(--smoke);display:flex;flex-direction:column;justify-content:center;padding:0 18px;gap:6px}
+.sheet b{font:800 26px 'Alegreya SC'}
+</style></head><body>
+<div class="stage"><div class="table"></div>
+<div class="seat" style="left:700px;top:240px;background:var(--rub)"></div>
+<div class="seat" style="left:940px;top:330px;background:var(--eme)"></div>
+<div class="seat" style="left:900px;top:520px;background:var(--amb)"></div>
+<div class="seat" style="left:620px;top:560px;background:var(--cob)"></div>
+<div class="seat" style="left:470px;top:390px;background:var(--vio)"></div></div>
+
+<div class="top"><span class="brand">Taverna Masası</span><span class="code">Masa ABC-DEF · 5 kişi</span><span class="spacer"></span><span class="ib"></span><span class="ib"></span><span class="ib"></span></div>
+
+<div class="turn">
+<div class="lan" style="border-top-color:var(--eme)"><b>19</b></div>
+<div class="lan on"><b>17</b></div>
+<div class="lan foe"><b>14</b></div>
+<div class="lan"><b>12</b></div>
+<div class="lan foe"><b>9</b></div>
+<div class="lan"><b>6</b></div></div>
+
+<div class="rail"><span class="ib"></span><span class="ib"></span><span class="ib"></span><span class="ib"></span></div>
+
+<aside class="log"><h2>Son atışlar</h2>
+<div class="row lit"><i style="background:var(--eme)"></i><span class="w">Dorn Vale · Uzun kılıç, saldırı d20+5</span><span class="n">23</span></div>
+<div class="row"><i style="background:var(--rub)"></i><span class="w">Usta · Goblin → Mira, hasar 1d6+2</span><span class="n">6</span></div>
+<div class="row"><i style="background:var(--vio)"></i><span class="w">Mira · Ateş Topu, hasar 8d6</span><span class="n">31</span></div>
+<div class="row"><i style="background:var(--cob)"></i><span class="w">Ser Alaz · İnisiyatif d20</span><span class="n">17</span></div>
+<div class="row"><i style="background:var(--amb)"></i><span class="w">Kara · Gizlilik d20+7</span><span class="n">12</span></div>
+</aside>
+
+<div class="guide"><div>Sıra sende. Saldırmak için <em>Uzun kılıç</em>'a bas.</div></div>
+<div class="sheet"><div><b>Kağıdım</b><span class="sub" style="font:600 13px Figtree;color:var(--mut)">Saldırılar, büyüler, eşyalar</span></div></div>
+<div class="ac"><div><small style="font:800 13px Figtree;color:var(--mut)">AC</small><b>18</b></div></div>
+<div class="hot">
+<div class="me"><span class="nm">Ser Alaz</span><span class="sub">3. seviye Human Paladin</span><div class="hp"><b>24</b><span>/ 28 can</span></div><div class="bar"><i></i></div></div>
+<div class="ab"><small>STR</small><b>+3</b><span>Güç</span></div>
+<div class="ab"><small>DEX</small><b>+0</b><span>Çeviklik</span></div>
+<div class="ab"><small>CON</small><b>+2</b><span>Dayanıklılık</span></div>
+<div class="ab"><small>INT</small><b>−1</b><span>Zekâ</span></div>
+<div class="ab"><small>WIS</small><b>+1</b><span>Bilgelik</span></div>
+<div class="ab"><small>CHA</small><b>+3</b><span>Karizma</span></div>
+<div class="roll"><b>Zar at</b><span style="font:700 13px Figtree">d20</span></div>
+</div>
+</body></html>

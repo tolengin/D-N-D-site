@@ -7,7 +7,7 @@ import numpy as np
 import cv2
 from PIL import Image, ImageFilter
 
-SITE = r'C:\Users\PC\Desktop\DnD-dort element-site'
+SITE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # proje klasörü (araclar/ bir üstü)
 OUT = os.path.join(SITE, 'gorseller', 'tekli')
 os.makedirs(OUT, exist_ok=True)
 CLASSES = ['barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard', 'sinifsiz']

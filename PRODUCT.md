@@ -56,9 +56,10 @@ Yayılma planı: önce arkadaş grubu, sonra Reddit ve LinkedIn'de paylaşım.
 
 ## Brand Commitments
 
-- **Ad:** "Dört Element". Alt başlık: "D&D karakter defteri".
-- **Dört element teması** (Ateş, Su, Toprak, Hava): her biri ayrı renk paketi ve kendi arka plan parçacıkları (kor, kabarcık, yaprak, rüzgâr). Köşe yuvarlaklığı temanın karakterini taşır: Ateş keskin, Hava yumuşak. Hava tek açık temadır.
-  - **Açık karar (2026-10-18):** sahibi dört element fikrine ısınamadı. Temalar ileride D&D hikâyelerinde popüler olan **hikâye temalarıyla** (ör. Ortaçağ, Cyberpunk, Western) değiştirilecek: o tarzda oynayan oyuncular kendini özel hissetsin. Uzun bir tasarım işi olduğu için yol haritasının sonuna bırakıldı; o zamana kadar dört element geçerli.
+- **Ad (2026-10-21):** "Kervansaray". Alt başlık: "D&D karakter defteri ve masası". Eski adı "Dört Element".
+- **Görünüm (2026-10-21): Vitray.** Ekran koyu bir kurşun ızgarası, her arayüz parçası bir cam; bir şey olunca cam arkadan ışık alır. Figürsüz, geometrik cam (revzen pencereleri gibi). Her oyuncunun masada kendi cam rengi var. Ayrıntı: DESIGN.md.
+  - Dört element teması (Ateş, Su, Toprak, Hava) 2026-10-21'de kalktı.
+  - **Açık karar (2026-10-18'den):** ileride D&D hikâyelerinde popüler **hikâye temaları** (ör. Ortaçağ, Cyberpunk, Western) gelecek; vitrayın cam renkleri temaya göre değişir, kurşun ızgara kalır. Yol haritasının sonunda.
 - **Taverna:** elle boyanmış, stilize fantastik tarz (toon gölgelendirme, mürekkep çizgisi, fırça dokusu), kesit görünüm. Bütün masa görselleri bu tarzda üretilir.
 - **Ton:** samimi, sade Türkçe; yeni başlayanı küçümsemeyen, adım adım anlatan.
 - **Yasal metin:** sayfanın altındaki İngilizce Fan Content ve SRD atıf metinleri değiştirilmez.

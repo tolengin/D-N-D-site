@@ -3,7 +3,7 @@ import os, sys
 import numpy as np
 from PIL import Image
 
-SITE = r'C:\Users\PC\Desktop\DnD-dort element-site'
+SITE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # proje klasörü (araclar/ bir üstü)
 SRC, DST = os.path.join(SITE, 'gorseller'), os.path.join(SITE, 'masa')
 CROP_TOP = 11                      # 1792x2400 -> 1792x2389 (tam 3:4)
 SIZE = (600, 800)

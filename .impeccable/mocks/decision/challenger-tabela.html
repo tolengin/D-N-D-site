@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--y:#ffc400;--k:#111;--w:#fff;--g:#2b2b2b;--m:#a9a9a9}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1440px;height:900px;overflow:hidden;font-family:'Atkinson Hyperlegible',sans-serif;color:var(--w);background:var(--k)}
+.stage{position:absolute;left:0;right:340px;top:150px;bottom:150px;background:radial-gradient(60% 60% at 50% 50%,#8a4a22 0,#5a2c14 50%,#2a160c 85%)}
+.table{position:absolute;left:360px;top:150px;width:380px;height:240px;border-radius:50%;background:radial-gradient(#b8743c,#8c5226)}
+.top{position:absolute;left:0;right:0;top:0;height:54px;background:var(--k);display:flex;align-items:center;gap:18px;padding:0 20px;border-bottom:1px solid var(--g)}
+.brand{font:700 22px 'Atkinson Hyperlegible'}.c{font:700 15px 'Atkinson Hyperlegible';color:var(--m)}
+.sp{flex:1}.pic{width:36px;height:36px;background:var(--g)}
+/* sarı bant: tek mesaj */
+.band{position:absolute;left:0;right:0;top:54px;height:96px;background:var(--y);color:var(--k);display:flex;align-items:center;gap:26px;padding:0 24px}
+.band .who{width:64px;height:64px;background:var(--k);color:var(--y);display:flex;align-items:center;justify-content:center;font:700 34px 'Atkinson Hyperlegible'}
+.band .msg{font:700 40px 'Atkinson Hyperlegible';letter-spacing:-.01em}
+.band .arrow{margin-left:auto;font:700 52px 'Atkinson Hyperlegible'}
+/* sağ: sıra ve atışlar */
+.side{position:absolute;right:0;top:150px;bottom:0;width:340px;background:var(--k);border-left:1px solid var(--g);padding:18px 20px;display:flex;flex-direction:column;gap:10px}
+.side h2{font:700 24px 'Atkinson Hyperlegible';color:var(--y)}
+.tr{display:grid;grid-template-columns:56px 1fr;gap:14px;align-items:center;padding:8px 0;border-bottom:1px solid var(--g)}
+.tr b{font:700 36px 'Atkinson Hyperlegible';text-align:right}.tr span{font:400 15px 'Atkinson Hyperlegible'}
+.tr.on b,.tr.on span{color:var(--y)}
+/* alt: kapılar (numaralı seçenekler) */
+.gates{position:absolute;left:0;right:340px;bottom:0;height:150px;background:var(--k);display:grid;grid-template-columns:260px repeat(4,1fr);border-top:1px solid var(--g)}
+.me{padding:16px 20px;border-right:1px solid var(--g)}
+.me .n{font:700 26px 'Atkinson Hyperlegible'}.me .s{font:400 14px 'Atkinson Hyperlegible';color:var(--m)}
+.me .hp{font:700 44px 'Atkinson Hyperlegible';margin-top:6px}.me .hp small{font-size:20px;color:var(--m)}
+.gate{display:grid;grid-template-columns:72px 1fr;align-items:center;gap:14px;padding:0 18px;border-right:1px solid var(--g)}
+.gate .no{height:72px;background:var(--w);color:var(--k);display:flex;align-items:center;justify-content:center;font:700 44px 'Atkinson Hyperlegible'}
+.gate.go .no{background:var(--y)}
+.gate .t{font:700 22px 'Atkinson Hyperlegible'}.gate .d{font:400 14px 'Atkinson Hyperlegible';color:var(--m)}
+</style></head><body>
+<div class="stage"><div class="table"></div></div>
+<div class="top"><span class="brand">Taverna Masası</span><span class="c">Masa ABC-DEF · 5 kişi</span><span class="sp"></span><span class="pic"></span><span class="pic"></span></div>
+<div class="band"><span class="who">SA</span><span class="msg">Sıra sende. Saldırmak için 1'e bas.</span><span class="arrow">↓</span></div>
+<aside class="side"><h2>Sıra · Tur 2</h2>
+<div class="tr"><b>19</b><span>Dorn Vale</span></div>
+<div class="tr on"><b>17</b><span>Ser Alaz (sen)</span></div>
+<div class="tr"><b>14</b><span>Goblin</span></div>
+<div class="tr"><b>12</b><span>Mira</span></div>
+<div class="tr"><b>9</b><span>Ork</span></div>
+<h2 style="margin-top:14px">Son atış</h2>
+<div class="tr"><b>23</b><span>Dorn Vale · Uzun kılıç d20+5</span></div>
+<div class="tr"><b>6</b><span>Goblin → Mira · hasar</span></div></aside>
+<div class="gates">
+<div class="me"><div class="n">Ser Alaz</div><div class="s">3. seviye Human Paladin · AC 18</div><div class="hp">24 <small>/ 28 can</small></div></div>
+<div class="gate go"><span class="no">1</span><div><div class="t">Uzun kılıç</div><div class="d">d20+5 · 1d8+3</div></div></div>
+<div class="gate"><span class="no">2</span><div><div class="t">Kutsal Darbe</div><div class="d">yuva harcar</div></div></div>
+<div class="gate"><span class="no">3</span><div><div class="t">El koyma</div><div class="d">iyileştir</div></div></div>
+<div class="gate"><span class="no">4</span><div><div class="t">Kağıdım</div><div class="d">hepsi</div></div></div>
+</div>
+</body></html>

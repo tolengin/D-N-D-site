@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@700;800&family=Figtree:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1d1a17;--bone:#efe3c8;--och:#e8b923;--ver:#d6402b;--ult:#2d4fa3;--leaf:#4f8a3c;--plum:#6d3b7a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1440px;height:900px;overflow:hidden;font-family:Figtree,sans-serif;color:var(--ink);background:#14100c}
+.stage{position:absolute;inset:0;background:radial-gradient(60% 55% at 46% 46%,#8a4a22 0,#5a2c14 45%,#2a160c 80%,#160b06 100%)}
+.table{position:absolute;left:470px;top:230px;width:420px;height:260px;border-radius:50%;background:radial-gradient(#b8743c,#8c5226);box-shadow:0 0 0 70px rgba(120,70,40,.55)}
+.top{position:absolute;left:0;right:0;top:0;height:58px;background:var(--ink);display:flex;align-items:center;gap:16px;padding:0 20px;color:var(--bone)}
+.brand{font:800 24px 'Alegreya SC'}
+.chip{font:700 14px Figtree;border:2px solid var(--bone);padding:5px 12px;border-radius:4px}
+.sp{flex:1}.ib{width:38px;height:38px;border:2px solid var(--bone);border-radius:50%}
+/* kart */
+.card{position:absolute;background:var(--bone);border:4px solid var(--ink);border-radius:12px;box-shadow:0 10px 0 -4px rgba(0,0,0,.35);overflow:hidden;display:flex;flex-direction:column}
+.card .num{font:800 14px 'Alegreya SC';text-align:center;padding:4px 0;border-bottom:3px solid var(--ink)}
+.card .art{flex:1;border-bottom:3px solid var(--ink)}
+.card .ban{font:800 22px 'Alegreya SC';text-align:center;padding:6px 8px;color:var(--bone)}
+/* sıra: küçük kartlar üstte */
+.turn{position:absolute;top:72px;left:330px;display:flex;gap:10px}
+.turn .card{position:static;width:64px;height:92px}
+.turn .card.on{transform:translateY(10px);border-color:var(--och);outline:4px solid var(--ink)}
+.turn .card b{font:800 30px 'Alegreya SC';margin:auto}
+/* düşman kartları sağda */
+.foe{width:150px;height:216px}
+/* elim: altta yelpaze */
+.hand{position:absolute;left:300px;bottom:-40px;width:760px;height:300px}
+.hand .card{width:170px;height:250px;bottom:0}
+.hand .card .stat{font:800 44px 'Alegreya SC';text-align:center;padding:10px 0}
+.hand .card .lbl{font:700 13px Figtree;text-align:center;padding:0 10px 10px}
+/* benim kartım */
+.me{left:24px;bottom:24px;width:250px;height:350px}
+.me .art{background:linear-gradient(160deg,#2d4fa3,#1b2f66)}
+.me .row{display:flex;justify-content:space-around;padding:10px 6px;border-top:3px solid var(--ink)}
+.me .row div{text-align:center}.me .row b{font:800 30px 'Alegreya SC';display:block}.me .row span{font:700 12px Figtree}
+.log{position:absolute;right:24px;top:72px;width:300px;display:flex;flex-direction:column;gap:8px}
+.log h2{font:800 26px 'Alegreya SC';color:var(--bone)}
+.le{background:var(--bone);border:3px solid var(--ink);border-radius:8px;display:grid;grid-template-columns:8px 1fr auto;align-items:center;gap:12px;padding:8px 12px 8px 0}
+.le i{height:44px}.le span{font:600 13px Figtree}.le b{font:800 30px 'Alegreya SC'}
+.roll{position:absolute;right:24px;bottom:24px;width:200px;height:84px;background:var(--och);border:4px solid var(--ink);border-radius:12px;display:flex;align-items:center;justify-content:center;font:800 30px 'Alegreya SC';box-shadow:0 8px 0 -2px var(--ink)}
+.guide{position:absolute;left:330px;bottom:270px;background:var(--ink);color:var(--bone);font:700 24px Figtree;padding:10px 18px;border-radius:8px}
+.guide em{font-style:normal;color:var(--och)}
+</style></head><body>
+<div class="stage"><div class="table"></div></div>
+<div class="top"><span class="brand">Taverna Masası</span><span class="chip">Masa ABC-DEF · 5 kişi</span><span class="sp"></span><span class="ib"></span><span class="ib"></span></div>
+
+<div class="turn">
+<div class="card"><div class="ban" style="background:var(--leaf)">19</div></div>
+<div class="card on"><div class="ban" style="background:var(--ult)">17</div></div>
+<div class="card"><div class="ban" style="background:var(--ver)">14</div></div>
+<div class="card"><div class="ban" style="background:var(--plum)">12</div></div>
+<div class="card"><div class="ban" style="background:var(--ver)">9</div></div></div>
+
+<div class="card foe" style="left:930px;top:300px"><div class="num">I</div><div class="art" style="background:#5b6b3a"></div><div class="ban" style="background:var(--ver)">Goblin</div></div>
+<div class="card foe" style="left:960px;top:540px;transform:rotate(4deg)"><div class="num">II</div><div class="art" style="background:#4a4038"></div><div class="ban" style="background:var(--ver)">Ork</div></div>
+
+<div class="log"><h2>Son atışlar</h2>
+<div class="le"><i style="background:var(--leaf)"></i><span>Dorn Vale · Uzun kılıç d20+5</span><b>23</b></div>
+<div class="le"><i style="background:var(--ver)"></i><span>Goblin → Mira · hasar 1d6+2</span><b>6</b></div>
+<div class="le"><i style="background:var(--plum)"></i><span>Mira · Ateş Topu 8d6</span><b>31</b></div></div>
+
+<div class="guide">Sıra sende. Bir <em>saldırı kartı</em> seç.</div>
+<div class="card me"><div class="num">Ser Alaz</div><div class="art"></div><div class="ban" style="background:var(--ult)">Ser Alaz</div>
+<div class="row"><div><b>24</b><span>/ 28 can</span></div><div><b>18</b><span>AC</span></div><div><b>+2</b><span>İnisiyatif</span></div></div></div>
+
+<div class="hand">
+<div class="card" style="left:20px;transform:rotate(-9deg)"><div class="num">I</div><div class="stat">+5</div><div class="ban" style="background:var(--ver)">Uzun kılıç</div><div class="lbl">1d8+3 kesici</div></div>
+<div class="card" style="left:170px;transform:rotate(-3deg) translateY(-14px)"><div class="num">II</div><div class="stat">2d8</div><div class="ban" style="background:var(--och);color:var(--ink)">Kutsal Darbe</div><div class="lbl">Büyü yuvası harcar</div></div>
+<div class="card" style="left:320px;transform:rotate(3deg) translateY(-14px)"><div class="num">III</div><div class="stat">5</div><div class="ban" style="background:var(--leaf)">El koyma</div><div class="lbl">Can iyileştirme havuzu</div></div>
+<div class="card" style="left:470px;transform:rotate(9deg)"><div class="num">IV</div><div class="stat">+3</div><div class="ban" style="background:var(--ult)">Cirit</div><div class="lbl">1d6+3 delici</div></div>
+</div>
+<div class="roll">Zar at</div>
+</body></html>
