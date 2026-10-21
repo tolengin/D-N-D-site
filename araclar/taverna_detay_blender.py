@@ -23,7 +23,7 @@ Gerçekçilik için kullanılan taktikler:
 
 2026-10-16: sanat tarzı elle boyanmış illüstrasyona döndü (ornek sanat.jpg). Ayarlardaki STİL bölümü: ince parçalar
 kalınlaşır, pahlar büyür, her şey hafifçe yamulur (el yapımı); duvarlar sıva, direkler taş, oyun alanı altıgen taş döşeme,
-şömine önünde post. Yeni dokuların promptları: doku-promptlari-boyali.txt. Doku gelene kadar yeni yüzeyler düz renktir.
+şömine önünde post. Yeni dokuların promptları: promptlar/doku-boyali.txt. Doku gelene kadar yeni yüzeyler düz renktir.
 
 Ölçüler METRE. Oda merkezi (0, 0) = oyun masasının merkezi = kameranın ortası. x doğu, y kuzey, z yukarı.
 Outliner düzeni blockout ile aynıdır (01_Yapi, 02_Bar, 03_Masalar, 04_Somine, 05_Isik_Isaretleri, 06_Sablonlar, 99_Onizleme).

@@ -1,0 +1,12 @@
+masa/ klasorundeki baskasina ait parcalar.
+(Gorsellerin cogu yapay zekayla uretildi; asagidakiler disaridan geldi.)
+
+buyucu.glb, buyucu.js
+  Ne icin : Masadaki butun karakterlerin 3D figuru (simdilik herkes buyucu)
+  Kaynak  : Poly-Art Wizard Medieval Fantasy
+  Sahibi  : Denys Almaral (https://sketchfab.com/denysalmaral)
+  Link    : https://sketchfab.com/3d-models/poly-art-wizard-medieval-fantasy-01d1bacb3e9942cdb8808481ea9cb2f7
+  Lisans  : CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+            Atif GEREKIR: sitede yazarin adi ve lisans gorunur bir yerde yazilmali.
+  Degisiklik: araclar/buyucu_oturt_blender.py ile sandalyede oturur poza getirildi, iskeleti ve asasi cikarildi,
+            kucultuldu. Ham hali proje kokunde poly-art_wizard_medieval_fantasy.glb.

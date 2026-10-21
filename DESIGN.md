@@ -74,29 +74,29 @@ components:
     backgroundColor: "rgba(0,0,0,.30)"
     textColor: "{colors.ash-white}"
     rounded: "{rounded.pill}"
-    padding: "0 16px"
+    padding: "0 20px"
     height: "40px"
   button-accent:
     backgroundColor: "{colors.ember-orange}"
     textColor: "{colors.ember-ink}"
     rounded: "{rounded.pill}"
-    padding: "0 16px"
+    padding: "0 20px"
     height: "40px"
   button-danger:
     textColor: "{colors.wound-red}"
     rounded: "{rounded.pill}"
-    padding: "0 16px"
+    padding: "0 20px"
     height: "40px"
   button-danger-hover:
     backgroundColor: "{colors.wound-red}"
     textColor: "#2a0606"
   button-sm:
     rounded: "{rounded.pill}"
-    padding: "0 12px"
+    padding: "0 14px"
     height: "32px"
   button-lg:
     rounded: "{rounded.pill}"
-    padding: "0 22px"
+    padding: "0 26px"
     height: "48px"
   icon-button:
     textColor: "{colors.ember-dust}"
@@ -106,7 +106,7 @@ components:
     backgroundColor: "{colors.ember-orange}"
     textColor: "{colors.ember-ink}"
     rounded: "{rounded.pill}"
-    padding: "0 22px 0 15px"
+    padding: "0 26px 0 24px"
     height: "52px"
   roll-number:
     backgroundColor: "rgba(0,0,0,.30)"
@@ -134,7 +134,7 @@ components:
   tab:
     textColor: "{colors.ember-dust}"
     typography: "{typography.title}"
-    padding: "11px 15px"
+    padding: "11px 22px"
   nameplate:
     textColor: "{colors.nameplate-ink}"
     width: "clamp(84px, 10.4vw, 160px)"
@@ -216,7 +216,7 @@ Her element tek bir güçlü vurgu rengi ile ona eşlik eden ikinci bir sıcak t
 ### Named Rules
 **The Two Tongues Rule.** Her D&D terimi iki dilde durur: İngilizce terim önde ve kalın, Türkçe karşılığı yanında ya da altında, soluk ve ince. Sıra hiçbir yerde ters çevrilmez.
 
-**The Hint Floor Rule.** Okunması gereken hiçbir yazı 12px'in altına inmez. (Bilinen sorun: yetenek etiketleri 10,5px; düzeltilecek.)
+**The Hint Floor Rule.** Okunması gereken hiçbir yazı 12px'in altına inmez. (2026-10-20: yetenek etiketleri 10,5px'ten, çip / liste başlığı / yuva etiketleri 11,5px'ten 12px'e çıktı.)
 
 ## Layout
 
@@ -261,7 +261,8 @@ Tavernada biçimler elle yapılmış eşyalardır: ahşap isimlik (görsel), me�
 Tek sistem (2026-10-18). Hap biçimli, kalın yazılı, sakin; durum renkle ve zeminle anlatılır, parlamayla değil.
 - **Shape:** hap (999px); yalnızca ikondan oluşanlar tam yuvarlak.
 - **Üç boy:** küçük `.sm` 32px (kart içi, masa araçları, satır işleri), normal 40px (üst çubuk, çekmece, ana işler), büyük `.lg` 48px (ilk ekrandaki iki büyük seçenek). **Dokunmatik ekranda** (pointer: coarse) sırasıyla 40 / 44 / 52px'e büyür; parmak için en az 44px hedefi.
-- **Yapı:** ikon + yazı; ikon normal boyda 18px, küçükte 16px, büyükte 20px. Dar ekranda (≤560px) üst çubukta yazı gizlenir, ikon kalır; o düğmelerde mutlaka `title` vardır.
+- **İç boşluk (kullanıcının kuralı, 2026-10-20):** yandaki boşluk üstteki boşluğun **2 katı**. Üstteki boşluk = (boy − 2px kenar − ikon) / 2 olduğundan yandaki boşluk boydan hesaplanır: `padding-inline: calc(var(--h) - 2px - var(--ic))`. Sonuç: küçük 14px, normal 20px, büyük 26px; dokunmatikte 22 / 24 / 30px. Boy değişince oran kendiliğinden korunur; düğmeye elle `padding` yazılmaz. İstisna: yalnız ikonlu yuvarlak düğmeler (boşluk yok) ve zar atan sayılar (`.roll`, ortalanmış rakam). Sekmeler 11px 22px, Zar Düğmesi 0 26px 0 24px.
+- **Yapı:** ikon + yazı; ikon normal boyda 18px, küçükte 16px, büyükte 20px (`--ic`). Dar ekranda (≤560px) üst çubukta yazı gizlenir, ikon kalır; o düğmelerde mutlaka `title` vardır.
 - **Default:** alan zemini, ince çizgi kenar, Hanken 700 13,5px. Üstüne gelince kenar vurgu rengine döner ve zemin %10 vurguya boyanır; yazı rengi değişmez. Basınca 1px aşağı iner.
 - **Accent:** vurgu zemini, koyu yazı; bir ekranda tek ana iş ("Yeni karakter", "Masaya katıl", "Zarı at"). Üstüne gelince biraz aydınlanır.
 - **Danger (`.bad`) / Good (`.good`):** yalnızca kenar ve yazı renkli; üstüne gelince dolar ve yazı **koyu** olur (`--on-bad`, `--on-good`; Hava temasında kırmızı üstünde beyaz).
@@ -270,8 +271,29 @@ Tek sistem (2026-10-18). Hap biçimli, kalın yazılı, sakin; durum renkle ve z
 - **Icon button** (`.btn.icon` ya da küçük yuvarlak `.icon-btn`): kapat, sil, eksi/artı, yakınlaştır. İkon çizimdir (SVG); ×, −, + gibi klavye işaretleri ikon yerine kullanılmaz. Silme düğmeleri (`.del`) üstüne gelince kırmızı.
 - **Masada:** taverna üstündeki düğmeler taverna kart zeminini (`--surface`) alır; açık olan %24 vurguya boyanır.
 
+### Sade / Tam Görünüm (2026-10-20, yol haritası 32)
+Kağıdın iki görünümü; seçici kağıdın şeridinde, "Masaya dön"ün solunda (hap içinde iki hap; seçili olan vurgu kenarı + %18 vurgu zemini, dolgu değil). Seçim karakterle saklanır; yeni karakterler Sade, eski kayıtlar Tam açılır; DM'in izlediği kağıt hep Tam. Kullanılabilirlik araştırmalarına göre iki seviyeden fazlası kullanıcıyı zorlar; üçüncü seviye yok.
+- **Sade (yeni başlayan):** portre, ad, tür, sınıf, geçmiş, seviye, ilham; altı yetenek; kurtarma zarları; yalnızca yetkin olunan beceriler ("Bütün beceriler (18)" ile açılır); AC, inisiyatif, hız, can; can zarı; yalnızca seçili durumlar ("Durum ekle" ile açılır, bitkinlik de); ölüm zarları yalnızca can 0'dayken ya da işaret varken; sekmeler Saldırılar, Envanter, Özellikler, Notlar (Büyüler büyü kullananlarda). Saldırıda "Yetkin" ve "Ek bonus", büyüde süre / menzil / C·R·M sütunları, yuvası olmayan büyü seviyeleri, CP / SP / EP / PP, uyum, yetkinlikler, hünerler, pasif algılar, XP ve yetkinlik bonusu gizli.
+- **The Never Hide Data Rule:** Sade dolu bir alanı asla saklamaz; içi dolu parça görünür kalır. Yazarken bir alan yalnızca görünür hâle geçebilir; gizlenmesi görünüm ya da karakter değişince olur (silerken alan elin altından kaybolmasın).
+
+### Karakter Oluşturma (2026-10-20, yol haritası 31)
+Kağıdın yerine geçen tek arma çerçeveli kart (en çok 1040px): üstte Grenze başlık ve sağda adım hapları (numara dairesi + ad; geçilen adıma basınca geri dönülür, telefonda yalnızca numara), ortada bir soru (Grenze 24px), tek satır açıklama ve seçenekler, altta Vazgeç | Geri · Devam (ana iş; seçim yapılmadan soluk).
+- **Seçenek döşemesi:** düz alan zemini, ince çizgi, köşe `--radius × .8 + 2px`; İngilizce ad Grenze 22px + Türkçe karşılık, tek satır açıklama, altta soluk kısa bilgi ("Yakın dövüş · ağır zırh · Can zarı d10"). Seçili: vurgu kenarı + %14 vurgu zemini (dolgu değil). Gölge yok.
+- **Bir ekranda en çok dört karar:** önce yeni başlayana önerilen dört seçenek, gerisi "Bütün seçenekler (N)"; "Önerilen" rozeti yalnızca hepsi açıkken görünür.
+- **0. adım:** Hazır Büyücü, Hazır Paladin ("Hazır" rozeti), "Kendim oluşturayım"; altta küçük "Boş kağıtla başla (oyunu biliyorum)".
+- **Yetenekler:** altı kutu; büyük Grenze modifiye, altında standart dizi seçimi (aynı sayı seçilirse yer değiştirir), geçmiş artışı vurgu renginde "+2".
+
+### Karakter Kartı (2026-10-20, yol haritası 16)
+Masada, sağ altta oyuncunun kendi kartı (kullanıcının örnek kartından uyarlandı). Masada durduğu için **taverna malzemesi**: parşömen yüzey (#efe2c0 → #e3cfa2), mürekkep yazı (#2a1c10), 3px meşe çerçeve (#6b4a2a) ve 1px pirinç iç çizgi (#c9a45c), hafif içe gölge. Temadan yalnızca vurgu geçer (zar atan sayının üstüne gelince). Parşömen üstünde hasar / iyileşme için koyulaştırılmış kırmızı (#9a2c1c) ve yeşil (#2b6437).
+- **Kapalı:** başlık (yuvarlak arma: portre ya da baş harf, pirinç halkalı; ad Grenze; altında büyük harfle "HUMAN · PALADIN"; sağda "SEVİYE" ve sayı; ok düğmesi) ve can şeridi (can / en çok, çubuk, AC). Bütün başlık kartı açar.
+- **Açık:** portre (16:10, varsa), altı yetenek (kısa ad, büyük modifiye, dairede skor; zar atar), solda kurtarma zarları (yetkinse dolu nokta), sağda can kutusu ve kalkan biçiminde AC, can işlemleri, dört küçük kutu (yetkinlik, hız, inisiyatif (zar), pasif algı), en çok dört saldırı, altta "Kağıdın tamamı" ve figür. Açıkken daha geniş (23,5 birim) ve sağ sütunun üstüne biner.
+- İngilizce büyük harfli etiketlerde `lang="en"` (Türkçe büyük harf kuralı "Hit Points"i "HİT POİNTS" yapıyordu).
+
+### Bildirim ve Geri Al (2026-10-20)
+Sol altta, tepsi zemininde, vurgu kenarlı kart: kalın başlık + soluk alt satır. Geri alınabilir bir iş (satır silme) sorulmadan yapılır ama bildirimde küçük **"Geri al"** düğmesi (geri ok ikonu) 7 sn durur; basınca silinen satır yerine döner. Onay kutusu yalnızca geri alınamayan işlerde (uzun dinlenme, karakter silme).
+
 ### Zar Düğmesi (imza parçası)
-Sağ altta sabit, **yazılı hap**: d20 ikonu + "Zar at". Yuvarlak, yazısız bir balon olmaz (sitelerin "yardım / sohbet" düğmesiyle karışıyordu). 52px yüksek, vurgu zemini, koyu yazı; nötr, aşağı düşen gölge (parlama değil). Üstüne gelince 2px yükselir. Zar tepsisini açar.
+Sağ altta sabit, **yazılı hap**: d20 ikonu + "Zar at". Avantaj ya da dezavantaj açıkken düğmede de yazar ("Zar at · Avantaj"): mod açık kalır, unutulmasın. Yuvarlak, yazısız bir balon olmaz (sitelerin "yardım / sohbet" düğmesiyle karışıyordu). 52px yüksek, vurgu zemini, koyu yazı; nötr, aşağı düşen gölge (parlama değil). Üstüne gelince 2px yükselir. Zar tepsisini açar.
 
 ### Roll Numbers (imza parçası)
 Kağıdın kendisi zar tepsisidir: zar atan her sayı bir düğmedir. Alan zemini, ince kenar, kalın tabular rakamlar. Üstüne gelince vurgu rengiyle dolar ve 1px yükselir; tıklayınca zar atılır. Büyük hâli (inisiyatif, saldırı) Grenze 38px. Bu davranış başka hiçbir öğeye verilmez: vurguyla dolup yükselen şey zar atar.
@@ -316,25 +338,41 @@ Ahşap levha görseli: ad parşömen şeridinde Grenze 700, karakter adı alt ç
 Sağ üstte, meşe çerçeveli koyu tahta; son atışlar Caveat ile tebeşir yazısı. Doğal 20 açık yeşil, doğal 1 açık kırmızı tebeşir. Üstüne gelince sola doğru büyür ve ayrıntılar okunur.
 
 ### Kağıt Masada (2026-10-19, madde 7)
-Masadan kağıda geçince kağıt ayrı bir sayfa olmaz: kamera koltuğa yaklaşır, kağıt tavernanın üstünde kendi içinde kayan bir katman olarak aşağıdan kalkar (0,42 sn, hafif büyüyerek), arkada taverna kararır ve bulanıklaşır (blur 7px, parlaklık %45). Üstte sabit "Masaya dön" (Esc de kapatır); kapatınca kağıt iner, kamera eski yerine döner. Yasal yazı kağıdın içinde, en altta; karanlık taverna üstünde her temada açık renk. Telefonda ve hareket azaltmada kamera kımıldamaz.
+Masadan kağıda geçince kağıt ayrı bir sayfa olmaz: kamera koltuğa yaklaşır, kağıt tavernanın üstünde kendi içinde kayan bir katman olarak aşağıdan kalkar (0,42 sn, hafif büyüyerek), arkada taverna kararır ve bulanıklaşır (blur 7px, parlaklık %45). Üstte **kağıdın şeridi** (2026-10-20): kağıtla aynı genişlikte, yapışkan, dolu zeminli (`--bar`), alt köşeleri yuvarlak, altında yumuşak gölge; solda karakterin adı (Grenze) ve soluk "3. seviye Human Ranger", sağda "Masaya dön" (Esc de kapatır). Satırlar şeridin altına girer; yüzen düğme olmaz (eskiden satırların × düğmesini örtüyordu). DM ekranında aynı şerit "DM ekranı" yazar. Kapatınca kağıt iner, kamera eski yerine döner. Yasal yazı kağıdın içinde, en altta; karanlık taverna üstünde her temada açık renk. Telefonda ve hareket azaltmada kamera kımıldamaz.
 
 **Kamera inişi (7a):** kağıt ya da DM ekranı açılırken figürler ve POV paneli çekilir, kamera koltuğun arkasından ve yukarısından (tavanın altında) masaya bakarak göz hizasına iner (0,9 sn, yumuşak başlayıp yumuşak durur); kağıt bu sırada kalkar. Kapanınca kamera yükselir (0,7 sn), eğik görünüm ve figürler geri gelir.
 
 ### Kayan Üst Çubuklar ve Büyütme Tutamağı (2026-10-19, madde 9 ve 11)
 - **Masa ekranında üst çubuk ve durum çubuğu yukarı kayar**, sahne bütün ekranı kaplar. Üst ortada asılı küçük bir "Menü" tutamağı (çubuk zemini, alt köşeleri yuvarlak); fareyle en üst kenara gelince ya da tutamağa basınca çubuklar sahnenin üstüne iner, fare çekilince yarım saniye sonra yine kayar. Telefonda ve tam ekranda yok.
 - **Büyütme tutamağı:** köşede 22 px'lik yarı saydam kare, iki çapraz açık çizgi; üstüne gelince belirginleşir. POV panelinin sağ altında (panel %45–100), sağ sütunun sol altında (sütun %70–180). Büyüklük tarayıcıda hatırlanır. Telefonda yok.
+- **Yandaki tutamak (2026-10-19):** kenarın ortasında 12×56 px'lik dik çubuk, iki dik açık çizgi; yalnızca yatayda genişletir. POV panelinin sağ kenarında (genişlik ×0,6–3, en çok sahnenin %64'ü), sağ sütunun sol kenarında (×0,8–2,6). Panel genişleyince el kareleri büyümez, altta ortada kalır.
+- **Menüyü sabitle (raptiye):** üst çubukta ses düğmesinin solunda ikon düğme (aç/kapa). Basılıyken masa ekranında çubuklar kaymaz. Yalnızca çubukların kaydığı yerde (masa, geniş ekran) görünür.
+- **Yalnız POV:** araç çubuğunda "POV"un yanında aç/kapa düğme. Açıkken POV paneli bütün sahneyi kaplar; eğik görünüm ve isimlikler çizilmez; araç çubuğu ve savaş sırası panelin sol üstünde, karakter adı sol altta. Kara tahta, düşmanlar ve oyuncu kutusu yerinde kalır. Telefonda yok.
+
+### Bekleyen Hasar (2026-10-19)
+DM'in kendi (ya da bir düşman adına attığı) hasar zarı kendiliğinden vurulmaz. Zar yere inince sağ altta, hedef etiketinin üstünde bir kart çıkar: isimlik kutusuyla aynı zemin, solda 3px kırmızı şerit (tehlike), hançer ikonu. Başlık "Goblin → Kara" (Grenze), altında zarın adı ve hesabı; ortada −/+ düğmeleri arasında Grenze 24px sayı alanı ve "Yarısı"; değiştirilmişse sağda soluk "zar 9". Altta "Vazgeç" ve tek ana iş "Hasarı vur" (accent). En çok dört kart üst üste. Oyuncuların zarları eskisi gibi kendiliğinden uygulanır.
 
 ### Hedef Etiketi ve İsimlik Kutusu (2026-10-19, Aşama 4)
 - **Hedef etiketi:** seçili hedef "Zar at"ın hemen üstünde, vurgu kenarlı hap: hedef ikonu, "→ Goblin (5/7 can, AC 12)", × ile kaldırma. DM bir düşman adına atıyorsa başta düşmanın adı.
 - **Seçili hedefin isimliği:** çevresinde kesikli vurgu halkası (parlama değil; The Earned Glow Rule).
-- **İsimlik kutusu:** isimliğe basınca açılan küçük kart (taverna zemini, ince çizgi, kart gölgesi): ad (Grenze), oy toplamı (kalkan = güvenilir, hançer = hain), DM için "Hedef yap", oyuncu için "Güvenilir / Hain" aç/kapa düğmeleri.
-- **Oy çipleri:** isimliğin altında parşömen renkli küçük haplar (ikon + sayı); oy yoksa görünmez. Yeşil / kırmızı kullanılmaz (The Meaning Is Fixed Rule): anlam ikonla verilir.
+- **İsimlik kutusu:** yalnızca DM'de; bir oyuncunun isimliğine basınca açılan küçük kart (taverna zemini, ince çizgi, kart gölgesi): ad (Grenze) ve "Hedef yap". (Güvenilir / hain oyları ve oy çipleri 2026-10-20'de kaldırıldı.)
 - **Düşman kartı (DM ekranı):** her düşman ince çizgili bir iç kutu: ad alanı, Can / En çok / AC sayı alanları, "Masada" ve "Can görünsün" aç/kapa düğmeleri, silme. Canı biten düşman %60 soluk.
 
 ### Masada Sağ Sütun ve Savaş Sırası (2026-10-19)
 - **Sağ sütun:** üstte kara tahta (son atışlar), altında **Düşmanlar panosu**: aynı meşe çerçeve, ama yüzeyi parşömen (#e9d8b2) ve yazı mürekkep (Grenze). Her düşman bir satır: yuvarlak görsel (yoksa baş harf), ad, "6/10 can · AC 15" (oyuncuda yalnızca DM izin verdiyse), can çubuğu. Satıra basınca hedef seçilir (kesikli vurgu çerçevesi); sırası gelen düşmanın satırı altın tonla dolar; canı biten soluk ve üstü çizili. İkisi de başlıktaki −/+ düğmesiyle kapanır (yalnızca başlık kalır). Telefonda sahnenin altında alt alta.
 - **Savaş sırası şeridi:** savaş açıkken araç çubuğunun altında, masa kartı zemininde yatay şerit: solda "Savaş · Tur N" ve kimin sırası olduğu, ortada inisiyatife göre dizili yuvarlak portreler (altında inisiyatif sayısı ve ad; düşmanların halkası kesikli), sağda DM için "Sıradaki / Sırayı başlat" (ana iş) ve "Bitir", oyuncu için zar atmadıysa "İnisiyatif at". Sırası gelenin halkası vurgu renginde ve %12 büyük (parlama değil). Telefonda sahnenin altında.
 - **Düşman görselleri:** hazır beş düşman (goblin, ork, iskelet, haydut, kurt) aynı tarzda: elle boyanmış, mürekkep çizgili, mum ışıklı, düz koyu kahve zeminli büst portresi; sitede yuvarlak kesilir.
+
+### Savaş Sahnesi: Orman Açıklığı (2026-10-19)
+Savaş başlayınca taverna yerine 2D bir orman açıklığı gelir (0,8 sn, parlaktan ve bulanıktan açılarak); ortada bir an "ORMAN YOLU / Savaş!" yazısı (Grenze, parşömen renginde, koyu gölgeli). Savaş bitince solarak taverna döner.
+- **Arka plan:** gün batımında orman: sıcak ufuk, ağaçların arasından batan güneş, iki kat uzak çam sırtı (sisli), orta ağaçlar (güneşe bakan yanları açık), çok hafif ışık huzmeleri, ortada çiğnenmiş açık toprak, soldan gelen yol, önde koyu otlar ve taşlar, iki yanda çerçeveleyen kalın gövdeler, köşelerde çalı ve yaprak örtüsü, kenar kararması, hafif fırça dokusu. Mürekkep çizgileri tavernadaki gibi koyu kahve. Şimdilik kodla boyanır; `masa/savas/orman.webp` konunca o resim kullanılır.
+- **Kart figür:** ayakta duran, üstü kemerli, 3:4 kart; oyuncularınki pirinç, düşmanlarınki kararmış demir metal kenarlı. İçinde portre (yoksa Grenze baş harf), altında kartın üstüne binen parşömen ad şeridi (Grenze, mürekkep), altında ince can çubuğu ve ayakta yumuşak gölge. Hafifçe nefes alır (3,4 sn). Ön sıra büyük, arka sıra %80.
+- **Yerleşim:** oyuncular solda, düşmanlar sağda; aralarında boşluk: zarlar oraya, havaya iner. Az kişide tek sıra; çoksa ön sıra ve aralarına düşen arka sıra. Sağ sütun ve oyuncu kutusu kartları kapatmaz.
+- **Durumlar:** sırası gelen kart yükselir, 3px vurgu kenarı ve üstünde küçük vurgu oku (parlama yok); hedef kesikli vurgu halkası; canı biten yana yatar ve renksizleşir ("yere düştü" / "baygın"); vurulan kart sarsılır, portresi bir an kızarır, üstünden kırmızı "−5" yükselir (iyileşmede yeşil "+3"). DM'in gizli düşmanları ve bağlantısı kopanlar %50.
+- **Etkileşim:** hedeflenebilen karta basmak hedef seçer. Savaşta taverna gezinmesi, POV paneli ve "Bütün taverna / Canlı / POV / Yalnız POV" düğmeleri gizlidir.
+
+### Karakter Figürü (2026-10-19)
+Şimdilik masadaki herkes aynı 3D büyücü (Denys Almaral, CC-BY-4.0), sandalyede oturur pozda; DM'inki kızıl tonlu. Eğik görünümde de POV'da da aynı figür, toon gölgeli ve mürekkep çizgili. İleride başka sınıflar aynı iskeletle eklenecek.
 
 ## Do's and Don'ts
 
