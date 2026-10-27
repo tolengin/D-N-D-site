@@ -127,10 +127,23 @@ def duvar(ad, eksen, sabit, a0, a1, disari, z0, z1, bosluklar=(), zemin=0.0, tag
     def kt(b0, b1, u0, u1, za, zb, mi, pah=0.0):
         if b1 - b0 < 1e-3 or zb - za < 1e-3: return
         P(bm, pk(b0, b1, u0, u1, za, zb) if eksen == 'x' else pk(u0, u1, b0, b1, za, zb), mi, pah)
-    bas = a0
-    for b0, b1, bz0, bz1 in sorted(bosluklar):
-        kt(bas, b0, t0, t1, z0, z1, 0); kt(b0, b1, t0, t1, z0, bz0, 0); kt(b0, b1, t0, t1, bz1, z1, 0); bas = b1
-    kt(bas, a1, t0, t1, z0, z1, 0)
+    # Gövde: boşlukların kenarlarından geçen ızgaranın hücreleri; komşu hücreler aynı köşeleri paylaşır, aradaki yüzler silinir,
+    # köşeler kaynar. (Önceden ayrı kutulardı: pencere köşesi komşu şeridin kenarına yalnızca değiyordu, eğrilik onu kaydırınca
+    # yarık açılıyor, içerideki karanlık yüz kesik kesik çizgi gibi görünüyordu.)
+    us = sorted({a0, a1} | {min(max(v, a0), a1) for b0, b1, _, _ in bosluklar for v in (b0, b1)})
+    zs = sorted({z0, z1} | {min(max(v, z0), z1) for _, _, bz0, bz1 in bosluklar for v in (bz0, bz1)})
+    gv = bmesh.new()
+    for u0, u1 in zip(us, us[1:]):
+        for za, zb in zip(zs, zs[1:]):
+            um, zm = (u0 + u1) / 2, (za + zb) / 2
+            if u1 - u0 < 1e-3 or zb - za < 1e-3 or any(b0 < um < b1 and bz0 < zm < bz1 for b0, b1, bz0, bz1 in bosluklar): continue
+            P(gv, pk(u0, u1, t0, t1, za, zb) if eksen == 'x' else pk(t0, t1, u0, u1, za, zb), 0)
+    anah = lambda f: tuple(sorted(tuple(round(c, 4) for c in v.co) for v in f.verts))
+    say = {}
+    for f in gv.faces: say[anah(f)] = say.get(anah(f), 0) + 1
+    bmesh.ops.delete(gv, geom=[f for f in gv.faces if say[anah(f)] > 1], context='FACES_ONLY')
+    bmesh.ops.remove_doubles(gv, verts=gv.verts, dist=1e-4)
+    P(bm, gv, 0)
     zf = zemin if callable(zemin) else (lambda a: zemin)
     if supurge:                                       # süpürgelik: kapı boşluklarında kesilir, zemin değişen yerde bölünür
         kes = [a0] + [v for b0, b1, bz0, bz1 in sorted(bosluklar) if bz0 <= zf((b0 + b1) / 2) + 0.3 for v in (b0, b1)] + [a1]

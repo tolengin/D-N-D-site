@@ -7,13 +7,16 @@ Asıl model ve 3d/dokular/ DEĞİŞMEZ (her şey yalnızca bu betiğin belleğin
 
 İki sürüm (Yeni Han adım 4: ışık denemesi):
   canlı  (varsayılan)  masa/han.glb + han.js           ışığı site canlı hesaplar (eski taverna gibi)
-  pişmiş ("pismis")    masa/han-pismis.glb + .js       ışık Blender'da (Cycles) hesaplanır, her köşeye renk olarak yazılır
-                                                      ("vertex color"); site duvara, zemine, eşyaya ışık hesaplamaz
+  pişmiş ("pismis")    masa/han-pismis.glb + .js       ışık Blender'da (Cycles) "ışık haritasına" (resim) pişirilir;
+                                                      site duvara, zemine, eşyaya ışık hesaplamaz
+  "-- pismis deneme": küçük haritalar ve az ışınla hızlı deneme (süre ölçmek için)
 
-Pişmiş ışık nasıl saklanır: her köşenin "Isik" renginde
-  RGB = şöminenin dışındaki bütün ışıklar (avize, aplik, fener, mum, oda, dolgu, gök), karekökü alınmış ve K'ye bölünmüş
-  A   = yalnızca şömine (gücü); site bunu titreterek ekler. K, Kb ve şöminenin rengi "Isik_Ayar" nesnesinde.
-Karekök: karanlık yerlerde de ayrım kalsın diye (renk 0–1 arası saklanır, karanlık tonlar sıkışmasın).
+Pişmiş ışık nasıl saklanır (2026-10-27'den beri ışık haritası; önce köşe rengiydi, gölgeler lekeli çıkıyordu):
+  Her nesneye ikinci bir UV haritası ("Isik", sitede uv1) açılır; bütün nesneler tek resimde kendi yerini alır.
+  isik-a (HARITA px) = şöminenin dışındaki bütün ışıklar (avize, aplik, fener, mum, oda, dolgu, gök), √(ışık / K)
+  isik-b (HARITA_B px, gri) = yalnızca şömine, √(güç / Kb); site bunu titreterek ekler. K, Kb, şöminenin rengi "Isik_Ayar"da.
+  İki resim .glb'ye gizli iki kartın (Isik_Harita_A / B) parlama dokusu olarak girer; PNG kopyaları 3d/han/isik/.
+Karekök: karanlık yerlerde de ayrım kalsın diye (resim 8 bit, karanlık tonlar sıkışmasın).
 
 Önce asıl model hazır olmalı (araclar/han_detay_blender.py).
 Çalıştırma (proje klasöründe, PowerShell):
@@ -39,11 +42,18 @@ POV_AD = ('Sundurma_Sacak',)
 WEBP_KALITE = 80
 BOY = {'hali': 1024, 'post': 512, 'deri': 256, 'zemin-ahsap': 1024, 'duvar-siva': 1024, 'masa-ahsap': 1024,
        'tas-altigen': 1024, 'tas-blok': 512, 'dis-zemin': 512, 'kalkan-1': 256, 'kalkan-2': 256, 'tabela': 512, 'sancak': 256,
-       'harita': 512, 'gorev-panosu': 512, 'kitap-sirtlari': 256, 'demir': 256, 'cuval': 256, 'saksi-toprak': 256}
+       'harita': 512, 'gorev-panosu': 512, 'kitap-sirtlari': 256, 'demir': 256, 'cuval': 256, 'saksi-toprak': 256,
+       'isik-a': 4096, 'isik-b': 4096}                # ışık haritaları küçültülmez (boyları pişirmede belli)
 VARSAYILAN = 512
-# Pişirme
-ORNEK = 256                                           # her köşede kaç ışın (az olursa lekeli)
-SIK = 0.45                                            # büyük yüzler bu boydan (m) uzun kenar kalmayana dek bölünür (ışık köşelerde saklanır)
+# Pişirme (ışık haritası, 2026-10-27: köşe renginde gölgeler lekeli ve 45 cm'den küçükleri yok oluyordu)
+DENEME = 'deneme' in sys.argv                         # "-- pismis deneme": küçük ve hızlı (süre ölçmek için)
+ORNEK = 24 if DENEME else 192                         # her pikselde kaç ışın (az olursa tanecikli; YUMUSAK siler)
+HARITA = 1024 if DENEME else 2048                     # şömine dışındaki ışığın haritası (px, kare)
+HARITA_B = 512 if DENEME else 1024                    # yalnızca şöminenin haritası (yumuşak ışık: yarı boy yeter)
+PAY = 0.003                                           # UV parçaları arası boşluk (haritanın payı; 2048'de ~6 px)
+KENAR = 4                                             # pişirmede parçaların kenarından dışarı taşırılan px (dikiş görünmesin)
+YUMUSAK = 1.2                                         # gürültü silme bulanıklığı (px, A haritasında)
+ISIK_KLASOR = os.path.join(KOK, '3d', 'han', 'isik')  # pişen resimlerin PNG kopyası (siteye .glb içinde gider)
 SOMINE_ISIK = ('Onizleme_isik_somine', 'Onizleme_Somine_Oda')
 
 bpy.ops.wm.open_mainfile(filepath=BLEND)
@@ -73,25 +83,32 @@ if PISMIS:
         if b and b.inputs['Emission Strength'].default_value > 0:
             parlak.append((b.inputs['Emission Strength'], b.inputs['Emission Strength'].default_value))
             b.inputs['Emission Strength'].default_value = 0
-    # Paylaşılan şekiller (aynı sandalyenin kopyaları) ayrılır: her kopya kendi yerindeki ışığı alsın
-    paylasilan = {}
+    # Paylaşılan şekiller (aynı sandalyenin kopyaları) ayrılır: her kopya ışık haritasında kendi yerini alsın
+    for ob in meshler:                                      # şablonlarla (08_Sablonlar, dışa aktarılmaz) paylaşılanlar da ayrılır
+        if ob.data.users > 1: ob.data = ob.data.copy()
+    # Ölçek uygulanır: ışık haritasında her yüzün payı gerçek (metre) alanıyla orantılı olsun (yalnızca bu betiğin belleğinde)
+    bpy.ops.object.select_all(action='DESELECT')
+    for ob in meshler: ob.select_set(True)
+    bpy.context.view_layer.objects.active = meshler[0]
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    # İkinci UV haritası "Isik": dokular birinci haritayı (UVMap) kullanmaya devam eder, ışık haritası ikincisini.
+    # Sitede TEXCOORD_1 = uv1 olur; birinci harita yoksa boş bir tane açılır ki ışık haritası hep ikinci sırada kalsın.
     for ob in meshler:
-        if ob.data.users > 1:
-            if ob.data.name in paylasilan: ob.data = ob.data.copy()
-            else: paylasilan[ob.data.name] = 1
-    # Büyük yüzler bölünür (ışık köşelerde saklandığı için: 6 m'lik duvarın yalnızca 4 köşesi olsa ışık lekesi görünmez)
-    eklenen = 0
-    for ob in meshler:
-        if ob.name.startswith('Dis_'): continue
-        s = ob.matrix_world.to_scale(); sk = max(abs(s.x), abs(s.y), abs(s.z))
-        bm = bmesh.new(); bm.from_mesh(ob.data); n0 = len(bm.faces)
-        for _ in range(7):
-            uzun = [e for e in bm.edges if e.calc_length() * sk > SIK]
-            if not uzun: break
-            bmesh.ops.subdivide_edges(bm, edges=uzun, cuts=1, use_grid_fill=True)
-        if len(bm.faces) != n0: bm.to_mesh(ob.data); eklenen += len(bm.faces) - n0
-        bm.free()
-    print(f'  bölünen yüzler: +{eklenen}')
+        uv = ob.data.uv_layers
+        if not len(uv): uv.new(name='UVMap')
+        ilk = uv[0]
+        isik = uv.new(name='Isik')
+        uv.active = isik; ilk.active_render = True
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.0, area_weight=0.0, correct_aspect=True, scale_to_bounds=False)
+    bpy.ops.uv.select_all(action='SELECT')
+    bpy.ops.uv.average_islands_scale()                       # her parçanın payı metre alanıyla orantılı (bütün nesneler birlikte)
+    bpy.ops.uv.pack_islands(rotate=True, margin_method='FRACTION', margin=PAY, shape_method='CONVEX')
+    bpy.ops.object.mode_set(mode='OBJECT')
+    uvler = np.concatenate([np.array([d.uv[:] for d in ob.data.uv_layers['Isik'].data]) for ob in meshler])
+    print(f'  ışık haritası UV hazır ({time.time() - t0:.0f} sn): {len(uvler)} köşe, '
+          f'u {uvler[:, 0].min():.3f}–{uvler[:, 0].max():.3f}, v {uvler[:, 1].min():.3f}–{uvler[:, 1].max():.3f}')
     # Cycles: ekran kartıyla (yoksa işlemciyle)
     sahne.render.engine = 'CYCLES'
     try:
@@ -108,44 +125,92 @@ if PISMIS:
     sahne.cycles.max_bounces = 4; sahne.cycles.diffuse_bounces = 3
     isiklar = [o for o in O if o.type == 'LIGHT']
     print(f'  ışık: {len(isiklar)}, şekil: {len(meshler)}')
+    # Pişirme hedefi: her malzemeye bağlantısız bir resim düğümü (etkin düğüm). Bütün nesneler aynı resme, kendi UV yerine pişer.
+    gri = None                                              # malzemesi olmayan yüz kalmasın (pişirme "etkin resim yok" der)
     for ob in meshler:
-        for a in list(ob.data.color_attributes): ob.data.color_attributes.remove(a)
-    def pis(katman, yanik):
-        """Yalnızca 'yanik' ışıklar açıkken dağınık ışığı (renksiz: yalnızca ışık) her köşeye yazar."""
+        mats = ob.data.materials
+        if not len(mats) or any(m is None for m in mats):
+            if gri is None: gri = bpy.data.materials.new('Isik_Gri'); gri.use_nodes = True
+            if not len(mats): mats.append(gri)
+            for i, m in enumerate(mats):
+                if m is None: mats[i] = gri
+    dugumsuz = {m.name for ob in meshler for m in ob.data.materials if m and not m.use_nodes}
+    if dugumsuz: print('  UYARI düğümsüz malzeme (pişirilemez):', sorted(dugumsuz))
+    malzemeler = {m for ob in meshler for m in ob.data.materials if m and m.use_nodes}
+    def hedef_resim(ad, boy):
+        img = bpy.data.images.new(ad, boy, boy, alpha=False, float_buffer=True)
+        for m in malzemeler:
+            nt = m.node_tree
+            n = nt.nodes.get('Isik_Hedef') or nt.nodes.new('ShaderNodeTexImage'); n.name = 'Isik_Hedef'
+            u = nt.nodes.get('Isik_UV') or nt.nodes.new('ShaderNodeUVMap'); u.name = 'Isik_UV'; u.uv_map = 'Isik'
+            if not n.inputs['Vector'].links: nt.links.new(u.outputs['UV'], n.inputs['Vector'])
+            n.image = img; nt.nodes.active = n
+        return img
+    def pis(ad, boy, yanik):
+        """Yalnızca 'yanik' ışıklar açıkken dağınık ışığı (renksiz: yalnızca ışık) ışık haritasına yazar."""
         for L in isiklar: L.hide_render = L not in yanik
-        for ob in meshler:
-            a = ob.data.color_attributes.new(katman, 'FLOAT_COLOR', 'CORNER')
-            ob.data.color_attributes.active_color = a
+        img = hedef_resim(ad, boy)
         bpy.ops.object.select_all(action='DESELECT')
         for ob in meshler: ob.select_set(True)
         bpy.context.view_layer.objects.active = meshler[0]
-        bpy.ops.object.bake(type='DIFFUSE', pass_filter={'DIRECT', 'INDIRECT'}, target='VERTEX_COLORS')
+        bpy.ops.object.bake(type='DIFFUSE', pass_filter={'DIRECT', 'INDIRECT'}, target='IMAGE_TEXTURES',
+                            margin=KENAR, margin_type='EXTEND', use_clear=True)
+        a = np.empty(boy * boy * 4, np.float32); img.pixels.foreach_get(a)
+        a = a.reshape(boy, boy, 4)[:, :, :3]
+        print(f'  {ad}: dolu piksel %{100 * (a.max(2) > 1e-5).mean():.1f}, en çok {a.max():.2f}')
+        return a
     somine = [o for o in isiklar if o.name in SOMINE_ISIK]
     dunya = sahne.world.node_tree.nodes.get('Background').inputs['Strength']; gok = dunya.default_value
-    pis('Isik_A', [o for o in isiklar if o not in somine])
+    A = pis('Isik_A', HARITA, [o for o in isiklar if o not in somine])
     print(f'  1. pişirme bitti ({time.time() - t0:.0f} sn)')
     dunya.default_value = 0
-    pis('Isik_B', somine)
+    B = pis('Isik_B', HARITA_B, somine)
     dunya.default_value = gok
     for g, v in parlak: g.default_value = v
+    for m in malzemeler:                                    # pişirme düğümleri çıkar (dışa aktarılmasın)
+        for ad in ('Isik_Hedef', 'Isik_UV'):
+            n = m.node_tree.nodes.get(ad)
+            if n: m.node_tree.nodes.remove(n)
     print(f'  2. pişirme bitti ({time.time() - t0:.0f} sn)')
-    # İki katman tek renge: RGB = √(A / K), A(alfa) = √(şömine gücü / Kb)
-    def oku(me, ad):
-        a = np.empty(len(me.loops) * 4, np.float32); me.color_attributes[ad].data.foreach_get('color', a); return a.reshape(-1, 4)
-    hepA = np.concatenate([oku(ob.data, 'Isik_A')[:, :3] for ob in meshler])
-    hepB = np.concatenate([oku(ob.data, 'Isik_B')[:, :3] for ob in meshler])
-    lumB = hepB @ np.array([0.2126, 0.7152, 0.0722])
-    K = float(np.percentile(hepA.max(1), 99.5)) or 1.0
-    Kb = float(np.percentile(lumB, 99.5)) or 1.0
-    renkB = (hepB.sum(0) / max(lumB.sum(), 1e-6)).tolist()             # şömine ışığının ortalama rengi (gücü 1 olacak biçimde)
-    for ob in meshler:
-        me = ob.data; A, B = oku(me, 'Isik_A'), oku(me, 'Isik_B')
-        c = np.empty_like(A)
-        c[:, :3] = np.sqrt(np.clip(A[:, :3] / K, 0, 1))
-        c[:, 3] = np.sqrt(np.clip((B[:, :3] @ np.array([0.2126, 0.7152, 0.0722])) / Kb, 0, 1))
-        for ad in ('Isik_A', 'Isik_B'): me.color_attributes.remove(me.color_attributes[ad])
-        hedef = me.color_attributes.new('Isik', 'FLOAT_COLOR', 'CORNER'); hedef.data.foreach_set('color', c.ravel())
-        me.color_attributes.active_color = hedef; me.color_attributes.render_color_index = 0
+    # Gürültü: az ışınla pişen resim tanecikli olur; küçük bir Gauss bulanıklığı tanecikleri siler, gölge kenarı yerinde kalır
+    def bulanik(x, s):
+        if s <= 0: return x
+        r = int(3 * s); k = np.exp(-0.5 * (np.arange(-r, r + 1) / s) ** 2); k /= k.sum()
+        for eksen in (0, 1):
+            x = sum(np.roll(x, i - r, axis=eksen) * k[i] for i in range(len(k)))
+        return x
+    A = bulanik(A, YUMUSAK); B = bulanik(B, YUMUSAK * HARITA_B / HARITA)
+    # Saklama: RGB = √(ışık / K) (karanlıkta da ayrım kalsın). Şömine ayrı resim (gri): √(güç / Kb); rengi renkB.
+    dolu = A.max(2) > 1e-5
+    lumB = B @ np.array([0.2126, 0.7152, 0.0722])
+    K = float(np.percentile(A.max(2)[dolu], 99.7)) if dolu.any() else 1.0
+    Kb = float(np.percentile(lumB[lumB > 1e-5], 99.7)) if (lumB > 1e-5).any() else 1.0
+    renkB = (B.reshape(-1, 3).sum(0) / max(lumB.sum(), 1e-6)).tolist()   # şömine ışığının ortalama rengi (gücü 1 olacak biçimde)
+    os.makedirs(ISIK_KLASOR, exist_ok=True)
+    def kaydet(ad, rgb):
+        boy = rgb.shape[0]
+        img = bpy.data.images.new(ad, boy, boy, alpha=False)
+        img.colorspace_settings.name = 'Non-Color'                  # ham değer (site karekökü kendisi açar)
+        px = np.ones((boy, boy, 4), np.float32); px[:, :, :3] = rgb
+        img.pixels.foreach_set(px.ravel())
+        img.filepath_raw = os.path.join(ISIK_KLASOR, ad + '.png'); img.file_format = 'PNG'
+        img.save()                                          # (renk ayarını burada yeniden yazma: Blender resmi boşaltıp siyah kaydediyordu)
+        g = np.empty(boy * boy * 4, np.float32); img.pixels.foreach_get(g)
+        print(f'  {ad}.png kaydedildi: ortalama {g.reshape(-1, 4)[:, :3].mean():.3f} (kaydedilen {rgb.mean():.3f})')
+        return img
+    imA = kaydet('isik-a', np.sqrt(np.clip(A / K, 0, 1)))
+    imB = kaydet('isik-b', np.repeat(np.sqrt(np.clip(lumB / Kb, 0, 1))[:, :, None], 3, 2))
+    # Resimler .glb'ye gizli iki küçük kartın "parlama dokusu" olarak girer (site kartları gizler, dokuyu ışık haritası yapar)
+    def kart(ad, img):
+        me = bpy.data.meshes.new(ad); me.from_pydata([(0, 0, -5), (0.1, 0, -5), (0.1, 0.1, -5)], [], [(0, 1, 2)])
+        me.uv_layers.new(name='UVMap')
+        m = bpy.data.materials.new(ad); m.use_nodes = True
+        nt = m.node_tree; b = nt.nodes.get('Principled BSDF'); t = nt.nodes.new('ShaderNodeTexImage'); t.image = img
+        nt.links.new(t.outputs['Color'], b.inputs['Emission Color']); b.inputs['Emission Strength'].default_value = 1.0
+        me.materials.append(m)
+        ob = bpy.data.objects.new(ad, me); bpy.context.scene.collection.objects.link(ob)
+        secim.append(ob)
+    kart('Isik_Harita_A', imA); kart('Isik_Harita_B', imB)
     ayar = bpy.data.objects.new('Isik_Ayar', None); bpy.context.scene.collection.objects.link(ayar)
     ayar['K'], ayar['Kb'], ayar['renkB'] = K, Kb, renkB
     secim.append(ayar)
@@ -182,8 +247,8 @@ ayar = dict(filepath=GLB, export_format='GLB', use_selection=True, export_extras
             export_apply=True, export_texcoords=True, export_normals=True, export_tangents=False,
             export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=6,
             export_draco_position_quantization=14, export_draco_normal_quantization=10, export_draco_texcoord_quantization=12)
-if PISMIS: ayar.update(export_vertex_color='ACTIVE', export_draco_color_quantization=10)
-else: ayar.update(export_vertex_color='NONE')
+ayar.update(export_vertex_color='NONE')
+if PISMIS: ayar.update(export_draco_texcoord_quantization=14)   # ışık haritası UV'si (uv1) 2048 px'te piksel hassasiyetinde kalsın
 try:
     bpy.ops.export_scene.gltf(**ayar)
 except TypeError as e:

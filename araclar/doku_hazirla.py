@@ -40,7 +40,7 @@ AYAR = {
     'demir':       (512,  4.0, (0.40, 0.80), 0.40, 4),
     'cuval':       (512,  4.5, (0.85, 1.00), 0.35, 3),
     # 3. tur (2026-10-16, elle boyanmış tarz): yeni yüzeyler
-    'duvar-siva':  (1024, 2.5, (0.80, 0.97), 0.30, 8),
+    'duvar-siva':  (1024, 1.4, (0.80, 0.97), 0.10, 8),   # 2026-10-27: temizlikten sonra (çizgiler yok) girinti abartılıyordu: hafif
     'tas-blok':    (512,  6.0, (0.75, 0.95), 0.50, 6),
     'tas-altigen': (1024, 6.0, (0.70, 0.95), 0.50, 8),
     'dis-zemin':   (512,  6.0, (0.80, 0.97), 0.50, 8),
@@ -58,6 +58,11 @@ AO_CARPAN = 0.4
 DESEN = {'tas-altigen': (512, 342),
          'pencere-kursun': (538, 600),             # kurşun çizgileri bu şeritlerde örtüşüyor (2026-10-22, ölçüldü)
          'cati-sindira': (256, 320)}               # pul adımı 256 px, sıra ~216 px
+# Tekrarı ele veren belirgin işaretlerin temizliği (2026-10-27, yeni han: duvarda tuğla lekeleri her 2,5 m'de sıra sıra
+# diziliyordu). Döşemeden önce: kızıl kahve lekeler ve koyu mürekkep çizgiler (çatlak) çevresindeki sıvayla doldurulur
+# (OpenCV inpaint); "duz" > 0 ise büyük ölçekli aydınlık farkı (ortası açık, kenarı koyu) o oranda düzleştirilir.
+# ad: (kızıl leke eşiği r−b, çizgi eşiği (ortancadan ne kadar koyu), düzleştirme 0–1)
+TEMIZLE = {'duvar-siva': (0.24, 0.24, 1.0)}
 # Tek parça (kesik) görseller: macenta zemin silinir, kırpılır. ad: (en uzun kenar px, normal gücü)
 KESIK = {'kalkan-1': (1024, 4.0), 'kalkan-2': (1024, 4.0), 'tabela': (1024, 4.0), 'sancak': (768, 2.0), 'yaprak-kartlari': (1024, 2.0),
          'post': (1024, 2.0)}                                        # post: şömine önündeki hayvan postu (2026-10-16)
@@ -133,12 +138,36 @@ def haritalar(renk, guc, puruz, ao_guc, r):
     pur = puruz[1] - (puruz[1] - puruz[0]) * np.clip(l, 0, 1)
     return normal, ao, pur
 
+def temizle(img, esik_leke, esik_cizgi, duz):
+    """Belirgin lekeleri ve çizgileri çevresiyle doldurur, büyük ölçekli aydınlık farkını düzleştirir (TEMIZLE)."""
+    import cv2                                             # yalnızca temizlenen dokular için gerekir
+    lum = img @ np.array([0.2126, 0.7152, 0.0722]); zemin = np.median(lum)
+    leke = ((img[..., 0] - img[..., 2]) > esik_leke) & (lum < zemin - 0.12)
+    cizgi = lum < zemin - esik_cizgi
+    m = (leke | cizgi).astype(np.uint8) * 255
+    k = max(3, img.shape[0] // 230) | 1
+    m = cv2.dilate(m, np.ones((k, k), np.uint8))
+    m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, np.ones((k * 3, k * 3), np.uint8))   # leke bütün olarak kapansın
+    bgr = cv2.cvtColor((np.clip(img, 0, 1) * 255).astype(np.uint8), cv2.COLOR_RGB2BGR)
+    img = cv2.cvtColor(cv2.inpaint(bgr, m, img.shape[0] // 110, cv2.INPAINT_TELEA), cv2.COLOR_BGR2RGB).astype(float) / 255
+    if duz > 0:                                            # ortası açık / kenarı koyu: tekrarda büyük leke olarak görünürdü
+        lum = img @ np.array([0.2126, 0.7152, 0.0722])
+        genel = bulanik(lum, img.shape[0] / 9)
+        img = img * ((genel.mean() / np.maximum(genel, 1e-3)) ** duz)[..., None]
+    print(f'  temizlik: %{100 * (m > 0).mean():.1f} dolduruldu')
+    return np.clip(img, 0, 1)
+
 # ───────── Döşenen dokular ─────────
+# Yalnızca bazılarını hazırlamak için adlarını yaz: python araclar\doku_hazirla.py duvar-siva
+import sys
+SECILEN = set(sys.argv[1:])
 for ad, (N, guc, puruz, ao_guc, r) in AYAR.items():
+    if SECILEN and ad not in SECILEN: continue
     yol = bul(ad)
     if not yol:
         print(f'{ad}: bulunamadı, atlandı'); continue
     img = np.asarray(Image.open(yol).convert('RGB'), float) / 255
+    if ad in TEMIZLE: img = temizle(img, *TEMIZLE[ad])
     if ad in DESEN:
         kx, ky = DESEN[ad]
         img = yatay_doseme(img, kx)
@@ -153,6 +182,8 @@ for ad, (N, guc, puruz, ao_guc, r) in AYAR.items():
     kaydet(pur, ad + '-puruz.jpg', 85, gri=True)
     dikis = np.abs(img[:, 0] - img[:, -1]).mean() * 255, np.abs(np.diff(img, axis=1)).mean() * 255
     print(f'{ad}: {N}px, dikiş {dikis[0]:.1f} (normal {dikis[1]:.1f})')
+
+if SECILEN: sys.exit(0)                                   # yalnızca seçilen döşenen dokular istendi
 
 # ───────── Halı: döşenmez, tek parça; saçaklar için saydamlık korunur ─────────
 yol = bul('hali')
