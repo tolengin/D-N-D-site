@@ -291,7 +291,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
   .prof::after{inset:-14px}
   :is(.ab-save,.li.atk) .roll{min-height:44px}
   .li.atk{--del:44px}
-  .li.atk .icon-btn{--h:44px}
+  .li.atk .icon-btn,.hp-adim .icon-btn{--h:44px}
 }
 
 /* ───────── 6) CAMLAR (kartlar) VE ETİKETLER ───────── */
@@ -670,7 +670,7 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .feed li.secret{border:1px dashed var(--line)}
 
 /* DM bir oyuncunun kağıdını izlerken: kutular kilitli, düzenleme düğmeleri gizli */
-body.peek #sheet :is([data-act="add"],[data-act="row-del"],[data-act="longrest"],[data-act="hitdie"],[data-act="sort-spells"],[data-act="fill-slots"],
+body.peek #sheet :is([data-act="add"],[data-act="row-del"],[data-act="longrest"],[data-act="hitdie"],[data-act="hp-adim"],[data-act="sort-spells"],[data-act="fill-slots"],
   [data-act="portrait-remove"],[data-act="hp"],[data-roll="death"],#hpAmount,.class-hint,.stepper button,.welcome){display:none!important}
 body.peek #sheet :is(input,select,textarea):disabled{opacity:1;-webkit-text-fill-color:currentColor;cursor:default}
 body.peek #sheet :is(.prof,.pip,.chip,.tg,.align-btn,.insp,.portrait,.check){pointer-events:none}
@@ -779,6 +779,20 @@ body.sade .vital{justify-content:flex-start}
 .prof-ornek{display:inline-block;width:9px;height:9px;margin:0 3px 1px;transform:rotate(45deg);background:var(--accent);vertical-align:middle}
 body.sade .li.atk:not(.oku){grid-template-columns:minmax(110px,1.2fr) 84px 60px minmax(100px,1fr) 38px minmax(90px,1.3fr) var(--del) var(--del)}
 body.sade .li-head.atk{display:none}
+/* Kağıdın geri kalanı (2026-10-27): can kutusu, dinlenme, envanter, özellikler */
+body:not(.sade) .sade-blok{display:none}
+body.sade .hp-act :is(#hpAmount,[data-act="hp"]){display:none}          /* hasar masadan gelir; can sayıya yazılır ya da −/+ */
+body.sade .hp-temp:not(.dolu){display:none}
+body.sade .hp-max{height:1.08em;border-width:0 0 1px!important;border-style:dashed!important;border-color:var(--line)!important}   /* en yüksek can da yazılır */
+body.sade .hp-cur{height:1.08em;border-width:0 0 1px!important;border-style:dashed!important;border-color:var(--line)!important}   /* Die Or Field: yazılır sayı; çizgi rakamın hemen altında */
+body.sade .hp-cur:focus{border-color:var(--accent)!important}
+.hp-adim{gap:6px;align-self:center;margin-left:10px}
+body.sade .hd select{display:none}                                       /* zar türünü sınıf belirler; okunur satırda yazar */
+.hd-dinlen{margin-top:12px}
+body.sade .tabs-card .panel[data-panel="inventory"] .panel-h .hint{display:none}   /* ağırlıktan söz ediyor; ağırlık Tam'da */
+body.sade :is(.li,.li-head).item>:nth-child(3),body.sade :is(.li,.li-head).item>:nth-child(4),body.sade [data-out="carry"]{display:none}
+body.sade .item{grid-template-columns:62px minmax(140px,1fr) var(--del)}
+body.sade :is([data-bind="features"],[data-bind="traits"]){min-height:5.5em!important;field-sizing:content}   /* boşken küçük, yazdıkça uzar */
 body.sade #conds.acik ~ .exh{display:flex}                                 /* "Durum ekle" açılınca bitkinlik de görünür */
 body.sade #beceriAc{margin-top:10px}
 body.sade .slot.zero{display:none}
@@ -946,7 +960,8 @@ body.olusturuyor .kagit-ust :is(.gorunum,.ku-ad){visibility:hidden}
   :is(.ab-mod,.roll.big) .ic{width:14px;height:14px;left:4px;top:4px}           /* dar camda zar işareti sayıya değmesin */
   .ab-save{grid-template-columns:auto auto;justify-content:center;gap:6px 12px}   /* dar camda ad üstte, işaret ve zar altta yan yana */
   .ab-save .nm{grid-column:1/-1;text-align:center;order:-1}
-  .mini-stat .f-l i,.stat .f-l i{display:block;margin-left:0}
+  .mini-stat .f-l i,.stat .f-l i,.coins .f-l i{display:block;margin-left:0}   /* paralar: Türkçe adı alta (beş sütunda üst üste biniyordu) */
+  .coins .f-l{text-align:center}
   .vitals{gap:10px}
   .vital{padding:12px 8px}
   .vital .hint{display:none}
@@ -1991,6 +2006,11 @@ body.tv-full #tableView{height:100dvh}
               <input class="hp-cur ghost" type="number" data-bind="hp.cur" aria-label="Mevcut can">
               <span class="slash">/</span>
               <input class="hp-max ghost" type="number" data-bind="hp.max" min="0" aria-label="En yüksek can">
+              <!-- Sade: hasar masadan gelir; can elle 1'er azalıp artar ya da sayıya yazılır (2026-10-27) -->
+              <span class="hp-adim sade-only">
+                <button class="icon-btn" data-act="hp-adim" data-d="-1" title="1 can azalt" aria-label="1 can azalt"><svg class="ic"><use href="#i-minus"/></svg></button>
+                <button class="icon-btn" data-act="hp-adim" data-d="1" title="1 can artır" aria-label="1 can artır"><svg class="ic"><use href="#i-plus"/></svg></button>
+              </span>
             </div>
             <div>
               <div class="hp-bar"><span class="hp-fill" id="hpFill"></span></div>
@@ -1998,27 +2018,32 @@ body.tv-full #tableView{height:100dvh}
                 <input type="number" id="hpAmount" min="0" placeholder="Miktar" aria-label="Hasar ya da iyileşme miktarı">
                 <button class="btn bad" data-act="hp" data-k="dmg">Hasar al</button>
                 <button class="btn good" data-act="hp" data-k="heal">İyileş</button>
-                <label class="hp-temp">Geçici can <input type="number" data-bind="hp.temp" min="0"></label>
+                <label class="hp-temp" title="Büyü ya da yetenekten gelen fazladan can; hasar önce bundan düşer">Geçici can <input type="number" data-bind="hp.temp" min="0"></label>
               </div>
               <p class="hp-note" data-out="hpNote"></p>
             </div>
           </div>
           <p class="hint">Soldaki büyük sayı şimdiki canın, yanındaki en yüksek canın. Miktarı yazıp düğmeye bas: hasar önce geçici candan düşer, iyileşme en yüksek canı aşamaz.</p>
         </section>
-        <p class="hint vit-rehber">Can sıfıra inerse bayılırsın; masada vurulunca canın kendiliğinden düşer. AC ne kadar yüksekse sana vurmak o kadar zor. İnisiyatif savaşta sıranı belirler (sayıya basınca zar atılır), hız bir turda kaç kare yürüyeceğini söyler. Saldırırken önce vuruş zarına bas; tutturursan hançerli hasar zarına.</p>
+        <p class="hint vit-rehber">Can sıfıra inerse bayılırsın; masada vurulunca canın kendiliğinden düşer, elle düzeltmek için sayıya yaz ya da −/+ kullan. AC ne kadar yüksekse sana vurmak o kadar zor. İnisiyatif savaşta sıranı belirler (sayıya basınca zar atılır), hız bir turda kaç kare yürüyeceğini söyler. Saldırırken önce vuruş zarına bas; tutturursan hançerli hasar zarına.</p>
         <section class="card atk-yuva" id="atkYuva"></section><!-- Sade: saldırılar burada (Tam'da Saldırılar sekmesinde) -->
       </div>
 
       <div class="vitals2 card">
         <section class="card">
-          <div class="card-h"><h2>Hit Dice<em>Can zarı</em></h2>
-            <button class="btn sm sade-only" data-act="longrest" title="Canı ve büyü yuvalarını yeniler"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button></div>
+          <div class="card-h"><h2 class="tam-only">Hit Dice<em>Can zarı</em></h2><h2 class="sade-blok">Rest<em>Dinlenme</em></h2></div>
+          <!-- Sade (2026-10-27): zar türü okunur satırda (sınıf belirler); "Zar harca" = Kısa dinlenme, yanında Uzun dinlenme -->
           <div class="hd">
             <select data-bind="hitDie" aria-label="Can zarı türü"><option>d6</option><option>d8</option><option>d10</option><option>d12</option></select>
-            <span><b data-out="hdLeft">1</b> / <span data-out="level">1</span> kaldı</span>
-            <button class="btn sm" data-act="hitdie">Zar harca</button>
+            <span><span class="sade-blok">Can zarın: <b data-out="hdTur">d8</b> · </span><b data-out="hdLeft">1</b> / <span data-out="level">1</span> kaldı</span>
+            <button class="btn sm tam-only" data-act="hitdie">Zar harca</button>
           </div>
-          <p class="hint">Kısa dinlenmede harcayıp can yenilersin: zar sonucu + CON modifiyen. Uzun dinlenmede hepsi geri gelir.</p>
+          <div class="btns hd-dinlen sade-blok">
+            <button class="btn sm" data-act="hitdie" title="Bir can zarı atıp canını doldurursun (zar + CON modifiyen)"><svg class="ic"><use href="#i-flame"/></svg>Kısa dinlenme</button>
+            <button class="btn sm" data-act="longrest" title="Canı, can zarlarını ve büyü yuvalarını yeniler"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button>
+          </div>
+          <p class="hint tam-only">Kısa dinlenmede harcayıp can yenilersin: zar sonucu + CON modifiyen. Uzun dinlenmede hepsi geri gelir.</p>
+          <p class="hint sade-blok">Kısa dinlenme bir can zarı harcar: zar sonucu + CON modifiyen kadar can yenilersin. Uzun dinlenmede can ve can zarların geri gelir.</p>
 
           <div data-tam="ds">
           <div class="card-h sub">
@@ -2128,11 +2153,11 @@ body.tv-full #tableView{height:100dvh}
             <div>
               <div class="panel-h"><h3>Coins<em>Paralar</em></h3></div>
               <div class="coins">
-                <label class="f" data-tam><span class="f-l">CP<i>Bakır</i></span><input type="number" min="0" data-bind="coins.cp"></label>
-                <label class="f" data-tam><span class="f-l">SP<i>Gümüş</i></span><input type="number" min="0" data-bind="coins.sp"></label>
-                <label class="f" data-tam><span class="f-l">EP<i>Elektrum</i></span><input type="number" min="0" data-bind="coins.ep"></label>
+                <label class="f"><span class="f-l">CP<i>Bakır</i></span><input type="number" min="0" data-bind="coins.cp"></label>
+                <label class="f"><span class="f-l">SP<i>Gümüş</i></span><input type="number" min="0" data-bind="coins.sp"></label>
+                <label class="f"><span class="f-l">EP<i>Elektrum</i></span><input type="number" min="0" data-bind="coins.ep"></label>
                 <label class="f"><span class="f-l">GP<i>Altın</i></span><input type="number" min="0" data-bind="coins.gp"></label>
-                <label class="f" data-tam><span class="f-l">PP<i>Platin</i></span><input type="number" min="0" data-bind="coins.pp"></label>
+                <label class="f"><span class="f-l">PP<i>Platin</i></span><input type="number" min="0" data-bind="coins.pp"></label>
               </div>
               <p class="sub-note" style="margin-top:8px" data-out="coinTotal"></p>
               <p class="hint">10 bakır = 1 gümüş, 10 gümüş = 1 altın, 10 altın = 1 platin. Elektrum yarım altındır.</p>
@@ -2964,6 +2989,8 @@ function refresh() {
     : cur <= 0 ? 'Canın 0: baygınsın. Her turunun başında ölüm zarı at.'
     : max && pct <= 0.5 ? 'Canın yarının altında (Bloodied).' : '');
   out('hdLeft', Math.max(0, C.level - int(C.hdUsed)));
+  out('hdTur', C.hitDie);
+  if (int(C.hp.temp) > 0) $('.hp-temp').classList.add('dolu');         // Sade: geçici can varken görünür; gizlenmesi yalnızca görünüm / karakter değişince (gorunumUI)
   $('#dsS').innerHTML = pipRow('ds-s', C.ds.s);                 // üç kalkma hakkı (rollDeath)
   $('#dsF').innerHTML = pipRow('ds-f', C.ds.f);
 
@@ -3032,6 +3059,7 @@ function gorunumUI(tam) {
   if (gorunumUI.id !== C.id) { gorunumUI.id = C.id; tam = true; }     // başka karaktere geçildi: dolu işaretleri baştan
   // Tür ve sınıf boşsa başlığın alanları açık başlar; "Tamam"a basılana kadar açık kalır (yazarken kapanmasın diye yalnızca burada)
   if (tam && !deger(C.species) && !deger(C.cls)) $('.hero').classList.add('duzen');
+  if (tam) $('.hp-temp').classList.toggle('dolu', int(C.hp.temp) > 0);  // yazarken ya da −'ye basarken elin altından kaybolmasın
   $$('#sheet [data-tam]').forEach(el => {
     const f = DOLU[el.dataset.tam], d = f ? f() : alanDolu(el);
     if (f || tam) el.classList.toggle('dolu', d); else if (d) el.classList.add('dolu');
@@ -3290,8 +3318,14 @@ const ACTIONS = {
     }
     inp.value = ''; setInput('hp.cur'); setInput('hp.temp'); changed();
   },
+  'hp-adim': b => {                                                   // Sade: −1 önce geçici candan düşer; +1 en yüksek canı aşmaz
+    if (int(b.dataset.d) < 0) { if (int(C.hp.temp) > 0) C.hp.temp = int(C.hp.temp) - 1; else C.hp.cur = Math.max(0, int(C.hp.cur) - 1); }
+    else C.hp.cur = Math.min(Math.max(0, int(C.hp.max)), Math.max(0, int(C.hp.cur)) + 1);
+    setInput('hp.cur'); setInput('hp.temp'); changed();
+  },
   hitdie: () => {
     if (C.level - int(C.hdUsed) <= 0) { notify('Can zarın kalmadı', 'Uzun dinlenmede hepsi geri gelir.'); return; }
+    if (int(C.hp.cur) >= int(C.hp.max)) { notify('Canın zaten dolu', 'Can zarını canın azaldığında harca.'); return; }   // yeni başlayan tek zarını boşa harcamasın
     const sides = int(C.hitDie.slice(1)), r = die(sides), heal = Math.max(1, r + mod('con'));
     C.hdUsed = int(C.hdUsed) + 1;
     C.hp.cur = Math.min(Math.max(0, int(C.hp.max)), Math.max(0, int(C.hp.cur)) + heal);
