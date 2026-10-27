@@ -6664,18 +6664,21 @@ function tavBuild(THREE, gltf) {
     return toon.get(m);
   };
   // Pişmiş ışık (?sahne=han-pismis, 2026-10-27'den beri ışık haritası; araclar/han_aktar.py): her nesnenin ikinci UV'si (uv1) iki resme
-  // bakar. isik-a² · K = şömine dışındaki ışık, isik-b² · Kb · renkB = şömine (tav.pisU.uSom ile titrer). Resimler .glb'de gizli iki
-  // kartın (Isik_Harita_A / B) parlama dokusu. Duvar, zemin ve eşya ışık hesaplamaz; yalnızca figürlerin (dolgu ışığının) gölgesini
-  // alır (getShadowMask). Figürler ve oyun masasının sandalyeleri toon kalır, canlı ışığı yalnızca onlar alır.
+  // bakar. isik-a² · K = titremeyen ışık; isik-b / -c / -d (gri) = şömine / avize / mumlar: x² · Kx · renkX, her biri ayrı titrer
+  // (tav.pisU.uTit, tavTitre). Resimler .glb'de gizli kartların (Isik_Harita_A…D) parlama dokusu. Eski dosyada yalnızca A ve B var
+  // (avize ve mumlar A'nın içinde, titremez). Duvar, zemin ve eşya ışık hesaplamaz; yalnızca figürlerin (dolgu ışığının) gölgesini
+  // alır (getShadowMask). Figürler toon kalır, canlı ışığı yalnızca onlar alır.
   const ia = (root.getObjectByName('Isik_Ayar') || {}).userData || {};
   const harita = ad => { const o = root.getObjectByName(ad); let t = null;
     o && o.traverse(x => { if (x.isMesh) { t = t || x.material.emissiveMap; x.visible = false; } });
     if (t) { t.colorSpace = THREE.NoColorSpace; t.anisotropy = aniso; t.needsUpdate = true; }
     return t; };
-  const lmA = harita('Isik_Harita_A'), lmB = harita('Isik_Harita_B'), pismis = SAHNE.pismis && !!lmA;
-  const pisU = { uK: { value: ia.K || 1 }, uKb: { value: ia.Kb || 1 }, uRenkB: { value: new THREE.Vector3(...(ia.renkB || [1, 0.5, 0.2])) },
-    uSom: { value: 1 }, uGuc: { value: TAV.pismis.guc }, uOrtam: { value: TAV.pismis.ortam }, uGolge: { value: TAV.pismis.golge },
-    uIsikA: { value: lmA }, uIsikB: { value: lmB || lmA }, uB: { value: lmB ? 1 : 0 } };
+  const lmA = harita('Isik_Harita_A'), lm = ['B', 'C', 'D'].map(h => harita('Isik_Harita_' + h)), pismis = SAHNE.pismis && !!lmA;
+  const v3 = a => new THREE.Vector3(...a), renk = h => v3(ia['renk' + h] || [1, 0.5, 0.2]);
+  const pisU = { uK: { value: ia.K || 1 }, uKx: { value: v3(['b', 'c', 'd'].map(h => ia['K' + h] || 1)) }, uVar: { value: v3(lm.map(t => t ? 1 : 0)) },
+    uRenkB: { value: renk('B') }, uRenkC: { value: renk('C') }, uRenkD: { value: renk('D') }, uTit: { value: v3([1, 1, 1]) },
+    uGuc: { value: TAV.pismis.guc }, uOrtam: { value: TAV.pismis.ortam }, uGolge: { value: TAV.pismis.golge },
+    uIsikA: { value: lmA }, uIsikB: { value: lm[0] || lmA }, uIsikC: { value: lm[1] || lmA }, uIsikD: { value: lm[2] || lmA } };
   if (pismis) tav.pisU = pisU;
   tav.canliMat = new WeakMap();                                          // pişmiş malzeme → toon (yerinden oynayan kopyalar için: tavManken)
   const pis = new Map(), pisOf = m => {
@@ -6689,13 +6692,16 @@ function tavBuild(THREE, gltf) {
         if (TAV.dalga.mat.includes(m.name)) dalga(sh);
         Object.assign(sh.uniforms, pisU, { uEmis: { value: emis } });
         sh.vertexShader = 'attribute vec2 uv1;\nvarying vec2 vIsikUv;\n' + sh.vertexShader.replace('#include <uv_vertex>', '#include <uv_vertex>\nvIsikUv = uv1;');
-        sh.fragmentShader = 'uniform float uK, uKb, uSom, uGuc, uOrtam, uGolge, uB; uniform vec3 uRenkB, uEmis; uniform sampler2D uIsikA, uIsikB;\nvarying vec2 vIsikUv;\n'
+        sh.fragmentShader = 'uniform float uK, uGuc, uOrtam, uGolge; uniform vec3 uKx, uVar, uTit, uRenkB, uRenkC, uRenkD, uEmis;\n'
+          + 'uniform sampler2D uIsikA, uIsikB, uIsikC, uIsikD;\nvarying vec2 vIsikUv;\n'
           + sh.fragmentShader
             .replace('#include <shadowmap_pars_fragment>', '#include <shadowmap_pars_fragment>\n#include <shadowmask_pars_fragment>')
             .replace('#include <lights_fragment_begin>', '').replace('#include <lights_fragment_maps>', '').replace('#include <lights_fragment_end>', '')   // canlı ışık hesaplanmaz
             .replace('#include <opaque_fragment>', `{
-              vec3 a = texture2D(uIsikA, vIsikUv).rgb; float b = texture2D(uIsikB, vIsikUv).r * uB;
-              vec3 isik = a * a * uK + uRenkB * (b * b * uKb * uSom);
+              vec3 a = texture2D(uIsikA, vIsikUv).rgb;
+              vec3 x = vec3(texture2D(uIsikB, vIsikUv).r, texture2D(uIsikC, vIsikUv).r, texture2D(uIsikD, vIsikUv).r);
+              vec3 g = x * x * uKx * uTit * uVar;                                     // şömine, avize, mumlar: güç × titreme
+              vec3 isik = a * a * uK + uRenkB * g.x + uRenkC * g.y + uRenkD * g.z;
               outgoingLight = diffuseColor.rgb * (isik * uGuc + uOrtam) * mix(1.0, getShadowMask(), uGolge) + uEmis; }
             #include <opaque_fragment>`);
       };
@@ -6824,8 +6830,10 @@ function tavTitre(now) {
     o.L.intensity = still ? o.base : o.base * (1 + o.fl * (0.55 * Math.sin(t * o.a + o.p) + 0.3 * Math.sin(t * o.b + o.p * 2.3) + 0.15 * Math.sin(t * 23.7 + o.p * 5.1)));
   });
   tav.alevler.forEach(a => { a.o.scale.y = still ? a.y : a.y * (1 + 0.14 * Math.sin(t * 9.1 + a.p) + 0.08 * Math.sin(t * 17.3 + a.p * 1.7)); });
-  if (tav.pisU) { const fl = TAV.LIGHT.somine[3];                      // pişmiş ışıkta şöminenin payı (canlı şömine ışığıyla aynı titreme)
-    tav.pisU.uSom.value = still ? 1 : 1 + fl * (0.55 * Math.sin(t * 7) + 0.3 * Math.sin(t * 13) + 0.15 * Math.sin(t * 23.7)); }
+  if (tav.pisU) {                                                      // pişmiş ışıkta şömine, avize ve mumların payı (her biri kendi hızıyla)
+    const tit = (fl, a, b, p) => still ? 1 : 1 + fl * (0.55 * Math.sin(t * a + p) + 0.3 * Math.sin(t * b + p * 2.3) + 0.15 * Math.sin(t * 23.7 + p * 5.1));
+    tav.pisU.uTit.value.set(tit(TAV.LIGHT.somine[3], 7, 13, 0), tit(TAV.LIGHT.avize[3], 8.3, 15.1, 1.7), tit(TAV.LIGHT.mum[3], 9.7, 17.9, 3.1));
+  }
 }
 
 /* Çizer. Tepeden: kamera tablonun ekrandaki yerine göre ayarlanır; tablo noktası (u, v) birim → kamera düzleminde sağa

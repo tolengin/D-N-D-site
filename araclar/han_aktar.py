@@ -13,9 +13,10 @@ Asıl model ve 3d/dokular/ DEĞİŞMEZ (her şey yalnızca bu betiğin belleğin
 
 Pişmiş ışık nasıl saklanır (2026-10-27'den beri ışık haritası; önce köşe rengiydi, gölgeler lekeli çıkıyordu):
   Her nesneye ikinci bir UV haritası ("Isik", sitede uv1) açılır; bütün nesneler tek resimde kendi yerini alır.
-  isik-a (HARITA px) = şöminenin dışındaki bütün ışıklar (avize, aplik, fener, mum, oda, dolgu, gök), √(ışık / K)
-  isik-b (HARITA_B px, gri) = yalnızca şömine, √(güç / Kb); site bunu titreterek ekler. K, Kb, şöminenin rengi "Isik_Ayar"da.
-  İki resim .glb'ye gizli iki kartın (Isik_Harita_A / B) parlama dokusu olarak girer; PNG kopyaları 3d/han/isik/.
+  isik-a (HARITA px) = titremeyen ışıklar (aplik, fener, oda, dolgu, gök), √(ışık / K)
+  isik-b / -c / -d (HARITA_B px, gri) = yalnızca şömine / avize / mumlar (KUMELER), √(güç / Kx); site her birini ayrı titretir.
+  K, Kb…Kd ve kümelerin rengi (renkB…renkD) "Isik_Ayar"da (2026-10-27: avize ve mumlar da titresin diye ayrıldı).
+  Resimler .glb'ye gizli kartların (Isik_Harita_A…D) parlama dokusu olarak girer; PNG kopyaları 3d/han/isik/.
 Karekök: karanlık yerlerde de ayrım kalsın diye (resim 8 bit, karanlık tonlar sıkışmasın).
 
 Önce asıl model hazır olmalı (araclar/han_detay_blender.py).
@@ -43,7 +44,7 @@ WEBP_KALITE = 80
 BOY = {'hali': 1024, 'post': 512, 'deri': 256, 'zemin-ahsap': 1024, 'duvar-siva': 1024, 'masa-ahsap': 1024,
        'tas-altigen': 1024, 'tas-blok': 512, 'dis-zemin': 512, 'kalkan-1': 256, 'kalkan-2': 256, 'tabela': 512, 'sancak': 256,
        'harita': 512, 'gorev-panosu': 512, 'kitap-sirtlari': 256, 'demir': 256, 'cuval': 256, 'saksi-toprak': 256,
-       'isik-a': 4096, 'isik-b': 4096}                # ışık haritaları küçültülmez (boyları pişirmede belli)
+       'isik-a': 4096, 'isik-b': 4096, 'isik-c': 4096, 'isik-d': 4096}              # ışık haritaları küçültülmez (boyları pişirmede belli)
 VARSAYILAN = 512
 # Pişirme (ışık haritası, 2026-10-27: köşe renginde gölgeler lekeli ve 45 cm'den küçükleri yok oluyordu)
 DENEME = 'deneme' in sys.argv                         # "-- pismis deneme": küçük ve hızlı (süre ölçmek için)
@@ -54,7 +55,11 @@ PAY = 0.003                                           # UV parçaları arası bo
 KENAR = 4                                             # pişirmede parçaların kenarından dışarı taşırılan px (dikiş görünmesin)
 YUMUSAK = 1.2                                         # gürültü silme bulanıklığı (px, A haritasında)
 ISIK_KLASOR = os.path.join(KOK, '3d', 'han', 'isik')  # pişen resimlerin PNG kopyası (siteye .glb içinde gider)
-SOMINE_ISIK = ('Onizleme_isik_somine', 'Onizleme_Somine_Oda')
+# Ayrı pişen (site titretir) ışık kümeleri: harf → Blender ışığının adı ona uyuyor mu. Her biri kendi gri resmi (isik-b, -c, -d):
+# tek resmin kanallarına sığdırılmaz, çünkü .glb'deki WEBP rengi yarım çözünürlükte saklar, kanallar birbirine karışır.
+KUMELER = {'b': lambda ad: ad in ('Onizleme_isik_somine', 'Onizleme_Somine_Oda'),   # şömine
+           'c': lambda ad: ad == 'Onizleme_isik_avize',                             # oyun masasının avizesi
+           'd': lambda ad: ad.startswith('Onizleme_isik_mum_')}                     # mumlar (masalar, şamdanlar)
 
 bpy.ops.wm.open_mainfile(filepath=BLEND)
 O = bpy.data.objects
@@ -159,19 +164,23 @@ if PISMIS:
         a = a.reshape(boy, boy, 4)[:, :, :3]
         print(f'  {ad}: dolu piksel %{100 * (a.max(2) > 1e-5).mean():.1f}, en çok {a.max():.2f}')
         return a
-    somine = [o for o in isiklar if o.name in SOMINE_ISIK]
+    kume = {h: [o for o in isiklar if f(o.name)] for h, f in KUMELER.items()}
+    print('  ayrı pişen ışıklar:', {h: len(v) for h, v in kume.items()})
     dunya = sahne.world.node_tree.nodes.get('Background').inputs['Strength']; gok = dunya.default_value
-    A = pis('Isik_A', HARITA, [o for o in isiklar if o not in somine])
+    A = pis('Isik_A', HARITA, [o for o in isiklar if not any(o in v for v in kume.values())])
     print(f'  1. pişirme bitti ({time.time() - t0:.0f} sn)')
     dunya.default_value = 0
-    B = pis('Isik_B', HARITA_B, somine)
+    T = {}
+    for h, v in kume.items():
+        T[h] = pis('Isik_' + h.upper(), HARITA_B, v)
+        print(f'  {h} pişti ({time.time() - t0:.0f} sn)')
     dunya.default_value = gok
     for g, v in parlak: g.default_value = v
     for m in malzemeler:                                    # pişirme düğümleri çıkar (dışa aktarılmasın)
         for ad in ('Isik_Hedef', 'Isik_UV'):
             n = m.node_tree.nodes.get(ad)
             if n: m.node_tree.nodes.remove(n)
-    print(f'  2. pişirme bitti ({time.time() - t0:.0f} sn)')
+    print(f'  bütün pişirmeler bitti ({time.time() - t0:.0f} sn)')
     # Gürültü: az ışınla pişen resim tanecikli olur; küçük bir Gauss bulanıklığı tanecikleri siler, gölge kenarı yerinde kalır
     def bulanik(x, s):
         if s <= 0: return x
@@ -179,13 +188,17 @@ if PISMIS:
         for eksen in (0, 1):
             x = sum(np.roll(x, i - r, axis=eksen) * k[i] for i in range(len(k)))
         return x
-    A = bulanik(A, YUMUSAK); B = bulanik(B, YUMUSAK * HARITA_B / HARITA)
-    # Saklama: RGB = √(ışık / K) (karanlıkta da ayrım kalsın). Şömine ayrı resim (gri): √(güç / Kb); rengi renkB.
+    A = bulanik(A, YUMUSAK)
+    # Saklama: RGB = √(ışık / K) (karanlıkta da ayrım kalsın). Her küme ayrı resim (gri): √(güç / Kx); rengi renkX.
     dolu = A.max(2) > 1e-5
-    lumB = B @ np.array([0.2126, 0.7152, 0.0722])
     K = float(np.percentile(A.max(2)[dolu], 99.7)) if dolu.any() else 1.0
-    Kb = float(np.percentile(lumB[lumB > 1e-5], 99.7)) if (lumB > 1e-5).any() else 1.0
-    renkB = (B.reshape(-1, 3).sum(0) / max(lumB.sum(), 1e-6)).tolist()   # şömine ışığının ortalama rengi (gücü 1 olacak biçimde)
+    gri = {}
+    for h, X in T.items():
+        X = bulanik(X, YUMUSAK * HARITA_B / HARITA)
+        lum = X @ np.array([0.2126, 0.7152, 0.0722])
+        Kx = float(np.percentile(lum[lum > 1e-5], 99.7)) if (lum > 1e-5).any() else 1.0
+        renk = (X.reshape(-1, 3).sum(0) / max(lum.sum(), 1e-6)).tolist()   # kümenin ışığının ortalama rengi (gücü 1 olacak biçimde)
+        gri[h] = (np.sqrt(np.clip(lum / Kx, 0, 1)), Kx, renk)
     os.makedirs(ISIK_KLASOR, exist_ok=True)
     def kaydet(ad, rgb):
         boy = rgb.shape[0]
@@ -199,7 +212,7 @@ if PISMIS:
         print(f'  {ad}.png kaydedildi: ortalama {g.reshape(-1, 4)[:, :3].mean():.3f} (kaydedilen {rgb.mean():.3f})')
         return img
     imA = kaydet('isik-a', np.sqrt(np.clip(A / K, 0, 1)))
-    imB = kaydet('isik-b', np.repeat(np.sqrt(np.clip(lumB / Kb, 0, 1))[:, :, None], 3, 2))
+    imX = {h: kaydet('isik-' + h, np.repeat(g[:, :, None], 3, 2)) for h, (g, _, _) in gri.items()}
     # Resimler .glb'ye gizli iki küçük kartın "parlama dokusu" olarak girer (site kartları gizler, dokuyu ışık haritası yapar)
     def kart(ad, img):
         me = bpy.data.meshes.new(ad); me.from_pydata([(0, 0, -5), (0.1, 0, -5), (0.1, 0.1, -5)], [], [(0, 1, 2)])
@@ -210,11 +223,13 @@ if PISMIS:
         me.materials.append(m)
         ob = bpy.data.objects.new(ad, me); bpy.context.scene.collection.objects.link(ob)
         secim.append(ob)
-    kart('Isik_Harita_A', imA); kart('Isik_Harita_B', imB)
+    kart('Isik_Harita_A', imA)
+    for h, im in imX.items(): kart('Isik_Harita_' + h.upper(), im)
     ayar = bpy.data.objects.new('Isik_Ayar', None); bpy.context.scene.collection.objects.link(ayar)
-    ayar['K'], ayar['Kb'], ayar['renkB'] = K, Kb, renkB
+    ayar['K'] = K
+    for h, (_, Kx, renk) in gri.items(): ayar['K' + h], ayar['renk' + h.upper()] = Kx, renk
     secim.append(ayar)
-    print(f'  K {K:.3f}, Kb {Kb:.3f}, şömine rengi {[round(v, 2) for v in renkB]}')
+    print(f'  K {K:.3f}', {h: (round(Kx, 3), [round(v, 2) for v in renk]) for h, (_, Kx, renk) in gri.items()})
 
 # ───────── Malzemeler ve dokular ─────────
 for m in bpy.data.materials:                        # normal ve pürüz haritaları çıkar (sitede işe yaramaz, dosyayı büyütür)
