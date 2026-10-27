@@ -1,5 +1,5 @@
 # Git'e (ve GitHub'a) gönderilmeyecekler. Site için gereken yalnızca index.html ve masa/ klasörüdür.
-# araclar/ (betikler) ve prompt dosyaları da gider: küçükler ve geçmişleri saklansın diye.
+# araclar/ (betikler) gider: küçükler ve geçmişleri saklansın diye.
 
 # Büyük ham dosyalar ve Blender (yüzlerce MB; sitede kullanılmıyor)
 gorseller/
@@ -10,6 +10,9 @@ giris-videosu/
 
 # Elle alınmış yedekler (içinde bir karakter kaydı da var)
 dnd ssite yedek/
+
+# Yapay zekâ promptları: kullanıcının emeği, yayınlanmaz (2026-10-21)
+promptlar/
 
 # Başkasının eseri: yalnızca tarz örneği, yayınlanmaz
 ornek sanat.jpg
@@ -26,3 +29,9 @@ __pycache__/
 # Yapay zekâ yardımcısının (Claude) çalışma notları: yalnızca bu bilgisayarda kalır
 CLAUDE.md
 .claude/
+
+# Yeni han ışık denemesi (2026-10-22): karar verilene kadar gönderilmez (pişmiş .js 17 MB)
+masa/han.glb
+masa/han.js
+masa/han-pismis.glb
+masa/han-pismis.js

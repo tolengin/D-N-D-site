@@ -44,6 +44,10 @@ AYAR = {
     'tas-blok':    (512,  6.0, (0.75, 0.95), 0.50, 6),
     'tas-altigen': (1024, 6.0, (0.70, 0.95), 0.50, 8),
     'dis-zemin':   (512,  6.0, (0.80, 0.97), 0.50, 8),
+    # 4. tur (2026-10-21, yeni han; promptlar/doku-han.txt)
+    'perde':          (512,  2.0, (0.85, 1.00), 0.25, 6),
+    'pencere-kursun': (512,  3.0, (0.15, 0.45), 0.30, 4),
+    'cati-sindira':   (512,  5.0, (0.75, 0.95), 0.45, 6),
 }
 # Boyalı dokularda derzlerin ve aralıkların koyuluğu zaten resimde çizili: betiğin eklediği girinti gölgesi bununla
 # çarpılır (1 = eski gerçekçi dokulardaki gibi tam). Çok koyulaşırsa düşür.
@@ -51,7 +55,9 @@ AO_CARPAN = 0.4
 # Düzenli desenler (altıgen ızgara): kıvrımlı kesim ızgaranın adımını bozuyordu (ortada baklava şeridi). Kesim şeridi tam
 # bir desen adımı kadar seçilir (ham resimde ölçülen, px: yatay, dikey); üst üste gelen şeritler neredeyse aynı olur,
 # ızgara bozulmaz. Sonuç kare olmaz; oran korunur (Blender'da tekrar boyu en × boy ayrı verilir: UVS).
-DESEN = {'tas-altigen': (512, 342)}
+DESEN = {'tas-altigen': (512, 342),
+         'pencere-kursun': (538, 600),             # kurşun çizgileri bu şeritlerde örtüşüyor (2026-10-22, ölçüldü)
+         'cati-sindira': (256, 320)}               # pul adımı 256 px, sıra ~216 px
 # Tek parça (kesik) görseller: macenta zemin silinir, kırpılır. ad: (en uzun kenar px, normal gücü)
 KESIK = {'kalkan-1': (1024, 4.0), 'kalkan-2': (1024, 4.0), 'tabela': (1024, 4.0), 'sancak': (768, 2.0), 'yaprak-kartlari': (1024, 2.0),
          'post': (1024, 2.0)}                                        # post: şömine önündeki hayvan postu (2026-10-16)

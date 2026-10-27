@@ -287,6 +287,11 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
   .stepper.sm button{--h:36px}
   .tg{min-width:40px;height:40px}
   :root{--del:40px}
+  /* Sade'nin yeni parçaları (2026-10-27 incelemesi): elmas işareti, kurtarma ve saldırı zarları, saldırı kalemi en az 44px */
+  .prof::after{inset:-14px}
+  :is(.ab-save,.li.atk) .roll{min-height:44px}
+  .li.atk{--del:44px}
+  .li.atk .icon-btn{--h:44px}
 }
 
 /* ───────── 6) CAMLAR (kartlar) VE ETİKETLER ───────── */
@@ -376,8 +381,23 @@ body:not(.guide) .hint:not(.always){display:none}
 .ab-name{font-weight:800;letter-spacing:.14em;font-size:13px;color:color-mix(in srgb,var(--accent) 50%,#fff)}
 .ab-name span{display:block;font-weight:500;letter-spacing:0;color:var(--muted);font-size:12.5px;margin-top:1px}
 .ab-mod{display:block;width:100%;margin:10px 0;padding:8px 0 4px;font-family:var(--font-display);font-size:46px;font-weight:700;line-height:1;border-radius:0}
-.ab-score{width:68px!important;text-align:center;font-weight:700;border-radius:0!important;padding:5px 6px!important}
+/* Büyük sayı bir zardır (2026-10-27, arkadaşlar "skor mu, düğme mi" karıştırdı): sol üstte d20 işareti, köşe üçgenine gerek yok */
+:is(.ab-mod,.roll.big) b{font-weight:inherit}
+:is(.ab-mod,.roll.big) .ic{position:absolute;left:6px;top:6px;width:18px;height:18px;color:color-mix(in srgb,var(--accent) 80%,var(--text))}
+:is(.ab-mod,.roll.big):hover .ic{color:var(--on-accent)}
+:is(.ab-mod,.roll.big)::after{display:none}
+/* Skor yazılır bir alandır: kuyu değil, karakter adı gibi kesikli alt çizgi; küçük ve soluk (One Giant Number) */
+.ab-skor{display:flex;align-items:baseline;justify-content:center;gap:8px}
+.ab-score{width:52px!important;text-align:center;font-weight:700;font-size:16px;color:var(--muted);border-radius:0!important;padding:2px 4px!important;
+  background:transparent!important;border-width:0 0 1px!important;border-bottom-style:dashed!important;border-color:var(--line)!important}
+.ab-score:hover{color:var(--text)}
+.ab-score:focus{color:var(--text);border-color:var(--accent)!important;box-shadow:none!important}
 .ability .hint{text-align:left}
+/* Kurtarma zarı yetenek camının altında: yalnızca Sade (Tam'da soldaki "Saving Throws" camı) */
+.ab-save{display:none;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);text-align:left}
+.ab-save .nm{font-size:13px}
+.ab-rehber{grid-column:1/-1;margin:0;padding:12px 18px}           /* Sade'de bütün yeteneklerin tek açıklaması */
+body:not(.sade) .ab-rehber{display:none}
 
 /* ───────── 9) ANA YERLEŞİM ───────── */
 .layout{display:grid;grid-template-columns:336px minmax(0,1fr);gap:16px;align-items:stretch}
@@ -420,7 +440,7 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .ac{position:relative;width:92px;height:100px;display:grid;place-items:center}
 .ac svg{position:absolute;inset:0;width:100%;height:100%;fill:var(--surface-2);stroke:var(--lead);stroke-width:5}
 .ac input{position:relative;width:64px;text-align:center;font-family:var(--font-display);font-size:40px;font-weight:700;padding:0;margin-top:-8px;background:transparent;border-color:transparent}
-.roll.big{font-family:var(--font-display);font-size:40px;font-weight:700;min-width:96px;padding:12px 8px 8px;line-height:1}
+.roll.big{font-family:var(--font-display);font-size:40px;font-weight:700;min-width:96px;padding:12px 28px 8px;line-height:1}   /* yanlarda zar işaretine yer */
 .inline{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
 .inline input{width:56px;text-align:center;padding:4px 6px}
 .speed{display:flex;align-items:baseline;gap:4px;color:var(--muted);font-weight:700}
@@ -675,6 +695,14 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
   .li.atk>input:not([type=number]),.li.spell>input{flex:1 1 150px}
   .li.atk>input[type=number]{flex:0 0 62px}
   .li.atk>select,.li.spell>select{flex:0 0 96px}
+  /* Sade okunur saldırı satırı dar camda: 1) ad · vuruş · kalem 2) hasar zarı 3) not (zar ile kalem yan yana gelmesin) */
+  .list .li.atk.oku{display:grid;grid-template-columns:minmax(0,1fr) 60px var(--del)}
+  .list .li.atk.oku .atk-ad{grid-column:1;grid-row:1}
+  .list .li.atk.oku [data-roll="attack"]{grid-column:2;grid-row:1}
+  .list .li.atk.oku [data-act="atk-duzen"]{grid-column:3;grid-row:1}
+  .list .li.atk.oku .atk-hasar{grid-column:1/-1;grid-row:2}
+  .list .li.atk.oku .atk-not{grid-column:1/-1;grid-row:3}
+  .list .li.atk.oku .atk-not:empty{display:none}
   .spell-top{grid-template-columns:repeat(3,minmax(0,1fr))}
   .spell-top .f{grid-column:1/-1}
 }
@@ -702,10 +730,58 @@ body.sade #skills:not(.acik) .row:has(.prof:not([data-lv="1"]):not([data-lv="2"]
 body.sade #conds:not(.acik) .chip[aria-pressed="false"]{display:none}
 body.sade #conds:not(.acik):not(:has(.chip[aria-pressed="true"])){display:none}
 body.sade #durumAc{margin-top:2px}
+/* 2026-10-27 (oyunu bilmeyenler "her şey iç içe" dedi): Sade'de kurtarma zarları yetenek camına girer, soldaki ayrı cam kalkar;
+   her camın altındaki açıklama yerine bölüm başına tek satır (ayrıntı başlığın üstüne gelince); savaş değerlerinde can önde. */
+body.sade .ab-save{display:grid}
+body.sade .c-saves{display:none}
+body.sade :is(.ability,.vitals) .hint:not(.ab-rehber,.vit-rehber){display:none}
+body.sade .vitals .hp{order:-1}
+.vit-rehber{grid-column:1/-1;margin:0;padding:12px 18px}
+body:not(.sade) .vit-rehber{display:none}
+body.sade .hero-sub.tekrar{display:none}                                 /* "1. seviye Dwarf Fighter" hemen altındaki alanlarda zaten yazılı */
+/* 2026-10-27, Sade baştan (UX): kağıt yukarıdan aşağı okunur, her bölüm üsttekinden türer:
+   kimlik → yetenekler → beceriler → savaş (can, AC, inisiyatif, hız, saldırılar) → dinlenme ve durumlar → sekmeler. Tek sütun. */
+.kimlik,body.sade .tam-only{display:none}
+body.sade .kimlik{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;margin-top:8px}
+.kimlik-yazi{font-size:17px;font-weight:600;color:var(--text)}
+.kimlik-yazi:empty{display:none}
+body.sade .hero:not(.duzen) :is(.hero-fields,.class-hint){display:none}
+body.sade .hero-fields{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}   /* gizli "Alt sınıf"ın yerinde boşluk kalmasın */
+body.sade .name-input{field-sizing:content;width:auto;min-width:10ch;max-width:100%}        /* kesikli çizgi adın boyu kadar (boşluğa uzanmasın) */
+body.sade .hero-side .stat{min-height:0;padding:10px 14px}
+body.sade .layout{grid-template-columns:minmax(0,1fr)}
+body.sade .col{display:contents}
+body.sade .c-skills{order:1}
+body.sade .vitals{order:2}
+body.sade .vitals2{order:3}
+body.sade .tabs-card{order:4}
+body.sade #skills{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));column-gap:18px}
+body.sade #beceriAc{margin-top:12px}
+.atk-yuva{grid-column:1/-1;container-type:inline-size;container-name:tabs}
+body:not(.sade) .atk-yuva{display:none}
+/* Okunur saldırı satırı: ad · vuruş zarı · hasar · hasar zarı · not · kalem */
+/* Düzenlenen satırla aynı sütunlar: ad (ad + yetenek), vuruş, hasar, zar, not (not + sil), kalem: sayılar iki hâlde de alt alta */
+.li.atk.oku{grid-template-columns:minmax(110px,1.2fr) 84px 60px minmax(100px,1fr) 38px minmax(90px,1.3fr) var(--del) var(--del);background:transparent}
+.li.atk.oku .atk-ad{grid-column:1/3}
+.li.atk.oku .atk-hasar{grid-column:4/6}
+.li.atk.oku .atk-not{grid-column:6/8}
+.atk-ad{font-family:var(--font-display);font-size:18px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Okunur satırda hasar bir zardır (Die Or Field): hançer + "1d8+3 slashing" tek düğme */
+.atk-hasar{display:flex;align-items:center;gap:8px;justify-content:flex-start;text-align:left;min-width:0}
+.atk-hasar .ic{flex:none;width:16px;height:16px}
+.atk-hasar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.atk-hasar i,.atk-not{font-style:normal;font-weight:500;color:var(--muted);font-size:13.5px}
+.atk-hasar:hover i{color:inherit}
+/* Sade'nin savaş camında AC notu ve etiketler: not gizli (gizli zırh seçicisinden söz ediyordu), etiketler aynı hizada */
+body.sade [data-out="acNote"]{display:none}
+body.sade .vital{justify-content:flex-start}
+.prof-ornek{display:inline-block;width:9px;height:9px;margin:0 3px 1px;transform:rotate(45deg);background:var(--accent);vertical-align:middle}
+body.sade .li.atk:not(.oku){grid-template-columns:minmax(110px,1.2fr) 84px 60px minmax(100px,1fr) 38px minmax(90px,1.3fr) var(--del) var(--del)}
+body.sade .li-head.atk{display:none}
 body.sade #conds.acik ~ .exh{display:flex}                                 /* "Durum ekle" açılınca bitkinlik de görünür */
 body.sade #beceriAc{margin-top:10px}
 body.sade .slot.zero{display:none}
-body.sade :is(.li,.li-head).atk>:nth-child(3),body.sade :is(.li,.li-head).atk>:nth-child(4),
+body.sade :is(.li:not(.oku),.li-head).atk>:nth-child(3),body.sade :is(.li:not(.oku),.li-head).atk>:nth-child(4),
 body.sade :is(.li,.li-head).spell>:nth-child(3),body.sade :is(.li,.li-head).spell>:nth-child(4),body.sade :is(.li,.li-head).spell>:nth-child(5){display:none}
 body.sade .atk{grid-template-columns:minmax(110px,1.2fr) 84px 60px minmax(100px,1fr) 38px minmax(90px,1.3fr) var(--del)}
 body.sade .spell{grid-template-columns:96px minmax(140px,1.2fr) 62px minmax(120px,1.4fr) var(--del)}
@@ -858,13 +934,17 @@ body.olusturuyor .kagit-ust :is(.gorunum,.ku-ad){visibility:hidden}
   .hero{grid-template-columns:minmax(0,1fr);justify-items:center;text-align:center;padding:16px}
   .hero-main{width:100%}
   .name-input{text-align:center}
+  body.sade .kimlik{justify-content:center}
   .hero-fields{text-align:left}
   .hero-side{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
   .abilities{gap:10px}
   .ability{padding:12px 8px}
   .ab-name span{min-height:2.9em}                              /* Türkçe ad iki satıra kayınca bile kutular aynı hizada başlasın */
   .ability .hint{display:none}
-  .ab-mod{font-size:34px}
+  .ab-mod{font-size:34px;padding-inline:16px}
+  :is(.ab-mod,.roll.big) .ic{width:14px;height:14px;left:4px;top:4px}           /* dar camda zar işareti sayıya değmesin */
+  .ab-save{grid-template-columns:auto auto;justify-content:center;gap:6px 12px}   /* dar camda ad üstte, işaret ve zar altta yan yana */
+  .ab-save .nm{grid-column:1/-1;text-align:center;order:-1}
   .mini-stat .f-l i,.stat .f-l i{display:block;margin-left:0}
   .vitals{gap:10px}
   .vital{padding:12px 8px}
@@ -1792,7 +1872,12 @@ body.tv-full #tableView{height:100dvh}
     <div class="hero-main">
       <input class="name-input" data-bind="name" placeholder="Karakterinin adı" aria-label="Karakter adı" autocomplete="off">
       <p class="hero-sub" data-out="summary"></p>
-      <div class="hero-fields">
+      <!-- Sade: tür · sınıf · geçmiş okunur bir satır; kalemle alanlar açılır (2026-10-27) -->
+      <div class="kimlik">
+        <span class="kimlik-yazi" data-out="kimlik"></span>
+        <button class="btn sm" data-act="kimlik-duzen" aria-expanded="false" aria-controls="heroFields"></button>
+      </div>
+      <div class="hero-fields" id="heroFields">
         <label class="f"><span class="f-l">Species<i>Tür</i></span><input data-bind="species" list="dl-species" placeholder="Human, Elf, Dwarf…" autocomplete="off"></label>
         <label class="f"><span class="f-l">Class<i>Sınıf</i></span><input data-bind="cls" list="dl-class" placeholder="Fighter, Wizard…" autocomplete="off"></label>
         <label class="f" data-tam><span class="f-l">Subclass<i>Alt sınıf</i></span><input data-bind="subclass" placeholder="3. seviyede seçilir" autocomplete="off"></label>
@@ -1839,7 +1924,7 @@ body.tv-full #tableView{height:100dvh}
       <section class="card c-saves">
         <div class="card-h"><h2>Saving Throws<em>Kurtarma zarları</em></h2></div>
         <div class="rows" id="saves"></div>
-        <p class="hint">Bir tuzaktan, büyüden ya da zehirden kurtulmak için atılır. Daireyi doldurursan o zarda yetkinsin demektir ve yetkinlik bonusun eklenir.</p>
+        <p class="hint">Bir tuzaktan, büyüden ya da zehirden kurtulmak için atılır. Elmas işaretini doldurursan o zarda yetkinsin demektir ve yetkinlik bonusun eklenir.</p>
       </section>
 
       <section class="card c-passive" data-tam>
@@ -1854,7 +1939,7 @@ body.tv-full #tableView{height:100dvh}
 
       <section class="card c-skills">
         <div class="card-h"><h2>Skills<em>Beceriler</em></h2></div>
-        <p class="hint" style="margin:0 0 8px">Daireye her basışta sırayla değişir: boş, yetkin, uzman (çift halka). Sağdaki sayıya basınca d20 atılır. Bir becerinin üstünde beklersen ne işe yaradığı yazar.</p>
+        <p class="hint" style="margin:0 0 8px">Elmas işaretine her basışta sırayla değişir: boş, yetkin, uzman (çift çerçeve). Sağdaki sayıya basınca d20 atılır. Bir becerinin üstünde beklersen ne işe yaradığı yazar.</p>
         <div class="rows" id="skills"></div>
         <button class="btn sm sade-only" data-act="beceri-ac" id="beceriAc" aria-expanded="false"></button>
       </section>
@@ -1866,12 +1951,12 @@ body.tv-full #tableView{height:100dvh}
 
       <div class="vitals card">
         <section class="card vital">
-          <span class="f-l">Armor Class<i>Zırh sınıfı</i></span>
+          <span class="f-l" title="Düşmanın sana vurabilmesi için tutturması gereken sayı">Armor Class<i>Zırh sınıfı</i></span>
           <div class="ac">
             <svg viewBox="0 0 100 110" aria-hidden="true"><path d="M50 5 91 19v34c0 25-17 41-41 51C26 94 9 78 9 53V19z"/></svg>
             <input class="ghost" type="number" data-bind="ac" aria-label="Armor Class">
           </div>
-          <div class="ac-opts" data-tam>
+          <div class="ac-opts" data-tam="zirh">
             <select class="mini" data-bind="armorType" aria-label="Zırh türü">
               <option value="">Zırhsız</option><option value="light">Hafif zırh</option><option value="medium">Orta zırh</option><option value="heavy">Ağır zırh</option>
             </select>
@@ -1882,14 +1967,14 @@ body.tv-full #tableView{height:100dvh}
         </section>
 
         <section class="card vital">
-          <span class="f-l">Initiative<i>İnisiyatif</i></span>
-          <button class="roll big" data-act="roll" data-roll="init" data-out="init" title="İnisiyatif zarı at">+0</button>
+          <span class="f-l" title="Savaşta sıranı belirler: DEX modifiyen ile ek bonusun toplamı">Initiative<i>İnisiyatif</i></span>
+          <button class="roll big" data-act="roll" data-roll="init" title="İnisiyatif zarı at"><svg class="ic"><use href="#i-d20"/></svg><b data-out="init">+0</b></button>
           <label class="inline" data-tam>Ek bonus <input type="number" data-bind="initBonus" aria-label="İnisiyatif ek bonusu"></label>
           <p class="hint">Savaşta sıranı belirler. DEX modifiyen ile ek bonusun toplamıdır.</p>
         </section>
 
         <section class="card vital">
-          <span class="f-l">Speed<i>Hız</i></span>
+          <span class="f-l" title="Bir turda yürüyebileceğin mesafe; haritada her kare 5 ft">Speed<i>Hız</i></span>
           <div class="speed"><input class="ghost" type="number" data-bind="speed" step="5" min="0" aria-label="Hız (feet)">ft</div>
           <span class="sub-note" data-out="speedAlt"></span>
           <p class="hint">Bir turda yürüyebileceğin mesafe. Haritada her kare 5 ft sayılır.</p>
@@ -1898,7 +1983,7 @@ body.tv-full #tableView{height:100dvh}
         <section class="card hp">
           <div class="card-h">
             <h2>Hit Points<em>Can puanı</em></h2>
-            <button class="btn sm" data-act="longrest" title="Canı ve büyü yuvalarını yeniler"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button>
+            <button class="btn sm tam-only" data-act="longrest" title="Canı ve büyü yuvalarını yeniler"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button>
           </div>
           <div class="hp-body">
             <div class="hp-nums">
@@ -1919,11 +2004,14 @@ body.tv-full #tableView{height:100dvh}
           </div>
           <p class="hint">Soldaki büyük sayı şimdiki canın, yanındaki en yüksek canın. Miktarı yazıp düğmeye bas: hasar önce geçici candan düşer, iyileşme en yüksek canı aşamaz.</p>
         </section>
+        <p class="hint vit-rehber">Can sıfıra inerse bayılırsın; masada vurulunca canın kendiliğinden düşer. AC ne kadar yüksekse sana vurmak o kadar zor. İnisiyatif savaşta sıranı belirler (sayıya basınca zar atılır), hız bir turda kaç kare yürüyeceğini söyler. Saldırırken önce vuruş zarına bas; tutturursan hançerli hasar zarına.</p>
+        <section class="card atk-yuva" id="atkYuva"></section><!-- Sade: saldırılar burada (Tam'da Saldırılar sekmesinde) -->
       </div>
 
       <div class="vitals2 card">
         <section class="card">
-          <div class="card-h"><h2>Hit Dice<em>Can zarı</em></h2></div>
+          <div class="card-h"><h2>Hit Dice<em>Can zarı</em></h2>
+            <button class="btn sm sade-only" data-act="longrest" title="Canı ve büyü yuvalarını yeniler"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button></div>
           <div class="hd">
             <select data-bind="hitDie" aria-label="Can zarı türü"><option>d6</option><option>d8</option><option>d10</option><option>d12</option></select>
             <span><b data-out="hdLeft">1</b> / <span data-out="level">1</span> kaldı</span>
@@ -1965,7 +2053,7 @@ body.tv-full #tableView{height:100dvh}
       <!-- ═════════ SEKMELİ BÖLÜM ═════════ -->
       <section class="card tabs-card">
         <div class="tabs" role="tablist">
-          <button class="tab" role="tab" aria-selected="true"  data-act="tab" data-tab="actions">Saldırılar</button>
+          <button class="tab tam-only" role="tab" aria-selected="true"  data-act="tab" data-tab="actions">Saldırılar</button>
           <button class="tab" role="tab" aria-selected="false" data-act="tab" data-tab="spells" data-tam="spells">Büyüler</button>
           <button class="tab" role="tab" aria-selected="false" data-act="tab" data-tab="inventory">Envanter</button>
           <button class="tab" role="tab" aria-selected="false" data-act="tab" data-tab="features">Özellikler</button>
@@ -1975,6 +2063,7 @@ body.tv-full #tableView{height:100dvh}
 
         <!-- Saldırılar -->
         <div class="panel on" data-panel="actions">
+          <div id="atkIc"><!-- Sade'de bu kutu savaş camındaki #atkYuva'ya taşınır (gorunumUI) -->
           <div class="panel-h">
             <div>
               <h3>Weapons &amp; attacks<em>Silahlar ve saldırılar</em></h3>
@@ -1983,6 +2072,7 @@ body.tv-full #tableView{height:100dvh}
             <button class="btn accent sm" data-act="add" data-list="attacks"><svg class="ic"><use href="#i-plus"/></svg>Saldırı ekle</button>
           </div>
           <div class="list" id="attacks"></div>
+          </div>
         </div>
 
         <!-- Büyüler -->
@@ -2688,12 +2778,18 @@ function dusunce(c) {
 function renderStatic() {
   $('#abilities').innerHTML = ABIL.map(a => `
     <div class="card ability">
-      <div class="ab-name">${a.k.toUpperCase()}<span>${a.en}, ${a.tr}</span></div>
-      <button class="roll ab-mod" data-act="roll" data-roll="ability" data-k="${a.k}" title="${a.en} zarı at">+0</button>
-      <label class="f" style="align-items:center"><span class="f-l">Skor</span>
+      <div class="ab-name" title="${a.en} (${a.tr}): ${a.hint}">${a.k.toUpperCase()}<span>${a.en}, ${a.tr}</span></div>
+      <button class="roll ab-mod" data-act="roll" data-roll="ability" data-k="${a.k}" title="${a.en} zarı at">${D20}<b>+0</b></button>
+      <label class="ab-skor"><span class="f-l">Skor</span>
         <input class="ab-score" type="number" min="1" max="30" data-bind="abilities.${a.k}" aria-label="${a.en} skoru"></label>
       <p class="hint">${a.hint}</p>
-    </div>`).join('');
+      <div class="ab-save">
+        <button class="prof" data-act="prof-save" data-k="${a.k}" aria-label="${a.en} kurtarma zarında yetkinlik"></button>
+        <span class="nm" lang="en">Save<small lang="tr">Kurtarma</small></span>
+        <button class="roll" data-act="roll" data-roll="save" data-k="${a.k}" title="${a.en} kurtarma zarı at">+0</button>
+      </div>
+    </div>`).join('') + `
+    <p class="hint ab-rehber">Büyük sayıya bas: o yetenekle zar atarsın. Skoru değiştirmek için altındaki sayıya yaz. <b>Save</b> (kurtarma) tuzaktan, büyüden ya da zehirden kurtulmak için atılır; elmas işareti <span class="prof-ornek" aria-hidden="true"></span> doluysa o zarda yetkinsin.</p>`;
 
   $('#saves').innerHTML = ABIL.map(a => `
     <div class="row">
@@ -2720,6 +2816,7 @@ function renderStatic() {
   renderHistory();
 }
 
+const ATK_DUZEN = new Set();             // Sade: kalemle açılmış (değiştirilen) saldırı satırları; diğerleri okunur satır
 const TG = (f, on, text, title) => `<button class="tg" data-act="row-tg" data-f="${f}" aria-pressed="${!!on}" title="${title}">${text}</button>`;
 const DEL = '<button class="icon-btn del" data-act="row-del" title="Satırı sil" aria-label="Satırı sil"><svg class="ic"><use href="#i-x"/></svg></button>';
 const D20 = '<svg class="ic"><use href="#i-d20"/></svg>', HASAR_IC = '<svg class="ic"><use href="#i-hancer"/></svg>';   // hasar zarı d20 değildir: hançer
@@ -2727,7 +2824,14 @@ const D20 = '<svg class="ic"><use href="#i-d20"/></svg>', HASAR_IC = '<svg class
 function renderLists() {
   $('#attacks').innerHTML = C.attacks.length ? `
     <div class="li-head atk"><span>Ad</span><span>Yetenek</span><span title="Bu silahta yetkin misin?">Yetkin</span><span>Ek bonus</span><span>Vuruş</span><span>Hasar</span><span></span><span>Not</span><span></span></div>` +
-    C.attacks.map((a, i) => `
+    C.attacks.map((a, i) => gorunum() === 'sade' && !ATK_DUZEN.has(i) ? `
+    <div class="li atk oku" data-list="attacks" data-i="${i}">
+      <b class="atk-ad">${esc(deger(a.name) || 'Adsız saldırı')}</b>
+      <button class="roll" data-act="roll" data-roll="attack" title="Vuruş zarı at: tutturursan hasar zarına bas">+0</button>
+      <button class="roll atk-hasar" data-act="roll" data-roll="damage" title="Hasar zarı at">${HASAR_IC}<span>${esc(deger(a.dmg)) || '<i>hasar yazılmadı</i>'}</span></button>
+      <span class="atk-not">${esc(deger(a.note))}</span>
+      <button class="icon-btn" data-act="atk-duzen" title="Bu saldırıyı değiştir" aria-label="Bu saldırıyı değiştir"><svg class="ic"><use href="#i-pencil"/></svg></button>
+    </div>` : `
     <div class="li atk" data-list="attacks" data-i="${i}">
       <input data-f="name" value="${esc(a.name)}" placeholder="Longsword" aria-label="Saldırı adı">
       <select data-f="ab" aria-label="Kullanılan yetenek">${ABIL.map(x => `<option value="${x.k}"${x.k === a.ab ? ' selected' : ''}>${x.k.toUpperCase()}</option>`).join('')}</select>
@@ -2738,6 +2842,7 @@ function renderLists() {
       <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at" aria-label="Hasar zarı at">${HASAR_IC}</button>
       <input data-f="note" value="${esc(a.note)}" placeholder="Menzil, özellik…" aria-label="Not">
       ${DEL}
+      <button class="icon-btn sade-only" data-act="atk-duzen" title="Bitti" aria-label="Değiştirmeyi bitir"><svg class="ic"><use href="#i-check"/></svg></button>
     </div>`).join('')
     : '<p class="empty">Henüz saldırı yok. “Saldırı ekle” ile kılıcını, yayını ya da büyü saldırını yaz.</p>';
 
@@ -2792,6 +2897,8 @@ function renderSlots() {
 }
 
 const out = (key, text) => $$(`[data-out="${key}"]`).forEach(el => { el.textContent = text; });
+// Yazılı alanın gerçek değeri: "-", "—", "yok" boş sayılır (insanlar boş bırakmak yerine çizgi yazıyor; başlıkta "(-), - geçmişi" çıkıyordu)
+const deger = v => { const s = String(v ?? '').trim(); return /^([-–—.]+|yok)$/i.test(s) ? '' : s; };
 const pipRow = (act, n, k = 3) => Array.from({ length: k }, (_, i) => i).map(i => `<button class="pip${i < n ? ' on' : ''}" data-act="${act}" data-n="${i}" aria-label="${i + 1}"></button>`).join('');
 
 function refresh() {
@@ -2799,10 +2906,18 @@ function refresh() {
 
   // Başlık
   const cl = findClass();
-  const who = [C.species, C.cls].filter(Boolean).join(' ');
-  out('summary', who || C.background
-    ? `${C.level}. seviye${who ? ' ' + who : ''}${C.subclass ? ' (' + C.subclass + ')' : ''}${C.background ? ', ' + C.background + ' geçmişi' : ''}`
+  const who = [deger(C.species), deger(C.cls)].filter(Boolean).join(' '), sub = deger(C.subclass), bg = deger(C.background);
+  out('summary', who || bg
+    ? `${C.level}. seviye${who ? ' ' + who : ''}${sub ? ' (' + sub + ')' : ''}${bg ? ', ' + bg + ' geçmişi' : ''}`
     : 'Türünü ve sınıfını yaz, hesapların çoğunu defter senin yerine yapar.');
+  $('.hero-sub').classList.toggle('tekrar', !!(who || bg));               // Sade'de gizlenir: alttaki alanlar aynısını söylüyor
+  // Sade başlığı: "Dhampir · Fighter · Soldier" + kalem. Tür ve sınıf boşsa alanlar kendiliğinden açık durur.
+  out('kimlik', [deger(C.species), deger(C.cls) + (sub ? ` (${sub})` : ''), bg].filter(s => s.trim()).join(' · '));
+  const duzen = $('.hero').classList.contains('duzen');
+  const kd = $('[data-act="kimlik-duzen"]');
+  kd.innerHTML = duzen ? '<svg class="ic"><use href="#i-check"/></svg>Tamam' : '<svg class="ic"><use href="#i-pencil"/></svg>Değiştir';
+  kd.setAttribute('aria-expanded', String(duzen));
+  kd.title = duzen ? 'Alanları kapat' : 'Türünü, sınıfını ya da geçmişini değiştir';
   $('#kuAd').innerHTML = `${esc(C.name.trim() || 'Adsız karakter')}${who ? `<small>${esc(C.level + '. seviye ' + who)}</small>` : ''}`;   // kağıdın üst şeridi
   out('level', C.level);
   out('pb', sign(P));
@@ -2819,9 +2934,10 @@ function refresh() {
 
   // Yetenekler, kurtarma zarları, beceriler
   ABIL.forEach(a => {
-    $(`.ab-mod[data-k="${a.k}"]`).textContent = sign(mod(a.k));
-    $(`[data-act="prof-save"][data-k="${a.k}"]`).dataset.lv = C.saves[a.k] ? 1 : 0;
-    $(`[data-roll="save"][data-k="${a.k}"]`).textContent = sign(saveBonus(a.k));
+    $(`.ab-mod[data-k="${a.k}"] b`).textContent = sign(mod(a.k));
+    // Kurtarma zarı iki yerde: soldaki "Saving Throws" camı (Tam) ve yetenek camının altı (Sade)
+    $$(`#sheet [data-act="prof-save"][data-k="${a.k}"]`).forEach(b => { b.dataset.lv = C.saves[a.k] ? 1 : 0; });
+    $$(`#sheet [data-roll="save"][data-k="${a.k}"]`).forEach(b => { b.textContent = sign(saveBonus(a.k)); });
   });
   SKILLS.forEach(s => {
     const b = $(`[data-act="prof-skill"][data-k="${s.k}"]`);
@@ -2900,16 +3016,22 @@ const DOLU = {                                                       // data-tam
   exh: () => int(C.exh) > 0,
   spells: () => !!C.spellAbility || C.spells.length > 0,
   feats: () => C.feats.length > 0,
+  zirh: () => false,                                                 // zırh türü AC'yi değiştirmiyor, yalnızca not; Sade'de yeni başlayanı yanıltıyordu (2026-10-27)
   story: () => ['personality', 'ideals', 'bonds', 'flaws', 'backstory', 'appearance', 'age', 'height', 'weight', 'eyes', 'hair', 'alignment'].some(k => String(C[k] ?? '').trim()),
 };
 const alanDolu = el => [...el.querySelectorAll('[data-bind]')].some(i => (i.type === 'checkbox' ? i.checked
-  : i.tagName === 'SELECT' ? i.selectedIndex > 0 : String(i.value).trim() !== '' && String(i.value).trim() !== '0'));
+  : i.tagName === 'SELECT' ? i.selectedIndex > 0 : deger(i.value) !== '' && String(i.value).trim() !== '0'));
 function gorunumUI(tam) {
   const g = gorunum();
   document.body.classList.toggle('sade', g === 'sade');
   $$('[data-act="gorunum"]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.v === g)));
+  // Saldırılar Sade'de savaş camında (can, AC, inisiyatifle birlikte), Tam'da Saldırılar sekmesinde: aynı kutu taşınır
+  const atk = $('#atkIc'), yuva = g === 'sade' ? $('#atkYuva') : $('[data-panel="actions"]');
+  if (atk.parentNode !== yuva) yuva.appendChild(atk);
   if (g !== 'sade') return;
   if (gorunumUI.id !== C.id) { gorunumUI.id = C.id; tam = true; }     // başka karaktere geçildi: dolu işaretleri baştan
+  // Tür ve sınıf boşsa başlığın alanları açık başlar; "Tamam"a basılana kadar açık kalır (yazarken kapanmasın diye yalnızca burada)
+  if (tam && !deger(C.species) && !deger(C.cls)) $('.hero').classList.add('duzen');
   $$('#sheet [data-tam]').forEach(el => {
     const f = DOLU[el.dataset.tam], d = f ? f() : alanDolu(el);
     if (f || tam) el.classList.toggle('dolu', d); else if (d) el.classList.add('dolu');
@@ -2919,8 +3041,8 @@ function gorunumUI(tam) {
     : '<svg class="ic"><use href="#i-plus"/></svg>Bütün beceriler (18)';
   $('#beceriAc').title = yetkin ? `${yetkin} beceride yetkinsin; Sade görünümde yalnızca onlar listelenir` : 'Henüz yetkin olduğun beceri yok. Sınıfın ve geçmişin sana beceri verir.';
   $('#durumAc').innerHTML = dc.classList.contains('acik') ? '<svg class="ic"><use href="#i-minus"/></svg>Yalnızca üzerimdekiler' : '<svg class="ic"><use href="#i-plus"/></svg>Durum ekle';
-  const t = $(`.tab[data-tab="${store.tab}"]`);                       // seçili sekme Sade'de gizlendiyse ilk sekmeye
-  if (t && t.matches('[data-tam]:not(.dolu)')) setTab('actions');
+  const t = $(`.tab[data-tab="${store.tab}"]`);                       // seçili sekme Sade'de gizlendiyse Envanter'e (Saldırılar savaş camında)
+  if (t && t.matches('[data-tam]:not(.dolu), .tam-only')) setTab('inventory');
 }
 
 /* ───── Kutular ile veri arasındaki bağ (data-bind) ───── */
@@ -2943,7 +3065,7 @@ function showChar() { critRow = -1; fillInputs(); renderLists(); refresh(); rend
 function renderChars() {
   $('#charList').innerHTML = store.order.map(id => {
     const c = store.chars[id];
-    const sub = [c.species, c.cls].filter(Boolean).join(' ');
+    const sub = [deger(c.species), deger(c.cls)].filter(Boolean).join(' ');
     return `<div class="char-li${id === C.id ? ' on' : ''}">
       <button class="char-pick" data-act="char-pick" data-id="${esc(id)}">
         <span class="char-av">${c.portrait ? `<img src="${esc(c.portrait)}" alt="">` : esc((c.name.trim()[0] || '?').toUpperCase())}</span>
@@ -2954,7 +3076,7 @@ function renderChars() {
   }).join('');
 }
 // Masa görünümündeyken de çalışır: sahne yeni karakterle yeniden çizilir, kağıt DM'e save() ile gider
-function switchChar(id) { if (!store.chars[id]) return; store.activeId = id; C = store.chars[id]; showChar(); save(); renderTable(); }
+function switchChar(id) { if (!store.chars[id]) return; store.activeId = id; C = store.chars[id]; ATK_DUZEN.clear(); $('.hero').classList.remove('duzen'); showChar(); save(); renderTable(); }
 function isUntouched(c) { const b = blankChar(); b.id = c.id; return JSON.stringify(b) === JSON.stringify(c); }
 function adopt(c) {                       // yeni gelen karakteri listeye ekler; açık olan boşsa onun yerine koyar
   c.id = uid();
@@ -3176,7 +3298,14 @@ const ACTIONS = {
     showRoll({ label:'Can zarı: kısa dinlenme', total: heal, detail:`1${C.hitDie} (${r}) ${mod('con') >= 0 ? '+' : '−'} ${Math.abs(mod('con'))} CON`, note:`Şimdiki can: ${C.hp.cur}`, dice:[{ s: sides, v: r }] });
     setInput('hp.cur'); changed();
   },
-  gorunum: b => { C.view = b.dataset.v === 'sade' ? 'sade' : 'tam'; $('#skills').classList.remove('acik'); $('#conds').classList.remove('acik'); save(); gorunumUI(true); },
+  gorunum: b => { C.view = b.dataset.v === 'sade' ? 'sade' : 'tam'; $('#skills').classList.remove('acik'); $('#conds').classList.remove('acik'); ATK_DUZEN.clear(); save(); renderLists(); refresh(); gorunumUI(true); },
+  'kimlik-duzen': () => { $('.hero').classList.toggle('duzen'); refresh(); },
+  'atk-duzen': b => {
+    const r = rowOf(b); if (!r) return;
+    const ac = !ATK_DUZEN.has(r.i); ac ? ATK_DUZEN.add(r.i) : ATK_DUZEN.delete(r.i);
+    renderLists(); refresh();
+    const f = $(`#attacks .li[data-i="${r.i}"] ${ac ? '[data-f="name"]' : '[data-act="atk-duzen"]'}`); if (f) f.focus();   // klavye odağı satırda kalsın
+  },
   'beceri-ac': b => { b.setAttribute('aria-expanded', String($('#skills').classList.toggle('acik'))); gorunumUI(); },
   'durum-ac': b => { b.setAttribute('aria-expanded', String($('#conds').classList.toggle('acik'))); gorunumUI(); },
   kaydet: () => { flush(); const ok = $('#saveState').dataset.s === 'ok'; notify(ok ? 'Kaydedildi' : 'Kaydedilemedi', ok ? 'Karakterlerin bu tarayıcıda saklı. Başka cihaz için “Karakterler > Dışa aktar”.' : $('#saveState').parentNode.title); },
@@ -3206,13 +3335,14 @@ const ACTIONS = {
   add: b => {
     const list = b.dataset.list;
     C[list].push(NEW_ROW[list]());
+    if (list === 'attacks') ATK_DUZEN.add(C.attacks.length - 1);       // Sade'de yeni saldırı yazılabilir hâlde açılır
     renderLists(); changed();
     const first = $(`#${list} .li:last-child [data-f="name"]`); if (first) first.focus();
   },
   // Satır silme: sormadan siler ama 7 sn "Geri al" verir (yanlışlıkla basılan × geri döner)
   'row-del': b => {
     const r = rowOf(b); if (!r) return;
-    const kim = C, [eski] = C[r.list].splice(r.i, 1); critRow = -1; renderLists(); changed();
+    const kim = C, [eski] = C[r.list].splice(r.i, 1); critRow = -1; if (r.list === 'attacks') ATK_DUZEN.clear(); renderLists(); changed();
     const ad = { attacks: 'Saldırı', spells: 'Büyü', items: 'Eşya', feats: 'Özellik' }[r.list] || 'Satır';
     notify(`${ad} silindi`, eski && eski.name ? eski.name : '', () => {
       if (C !== kim) return;                                           // bu arada karakter değiştiyse dokunma
@@ -4229,7 +4359,7 @@ function pcCard(p) {
   if (!c) return `<article class="card pc${p.online ? '' : ' off'}"><header class="pc-top"><span class="char-av">${esc((p.name[0] || '?').toUpperCase())}</span><div class="pc-id"><b>${esc(p.name)}</b><small>Kağıdı bekleniyor…</small></div>${on}</header></article>`;
   return calc(c, () => {
     const max = Math.max(0, int(c.hp.max)), cur = int(c.hp.cur), temp = int(c.hp.temp), pct = max ? clamp(cur / max, 0, 1) : 0;
-    const who = [c.species, c.cls].filter(Boolean).join(' ');
+    const who = [deger(c.species), deger(c.cls)].filter(Boolean).join(' ');
     const stat = (v, l, t) => `<div class="pc-stat" title="${t}"><b>${v}</b><span>${l}</span></div>`, pas = k => 10 + skillBonus(k);
     const tags = c.conds.map(k => CONDS.find(x => x.k === k)).filter(Boolean).map(x => `<span class="tag bad" title="${esc(x.d)}">${x.en}</span>`).join('')
       + (c.exh ? `<span class="tag bad">Bitkinlik ${int(c.exh)}</span>` : '') + (c.insp ? '<span class="tag">İlham var</span>' : '')
@@ -5586,7 +5716,7 @@ function renderMe() {
   const c = ownChar(), min = !!store.meMin;
   const max = Math.max(0, int(c.hp.max)), cur = int(c.hp.cur), temp = int(c.hp.temp), pct = max ? clamp(cur / max, 0, 1) : 0;
   const bar = `<div class="hp-bar"><span class="hp-fill" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span></div>`;
-  const who = [c.species, c.cls].filter(Boolean).join(' ');
+  const who = [deger(c.species), deger(c.cls)].filter(Boolean).join(' ');
   const av = c.portrait ? `<img src="${esc(c.portrait)}" alt="">` : esc((c.name.trim()[0] || '?').toUpperCase());
   const kalkan = '<svg viewBox="0 0 100 110" aria-hidden="true"><path d="M50 5 91 19v34c0 25-17 41-41 51C26 94 9 78 9 53V19z"/></svg>';
   const rehber = rehberMetni(c);
@@ -6202,7 +6332,27 @@ const TAV = {
                                                              //   sürükleyerek sağa ya da sola en çok kaç derece bakılır
   ALPHA: ['M_Yaprak', 'M_Kuru_Ot', 'M_Kalkan_1', 'M_Kalkan_2', 'M_Sancak', 'M_Tabela', 'M_Hali', 'M_Post'],   // saydam yerleri kesilerek çizilir
   LIB: 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/',   // importmap'tekiyle aynı sürüm (Draco çözücüsü buradan iner)
+  taban: 0,                  // oyun masasındaki koltukların yerden yüksekliği (m); yeni handa masa kürsüde
+  pismis: { guc: 1.0, ortam: 0.015 },   // pişmiş ışıklı sahnede: ışığın çarpanı, hiç ışık almayan yere eklenen pay
 };
+/* Yeni han denemesi (2026-10-22, Yeni Han adım 4). Adresin sonuna:
+     ?sahne=han          yeni han, ışığı site canlı hesaplar (eski taverna gibi)
+     ?sahne=han-pismis   yeni han, ışık Blender'da pişirildi (köşe renklerinde); yalnızca şömine canlı titrer
+     &fps=1              köşede bir karenin kaç milisaniyede çizildiği ve saniyede kaç kare (akıcılık ölçümü)
+   Parametre yoksa her şey eskisi gibi (masa/taverna-npr). Dosyaları araclar/han_aktar.py üretir. */
+const SAHNE = (() => {
+  const q = new URLSearchParams(location.search), ad = q.get('sahne');
+  const s = { ad: 'taverna-npr', glob: 'TAVERNA_NPR', pismis: false, fps: q.get('fps') === '1' };
+  if (ad === 'han' || ad === 'han-pismis') {
+    Object.assign(s, { ad, glob: ad === 'han' ? 'HAN_GLB' : 'HAN_PISMIS_GLB', pismis: ad === 'han-pismis' });
+    TAV.hedef = [0, 0, 1.10]; TAV.taban = 0.30;                          // masa +0,30'luk kürsüde
+    TAV.LIGHT.avize = [0xffa458, 10, 7, 0.06];                           // eski tavernada avizenin ışığı yoktu
+    TAV.LIGHT.oda = [0xff9a48, 1.5, 3, 0.05];                            // galerideki aralık kapıların ardı
+    if (s.pismis) TAV.maxLights = 6;                                     // canlı ışık yalnızca figürlere (taverna pişmiş)
+  }
+  if (s.fps) TAV.fps = 240;                                              // ölçerken sınır olmasın (ekranın tazelemesi yine sınırlar)
+  return s;
+})();
 (function tavYon() {                                 // kameranın yönleri (Blender ekseninde): bakış, sağ, üst
   const th = TAV.yon * Math.PI / 180, ph = TAV.egim * Math.PI / 180;
   TAV.bak = [Math.sin(th) * Math.cos(ph), Math.cos(th) * Math.cos(ph), -Math.sin(ph)];
@@ -6262,20 +6412,7 @@ async function tavBuyucu(THREE, GLTFLoader) {
     tavKick();
   } catch (e) { console.warn('Büyücü modeli açılamadı, mankenler kalıyor:', e); }
 }
-function tavData() {
-  if (location.protocol !== 'file:') return fetch(ART + 'taverna-npr.glb').then(r => { if (!r.ok) throw new Error('taverna-npr.glb ' + r.status); return r.arrayBuffer(); });
-  return new Promise((ok, fail) => {
-    if (window.TAVERNA_NPR) { ok(); return; }
-    const s = document.createElement('script');
-    s.src = ART + 'taverna-npr.js'; s.onload = ok; s.onerror = () => fail(new Error('taverna-npr.js bulunamadı'));
-    document.head.appendChild(s);
-  }).then(() => {
-    const b = atob(window.TAVERNA_NPR), u = new Uint8Array(b.length);
-    for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
-    window.TAVERNA_NPR = null;                                            // belleği boşalt
-    return u.buffer;
-  });
-}
+const tavData = () => tavVeri(SAHNE.ad, SAHNE.glob);                   // taverna-npr ya da (denemede) yeni han
 
 async function tavStart() {
   if (tav.state !== 'off') return;
@@ -6455,10 +6592,41 @@ function tavBuild(THREE, gltf) {
     }
     return toon.get(m);
   };
+  // Pişmiş ışık (?sahne=han-pismis): ışık köşe renginde (araclar/han_aktar.py). RGB² · K = şömine dışındaki ışık, A² · Kb · renkB =
+  // şömine (tav.pisU.uSom ile titrer). Işık hesaplanmaz (MeshBasic); figürler toon kalır ve canlı ışığı yalnızca onlar alır.
+  const ia = (root.getObjectByName('Isik_Ayar') || {}).userData || {};
+  const pisU = { uK: { value: ia.K || 1 }, uKb: { value: ia.Kb || 1 }, uRenkB: { value: new THREE.Vector3(...(ia.renkB || [1, 0.5, 0.2])) },
+    uSom: { value: 1 }, uGuc: { value: TAV.pismis.guc }, uOrtam: { value: TAV.pismis.ortam } };
+  if (SAHNE.pismis) tav.pisU = pisU;
+  const pis = new Map(), pisOf = m => {
+    if (!pis.has(m)) {
+      const t = new THREE.MeshBasicMaterial({ name: m.name, color: m.color, map: m.map, vertexColors: true, transparent: m.transparent, opacity: m.opacity,
+        alphaTest: m.alphaTest, side: m.side, alphaMap: m.alphaMap });
+      if (TAV.ALPHA.includes(m.name)) { t.transparent = false; t.alphaTest = 0.5; t.depthWrite = true; }
+      if (m.name === 'M_Dis_Zemin') t.color.setRGB(...TAV.dis, THREE.SRGBColorSpace);
+      const emis = (m.emissive ? m.emissive.clone() : new THREE.Color(0)).multiplyScalar(m.emissiveIntensity ?? 1);
+      t.onBeforeCompile = sh => {
+        if (TAV.dalga.mat.includes(m.name)) dalga(sh);
+        Object.assign(sh.uniforms, pisU, { uEmis: { value: emis } });
+        sh.fragmentShader = 'uniform float uK, uKb, uSom, uGuc, uOrtam; uniform vec3 uRenkB, uEmis;\n' + sh.fragmentShader.replace('#include <color_fragment>', `
+          #if defined(USE_COLOR_ALPHA)
+            vec3 isik = vColor.rgb * vColor.rgb * uK + uRenkB * (vColor.a * vColor.a * uKb * uSom);
+          #elif defined(USE_COLOR)
+            vec3 isik = vColor.rgb * vColor.rgb * uK;
+          #else
+            vec3 isik = vec3(1.0);
+          #endif
+          diffuseColor.rgb = diffuseColor.rgb * (isik * uGuc + uOrtam) + uEmis;`);
+      };
+      [t.map].forEach(x => { if (x) { x.anisotropy = aniso; x.needsUpdate = true; } });
+      pis.set(m, t);
+    }
+    return pis.get(m);
+  };
   // Kesit: kameraya bakan duvarlar (içe bakan yüzü kameraya dönük olanlar) alçalır, onlara asılı parçalar gizlenir
   const th = TAV.yon * Math.PI / 180, ic = { kuzey: [0, -1], guney: [0, 1], bati: [1, 0], dogu: [-1, 0] };
   const onde = new Set(Object.keys(ic).filter(k => ic[k][0] * Math.sin(th) + ic[k][1] * Math.cos(th) > 0.15));
-  const marks = [], kesik = [], gizli = [], alevler = [];
+  const marks = [], kesik = [], gizli = [], alevler = [], isikAdi = new RegExp('^isik_(' + Object.keys(TAV.LIGHT).join('|') + ')');
   let floor = null, masa = null;
   const tabure = [], sandalye = [], masalar = {};                        // 33: tek başınayken oturulacak yerler (barda ya da yan masada)
   const ustte = (o, k) => { for (let p = o; p; p = p.parent) if (p.userData && p.userData[k]) return p.userData[k]; return null; };   // çok malzemeli parçalar grup olarak gelir: etiket üstteki düğümdedir
@@ -6468,7 +6636,7 @@ function tavBuild(THREE, gltf) {
       if (/^(Duvar|Direk)_/.test(o.name)) { o.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(o); kesik.push({ o, y: TAV.kesik / Math.max(b.max.y, 0.1) }); }
       else gizli.push(o);
     }
-    const k = /^isik_(somine|mum|aplik|sarkit)/.exec(o.name);
+    const k = isikAdi.exec(o.name);
     if (k && !(d && onde.has(d))) marks.push({ kind: k[1], p: o.getWorldPosition(new THREE.Vector3()) });
     if (/^alev_/.test(o.name) && o.isMesh) alevler.push({ o, y: o.scale.y, p: alevler.length * 2.17 });
     if (o.name === 'Zemin') floor = o;
@@ -6479,7 +6647,8 @@ function tavBuild(THREE, gltf) {
     if (/^Masa_[A-Za-z]+$/.test(o.name) && o.name !== 'Masa_Orta') masalar[o.name] = o;
     if (o.isMesh) {
       o.castShadow = o.receiveShadow = true;
-      o.material = Array.isArray(o.material) ? o.material.map(toonOf) : toonOf(o.material);
+      const yap = SAHNE.pismis && o.geometry.attributes.color ? pisOf : toonOf;
+      o.material = Array.isArray(o.material) ? o.material.map(yap) : yap(o.material);
       const alfa = [].concat(o.material).some(m => TAV.ALPHA.includes(m.name));
       o.layers.set(pov ? (alfa ? 7 : 6) : (alfa ? 1 : 0));          // saydam kartlara çizgi çekilmez; "pov" yalnızca göz hizasında
     }
@@ -6549,6 +6718,8 @@ function tavTitre(now) {
     o.L.intensity = still ? o.base : o.base * (1 + o.fl * (0.55 * Math.sin(t * o.a + o.p) + 0.3 * Math.sin(t * o.b + o.p * 2.3) + 0.15 * Math.sin(t * 23.7 + o.p * 5.1)));
   });
   tav.alevler.forEach(a => { a.o.scale.y = still ? a.y : a.y * (1 + 0.14 * Math.sin(t * 9.1 + a.p) + 0.08 * Math.sin(t * 17.3 + a.p * 1.7)); });
+  if (tav.pisU) { const fl = TAV.LIGHT.somine[3];                      // pişmiş ışıkta şöminenin payı (canlı şömine ışığıyla aynı titreme)
+    tav.pisU.uSom.value = still ? 1 : 1 + fl * (0.55 * Math.sin(t * 7) + 0.3 * Math.sin(t * 13) + 0.15 * Math.sin(t * 23.7)); }
 }
 
 /* Çizer. Tepeden: kamera tablonun ekrandaki yerine göre ayarlanır; tablo noktası (u, v) birim → kamera düzleminde sağa
@@ -6648,7 +6819,7 @@ function tavKoltuklar(lay, seats) {
       k = tav.koltuk[i] = { dm: !!s.dm, g: tavManken(T, s.dm ? [0.36, 0.10, 0.08] : [0.42, 0.44, 0.50], !!s.dm) };
       tav.S.add(k.g);
     }
-    const p = o.w ? [o.w.x, o.w.y] : [TAV.seatR * Math.cos(o.wa), TAV.seatR * Math.sin(o.wa)], dz = o.w ? o.w.dz : 0;
+    const p = o.w ? [o.w.x, o.w.y] : [TAV.seatR * Math.cos(o.wa), TAV.seatR * Math.sin(o.wa)], dz = o.w ? o.w.dz : TAV.taban;
     Object.assign(k, { id: s.id, me: !!s.me, a: o.wa, p, dz });
     k.g.position.copy(tav.b3([p[0], p[1], dz]));
     k.g.rotation.y = o.w ? o.w.bak - Math.PI / 2 : o.wa + Math.PI / 2;   // +y'ye bakan manken masanın ortasına (barda bara, yan masada o masaya) dönsün
@@ -6672,6 +6843,21 @@ function tavFrame(now) {
   if (moving || canli) tav.raf = requestAnimationFrame(tavFrame);
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) tavKick(); });
+// ?fps=1 (yeni han denemesi): sol altta bir karenin çizim süresi (ms; ekran kartı işini bitirene kadar) ve saniyedeki kare.
+// "Canlı" açık olmalı (sürekli çizim). Ekranın tazelemesi (çoğunlukla 60) kare/sn'yi sınırlar; asıl karşılaştırma ms'dir.
+if (SAHNE.fps) {
+  const el = document.createElement('div');
+  Object.assign(el.style, { position: 'fixed', left: '8px', bottom: '8px', zIndex: 9999, font: '12px/1.4 monospace', padding: '4px 8px',
+    background: 'rgba(0,0,0,.78)', color: '#fff', pointerEvents: 'none' });
+  document.body.appendChild(el);
+  const ciz = tavDraw, px = new Uint8Array(4); let n = 0, top = 0, t0 = performance.now();
+  tavDraw = now => {
+    const a = performance.now(); ciz(now);
+    const gl = tav.R.getContext(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);   // ekran kartının bitirmesini bekletir
+    top += performance.now() - a; n++;
+    if (now - t0 >= 1000) { el.textContent = `${SAHNE.ad} · kare ${(top / n).toFixed(1)} ms · ${Math.round(n * 1000 / (now - t0))} kare/sn`; top = n = 0; t0 = now; }
+  };
+}
 window.addEventListener('resize', () => tavKick());
 if (window.ResizeObserver) new ResizeObserver(() => {             // pencere boyutu değişince: gezinme sınırları da değişir
   if (tav.state === 'on' && mode === 'table') tavSetView(tav.view.s, tav.view.x, tav.view.y); else tavKick();
@@ -6744,8 +6930,8 @@ function seatLayoutTav(n) {
   const seats = [];
   for (let i = 0; i < n; i++) {
     const a = back - 2 * Math.PI * i / n, ca = Math.cos(a), sa = Math.sin(a), R = TAV.seatR;
-    const foot = tavProj(R * ca, R * sa, 0), head = tavProj((R - 0.05) * ca, (R - 0.05) * sa, TAV.headZ);
-    const o1 = tavProj(R * ca, R * sa, 0.8), o2 = tavProj((R + 1) * ca, (R + 1) * sa, 0.8);
+    const z0 = TAV.taban, foot = tavProj(R * ca, R * sa, z0), head = tavProj((R - 0.05) * ca, (R - 0.05) * sa, TAV.headZ + z0);
+    const o1 = tavProj(R * ca, R * sa, 0.8 + z0), o2 = tavProj((R + 1) * ca, (R + 1) * sa, 0.8 + z0);
     const out = Math.atan2(o2[1] - o1[1], o2[0] - o1[0]);           // masadan dışarı yön, ekranda
     const k = ((Math.round((a * 180 / Math.PI + 90) / (360 / dirs)) % dirs) + dirs) % dirs;   // kare k kuzeyden k × 22,5° döner; figür merkeze bakar
     const front = Math.sin(out) > 0.35;                               // masanın önünde (ekranda aşağıda): isimlik ayakların altına
@@ -6871,7 +7057,7 @@ function tavOverview(on) {
    ═══════════════════════════════════════════════════════════════════ */
 const SES = {
   yol: 'ses/',
-  varsayilan: { on: true, ana: 1, muzik: 0.35, ortam: 0.5, efekt: 0.8 },   // ana: hepsinin çarpanı
+  varsayilan: { on: true, ana: 0.5, muzik: 0.35, ortam: 0.5, efekt: 0.8 },   // ana: hepsinin çarpanı
   // Efektlerin kendi aralarındaki dengesi (dosyalar aynı güçte hazırlandı; burada kulağa göre ayarlanır)
   vol: { 'zar-salla': 0.55, 'zar-yuvarlan': 0.9, 'kagit-ac': 0.7, 'kagit-kapa': 0.6, kupa: 0.6, tik: 0.3, 'dogal-20': 0.7, 'dogal-1': 0.8,
          ilham: 0.6, katildi: 0.5, gecis: 0.6, 'kapi-ac': 0.8, adim: 0.7 },
@@ -7142,6 +7328,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#acilis
    BÖLÜM 12 — BAŞLANGIÇ
    ═══════════════════════════════════════════════════════════════════ */
 load();
+sesAyar().ana = 0.5;                    // ana ses her girişte %50'den başlar (kullanıcının isteği, 2026-10-27); diğer kanallar hatırlanır
 renderStatic();
 setGuide(store.guide);
 setDiceMode(['adv', 'dis', 'normal'].includes(store.diceMode) ? store.diceMode : 'normal');
