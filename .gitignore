@@ -35,3 +35,9 @@ masa/han.glb
 masa/han.js
 masa/han-pismis.glb
 masa/han-pismis.js
+
+# Bütün .txt dosyaları (yapay zekâ promptları) gönderilmez (2026-10-27, kullanıcının isteği).
+# İstisna: lisans / atıf dosyaları (büyücü modeli CC-BY atıf ister; sesler ve müzik kaynakları)
+*.txt
+!masa/LISANS.txt
+!ses/LISANS.txt

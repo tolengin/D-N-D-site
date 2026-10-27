@@ -695,14 +695,12 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
   .li.atk>input:not([type=number]),.li.spell>input{flex:1 1 150px}
   .li.atk>input[type=number]{flex:0 0 62px}
   .li.atk>select,.li.spell>select{flex:0 0 96px}
-  /* Sade okunur saldırı satırı dar camda: 1) ad · vuruş · kalem 2) hasar zarı 3) not (zar ile kalem yan yana gelmesin) */
+  /* Sade okunur saldırı satırı dar camda: 1) ad (altında not) · vuruş · kalem 2) hasar zarı (zar ile kalem yan yana gelmesin) */
   .list .li.atk.oku{display:grid;grid-template-columns:minmax(0,1fr) 60px var(--del)}
   .list .li.atk.oku .atk-ad{grid-column:1;grid-row:1}
   .list .li.atk.oku [data-roll="attack"]{grid-column:2;grid-row:1}
   .list .li.atk.oku [data-act="atk-duzen"]{grid-column:3;grid-row:1}
   .list .li.atk.oku .atk-hasar{grid-column:1/-1;grid-row:2}
-  .list .li.atk.oku .atk-not{grid-column:1/-1;grid-row:3}
-  .list .li.atk.oku .atk-not:empty{display:none}
   .spell-top{grid-template-columns:repeat(3,minmax(0,1fr))}
   .spell-top .f{grid-column:1/-1}
 }
@@ -764,13 +762,16 @@ body:not(.sade) .atk-yuva{display:none}
 .li.atk.oku{grid-template-columns:minmax(110px,1.2fr) 84px 60px minmax(100px,1fr) 38px minmax(90px,1.3fr) var(--del) var(--del);background:transparent}
 .li.atk.oku .atk-ad{grid-column:1/3}
 .li.atk.oku .atk-hasar{grid-column:4/6}
-.li.atk.oku .atk-not{grid-column:6/8}
-.atk-ad{font-family:var(--font-display);font-size:18px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li.atk.oku [data-act="atk-duzen"]{grid-column:8}
+/* Not (menzil, özellik) silahın adının altında küçük satır: hasarın yanında tek başına "21" gibi anlamsız duruyordu */
+.atk-ad{display:flex;flex-direction:column;min-width:0}
+.atk-ad b{font-family:var(--font-display);font-size:18px;font-weight:600;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.atk-ad small{font-size:13px;font-weight:500;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Okunur satırda hasar bir zardır (Die Or Field): hançer + "1d8+3 slashing" tek düğme */
 .atk-hasar{display:flex;align-items:center;gap:8px;justify-content:flex-start;text-align:left;min-width:0}
 .atk-hasar .ic{flex:none;width:16px;height:16px}
 .atk-hasar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.atk-hasar i,.atk-not{font-style:normal;font-weight:500;color:var(--muted);font-size:13.5px}
+.atk-hasar i{font-style:normal;font-weight:500;color:var(--muted);font-size:13.5px}
 .atk-hasar:hover i{color:inherit}
 /* Sade'nin savaş camında AC notu ve etiketler: not gizli (gizli zırh seçicisinden söz ediyordu), etiketler aynı hizada */
 body.sade [data-out="acNote"]{display:none}
@@ -2826,10 +2827,9 @@ function renderLists() {
     <div class="li-head atk"><span>Ad</span><span>Yetenek</span><span title="Bu silahta yetkin misin?">Yetkin</span><span>Ek bonus</span><span>Vuruş</span><span>Hasar</span><span></span><span>Not</span><span></span></div>` +
     C.attacks.map((a, i) => gorunum() === 'sade' && !ATK_DUZEN.has(i) ? `
     <div class="li atk oku" data-list="attacks" data-i="${i}">
-      <b class="atk-ad">${esc(deger(a.name) || 'Adsız saldırı')}</b>
+      <span class="atk-ad"><b>${esc(deger(a.name) || 'Adsız saldırı')}</b>${deger(a.note) ? `<small title="Not: menzil, özellik">${esc(deger(a.note))}</small>` : ''}</span>
       <button class="roll" data-act="roll" data-roll="attack" title="Vuruş zarı at: tutturursan hasar zarına bas">+0</button>
       <button class="roll atk-hasar" data-act="roll" data-roll="damage" title="Hasar zarı at">${HASAR_IC}<span>${esc(deger(a.dmg)) || '<i>hasar yazılmadı</i>'}</span></button>
-      <span class="atk-not">${esc(deger(a.note))}</span>
       <button class="icon-btn" data-act="atk-duzen" title="Bu saldırıyı değiştir" aria-label="Bu saldırıyı değiştir"><svg class="ic"><use href="#i-pencil"/></svg></button>
     </div>` : `
     <div class="li atk" data-list="attacks" data-i="${i}">
