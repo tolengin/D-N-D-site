@@ -5,6 +5,9 @@
 gorseller/
 3d/
 gereksizler/
+# Kullanıcının Sketchfab'den indirdiği ham karakter modelleri (~3 GB; site küçültülmüş hâllerini masa/ içinden okur)
+3D karakter referans modelleri/
+karakter-3d-örnek.gif
 # Açılış videosunun ham hâlleri ve After Effects projesi (siteye küçültülmüş hâlleri video/ içinde gider)
 giris-videosu/
 
@@ -22,6 +25,15 @@ taverna ornek.jpg
 araclar/test/test.html
 araclar/test/test-*.html
 araclar/test/*.png
+
+# Gizli bilgiler: API anahtarları, şifreler, sertifikalar (sitede yok; ileride eklenirse yanlışlıkla gitmesin, 2026-10-28)
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*secret*
+*credential*
 
 # Blender'ın ve Python'un kendiliğinden bıraktıkları
 *.blend1

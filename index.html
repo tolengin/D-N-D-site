@@ -594,6 +594,9 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .foot a{color:inherit;overflow-wrap:anywhere}
 .foot .emek{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .foot .emek b{display:block;margin-bottom:4px;color:var(--text);font-weight:600}
+.foot details.emek summary{cursor:pointer;color:var(--text);font-weight:600}
+.foot details.emek ul{margin:6px 0 0;padding:0;list-style:none;columns:2 320px;column-gap:24px}
+.foot details.emek li{break-inside:avoid;margin-bottom:3px}
 
 /* ───────── 13) MASA: çok oyunculu ekranlar ───────── */
 .dot{display:inline-block;width:8px;height:8px;margin:1px;flex:none;transform:rotate(45deg);border-radius:0;background:var(--muted)}
@@ -1228,8 +1231,8 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 .tv-throw:not(.shown) :is(.tv-total,.tv-cap){visibility:hidden}   /* zar yere inmeden sonuç görünmez */
 .tv-throw.d3 .tv-dice,.pov-dice.d3{display:none}                    /* 3D zarlar masada (BÖLÜM 11e): 2D zarlar yok, büyük sayı ve yazı kalır */
 .tv-throw.shown{pointer-events:auto;cursor:pointer}                  /* sonuç birkaç saniye sonra söner; basınca hemen (sonucSondur) */
-.tv-throw.sonuk{opacity:0;pointer-events:none;transition:opacity .8s ease}
-.tv-throw.sonuk.hemen{transition-duration:.15s}
+:is(.tv-throw,.pov-sonuc).sonuk{opacity:0;pointer-events:none;transition:opacity .8s ease}
+:is(.tv-throw,.pov-sonuc).sonuk.hemen{transition-duration:.15s}
 .tv-throw.shown .tv-total{animation:tvPop .45s cubic-bezier(.3,1.6,.5,1)}
 .tv-throw.shown:is(.crit-hit,.crit-miss) .tv-total{animation:tvPop .45s cubic-bezier(.3,1.6,.5,1),tvGlow 1.1s ease-in-out .45s infinite alternate}
 @keyframes tvPop{from{transform:scale(.4);opacity:0}}
@@ -1461,6 +1464,21 @@ button.sv-kisi:focus-visible .sv-kart{outline:2px solid var(--accent);outline-of
 .pov-name{position:absolute;z-index:11;left:calc(.8 * var(--u));top:calc(.8 * var(--u));max-width:calc(100% - calc(1.6 * var(--u)));box-sizing:border-box;padding:calc(.25 * var(--u)) calc(.8 * var(--u));border-radius:0;
   background:var(--bar);border:2px solid var(--lead);color:var(--text);font-family:var(--font-display);font-weight:700;
   font-size:clamp(11px,calc(1.05 * var(--u)),17px);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* POV'daki sonuç (2026-10-28): yataydaki sonuç kutusunun küçüğü; üst ortada (duvar hizası: masayı ve yüzleri kapatmaz).
+   Atanın camında sayı + kim, ne attı. 3 sn sonra söner, basınca hemen (sonucSondur) */
+.pov-sonuc{position:absolute;z-index:11;left:50%;top:14%;translate:-50% 0;max-width:calc(100% - 2 * var(--u));box-sizing:border-box;
+  display:flex;align-items:stretch;pointer-events:auto;cursor:pointer;border:2px solid var(--lead);background:var(--bar);box-shadow:0 2px 8px rgba(0,0,0,.45);
+  --glow:var(--g,var(--accent));animation:povSonuc .25s ease-out}
+.pov-sonuc[hidden]{display:none}
+.pov-sonuc.crit-hit{--glow:var(--good)}
+.pov-sonuc.crit-miss{--glow:var(--bad)}
+.pov-sonuc .ps-sayi{display:grid;place-items:center;min-width:1.6em;padding:0 .3em;background:var(--glow);color:#0b0910;border-right:2px solid var(--lead);
+  font-family:var(--font-display);font-size:clamp(16px,calc(1.9 * var(--u)),28px);font-weight:700;line-height:1.1;font-variant-numeric:lining-nums}
+.pov-sonuc .ps-yazi{display:grid;align-content:center;min-width:0;padding:.2em .6em;font-size:clamp(10px,calc(.95 * var(--u)),13px);line-height:1.3}
+.pov-sonuc .ps-yazi b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pov-sonuc .ps-yazi small{color:var(--muted);font-size:1em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes povSonuc{from{opacity:0;translate:-50% -30%}}
+@media (prefers-reduced-motion:reduce){.pov-sonuc{animation:none}}
 .pov-frame{position:absolute;inset:0;overflow:hidden;border-radius:0;border:var(--lw) solid var(--lead);box-shadow:var(--shadow);background:transparent}
 .pov-frame{pointer-events:auto;cursor:grab;touch-action:none}          /* sürükleyerek sağa-sola bakılır (BÖLÜM 11b, povBakis) */
 .tv-pov.drag .pov-frame{cursor:grabbing}
@@ -1811,6 +1829,8 @@ body.tv-full #tableView{height:100dvh}
           <span class="buyut" data-buyut="pov" title="Sürükleyerek büyüt ya da küçült"></span>
           <span class="buyut yan" data-buyut="povg" title="Sürükleyerek genişlet ya da daralt"></span>
           <div class="pov-name" id="povName"></div>
+          <div class="pov-sonuc" id="povSonuc" hidden></div><!-- ekran okuyucuya sonucu masanın ortasındaki kutu söyler -->
+
           <div class="pov-frame" id="povFrame" title="Sağa ya da sola bakmak için sürükle · çift tıkla: masaya dön">
             <div class="pov-dice" id="povDice"></div>
           </div>
@@ -2276,9 +2296,46 @@ body.tv-full #tableView{height:100dvh}
       3D karakter: <a href="https://sketchfab.com/3d-models/poly-art-wizard-medieval-fantasy-01d1bacb3e9942cdb8808481ea9cb2f7" target="_blank" rel="noopener">“Poly-Art Wizard Medieval Fantasy”</a>,
       <a href="https://sketchfab.com/denysalmaral" target="_blank" rel="noopener">Denys Almaral</a>,
       <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> (oturur poza getirildi, asası çıkarıldı).
+      Öbür 3D karakterler (DM, hancı, garsonlar, sınıflar) aşağıdaki Sketchfab modellerinden yararlanılarak yapıldı: yeniden boyandı, parçalar alındı, eklendi ve çıkarıldı, iskelet ve poz verildi.
       Ses efektleri: <a href="https://freesound.org" target="_blank" rel="noopener">Freesound</a> kullanıcıları, CC0.
       Müzik: “Mead and Moonlight”, sitenin yapımcısı (Suno ile).
       Yazı tipleri: Eczar, Figtree (Google Fonts, OFL). Kütüphaneler: three.js, PeerJS, cannon-es (MIT).</p>
+    <!-- Kaynak: "3D karakter referans modelleri/referanslar.txt" (kullanıcı Sketchfab'den topladı, 2026-10-28). Yeni model gelince oraya ve buraya -->
+    <details class="emek"><summary>3D karakter modelleri (Sketchfab)</summary>
+      <ul>
+        <li>hanci: <a href="https://skfb.ly/NA86" target="_blank" rel="noopener">“The Noble Craftsman”</a>, olmopotums, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>DM: <a href="https://skfb.ly/pIq9D" target="_blank" rel="noopener">“Meshy_AI_ Aurelian_0405041635_texture”</a>, aliyaz01, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>kadın garson: <a href="https://skfb.ly/pLo76" target="_blank" rel="noopener">“Classic Maid Uniform”</a>, restore50, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>erkek garson: <a href="https://skfb.ly/pITrW" target="_blank" rel="noopener">“Medieval Peasant Warrior”</a>, Azura_SQ, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>barbarian erkek: <a href="https://skfb.ly/pIYIN" target="_blank" rel="noopener">“Barbarian Warrior”</a>, Manoj Mihiranga, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>barbarian kırmızı ork: <a href="https://skfb.ly/pvEpr" target="_blank" rel="noopener">“Red Humonoid Devil 3D Model”</a>, 3D Stocks, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>barbarian ogre fantasy: <a href="https://skfb.ly/pNJVN" target="_blank" rel="noopener">“Fantasy Ogre Warrior”</a>, ItsKrish7, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>bard: <a href="https://skfb.ly/o6MMn" target="_blank" rel="noopener">“Bard (Sculpt Pose)”</a>, NyanDiaCat, <a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></li>
+        <li>paladin v1: <a href="https://skfb.ly/pCpoS" target="_blank" rel="noopener">“Paladin of Shadows”</a>, mahmoud.420f, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>paladin v2: <a href="https://skfb.ly/pLUxs" target="_blank" rel="noopener">“Fallen Paladin in Corrupted Black Plate Armor”</a>, Pigcraft, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>cleric v1: <a href="https://skfb.ly/pB8LE" target="_blank" rel="noopener">“Priest”</a>, Chenchanchong, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>cleric v2: <a href="https://skfb.ly/pLWnu" target="_blank" rel="noopener">“Corrupted Fallen Priest - Dark Fantasy”</a>, Pigcraft, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>cleric v3: <a href="https://skfb.ly/6ZQB7" target="_blank" rel="noopener">“Human Cleric Miniature”</a>, Vindr Damsgard, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>druid v1: <a href="https://skfb.ly/pLUOq" target="_blank" rel="noopener">“Miniature Firbolg”</a>, EriGa, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>druid v2: <a href="https://skfb.ly/pIYos" target="_blank" rel="noopener">“Swamp Druid”</a>, Azura_SQ, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>druid v3: <a href="https://skfb.ly/oG6zw" target="_blank" rel="noopener">“Druid character. Free Model.”</a>, onlymorozov, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>fighter v2: <a href="https://skfb.ly/ptqFR" target="_blank" rel="noopener">“Medieval knight”</a>, 3dUVpro, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>Monk: <a href="https://skfb.ly/6Uty8" target="_blank" rel="noopener">“Monk”</a>, creator424, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>archer v1 (masadaki fighter): <a href="https://skfb.ly/pLwIt" target="_blank" rel="noopener">“GA Free_251_The Shrewd Scoundrel”</a>, Galaxy Abundant, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>archer v2: <a href="https://skfb.ly/oSH8I" target="_blank" rel="noopener">“Maki (Archer)”</a>, Blue Spirit, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>archer v3: <a href="https://skfb.ly/6WEED" target="_blank" rel="noopener">“Cult Member (Enemy Character)”</a>, DivyeSh PanchAl, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>Rogue v1: <a href="https://skfb.ly/pwzRW" target="_blank" rel="noopener">“The Hooded Wanderer”</a>, Ikk1, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>Rogue v2: <a href="https://skfb.ly/putBw" target="_blank" rel="noopener">“Dark_Hooded_Rogue”</a>, SagePeeker, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>Rogue v3: <a href="https://skfb.ly/pMzyZ" target="_blank" rel="noopener">“Night Hunter Assassin - Dark Fantasy”</a>, Pigcraft, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>Sorcerer v1: <a href="https://skfb.ly/oNGnQ" target="_blank" rel="noopener">“Swamp Witch (Personal Design)”</a>, Blue Spirit, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>Sorcerer v2: <a href="https://skfb.ly/oPTyY" target="_blank" rel="noopener">“Tarhun, Paladin. - DRAGONBORN D&amp;D”</a>, shila, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>Sorcerer v3: <a href="https://skfb.ly/pLXNu" target="_blank" rel="noopener">“Dark Fantasy Sorceress, Crystal Staff”</a>, Pigcraft, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>Warlock v1: <a href="https://skfb.ly/pHPWy" target="_blank" rel="noopener">“Obsidian Warden shadow hunter”</a>, iRahulRajput, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>Warlock v2: <a href="https://skfb.ly/pLOyO" target="_blank" rel="noopener">“Dark Necromancer - Corrupted Staff &amp; Skulls”</a>, Pigcraft, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>Wizard v1: <a href="https://skfb.ly/pHMrs" target="_blank" rel="noopener">“Lady Wizard”</a>, Didacusdev, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+        <li>Wizard v2: <a href="https://skfb.ly/p8FAs" target="_blank" rel="noopener">“Black magic character”</a>, 3dUVpro, <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></li>
+      </ul>
+    </details>
   </footer>
   </div><!-- /#sheet -->
 
@@ -4211,7 +4268,7 @@ function playerReceive(conn, msg) {
       renderTable();
     }
   }
-  else if (msg.t === 'roll' && msg.roll && typeof msg.roll === 'object') showRemoteRoll(Object.assign(cleanRoll(msg.roll), { who: short(msg.who, 30), char: short(msg.char, 40), seat: cleanSeat(msg.seat), npc: cleanHedef(msg.npc) }));
+  else if (msg.t === 'roll' && msg.roll && typeof msg.roll === 'object') showRemoteRoll(Object.assign(cleanRoll(msg.roll), { who: short(msg.who, 30), char: short(msg.char, 40), seat: cleanSeat(msg.seat), npc: cleanHedef(msg.npc), gizli: !!msg.gizli }));
   else if (msg.t === 'kick') { stopNet(); notify('DM seni masadan çıkardı'); }
   else if (msg.t === 'full') { stopNet(); notify('Masa dolu', `Bir masaya en fazla ${MAX_PLAYERS} oyuncu katılabilir.`); }
 }
@@ -4233,12 +4290,17 @@ function shareRoll(r) {
     const secret = mode === 'peek' || !!store.net.dmSecret;
     pushFeed(Object.assign(cleanRoll(r), { who: r.kim || 'DM', char: mode === 'peek' ? `${C.name.trim() || 'oyuncu'} adına` : '', ts: Date.now(), secret }));
     if (!secret) net.players.forEach(p => send(p.conn, { t:'roll', who: short(r.kim, 30) || store.net.name || 'DM', char:'DM', seat:'dm', npc: r.npc || '', roll: cleanRoll(r) }));
+    // Gizli atış (2026-10-28): oyuncular DM'in perdenin arkasına zar attığını görür ama sonucu görmez. Yalnızca zar türleri gider;
+    // sayı, toplam, ne için atıldığı ve düşmanın adı bu tarayıcıdan hiç çıkmaz (ağdan da okunamaz)
+    else net.players.forEach(p => send(p.conn, { t:'roll', gizli: 1, who: store.net.name || 'DM', char:'DM', seat:'dm',
+      roll: { label: 'Perdenin arkasında zar attı', total: '?', detail: '', dice: cleanDice(r.dice).map(d => ({ s: d.s })) } }));
   }
 }
 function showRemoteRoll(e) {
   const who = e.char && e.char !== e.who ? `${e.who} (${e.char})` : e.who;
+  if (e.gizli) Object.assign(e, { total: '?', detail: '', flag: '', note: '' });   // DM'in perde arkası atışı: sonucu yok
   showRoll({ label: `${who}: ${e.label}`, total: e.total, detail: e.detail, flag: e.flag, note: e.note, dice: e.dice },
-    { remote: true, seat: e.seat, who: e.who, title: e.label, npc: e.npc || '' });
+    { remote: true, seat: e.seat, who: e.who, title: e.label, npc: e.npc || '', gizli: !!e.gizli });
 }
 
 /* Arayüzü gizle / göster (2026-10-27): masa ekranında yalnızca han kalsın diye (CSS: body.hud-yok). Esc de geri getirir. */
@@ -5849,7 +5911,6 @@ function dieSVG(s, v, dropped, blank) {
 // Masanın ortasına bir atışı çizer. hidden = true ise zarların yüzü, toplam ve yazı henüz gizli (zar havada)
 function drawThrow(item, hidden) {
   const box = $('#tvCenter');
-  clearTimeout(tv.sonucT);
   if (!item) { box.innerHTML = '<p class="tv-idle">Zarlar buraya yuvarlanır</p>'; povDiceDraw(null); return null; }
   const dice = item.dice.length ? item.dice : [{ s: 0, v: item.total }];   // zar bilgisi gelmediyse (eski sürüm) tek bir pul
   const shown = dice.slice(0, 12), more = dice.length - shown.length;
@@ -5860,17 +5921,30 @@ function drawThrow(item, hidden) {
     <div class="tv-cap"><b>${esc(item.who ? item.who + ': ' : '')}${esc(item.label)}</b><span>${esc(item.detail)}</span>${item.note ? `<em>${esc(item.note)}</em>` : ''}${item.tag ? `<small>${esc(item.tag)}</small>` : ''}</div>
   </div>`;
   povDiceDraw(item, hidden);                                         // göz hizası panelinde de aynı zarlar (havadaysa yüzleri boş)
+  if (item.gizli) [box, $('#povDice')].forEach(b => $$('.tv-die', b).forEach(d => { d.dataset.v = '?'; if (!hidden) $('text', d).textContent = '?'; }));
   if (!hidden) sonucSondur(box.firstElementChild);
   return box.firstElementChild;
 }
-// Masanın ortasındaki sonuç (büyük sayı ve yazı) birkaç saniye sonra yavaşça söner; üstüne basınca hemen (2026-10-28).
-// Son atışlar tahtasında kalır. Yeni atış çizilince (drawThrow) zamanlayıcı sıfırlanır.
+// Masanın ortasındaki sonuç (büyük sayı ve yazı) ve POV'daki küçüğü birkaç saniye sonra yavaşça söner; üstüne basınca
+// hemen (2026-10-28). Son atışlar tahtasında kalır. Her kutunun kendi zamanlayıcısı var (el._sonT).
 const SONUC_SURE = 3000;
 function sonucSondur(el) {
   if (!el) return;
-  clearTimeout(tv.sonucT);
-  tv.sonucT = setTimeout(() => el.classList.add('sonuk'), SONUC_SURE);
-  el.onclick = () => { clearTimeout(tv.sonucT); el.classList.add('sonuk', 'hemen'); };
+  clearTimeout(el._sonT);
+  el.classList.remove('sonuk', 'hemen');
+  el._sonT = setTimeout(() => el.classList.add('sonuk'), SONUC_SURE);
+  el.onclick = () => { clearTimeout(el._sonT); el.classList.add('sonuk', 'hemen'); };
+}
+// POV panelindeki küçük sonuç: zar durunca (playNext), atanın camında. item yoksa gizlenir (yeni atış başlarken, masadan çıkınca)
+function povSonuc(item) {
+  const el = $('#povSonuc');
+  clearTimeout(el._sonT);
+  if (!item || !povAcik()) { el.hidden = true; return; }
+  el.className = `pov-sonuc ${item.flag || ''}`;
+  el.style.setProperty('--g', camOf(item.seat));
+  el.innerHTML = `<b class="ps-sayi">${esc(item.total)}</b><span class="ps-yazi"><b>${esc(item.who ? item.who + ': ' : '')}${esc(item.label)}</b><small>${esc(item.detail)}</small></span>`;
+  el.hidden = false;
+  sonucSondur(el);
 }
 
 /* Zarları atanın koltuğundan masanın ortasına fırlatır: döner, seker, durur. Yalnızca konum ve dönüş canlandırılır (telefonda da hafif).
@@ -5935,7 +6009,7 @@ function povGoster(kaydir) {
   const wrap = $('.tv-wrap'), on = povAcik(), was = wrap.classList.contains('pov-on');
   wrap.classList.toggle('pov-on', on);
   wrap.classList.toggle('pov-tek', povTek());
-  if (!on) povPop(false);
+  if (!on) { povPop(false); povSonuc(null); }
   if (kaydir && on !== was && tav.state === 'on' && !tvView().compact) {
     const pw = tvAlan().h * 9 / 16 + 0.18;                             // panelin genişliği (birim)
     if (tav.all) tavOverview(true);                                    // bütün tavernaya bakarken: taverna kalan alana yeniden sığsın
@@ -6038,6 +6112,8 @@ function tableRoll(r, opt) {
     mine: !opt.remote,                       // bu tarayıcıdaki kişinin kendi atışı mı? (telefonda POV kutusu yalnızca bunlarda açılır)
     npc: (opt.remote ? opt.npc : r.npc) || '',   // DM bir düşman adına attıysa: savaş sahnesinde zar o düşmanın kartından çıkar
     hist: opt.hist || null,                  // zar tepsisinin geçmişine, zar yere inince eklenecek atış
+    gizli: !!opt.gizli,                      // oyuncuda: DM'in perde arkası atışı (sonucu bilinmiyor: yüzler boş, toplam "?")
+    perde: !!opt.gizli || (!opt.remote && role === 'dm' && (mode === 'peek' || !!store.net.dmSecret)),   // zar DM'in perdesinin arkasına düşer
     // Kendi ekranımda küçük bir hatırlatma: bu zarı kimler görüyor?
     tag: opt.remote || !role ? '' : role === 'dm' ? (mode === 'peek' || store.net.dmSecret ? 'Gizli: oyuncular görmez' : '') : (!net.publicRolls ? 'Yalnızca DM görür' : ''),
   };
@@ -6057,6 +6133,7 @@ async function playNext() {
   const run = ++tv.run, fast = tv.queue.length >= 2;               // sıra uzunsa daha hızlı
   svMerkez();                                                         // savaş sahnesinde zarlar iki tarafın arasına iner
   const box = drawThrow(item, true);
+  povSonuc(null);                                                     // POV'daki önceki sonuç yeni atışı beklemesin
   // Atanın 3D kolu zar atar (17; herkesin atışında, POV'da kendiminki de); zar el açıldığı anda kalkar. Kol yoksa zar beklemez
   const delay = !reduceMotion.matches && !svAcik() ? tavKolAt(item.seat, fast) : 0;
   if (item.mine && povAcik() && !svAcik()) povPop(true);             // dik telefonda kendi atışımda POV kutusu açılır
@@ -6067,6 +6144,7 @@ async function playNext() {
   if (run !== tv.run) return;                                        // bu arada görünüm kapandı ya da atlandı
   // Zar yere indi: sonuç ancak şimdi her yerde görünür (masadaki büyük sayı, paneldeki etiket, kara tahta, zar tepsisinin geçmişi)
   reveal(box);
+  povSonuc(item);                                                    // POV panelinde de küçük sonuç
   sesSonuc(item.flag);                                               // doğal 20 / 1 sesi de sonuçla birlikte
   if (item.mine) povHideLater();
   tv.cur = null; tv.anims = [];
@@ -6251,7 +6329,7 @@ function tvReset() {                                                 // masadan 
   tv.els.clear();
   tv.mugs.forEach(m => m.remove()); tv.mugs.clear();
   waiterStop(); wt.bag = []; wt.last = '';
-  povPop(false); povDiceDraw(null);
+  povPop(false); povDiceDraw(null); povSonuc(null);
 }
 Object.assign(ACTIONS, {
   'me-min': () => { store.meMin = !store.meMin; save(); renderMe(); renderTable(); },   // isimlikler kutunun yeni boyuna göre yerleşsin
@@ -6326,6 +6404,7 @@ const TAV = {
   kesik: 0.95,               // öndeki duvarların alçaltılmış yüksekliği (m)
   seatR: 1.62,               // koltuğun (oturağın ortası) masanın merkezine uzaklığı (m); figür karesinin ortası bu noktadır
   headZ: 1.33,               // oturan figürün başının yerden yüksekliği (m)
+  perde: { W: 0.22, H: 0.26, K: 0.012, ic: 0.40 },   // DM perdesi: pano eni, boyu, kalınlığı (m); masa kenarından içeri (m; DM gizli zarını perdeyle kendisi arasına atar)
   yanMasa: ['Masa_KuzeyBati'],   // 33: tek başınayken oturulabilen yan masalar (güneydeki ikisi duvara yapışık: figür saksının ve duvarın arkasında kalıyor)
   fig: { kare_m: 2.6, yon: 16 },   // figür kareleri: kapladığı alan (m) ve yön sayısı
   yakin: [160, 90],          // yakın bakışta (ölçek 1) gezinilebilen alan (birim)
@@ -6352,8 +6431,9 @@ const TAV = {
   dis: [0.15, 0.15, 0.19],   // dış zeminin rengi (taş dokusunu serin, koyu ve morumsu gri yapar)
   dalga: { olcek: 0.28, guc: 0.16, mat: ['M_Zemin', 'M_Duvar', 'M_Dis_Zemin', 'M_Ahsap', 'M_Ahsap_Koyu', 'M_Tas_Blok', 'M_Tas_Zemin'] },   // tekrarı kıran renk dalgası
   fps: 30,                   // "Canlı" açıkken saniyede en çok bu kadar kare
-  goz: { fov: 84, fovMin: 24, boy: 1.2, ileri: 0.12, ileriBas: -0.18, zar: [38, 64], don: 100 },   // göz hizası: dikey görüş açısı, göz yüksekliği (m), koltuktan öne kayma (m;
-                                                             //   ileriBas: kendi figürüm başsız çizilince, gerçek göz yeri: kollarım görüş alanına girer),
+  goz: { fov: 84, fovMin: 24, boy: 1.2, ileri: 0.12, ileriBas: -0.18, ileriDm: -0.08, zar: [38, 64], don: 100 },   // göz hizası: dikey görüş açısı, göz yüksekliği (m), koltuktan öne kayma (m;
+                                                             //   ileriBas: kendi figürüm başsız çizilince, gerçek göz yeri: kollarım görüş alanına girer;
+                                                             //   ileriDm: DM.in ve sınıfların modelinde, boyun ve yaka kesiti gözün arkasında kalsın),
                                                              //   masanın ortasının paneldeki yeri (soldan %, yukarıdan %; zarlar ve boyalı el buna göre),
                                                              //   sürükleyerek sağa ya da sola en çok kaç derece bakılır
   ALPHA: ['M_Yaprak', 'M_Kuru_Ot', 'M_Kalkan_1', 'M_Kalkan_2', 'M_Sancak', 'M_Tabela', 'M_Hali', 'M_Post'],   // saydam yerleri kesilerek çizilir
@@ -6428,6 +6508,7 @@ function tavVeri(ad, glob) {
    Model: "Poly-Art Wizard Medieval Fantasy", Denys Almaral (Sketchfab), CC-BY-4.0.
    17 (2026-10-27): önce iskeletli sürüm (masa/buyucu-iskelet.glb; aynı betik "-- iskelet" ile) denenir: içinde "zar_at"
    hareketi ve elin açıldığı an ("birak", sn) var; atanın kolu oynar (tavKolAt). Açılamazsa iskeletsiz büyücü, kol oynamaz. */
+const SINIF_MODEL = { fighter: ['fighter-iskelet', 'FIGHTER_ISKELET_GLB'] };   // sınıf (classKey) → masa/ içindeki model ve .js değişkeni
 async function tavBuyucu(THREE, GLTFLoader) {
   try {
     let buf, kol = null;
@@ -6435,7 +6516,24 @@ async function tavBuyucu(THREE, GLTFLoader) {
       const [b, SU] = await Promise.all([tavVeri('buyucu-iskelet', 'BUYUCU_ISKELET_GLB'), import('three/addons/utils/SkeletonUtils.js')]);
       buf = b; kol = SU;
     } catch (e) { console.warn('İskeletli büyücü açılamadı, kol oynamayacak:', e); buf = await tavVeri('buyucu', 'BUYUCU_GLB'); }
-    const gltf = await new Promise((ok, fail) => new GLTFLoader().parse(buf, '', ok, fail));
+    const ac = b => new Promise((ok, fail) => new GLTFLoader().parse(b, '', ok, fail)).then(gltf => {
+      gltf.scene.traverse(o => {
+        if (!o.isMesh) return;
+        const m = o.material;
+        o.material = new THREE.MeshToonMaterial({ map: m.map || null, color: m.color ? m.color.clone() : 0xffffff, gradientMap: tav.ramp, side: THREE.DoubleSide });
+        if (o.isSkinnedMesh) o.frustumCulled = false;                  // kol uzanınca duruştaki sınırların dışına çıkabilir
+      });
+      gltf.scene.rotation.y = Math.PI;                                  // model +z'ye bakıyor; koltuklar −z'nin masaya dönmesini bekler
+      return gltf;
+    });
+    // DM (2026-10-28): kendi modeli (masa/dm-iskelet.glb; araclar/buyucu_oturt_blender.py -- iskelet dm). Büyücünün iskeleti ve zar_at
+    // zamanlamasıyla aynı. Açılamazsa DM koltuğunda eskisi gibi kızıl tonlu büyücü oturur.
+    const dmP = kol ? tavVeri('dm-iskelet', 'DM_ISKELET_GLB').then(ac).catch(e => { console.warn('DM modeli açılamadı, büyücü oturacak:', e); return null; }) : null;
+    // Sınıfların kendi modelleri (2026-10-28: fighter; araclar/karakter_kur_blender.py -- fighter). Aynı iskelet ve zar_at; yoksa büyücü oturur.
+    const snP = kol ? Promise.all(Object.entries(SINIF_MODEL).map(([k, [ad, glob]]) => tavVeri(ad, glob).then(ac).then(g => [k, g])
+      .catch(e => { console.warn(k + ' modeli açılamadı, büyücü oturacak:', e); return null; }))) : Promise.resolve([]);
+    if (SAHNE.ad !== 'taverna-npr') { tavHanci(ac); tavGarsonlar(ac); }   // yeni han: tezgâhın arkasında hancı, salonda garsonlar (beklenmez)
+    const gltf = await ac(buf);
     const kok = gltf.scene, klip = kol && gltf.animations.find(a => a.name === 'zar_at');
     tav.kol = null;
     if (klip) {
@@ -6443,19 +6541,148 @@ async function tavBuyucu(THREE, GLTFLoader) {
       kok.traverse(o => { if (o.userData && o.userData.birak) birak = o.userData.birak; });
       tav.kol = { klon: kol.clone, klip, birak, sure: klip.duration };
     }
-    kok.traverse(o => {
-      if (!o.isMesh) return;
-      const m = o.material;
-      o.material = new THREE.MeshToonMaterial({ map: m.map || null, color: m.color ? m.color.clone() : 0xffffff, gradientMap: tav.ramp, side: THREE.DoubleSide });
-      if (o.isSkinnedMesh) o.frustumCulled = false;                    // kol uzanınca duruştaki sınırların dışına çıkabilir
-    });
-    kok.rotation.y = Math.PI;                                           // model +z'ye bakıyor; koltuklar −z'nin masaya dönmesini bekler
+    const dmG = dmP && await dmP, dmKlip = dmG && dmG.animations.find(a => a.name === 'zar_at');
+    tav.dm = dmKlip ? { kok: dmG.scene, klip: dmKlip } : null;
+    tav.sinif = {};
+    (await snP).forEach(r => { const kl = r && r[1].animations.find(a => a.name === 'zar_at'); if (kl) tav.sinif[r[0]] = { kok: r[1].scene, klip: kl }; });
     tav.buyucu = kok;
     tav.koltuk.splice(0).forEach(k => k.g && tav.S.remove(k.g));        // koltuklar büyücüyle yeniden kurulsun
     $('#tvStage').classList.add('fig3d');
     if (mode === 'table' || kagitUstte) renderTable();
     tavKick();
   } catch (e) { console.warn('Büyücü modeli açılamadı, mankenler kalıyor:', e); }
+}
+/* Hancı (2026-10-28): kullanıcının kâğıdındaki kızıl sakallı cüce (masa/hanci.glb; araclar/karakter_kur_blender.py -- hanci).
+   Yeni handa barın arkasında, yumrukları tezgâhta durur (cüce: tezgâhın arkasında alçak bir kasanın üstünde); "Canlı" açıkken
+   nefes alıp başını çevirerek salona bakar ("bekle" hareketi, döngü). Modelin kökü yumruklarının arasının altında.
+   Model: "The Noble Craftsman", olmopotums (Sketchfab), CC-BY-4.0. */
+/* 2026-10-28 (kullanıcının isteği): hancı boş durmaz. ~10 sn'de bir tezgâhtan kupa ve bez alıp kupayı siler ("sil", 6 sn),
+   15–20 sn'de bir arkasını dönüp raftan şişe alır, kupaya döker, şişeyi tezgâhın altına bırakır ("sise", 8 sn); bir işi bitirince
+   ara sıra bar boyunca başka bir yere yürür ("yuru"; site çevirip taşır). Hareketler modelde; sırayı burası verir. */
+const HANCI = { yer: [1.6, 8.75, 0.60],                                 // yumruklarının yeri: tezgâhın üstü (han_plan: X 15,6, Y 14,15; üst seviye +0,60)
+  yerler: [-0.8, 1.6, 4.4],                                              // bar boyunca durduğu yerler (x; mutfak kapısı 2,0…3,2 arkada)
+  sil: 10, sise: [15, 20], yurume: 0.35, hiz: 0.7, donus: 3 };           // sn; bir işten sonra yürüme olasılığı; m/sn; dönüş hızı (rad/sn)
+function tavHanci(ac) {
+  tavVeri('hanci', 'HANCI_GLB').then(ac).then(gltf => {
+    const g = gltf.scene;
+    g.rotation.y = 0;                                                   // ac() koltuktakileri masaya çevirir; hancı zaten salona (güneye) bakıyor
+    let on = 0.48;                                                      // modelin kökü leğeninin altında; yumrukları o kadar önde (karakter_kur_blender)
+    g.traverse(o => { o.layers.set(0); if (o.isMesh) o.castShadow = o.receiveShadow = true; if (o.userData && o.userData.yumruk_on) on = o.userData.yumruk_on; });
+    tav.S.add(g);
+    const mix = new tav.THREE.AnimationMixer(g), A = {};
+    gltf.animations.forEach(k => { A[k.name] = mix.clipAction(k); });
+    ['sil', 'sise'].forEach(n => { if (A[n]) { A[n].setLoop(tav.THREE.LoopOnce, 1); A[n].clampWhenFinished = true; } });
+    const h = tav.hanci = { g, mix, A, on, x: HANCI.yer[0], yon: 0, durum: 'bekle', anim: null, t: 0, son: 0,
+      tSil: 4 + Math.random() * 4, tSise: HANCI.sise[0] * (0.5 + Math.random() * 0.5) };
+    hanciYer(h); hanciAnim(h, 'bekle');
+    mix.update(0);                                                      // duruşta eldeki şişe, kupa, bez görünür; "bekle" onları gizler
+    tavKick();
+  }).catch(e => console.warn('Hancı açılamadı:', e));
+}
+function hanciYer(h) {
+  h.g.position.copy(tav.b3([h.x, HANCI.yer[1] + h.on, HANCI.yer[2]]));
+  h.g.rotation.y = h.yon;
+}
+function hanciAnim(h, ad) {
+  const yeni = h.A[ad];
+  if (!yeni || h.anim === yeni) return;
+  yeni.reset().play();
+  if (h.anim) h.anim.crossFadeTo(yeni, 0.35, false);
+  h.anim = yeni;
+}
+function tavHanciGuncelle(now) {                                         // yalnızca "Canlı" çizimde oynar; değilse durur
+  const h = tav.hanci;
+  if (!h) return;
+  const dt = h.son ? clamp((now - h.son) / 1000, 0, 0.1) : 0; h.son = now;
+  if (!tavCanli() || reduceMotion.matches) return;
+  h.t += dt;
+  const don = (hedef) => {                                              // hedef yöne çevir; varınca true
+    const f = hedef - h.yon, a = HANCI.donus * dt;
+    h.yon = Math.abs(f) <= a ? hedef : h.yon + Math.sign(f) * a; return h.yon === hedef;
+  };
+  if (h.durum === 'bekle') {
+    const is = h.t >= h.tSise && h.A.sise ? 'sise' : h.t >= h.tSil && h.A.sil ? 'sil' : null;
+    if (is) {
+      if (is === 'sise') h.tSise = h.t + HANCI.sise[0] + Math.random() * (HANCI.sise[1] - HANCI.sise[0]);
+      h.tSil = Math.max(h.tSil, h.t) + HANCI.sil;
+      h.durum = 'is'; h.isSon = h.t + h.A[is].getClip().duration; hanciAnim(h, is);
+    }
+  } else if (h.durum === 'is' && h.t >= h.isSon) {
+    const yerler = HANCI.yerler.filter(x => Math.abs(x - h.x) > 0.5);
+    if (h.A.yuru && yerler.length && Math.random() < HANCI.yurume) {
+      h.hedefX = yerler[Math.floor(Math.random() * yerler.length)]; h.durum = 'yuru'; hanciAnim(h, 'yuru');
+    } else { h.durum = 'bekle'; hanciAnim(h, 'bekle'); }
+  } else if (h.durum === 'yuru') {
+    const sag = h.hedefX > h.x;
+    if (don(sag ? Math.PI / 2 : -Math.PI / 2)) {                        // önce yana döner, sonra yürür
+      h.x += (sag ? 1 : -1) * Math.min(HANCI.hiz * dt, Math.abs(h.hedefX - h.x));
+      if (Math.abs(h.hedefX - h.x) < 1e-3) h.durum = 'donus';
+    }
+  } else if (h.durum === 'donus' && don(0)) { h.durum = 'bekle'; hanciAnim(h, 'bekle'); }
+  hanciYer(h);
+  h.mix.update(dt);
+}
+/* Garsonlar (2026-10-28): kullanıcının kâğıtlarındaki kız (yeşil korse, uzun etek) ve yarı-elf oğlan (yelek, önlük), ellerinde
+   kupalı tepsi (masa/garson-kiz.glb, garson-erkek.glb; araclar/karakter_kur_blender.py -- garson_kiz | garson_erkek). Yeni handa
+   bardan çıkıp merdivenden iner, yan masaların yanında durur, salonu dolaşıp bara döner (oğlan aynı yolu ters yönde, yarıdan
+   başlar). Yalnızca "Canlı" açıkken yürürler ("yuru" hareketi; dururken "bekle"); değilse oldukları yerde kalırlar.
+   Gölge düşürmezler: gölge haritası her karede yenilenmiyor, yürürken gölgeleri geride kalırdı.
+   Modeller: "Classic Maid Uniform", restore50; "Medieval Peasant Warrior", Azura_SQ (Sketchfab), CC-BY-4.0. */
+const GARSON = {
+  hiz: 0.9, adim: 1.03,                                                 // m/sn; yürüme döngüsünün hızı (1,07 sn'de 1,1 m)
+  // Yol (dünya, m; z basamaklara göre). d: o noktada bekleme (sn). Oyun masasının kürsüsünden (r 2,65) ve yan masaların
+  // sandalyelerinden uzak. Bar önü y 7,3 (taburelerle basamakların arası), basamaklar y 6,1 → 4,9.
+  yol: [[-1.2, 7.3, 3], [-1.2, 4.6], [-2.6, 3.4, 2.5], [-3.0, 0.0], [-2.6, -2.9, 2.5], [0, -3.4], [1.9, -3.0, 2], [3.6, -2.2],
+        [4.2, -0.4, 2.5], [3.1, 2.4], [2.6, 4.6], [2.6, 7.3, 3], [0.7, 7.3]],
+};
+const garsonZ = y => clamp((y - 4.9) / 1.2, 0, 1) * 0.6;               // bar seviyesi +0,60; arada basamaklar
+function tavGarsonlar(ac) {
+  tav.garsonlar = [];
+  [['garson-kiz', 'GARSON_KIZ_GLB', false, 0], ['garson-erkek', 'GARSON_ERKEK_GLB', true, 0.5]].forEach(([ad, glob, ters, faz]) => {
+    tavVeri(ad, glob).then(ac).then(gltf => {
+      const g = gltf.scene; g.rotation.y = 0;
+      g.traverse(o => { o.layers.set(0); if (o.isMesh) { o.castShadow = false; o.receiveShadow = true; } });
+      tav.S.add(g);
+      const mix = new tav.THREE.AnimationMixer(g), klip = n => gltf.animations.find(a => a.name === n);
+      const yuru = klip('yuru') && mix.clipAction(klip('yuru')), bekle = klip('bekle') && mix.clipAction(klip('bekle'));
+      if (yuru) yuru.timeScale = GARSON.hiz / GARSON.adim;
+      const yol = ters ? GARSON.yol.slice().reverse() : GARSON.yol;
+      const G = { g, mix, yuru, bekle, yol, i: Math.floor(yol.length * faz) % yol.length, u: 0, bek: 0, yon: 0, son: 0, anim: null };
+      garsonYer(G, 0); garsonAnim(G, 'bekle');
+      tav.garsonlar.push(G); tavKick();
+    }).catch(e => console.warn('Garson açılamadı (' + ad + '):', e));
+  });
+}
+function garsonAnim(G, ad) {                                            // yürüme ↔ bekleme yumuşak geçiş
+  const yeni = ad === 'yuru' ? G.yuru : G.bekle;
+  if (!yeni || G.anim === yeni) return;
+  yeni.reset().play();
+  if (G.anim) G.anim.crossFadeTo(yeni, 0.3, false);
+  G.anim = yeni;
+}
+function garsonYer(G, dt) {                                             // yol boyunca ilerlet, yerleştir, yüzünü yürüdüğü yöne çevir
+  const n = G.yol.length, A = G.yol[G.i], B = G.yol[(G.i + 1) % n];
+  if (G.bek > 0) { G.bek -= dt; if (G.bek <= 0) garsonAnim(G, 'yuru'); }
+  else {
+    const L = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1e-3;
+    G.u += GARSON.hiz * dt / L;
+    if (G.u >= 1) { G.u = 0; G.i = (G.i + 1) % n; if (B[2]) { G.bek = B[2]; garsonAnim(G, 'bekle'); } return garsonYer(G, 0); }
+  }
+  const x = A[0] + (B[0] - A[0]) * G.u, y = A[1] + (B[1] - A[1]) * G.u;
+  G.g.position.copy(tav.b3([x, y, garsonZ(y)]));
+  const hedef = Math.atan2(B[0] - A[0], A[1] - B[1]);                   // model +z'ye (dünyada −y) bakar
+  let fark = ((hedef - G.yon + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+  G.yon += dt ? fark * Math.min(1, dt * 6) : fark;
+  G.g.rotation.y = G.yon;
+}
+function tavGarsonGuncelle(now) {
+  if (!tav.garsonlar || !tav.garsonlar.length) return;
+  const canli = tavCanli() && !reduceMotion.matches;
+  tav.garsonlar.forEach(G => {
+    const dt = G.son ? Math.min(0.1, (now - G.son) / 1000) : 0; G.son = now;
+    if (!canli) return;
+    garsonYer(G, dt); G.mix.update(dt);
+  });
 }
 const tavData = () => tavVeri(SAHNE.ad, SAHNE.glob);                   // taverna-npr ya da (denemede) yeni han
 
@@ -6570,7 +6797,7 @@ function tavBoru(THREE, R, seffaf) {
 
 // Blockout manken (göz hizasında diğer oyuncular): sandalye (tavernadakinin aynısı) ve oturan gövde; Blender'daki figür blockout'uyla aynı ölçüler.
 // Yerel düzen Blender ekseninde: koltuğun ortası (0, 0, 0), figür +y'ye (masaya) bakar. three.js'e (x, z, −y) çevrilir.
-function tavManken(THREE, renk, dm) {
+function tavManken(THREE, renk, dm, cls) {
   const g = new THREE.Group(), body = new THREE.Group(), toon = c => new THREE.MeshToonMaterial({ color: new THREE.Color().setRGB(...c, THREE.SRGBColorSpace), gradientMap: tav.ramp });
   const ahsap = toon([0.20, 0.11, 0.05]), deri = toon([0.25, 0.14, 0.07]), ten = toon(renk);
   const v = (x, y, z) => new THREE.Vector3(x, z, -y);
@@ -6593,16 +6820,19 @@ function tavManken(THREE, renk, dm) {
     for (const x of [-0.2, 0.2]) cubuk(ahsap, g, [x, -0.21, 0.48], [x, -0.24, 1.0], 0.025);
     kutu(ahsap, g, -0.21, 0.21, -0.25, -0.21, 0.62, 0.96);
   }
-  if (tav.buyucu) {                                                // karakter modeli (tavBuyucu): oturan büyücü; DM'inki kızıl tonlu
-    const b = tav.kol ? tav.kol.klon(tav.buyucu) : tav.buyucu.clone();   // iskeletli model kendi iskeletiyle kopyalanmalı (yoksa hepsi aynı kolu paylaşır)
-    if (dm) b.traverse(o => { if (o.isMesh) { o.material = o.material.clone(); o.material.color.multiply(new THREE.Color(1.1, 0.62, 0.55)); } });
+  if (tav.buyucu) {                                                // karakter modeli (tavBuyucu): oturan büyücü; DM'in ve sınıfın kendi modeli (yoksa büyücü; DM'de kızıl tonlu)
+    const ozel = tav.kol && (dm ? tav.dm : tav.sinif && tav.sinif[cls]);
+    const b = ozel ? tav.kol.klon(ozel.kok) : tav.kol ? tav.kol.klon(tav.buyucu) : tav.buyucu.clone();   // iskeletli model kendi iskeletiyle kopyalanmalı (yoksa hepsi aynı kolu paylaşır)
+    if (dm && !ozel) b.traverse(o => { if (o.isMesh) { o.material = o.material.clone(); o.material.color.multiply(new THREE.Color(1.1, 0.62, 0.55)); } });
     body.add(b);
     if (tav.kol) {
-      const mix = new THREE.AnimationMixer(b), at = mix.clipAction(tav.kol.klip);
+      const mix = new THREE.AnimationMixer(b), at = mix.clipAction(ozel ? ozel.klip : tav.kol.klip);
       at.setLoop(THREE.LoopOnce, 1);
       let el = null, parmak = null, bas = null;                      // avuç (tavAvuc): bilekle parmak kökünün ortası; bas: POV'da gizlenir
       b.traverse(o => { if (!o.isBone) return; if (/R_Hand/.test(o.name)) el = o; else if (/R_Finger1_/.test(o.name)) parmak = o; else if (/_Head/.test(o.name)) bas = o; });
-      g.userData.kol = { mix, at, bitis: 0, el, parmak, bas };
+      // Başı ayrı parça olan modeller (DM, araclar/karakter_kur_blender.py: "Bas"): POV'da bu parça gizlenir. Öbürlerinde baş kemiği küçültülür.
+      const basParca = []; b.traverse(o => { if (o.isMesh && (/^Bas/.test(o.name) || (o.parent && /^Bas/.test(o.parent.name)))) basParca.push(o); });
+      g.userData.kol = { mix, at, bitis: 0, el, parmak, bas, basParca };
     }
   } else {                                                         // model yoksa blockout manken
     kutu(ten, body, -0.18, 0.18, -0.12, 0.30, 0.50, 0.64);
@@ -6610,6 +6840,19 @@ function tavManken(THREE, renk, dm) {
     cubuk(ten, body, [0, -0.04, 0.62], [0, 0.04, 1.10], 0.17); kure(ten, body, [0, 0.04, 1.10], 0.17);
     cubuk(ten, body, [0, 0.05, 1.16], [0, 0.06, 1.24], 0.05); kure(ten, body, [0, 0.07, 1.33], 0.11);
     for (const s of [-1, 1]) { const o = [0.21 * s, 0.02, 1.04], d = [0.24 * s, 0.20, 0.86], e = [0.14 * s, 0.46, 0.83]; cubuk(ten, body, o, d, 0.055); cubuk(ten, body, d, e, 0.05); kure(ten, body, e, 0.06); }
+  }
+  if (dm && tav.dm) {                                              // DM perdesi (kullanıcının kâğıdındaki katlanır perde): dört pano, masada DM'in önünde; yeri tavKoltuklar'da
+    const per = new THREE.Group(), kap = toon([0.29, 0.16, 0.08]), ic = toon([0.80, 0.70, 0.52]), ust = toon([0.62, 0.45, 0.18]);
+    const resim = [[0.45, 0.13, 0.08], [0.55, 0.36, 0.14], [0.20, 0.30, 0.28], [0.50, 0.20, 0.10]];
+    const { W, H, K } = TAV.perde;
+    resim.forEach(c => {
+      const p = new THREE.Group();
+      p.add(new THREE.Mesh(new THREE.BoxGeometry(W, H, K), [kap, kap, ust, kap, ic, kap]));   // +z yüzü (DM'e bakan) parşömen, üst kenarı altın
+      const r = new THREE.Mesh(new THREE.PlaneGeometry(W * 0.78, H * 0.76), toon(c));        // oyunculara bakan yüzdeki resim
+      r.position.z = -K / 2 - 0.002; r.rotation.y = Math.PI; p.add(r);
+      per.add(p);
+    });
+    g.add(per); g.userData.perde = per;
   }
   g.add(body); g.userData.body = body;
   g.traverse(o => o.layers.set(tav.buyucu ? 0 : 5));                 // büyücü iki görünümde de (eğik ve göz hizası), manken yalnızca göz hizasında
@@ -6836,6 +7079,8 @@ function tavDraw(now) {
   cam.updateProjectionMatrix();
   tavTitre(now);
   tavKolGuncelle(now);                                                 // 17: zar atan kollar
+  tavHanciGuncelle(now);                                               // tezgâhın arkasındaki hancı
+  tavGarsonGuncelle(now);                                              // salonda dolaşan garsonlar
   zarGuncelle(now);                                                    // 19: masada yuvarlanan 3D zarlar (BÖLÜM 11e)
   if (tav.inis) { tavInisDraw(now, cr, dpr); return; }                // 7a: kağıt açıkken bütün sahne göz hizasından
   if (svAcik()) return;                                                // savaştayken orman var; taverna arkada çizilmez (BÖLÜM 10c)
@@ -6859,7 +7104,7 @@ function tavGozDraw(cr, dpr) {
   const k = tav.koltuk.find(x => x.me) || tav.koltuk[0];
   if (!k) return;
   const bas = k.g && k.g.userData.kol && k.g.userData.kol.bas;          // iskeletli kendi figürüm: başı gizlenir (aşağıda)
-  const cam = tav.camG, G = TAV.goz, [ux, uy, L] = tavYon(k), R = L - (bas ? G.ileriBas : G.ileri);
+  const cam = tav.camG, G = TAV.goz, [ux, uy, L] = tavYon(k), R = L - (bas ? ((k.dm && tav.dm) || k.cls ? G.ileriDm : G.ileriBas) : G.ileri);
   const goz = tav.b3([R * ux, R * uy, G.boy + k.dz]);
   cam.aspect = fr.width / fr.height; cam.position.copy(goz);
   // Masanın ortası panelde TAV.goz.zar noktasına düşsün: önce ortaya bak, sonra bakışı o kadar kaydır
@@ -6880,12 +7125,13 @@ function tavGozDraw(cr, dpr) {
   // Kendi figürüm: iskeletli büyücüyse başı (şapkasıyla) bir anlığına sıfıra küçültülür, kollarım ve göğsüm görünür; kolum zar
   // atar, zar avucumdan çıkar (2026-10-28; eskiden 2D el kareleri). İskeletsiz figür bütünüyle gizli (kamera onun içinde).
   tav.koltuk.forEach(x => { if (x.g) x.g.visible = !x.me || !!bas; });
-  if (bas) bas.scale.setScalar(0.001);
+  const basP = bas && k.g.userData.kol.basParca;
+  if (basP && basP.length) basP.forEach(o => { o.visible = false; }); else if (bas) bas.scale.setScalar(0.001);
   tavKesit(false);
   const vp = [fr.left - cr.left, cr.bottom - fr.bottom, fr.width, fr.height];   // WebGL'de y aşağıdan
   tav.boruG.render(tav.S, cam, K_(0) | K_(1) | K_(5) | K_(6) | K_(7) | K_(8), K_(0) | K_(5) | K_(6), Math.round(fr.width * dpr), Math.round(fr.height * dpr), 0, vp);
   tavKesit(true);
-  if (bas) bas.scale.setScalar(1);
+  if (basP && basP.length) basP.forEach(o => { o.visible = true; }); else if (bas) bas.scale.setScalar(1);
 }
 /* 7a: kağıt açılırken kamera koltuğumun arkasından ve yukarısından (masaya bakarak) göz hizasına iner; bütün sahneye
    perspektif çizilir. Kapanırken aynı yoldan yükselir, sonra eğik görünüm geri gelir (tav.inis: yön, başlangıç, süre). */
@@ -6922,9 +7168,10 @@ function tavKoltuklar(lay, seats) {
   const T = tav.THREE;
   seats.forEach((s, i) => {
     const o = lay.seats[i]; let k = tav.koltuk[i];
-    if (!k || k.dm !== !!s.dm) {
+    const cls = !s.dm && tav.sinif && tav.sinif[s.cls] ? s.cls : '';  // kendi modeli olan sınıf (yoksa büyücü)
+    if (!k || k.dm !== !!s.dm || k.cls !== cls) {
       if (k && k.g) tav.S.remove(k.g);
-      k = tav.koltuk[i] = { dm: !!s.dm, g: tavManken(T, s.dm ? [0.36, 0.10, 0.08] : [0.42, 0.44, 0.50], !!s.dm) };
+      k = tav.koltuk[i] = { dm: !!s.dm, cls, g: tavManken(T, s.dm ? [0.36, 0.10, 0.08] : [0.42, 0.44, 0.50], !!s.dm, cls) };
       tav.S.add(k.g);
     }
     const p = o.w ? [o.w.x, o.w.y] : [TAV.seatR * Math.cos(o.wa), TAV.seatR * Math.sin(o.wa)], dz = o.w ? o.w.dz : TAV.taban;
@@ -6933,6 +7180,16 @@ function tavKoltuklar(lay, seats) {
     k.g.rotation.y = o.w ? o.w.bak - Math.PI / 2 : o.wa + Math.PI / 2;   // +y'ye bakan manken masanın ortasına (barda bara, yan masada o masaya) dönsün
     if (k.g.userData.san) k.g.userData.san.visible = !o.w;             // barda ya da yan masada: tavernanın kendi taburesi / sandalyesi var
     k.g.userData.body.visible = !!s.on;                                // bağlantısı kopanın yalnızca sandalyesi kalır
+    const per = k.g.userData.perde;
+    if (per) {                                                         // DM perdesi: masanın kenarından biraz içeride, DM'in çevresinde yay
+      per.visible = !o.w && !!s.on;
+      const M = zarMasa(), D = TAV.seatR - M.r + TAV.perde.ic, y = M.y - k.g.position.y + TAV.perde.H / 2;
+      const aci = TAV.perde.W * 1.03 / D;                               // panolar arası açı: yan yana, aralıksız
+      per.children.forEach((p, j) => {
+        const a = (j - (per.children.length - 1) / 2) * aci;
+        p.position.set(Math.sin(a) * D, y, -Math.cos(a) * D); p.rotation.y = -a;
+      });
+    }
   });
   tav.koltuk.splice(seats.length).forEach(k => k.g && tav.S.remove(k.g));
   tav.golgeTaze = true;                                                 // 18: oturanlar değişti, gölge haritası yenilensin
@@ -7479,6 +7736,7 @@ function zarAt3(box, item, fast, delay) {
   // yukarıda; sınırlanırsa avuçtaki zar o yere doğru kayar, zarAvucta). Avuç masanın kenarının dışında kalıyor: duvar aşağıda
   // ancak bütün zarlar masanın içine girince kurulur
   const kol = k && k.g && k.g.userData.kol, avuc = delay > 0 && kol && kol.bitis ? tavAvuc(k, tav.kol.birak) : null;
+  const perde = item.perde && k && k.dm && k.g.userData.perde && k.g.userData.perde.visible ? k.g.userData.perde : null;
   if (avuc) cik.set(avuc.x, Math.max(avuc.y, M.y + A.alt), avuc.z);
   // Fizik dünyası (her atışta yeni): masa düzlemi, kenarında 24 parçalı görünmez duvar
   const W = new C.World({ gravity: new C.Vec3(0, -ZAR3.yercekimi, 0) });
@@ -7486,6 +7744,15 @@ function zarAt3(box, item, fast, delay) {
   const yer = new C.Body({ mass: 0, shape: new C.Plane() });
   yer.quaternion.setFromEuler(-Math.PI / 2, 0, 0); yer.position.set(0, M.y, 0); W.addBody(yer);
   const duvar = [];
+  if (perde) {                                                       // perdenin panoları: zar arkasında kalsın (ince kutular)
+    perde.updateWorldMatrix(true, true);
+    const pp = new T.Vector3(), pq = new T.Quaternion(), ps = new T.Vector3(), { W: PW, H: PH, K: PK } = TAV.perde;
+    perde.children.forEach(pn => {
+      pn.matrixWorld.decompose(pp, pq, ps);
+      const b = new C.Body({ mass: 0, shape: new C.Box(new C.Vec3(PW / 2 + 0.01, PH / 2, PK / 2 + 0.01)) });
+      b.position.set(pp.x, pp.y, pp.z); b.quaternion.set(pq.x, pq.y, pq.z, pq.w); W.addBody(b);
+    });
+  }
   for (let i = 0; i < N; i++) {
     const a = i / N * Math.PI * 2, b = new C.Body({ mass: 0, shape: new C.Box(new C.Vec3(dW, 0.2, 0.03)) });
     b.position.set(M.c.x + Math.cos(a) * (DR + 0.03), M.y + 0.2, M.c.z + Math.sin(a) * (DR + 0.03));
@@ -7502,7 +7769,9 @@ function zarAt3(box, item, fast, delay) {
     b.quaternion.setFromEuler(rnd(0, 6.28), rnd(0, 6.28), rnd(0, 6.28));
     // Yay: yukarı vy ile çıkar, uçuş süresinde ortanın biraz önündeki noktaya iner (orada seker, ortaya yuvarlanır)
     const vy = rnd(...A.vy), g = ZAR3.yercekimi, h0 = b.position.y - M.y, sure = (vy + Math.sqrt(vy * vy + 2 * g * h0)) / g;
-    const in_ = M.c.clone().addScaledVector(yon, A.hedef + rnd(-A.dag, A.dag) * 0.5).addScaledVector(yan, rnd(-A.dag, A.dag));
+    const in_ = perde                                                  // perde arkası: perdeyle masanın kenarı arasına
+      ? M.c.clone().addScaledVector(yon, M.r - TAV.perde.ic + 0.17 + rnd(-0.03, 0.03)).addScaledVector(yan, rnd(-0.12, 0.12))
+      : M.c.clone().addScaledVector(yon, A.hedef + rnd(-A.dag, A.dag) * 0.5).addScaledVector(yan, rnd(-A.dag, A.dag));
     b.velocity.set((in_.x - b.position.x) / sure, vy, (in_.z - b.position.z) / sure);
     b.angularVelocity.set(rnd(-30, 30), rnd(-30, 30), rnd(-30, 30));   // çok dönsün: küp yoksa kayıp hemen duruyor
     W.addBody(b); z.b = b;
@@ -7536,6 +7805,7 @@ function zarAt3(box, item, fast, delay) {
   zarlar.forEach((z, i) => {
     const o = (kare - 1) * 7; q.set(kayit[i][o + 3], kayit[i][o + 4], kayit[i][o + 5], kayit[i][o + 6]); z.g.quaternion.copy(q);
     z.yaz(z.ust(), z.v); z.kayit = kayit[i];
+    if (item.gizli) z.g.children[1].visible = false;                 // oyuncu DM'in gizli zarının yüzlerini göremez (sonuç zaten gelmedi)
     tav.S.add(z.g, z.leke);
   });
   // d20 uzun dönme (sıra uzunken yok)

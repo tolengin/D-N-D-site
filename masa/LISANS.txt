@@ -10,3 +10,53 @@ buyucu.glb, buyucu.js
             Atif GEREKIR: sitede yazarin adi ve lisans gorunur bir yerde yazilmali.
   Degisiklik: araclar/buyucu_oturt_blender.py ile sandalyede oturur poza getirildi, iskeleti ve asasi cikarildi,
             kucultuldu. Ham hali proje kokunde poly-art_wizard_medieval_fantasy.glb.
+
+dm-iskelet.glb, dm-iskelet.js
+  Ne icin : Masadaki DM'in 3D figuru (2026-10-28)
+  Kaynak  : Meshy_AI_ Aurelian_0405041635_texture
+  Sahibi  : aliyaz01 (Sketchfab)
+  Link    : https://skfb.ly/pIq9D
+  Lisans  : CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)  Atif GEREKIR.
+  Degisiklik: araclar/karakter_kur_blender.py ile hafifletildi, elindeki kitap silindi, dokusu kullanicinin karakter
+            kagidina (gorseller/3d karakterler/DM-human.jpg) gore yeniden boyandi (lacivert ceket, kir sac, sakal),
+            gozluk ve tuy eklendi, iskelet ve oturur poz verildi.
+
+hanci.glb, hanci.js
+  Ne icin : Yeni handa tezgahin arkasindaki hanci (2026-10-28)
+  Kaynak  : The Noble Craftsman
+  Sahibi  : olmopotums (Sketchfab)
+  Link    : https://skfb.ly/NA86
+  Lisans  : CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)  Atif GEREKIR.
+  Degisiklik: araclar/karakter_kur_blender.py ile ors, cekic, kivilcim ve omuz zirhi silindi, dokusu kullanicinin
+            karakter kagidina (gorseller/3d karakterler/hanci-dwarf.jpg) gore yeniden boyandi (kizil sac ve sakal,
+            gomlek, onluk), orgu, anahtar halkasi ve havlu eklendi, iskelet, poz ve bekleme hareketi verildi.
+
+fighter-iskelet.glb, fighter-iskelet.js
+  Ne icin : Sinifi Fighter olan oyuncunun masadaki 3D figuru (2026-10-28)
+  Kaynak  : GA Free_251_The Shrewd Scoundrel
+  Sahibi  : Galaxy Abundant (Sketchfab)
+  Link    : https://skfb.ly/pLwIt
+  Lisans  : CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)  Atif GEREKIR.
+  Degisiklik: araclar/karakter_kur_blender.py ile hafifletildi, kapusonu kisa saca cevrildi, pelerinin bel alti silindi,
+            dokusu kullanicinin karakter kagidina (gorseller/3d karakterler/fighter-human.jpg) gore yeniden boyandi
+            (kizil tabar, zincir zirh, deri omuzluk, kirli sac ve sakal), iskelet, oturur poz ve zar atma hareketi verildi.
+
+garson-kiz.glb, garson-kiz.js
+  Ne icin : Yeni handa dolasan kiz garson (2026-10-28)
+  Kaynak  : Classic Maid Uniform
+  Sahibi  : restore50 (Sketchfab)
+  Link    : https://skfb.ly/pLo76
+  Lisans  : CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)  Atif GEREKIR.
+  Degisiklik: araclar/karakter_kur_blender.py ile hafifletildi, kullanicinin kagidina (garson-human-kiz.jpg) gore yeniden
+            boyandi (yesil korse, krem bluz ve onluk, kizil sac), uzun etek ve kupali tepsi eklendi, iskelet, poz, yurume
+            ve bekleme hareketi verildi.
+
+garson-erkek.glb, garson-erkek.js
+  Ne icin : Yeni handa dolasan yari-elf garson (2026-10-28)
+  Kaynak  : Medieval Peasant Warrior
+  Sahibi  : Azura_SQ (Sketchfab)
+  Link    : https://skfb.ly/pITrW
+  Lisans  : CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)  Atif GEREKIR.
+  Degisiklik: araclar/karakter_kur_blender.py ile hafifletildi, kilici silindi, kullanicinin kagidina
+            (garson-halfelf-erkek.jpg) gore yeniden boyandi (sakal kapatildi, siyah sac, yelek, krem gomlek ve onluk),
+            sivri kulak ve kupali tepsi eklendi, iskelet, poz, yurume ve bekleme hareketi verildi.

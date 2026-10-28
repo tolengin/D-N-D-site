@@ -732,7 +732,9 @@ for ad, X, Y, z0_, yon in (('Sarmasik_Direk_Ozan_1', W - 0.05, cz - cr + 0.2, 0.
 def isik(ad, konum, renk, guc, yaricap, golge=True):
     d = bpy.data.lights.new(ad, 'POINT'); d.color = renk; d.energy = guc; d.shadow_soft_size = yaricap; d.use_shadow = golge
     o = bpy.data.objects.new(ad, d); o.location = konum; K_ONI.objects.link(o)
-GUC = {'somine': (900, 0.4, True), 'avize': (240, 0.5, True), 'aplik': (45, 0.04, False), 'sarkit': (55, 0.04, False),
+# (güç W, yarıçap m, gölge). 2026-10-28 (kullanıcı: "gölgelerin keskinliği neredeyse 0"): aplik ve sarkıtlar da gölge düşürür,
+# şömine ve avize küçüldü (küçük ışık keskin gölge); mumlar gölgesiz (çok sayıda, pişirmeyi uzatır)
+GUC = {'somine': (900, 0.25, True), 'avize': (240, 0.25, True), 'aplik': (45, 0.04, True), 'sarkit': (55, 0.04, True),
        'mum': (12, 0.02, False), 'oda': (25, 0.1, False)}
 for ad, x, y, zz, tur in hp.ISIKLAR:
     g, r, golge = GUC.get(tur, (12, 0.02, False))
