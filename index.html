@@ -1227,6 +1227,9 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 .tv-cap small{color:var(--muted);font-size:.85em}
 .tv-throw:not(.shown) :is(.tv-total,.tv-cap){visibility:hidden}   /* zar yere inmeden sonuç görünmez */
 .tv-throw.d3 .tv-dice,.pov-dice.d3{display:none}                    /* 3D zarlar masada (BÖLÜM 11e): 2D zarlar yok, büyük sayı ve yazı kalır */
+.tv-throw.shown{pointer-events:auto;cursor:pointer}                  /* sonuç birkaç saniye sonra söner; basınca hemen (sonucSondur) */
+.tv-throw.sonuk{opacity:0;pointer-events:none;transition:opacity .8s ease}
+.tv-throw.sonuk.hemen{transition-duration:.15s}
 .tv-throw.shown .tv-total{animation:tvPop .45s cubic-bezier(.3,1.6,.5,1)}
 .tv-throw.shown:is(.crit-hit,.crit-miss) .tv-total{animation:tvPop .45s cubic-bezier(.3,1.6,.5,1),tvGlow 1.1s ease-in-out .45s infinite alternate}
 @keyframes tvPop{from{transform:scale(.4);opacity:0}}
@@ -2040,7 +2043,7 @@ body.tv-full #tableView{height:100dvh}
           </div>
           <p class="hint">Soldaki büyük sayı şimdiki canın, yanındaki en yüksek canın. Miktarı yazıp düğmeye bas: hasar önce geçici candan düşer, iyileşme en yüksek canı aşamaz.</p>
         </section>
-        <p class="hint vit-rehber">Can sıfıra inerse bayılırsın; masada vurulunca canın kendiliğinden düşer, elle düzeltmek için sayıya yaz ya da −/+ kullan. AC ne kadar yüksekse sana vurmak o kadar zor. İnisiyatif savaşta sıranı belirler (sayıya basınca zar atılır), hız bir turda kaç kare yürüyeceğini söyler. Saldırırken önce vuruş zarına bas; tutturursan hançerli hasar zarına.</p>
+        <p class="hint vit-rehber">Canın sıfıra inerse bayılırsın. Masada biri sana vurunca canın kendiliğinden düşer; bir yanlışlık olursa sayının üstüne yazarak ya da −/+ ile düzeltebilirsin. AC, sana vurmanın ne kadar zor olduğunu gösterir: yükseldikçe düşmanın işi zorlaşır. Savaş başlayınca inisiyatife bas; kimin önce oynayacağı bu zarla belli olur. Hız, bir turda ne kadar yol alabileceğin. Saldırırken önce vuruş zarına bas; tutturursan hançerli zarla hasarını at.</p>
         <section class="card atk-yuva" id="atkYuva"></section><!-- Sade: saldırılar burada (Tam'da Saldırılar sekmesinde) -->
       </div>
 
@@ -2830,7 +2833,7 @@ function renderStatic() {
         <button class="roll" data-act="roll" data-roll="save" data-k="${a.k}" title="${a.en} kurtarma zarı at">+0</button>
       </div>
     </div>`).join('') + `
-    <p class="hint ab-rehber">Büyük sayıya bas: o yetenekle zar atarsın. Skoru değiştirmek için altındaki sayıya yaz. <b>Save</b> (kurtarma) tuzaktan, büyüden ya da zehirden kurtulmak için atılır; elmas işareti <span class="prof-ornek" aria-hidden="true"></span> doluysa o zarda yetkinsin.</p>`;
+    <p class="hint ab-rehber">Bir yetenekle zar atmak için büyük sayıya bas. Altındaki küçük sayı o yeteneğin skoru; değiştirmek istersen üstüne yaz. <b>Save</b> (kurtarma), bir tuzaktan, büyüden ya da zehirden sıyrılmaya çalışırken attığın zardır. Yanındaki elmas <span class="prof-ornek" aria-hidden="true"></span> doluysa bu konuda eğitimlisin, zarına bonusun da eklenir.</p>`;
 
   $('#saves').innerHTML = ABIL.map(a => `
     <div class="row">
@@ -5857,6 +5860,7 @@ function dieSVG(s, v, dropped, blank) {
 // Masanın ortasına bir atışı çizer. hidden = true ise zarların yüzü, toplam ve yazı henüz gizli (zar havada)
 function drawThrow(item, hidden) {
   const box = $('#tvCenter');
+  clearTimeout(tv.sonucT);
   if (!item) { box.innerHTML = '<p class="tv-idle">Zarlar buraya yuvarlanır</p>'; povDiceDraw(null); return null; }
   const dice = item.dice.length ? item.dice : [{ s: 0, v: item.total }];   // zar bilgisi gelmediyse (eski sürüm) tek bir pul
   const shown = dice.slice(0, 12), more = dice.length - shown.length;
@@ -5867,7 +5871,17 @@ function drawThrow(item, hidden) {
     <div class="tv-cap"><b>${esc(item.who ? item.who + ': ' : '')}${esc(item.label)}</b><span>${esc(item.detail)}</span>${item.note ? `<em>${esc(item.note)}</em>` : ''}${item.tag ? `<small>${esc(item.tag)}</small>` : ''}</div>
   </div>`;
   povDiceDraw(item, hidden);                                         // göz hizası panelinde de aynı zarlar (havadaysa yüzleri boş)
+  if (!hidden) sonucSondur(box.firstElementChild);
   return box.firstElementChild;
+}
+// Masanın ortasındaki sonuç (büyük sayı ve yazı) birkaç saniye sonra yavaşça söner; üstüne basınca hemen (2026-10-28).
+// Son atışlar tahtasında kalır. Yeni atış çizilince (drawThrow) zamanlayıcı sıfırlanır.
+const SONUC_SURE = 3000;
+function sonucSondur(el) {
+  if (!el) return;
+  clearTimeout(tv.sonucT);
+  tv.sonucT = setTimeout(() => el.classList.add('sonuk'), SONUC_SURE);
+  el.onclick = () => { clearTimeout(tv.sonucT); el.classList.add('sonuk', 'hemen'); };
 }
 
 /* Zarları atanın koltuğundan masanın ortasına fırlatır: döner, seker, durur. Yalnızca konum ve dönüş canlandırılır (telefonda da hafif).
@@ -5911,6 +5925,7 @@ function reveal(box) {
     $$('.tv-die', b).forEach(d => { $('text', d).textContent = d.dataset.v; });
     b.classList.add('shown');
   });
+  sonucSondur(box);
 }
 
 /* ───────── POV paneli (sol şerit): karakterin koltuğundan ─────────
@@ -6640,7 +6655,9 @@ function tavManken(THREE, renk, dm) {
     if (tav.kol) {
       const mix = new THREE.AnimationMixer(b), at = mix.clipAction(tav.kol.klip);
       at.setLoop(THREE.LoopOnce, 1);
-      g.userData.kol = { mix, at, bitis: 0 };
+      let el = null, parmak = null;                                  // avuç (tavAvuc): bilekle parmak kökünün ortası
+      b.traverse(o => { if (!o.isBone) return; if (/R_Hand/.test(o.name)) el = o; else if (/R_Finger1_/.test(o.name)) parmak = o; });
+      g.userData.kol = { mix, at, bitis: 0, el, parmak };
     }
   } else {                                                         // model yoksa blockout manken
     kutu(ten, body, -0.18, 0.18, -0.12, 0.30, 0.50, 0.64);
@@ -6996,6 +7013,19 @@ function tavKolGuncelle(now) {
   return var_;
 }
 const tavKolVar = () => tav.koltuk.some(k => k.g && k.g.userData.kol && k.g.userData.kol.bitis);
+// Koltuktakinin avucunun dünyadaki yeri (zar sallanırken orada durur). s verilirse hareketin o saniyesindeki yeri: kol bir an
+// oraya alınıp geri konur (elin açılacağı yer önceden bilinsin diye). El kemiği yoksa null.
+function tavAvuc(k, s, v) {
+  const kol = k && k.g && k.g.userData.kol;
+  if (!kol || !kol.el) return null;
+  const once = kol.at.time;
+  if (s != null) { kol.at.time = s; kol.mix.update(0); }
+  kol.el.updateWorldMatrix(true, false);
+  const p = kol.el.getWorldPosition(v || new tav.THREE.Vector3());
+  if (kol.parmak) { kol.parmak.updateWorldMatrix(true, false); p.lerp(kol.parmak.getWorldPosition(new tav.THREE.Vector3()), 0.5); }
+  if (s != null) { kol.at.time = once; kol.mix.update(0); }
+  return p;
+}
 
 // Çizim döngüsü: "Canlı" açıkken sürekli (en çok TAV.fps); değilse yalnızca bir şey değişince ya da tablo kayarken
 function tavKick() { tav.dirty = true; if (!tav.raf && tav.state === 'on' && (mode === 'table' || kagitUstte) && !document.hidden) tav.raf = requestAnimationFrame(tavFrame); }
@@ -7227,6 +7257,8 @@ const ZAR3 = {
   boy: 0.10,                  // zarın yaklaşık eni (m); gerçeği ~2 cm, eğik bakışta da görünsün diye büyük
   boyOran: { 4: 1.15, 6: 0.82, 8: 0.95, 10: 0.95, 12: 1.0, 20: 1.05 },   // türler arasında göze eşit dursun
   rakam: '#fff1d2',           // kazınmış rakamın rengi (sıcak beyaz)
+  rakamKoyu: '#2a2036',       // açık camlı zarda (sedef, limon) rakam koyu: beyaz camda krem rakam okunmuyordu
+  acikSinir: 0.58,            // camın parlaklığı (doğrusal) bundan büyükse açık cam sayılır (DM sedefi 0,68, limon 0,63, kehribar 0,51)
   leke: 0.42,                 // masaya düşen ışığın çapı (m)
   sekil: {}, atlas: null,
 };
@@ -7305,23 +7337,26 @@ const zarHucre = y => ZAR_YAZI.indexOf(y);
 // Kristal cam: ışık hesaplamaz. Yüze dik bakınca çekirdeğin ışığı görünür (açık), yandan bakınca koyu cam; yüzler sabit
 // bir yöne göre hafif farklı tonda (faset). parla: 0…1 (havadayken de, durunca bir an fazla).
 // Yüzün ortası merkeze en yakın (ic: iç yarıçap / dış yarıçap), köşeler en uzak: ortası parlak, kenarı koyu yüz = içeride ışık var.
-function zarCam(renk, ic) {
+function zarCam(renk, ic, acik) {
   const T = tav.THREE;
   return new T.ShaderMaterial({
-    uniforms: { renk: { value: renk.clone() }, parla: { value: 0.6 }, ic: { value: ic } },
+    uniforms: { renk: { value: renk.clone() }, parla: { value: 0.6 }, ic: { value: ic }, acikCam: { value: acik ? 1 : 0 } },
     transparent: true, depthWrite: true,
     vertexShader: `varying vec3 vN; varying vec3 vV; varying vec3 vW; varying vec3 vP;
       void main() { vec4 w = modelMatrix * vec4(position, 1.0); vW = normalize(mat3(modelMatrix) * normal); vP = position;
         vN = normalize(normalMatrix * normal); vec4 mv = viewMatrix * w;
         vV = isOrthographic ? vec3(0.0, 0.0, 1.0) : normalize(-mv.xyz);   // eğik görünümün kamerası dik (perspektifsiz)
         gl_Position = projectionMatrix * mv; }`,
-    fragmentShader: `uniform vec3 renk; uniform float parla; uniform float ic; varying vec3 vN; varying vec3 vV; varying vec3 vW; varying vec3 vP;
+    fragmentShader: `uniform vec3 renk; uniform float parla; uniform float ic; uniform float acikCam; varying vec3 vN; varying vec3 vV; varying vec3 vW; varying vec3 vP;
       void main() {
         float d = clamp(dot(normalize(vN), normalize(vV)), 0.0, 1.0);
-        float orta = 1.0 - smoothstep(0.15, 1.0, (length(vP) - ic) / (1.0 - ic));   // yüzün ortası 1, köşeleri 0 (köşelerde hesaplansa her yer 1 çıkar)
+        // yüzün ortası 1, köşeleri 0 (köşelerde hesaplansa her yer 1 çıkar). Açık cam (sedef, limon): ışıyan orta daha küçük, kenar
+        // daha koyu; yoksa sarı haritada ve açık masada kayboluyordu
+        float orta = 1.0 - smoothstep(0.15 - 0.12 * acikCam, 1.0 - 0.5 * acikCam, (length(vP) - ic) / (1.0 - ic));
         float cekirdek = orta * (0.55 + 0.45 * d);                     // içten gelen ışık; içe bakınca daha çok
         float faset = 0.8 + 0.2 * dot(normalize(vW), normalize(vec3(-0.4, 0.8, 0.45)));
-        vec3 koyu = renk * 0.26, acik = renk * 1.1 + 0.1;              // sahnenin renk ayarı açığı beyaza kaçırır: çekirdek doygun kalsın
+        // sahnenin renk ayarı açığı beyaza kaçırır: çekirdek doygun kalsın. Açık camın kenarı koyu mor (sedefin damarı gibi)
+        vec3 koyu = mix(renk * 0.26, vec3(0.07, 0.04, 0.13), acikCam), acik = renk * 1.1 + 0.1;
         vec3 c = mix(koyu, acik, clamp(cekirdek * (0.85 + 0.4 * parla), 0.0, 1.0)) * faset;
         c += renk * pow(1.0 - d, 4.0) * 0.35;                          // kenarlarda ince renkli parıltı
         float L = dot(c, vec3(0.2126, 0.7152, 0.0722));
@@ -7336,7 +7371,8 @@ function zarCam(renk, ic) {
 // renk: THREE.Color. Döner: { g (Group; konumu ve dönüşü zarın), leke (masada, ayrı), s, on, yaz(yuz, yazi) }
 function zarYap(s, renk, on) {
   const T = tav.THREE, sk = zarSekil(s), boy = ZAR3.boy * (ZAR3.boyOran[s] || 1) / 2;
-  const g = new T.Group(), cam = zarCam(renk, Math.min(...sk.yuzler.map(y => y.c.length())));
+  const acikCam = renk.r * 0.2126 + renk.g * 0.7152 + renk.b * 0.0722 > ZAR3.acikSinir;   // sedef, limon: koyu kenar, koyu rakam
+  const g = new T.Group(), cam = zarCam(renk, Math.min(...sk.yuzler.map(y => y.c.length())), acikCam);
   const govde = new T.Mesh(sk.geo, cam); govde.scale.setScalar(boy); g.add(govde);
   // Rakam kartları: yüz başına bir (d4'te her yüzde köşe başına üç); hepsi tek geometride, uv'leri yazıya göre
   const kart = [];
@@ -7359,7 +7395,7 @@ function zarYap(s, renk, on) {
   });
   const kg = new T.BufferGeometry();
   kg.setAttribute('position', new T.BufferAttribute(pos, 3)); kg.setAttribute('uv', new T.BufferAttribute(uv, 2)); kg.setIndex(ixs);
-  const km = new T.MeshBasicMaterial({ map: zarAtlas(), color: new T.Color(ZAR3.rakam), transparent: true, depthWrite: false });
+  const km = new T.MeshBasicMaterial({ map: zarAtlas(), color: new T.Color(acikCam ? ZAR3.rakamKoyu : ZAR3.rakam), transparent: true, depthWrite: false });
   const kartlar = new T.Mesh(kg, km); kartlar.scale.setScalar(boy); kartlar.renderOrder = 1; g.add(kartlar);
   // Bir kartın uv'si: atlastaki hücre (8 × 8, üstten)
   const hucre = (i, yazi) => {
@@ -7444,11 +7480,13 @@ function zarVitrin(acik = true) {
    d20'lerde ara sıra (ZAR3.donme) zar dururken bir süre daha kendi çevresinde döner, yalpalar (üstteki yüz değişmez). */
 Object.assign(ZAR3, {
   yercekimi: 29,              // m/sn²; zarlar gerçeğinden ~5 kat büyük: gerçek yerçekiminde ağır çekim gibi duruyordu
-  atis: { cik: 0.62, yuk: 0.3, vy: [4.0, 5.0], hedef: 0.18, dag: 0.14 },   // yay: elden (masa yarıçapının 0,62'si, masanın 0,3 m üstü)
-                              // yukarı (vy m/sn, ~0,7 m'ye çıkar) ve ortaya düşer: ortanın hedef m önüne, ± dag dağılarak
+  atis: { cik: 0.62, yuk: 0.3, vy: [4.0, 5.0], hedef: 0.18, dag: 0.14, alt: 0.09 },
+                              // yay: elden (kol yoksa masa yarıçapının 0,62'si, masanın 0,3 m üstü; kol varsa avuçtan, masanın en az
+                              // alt m üstünde) yukarı (vy m/sn, ~0,7 m'ye çıkar) ve ortaya düşer: ortanın hedef m önüne, ± dag dağılarak
   fren: 2.5,                  // bu sn'den sonra hâlâ yuvarlanan zar yavaş yavaş frenlenir (d20 neredeyse yuvarlak: duramıyordu)
   donme: { olasilik: 0.22, sure: [2.0, 3.0], hiz: 26 },   // d20 uzun dönme: olasılık, ek süre (sn), başlangıç hızı (rad/sn)
   enCok: 8,                   // hesap en çok kaç sn (zar durmazsa)
+  kipir: [0.006, 0.08],       // kaydın sonundaki "durdu" sınırı (zarAt3): çeyrek saniyede yer değişimi (m) ve dönüş (rad)
   turler: new Set([4, 6, 8, 10, 12, 20, 100]),
 });
 // Fizik kütüphanesi bir kez, arkadan yüklenir (tavStart). İnmezse 2D zarlar kalır.
@@ -7486,16 +7524,22 @@ function zarAt3(box, item, fast, delay) {
   const kp = k ? tav.b3([k.p[0], k.p[1], 0]) : new T.Vector3(0, 0, M.r + 0.5);
   const yon = new T.Vector3(kp.x - M.c.x, 0, kp.z - M.c.z); if (yon.lengthSq() < 1e-6) yon.set(0, 0, 1); yon.normalize();
   const A = ZAR3.atis, yan = new T.Vector3(-yon.z, 0, yon.x), cik = M.c.clone().addScaledVector(yon, M.r * A.cik).setY(M.y + A.yuk);
+  const DR = M.r - 0.06, N = 24, dW = DR * Math.tan(Math.PI / N) + 0.02;
+  // Kol oynuyorsa zar avuçtan çıkar (2026-10-28): çıkış yeri elin açılacağı andaki avuç (masaya gömülmesin diye en az alt m
+  // yukarıda; sınırlanırsa avuçtaki zar o yere doğru kayar, zarAvucta). Avuç masanın kenarının dışında kalıyor: duvar aşağıda
+  // ancak bütün zarlar masanın içine girince kurulur
+  const kol = k && k.g && k.g.userData.kol, avuc = delay > 0 && kol && kol.bitis ? tavAvuc(k, tav.kol.birak) : null;
+  if (avuc) cik.set(avuc.x, Math.max(avuc.y, M.y + A.alt), avuc.z);
   // Fizik dünyası (her atışta yeni): masa düzlemi, kenarında 24 parçalı görünmez duvar
   const W = new C.World({ gravity: new C.Vec3(0, -ZAR3.yercekimi, 0) });
   W.defaultContactMaterial.friction = 0.22; W.defaultContactMaterial.restitution = 0.36;
   const yer = new C.Body({ mass: 0, shape: new C.Plane() });
   yer.quaternion.setFromEuler(-Math.PI / 2, 0, 0); yer.position.set(0, M.y, 0); W.addBody(yer);
-  const DR = M.r - 0.06, N = 24, dW = DR * Math.tan(Math.PI / N) + 0.02;
+  const duvar = [];
   for (let i = 0; i < N; i++) {
     const a = i / N * Math.PI * 2, b = new C.Body({ mass: 0, shape: new C.Box(new C.Vec3(dW, 0.2, 0.03)) });
     b.position.set(M.c.x + Math.cos(a) * (DR + 0.03), M.y + 0.2, M.c.z + Math.sin(a) * (DR + 0.03));
-    b.quaternion.setFromEuler(0, -a + Math.PI / 2, 0); W.addBody(b);
+    b.quaternion.setFromEuler(0, -a + Math.PI / 2, 0); duvar.push(b);
   }
   const rnd = (a, b) => a + Math.random() * (b - a);
   const zarlar = liste.map((d, i) => {
@@ -7516,8 +7560,9 @@ function zarAt3(box, item, fast, delay) {
   });
   // Hesap: 1/120 sn adımla, 60 karede bir kayıt; hepsi 0,3 sn kıpırdamadan durunca biter
   const kayit = zarlar.map(() => []), ADIM = 1 / 120;
-  let t = 0, dur = 0, ilkDegme = -1;
+  let t = 0, dur = 0, ilkDegme = -1, duvarVar = false;
   while (t < ZAR3.enCok) {
+    if (!duvarVar && zarlar.every(z => Math.hypot(z.b.position.x - M.c.x, z.b.position.z - M.c.z) < DR - 0.07)) { duvar.forEach(b => W.addBody(b)); duvarVar = true; }
     W.step(ADIM); t += ADIM;
     if (t > ZAR3.fren) zarlar.forEach(z => { z.b.angularDamping = Math.min(0.9, 0.12 + (t - ZAR3.fren) * 0.5); z.b.linearDamping = Math.min(0.9, 0.08 + (t - ZAR3.fren) * 0.5); });
     if (Math.round(t * 120) % 2 === 0) zarlar.forEach((z, i) => kayit[i].push(z.b.position.x, z.b.position.y, z.b.position.z, z.b.quaternion.x, z.b.quaternion.y, z.b.quaternion.z, z.b.quaternion.w));
@@ -7525,6 +7570,16 @@ function zarAt3(box, item, fast, delay) {
     dur = zarlar.every(z => z.b.velocity.length() < 0.06 && z.b.angularVelocity.length() < 0.35) ? dur + ADIM : 0;
     if (dur > 0.3) break;
   }
+  // Kayıt, zarların gözle görülür son kıpırdadığı anın biraz sonrasında kesilir (2026-10-28): masada fark edilmeyecek kadar
+  // titreyen zar fiziği "durdu" saydırmıyor, sonuç saniyelerce (en çok enCok) bekliyordu. Kare kare değil çeyrek saniyelik
+  // aralıkla bakılır (tek karelik titreşim sıçramaları sayılmasın): aralıkta ZAR3.kipir[0] m'den çok yer ya da kipir[1]
+  // radyandan çok dönüş varsa zar kıpırdıyor
+  const ham = kayit[0].length / 7, [kY, kA] = ZAR3.kipir, P = 15;
+  let son = 0;
+  for (let f = 0; f + P < ham; f++) if (kayit.some(r => { const a = f * 7, b = (f + P) * 7;
+    const dq = Math.min(1, Math.abs(r[a + 3] * r[b + 3] + r[a + 4] * r[b + 4] + r[a + 5] * r[b + 5] + r[a + 6] * r[b + 6]));
+    return Math.hypot(r[b] - r[a], r[b + 1] - r[a + 1], r[b + 2] - r[a + 2]) > kY || 2 * Math.acos(dq) > kA; })) son = f + P;
+  if (son + 6 < ham) kayit.forEach(r => { r.length = (son + 6) * 7; });
   const kare = kayit[0].length / 7, sureFizik = kare / 60;
   // Duruş: her zarın üstteki yüzüne gerçek değer
   const q = new T.Quaternion();
@@ -7546,8 +7601,9 @@ function zarAt3(box, item, fast, delay) {
   tav.zarlar = zarlar;
   let bitir;
   const soz = new Promise(ok => { bitir = ok; });
-  tav.zarAnim = { t0: performance.now() + delay, hiz, sure, bitir, kare, box };
-  zarGoster(0);
+  tav.zarAnim = { t0: performance.now() + delay, hiz, sure, bitir, kare, box, ham: ham / 60,   // ham: kesilmeden önceki fizik süresi (sn)
+                  avuc: avuc && { k, cik, fark: cik.clone().sub(avuc), top: delay / 1000 } };
+  if (tav.zarAnim.avuc) zarAvucta(tav.zarAnim, performance.now()); else zarGoster(0);
   tav.masaTaze = true; tavKick();
   tv.anims = [{ cancel() { zarSon(); }, finished: soz }];            // tvFlush: yarıda kalırsa son hâline atla
   return soz;
@@ -7571,9 +7627,7 @@ function zarGoster(s) {
       }
     }
     z.g.quaternion.copy(q);
-    const yuk = z.g.position.y - M.y;
-    z.leke.position.set(z.g.position.x, M.y + 0.003, z.g.position.z);
-    z.leke.material.opacity = 0.6 * clamp(1 - yuk / 0.5, 0, 1);       // zar yükseldikçe masadaki ışığı söner
+    zarLeke(z, M);
   });
 }
 // Oynatma (tavDraw her karede): bitince zarlar son yerinde kalır, kazanılan zar bir an fazla parlar
@@ -7588,9 +7642,32 @@ function zarGuncelle(now) {
     if (p >= 1) tav.zarAnim = null;
     return p < 1;
   }
+  if (A.avuc && now < A.t0) { zarAvucta(A, now); return true; }       // el henüz açılmadı: zarlar avuçta
   zarGoster(Math.min(s, A.sure * A.hiz));
   if (s >= A.sure * A.hiz) zarSon();
   return true;
+}
+// Sallanırken zarlar avuçta: elin şimdiki yerinde, atışın ilk karesindeki dizilişle; avuçta hafifçe döner, elin açıldığı an
+// dönüş sıfıra iner (fizik kaydına dikişsiz geçsin). Çıkış yeri sınırlandıysa (zarAt3) zarlar ona doğru kayar.
+function zarAvucta(A, now) {
+  const T = tav.THREE, M = zarMasa(), p = tavAvuc(A.avuc.k, null, new T.Vector3());
+  if (!p) return;
+  const kalan = Math.max(0, (A.t0 - now) / 1000), u = A.avuc.top > 0 ? 1 - clamp(kalan / A.avuc.top, 0, 1) : 1;
+  p.addScaledVector(A.avuc.fark, u * u);
+  const q = new T.Quaternion(), don = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), kalan * 5);
+  const sik = 0.4 + 0.6 * u * u;                                     // avuçta birbirine sokulur, el açılırken atıştaki dizilişe açılır
+  tav.zarlar.forEach(z => {
+    const r = z.kayit, c = A.avuc.cik;
+    z.g.position.set(p.x + (r[0] - c.x) * sik, p.y + (r[1] - c.y) * sik, p.z + (r[2] - c.z) * sik);
+    z.g.quaternion.copy(q.set(r[3], r[4], r[5], r[6]).premultiply(don));
+    zarLeke(z, M);
+  });
+}
+// Zarın masaya düşen ışığı: zarın altında; zar yükseldikçe ve masanın kenarından dışarı çıktıkça (avuç masanın dışında) söner
+function zarLeke(z, M) {
+  const p = z.g.position, ic = clamp((M.r - Math.hypot(p.x - M.c.x, p.z - M.c.z)) / 0.12, 0, 1);
+  z.leke.position.set(p.x, M.y + 0.003, p.z);
+  z.leke.material.opacity = 0.6 * clamp(1 - (p.y - M.y) / 0.5, 0, 1) * ic;
 }
 function zarSon() {
   const A = tav.zarAnim;

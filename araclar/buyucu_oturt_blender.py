@@ -58,18 +58,19 @@ SALLA_UST = [('bip R UpperArm_016', 'Z', 5), ('bip R Forearm_017', 'X', -42), ('
 SALLA_ALT = [('bip R UpperArm_016', 'Z', 5), ('bip R Forearm_017', 'X', -8), ('bip R Hand_018', 'X', 28)] + YUMRUK
 ZAR_AT = [
     (0,  []),                                                                     # oturuş
-    (6,  [('bip R UpperArm_016', 'Z', 5), ('bip R Forearm_017', 'X', -20)] + YUMRUK),    # zarı avuçlar
-    (10, SALLA_UST), (13, SALLA_ALT), (16, SALLA_UST), (19, SALLA_ALT), (22, SALLA_UST),  # üç kez sallar (göğüs önünde)
-    (27, [('bip Spine1_04', 'X', -3), ('bip R UpperArm_016', 'X', 8), ('bip R UpperArm_016', 'Z', 5),
+    (4,  [('bip R UpperArm_016', 'Z', 5), ('bip R Forearm_017', 'X', -20)] + YUMRUK),    # zarı avuçlar
+    (8, SALLA_UST), (11, SALLA_ALT),                                             # bir kez sallar (göğüs önünde; 2026-10-28'e kadar üç kez, zar geç geliyordu)
+    (15, [('bip Spine1_04', 'X', -3), ('bip R UpperArm_016', 'X', 8), ('bip R UpperArm_016', 'Z', 5),
           ('bip R Forearm_017', 'X', -40), ('bip R Hand_018', 'X', -38)] + YUMRUK),            # bileği geri büker
-    (32, [('bip Spine1_04', 'X', 9), ('bip R UpperArm_016', 'X', -25), ('bip R UpperArm_016', 'Z', 10),
+    (20, [('bip Spine1_04', 'X', 9), ('bip R UpperArm_016', 'X', -25), ('bip R UpperArm_016', 'Z', 10),
           ('bip R Forearm_017', 'X', 32), ('bip R Hand_018', 'X', 22),
           ('bip R Finger1_021', 'X', -12), ('bip R Finger0_019', 'Z', 15)]),                      # masaya savurur, el açılır: zar çıkar
-    (38, [('bip Spine1_04', 'X', 8), ('bip R UpperArm_016', 'X', -32), ('bip R UpperArm_016', 'Z', 10),
+    (26, [('bip Spine1_04', 'X', 8), ('bip R UpperArm_016', 'X', -32), ('bip R UpperArm_016', 'Z', 10),
           ('bip R Forearm_017', 'X', 38), ('bip R Hand_018', 'X', 10), ('bip R Finger1_021', 'X', -8)]),   # el masanın üstünde kalır
-    (54, []),                                                                     # oturuşa döner
+    (42, []),                                                                     # oturuşa döner
 ]
-BIRAK = 32                                    # elin açıldığı kare: zar buradan çıkar
+BIRAK = 18                                    # zarın çıktığı kare (0,6 sn): el savururken açılıyor; 20'de el masaya iniyor, zar oradan
+                                              # çıkınca masaya gömülüyordu
 ANIM_KEMIK = ['bip Spine1_04', 'bip R Clavicle_015', 'bip R UpperArm_016', 'bip R Forearm_017', 'bip R Hand_018',
               'bip R Finger0_019', 'bip R Finger01_020', 'bip R Finger1_021', 'bip R Finger11_022']
 
