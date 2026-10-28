@@ -3983,7 +3983,30 @@ const dbg = (dir, msg) => { if (typeof window.DE_DEBUG === 'function') window.DE
 function send(conn, msg) { try { if (conn && conn.open) { dbg('tx', msg); conn.send(msg); return true; } } catch (e) { /* bağlantı o an kopmuş olabilir */ } return false; }
 function retry(fn, ms) { clearTimeout(net.timers.retry); net.timers.retry = setTimeout(fn, ms); }
 function setNet(status, note) { net.status = status; net.note = note || ''; renderNetUI(); }
-const peerOptions = () => Object.assign({ debug: 0 }, window.DE_PEER_OPTIONS || {});
+/* Aktarıcı (TURN, 2026-10-28): okul ve iş ağları doğrudan bağlantıyı (UDP) ve PeerJS'in 3478 kapısındaki aktarıcısını kesiyordu
+   ("Bağlantı kurulamadı"). Metered'ın ücretsiz aktarıcısı (kullanıcının hesabı, workspace "kervansaray", kimlik "site";
+   ayda 500 MB) 80 ve 443 kapılarından da çalışır; doğrudan bağlantı kurulabiliyorsa hiç kullanılmaz.
+   Kullanıcı adı ve şifre KODDA DEĞİL (site herkese açık; başkası kullanmasın): yalnızca o tarayıcıda saklanır (AKTAR_ANAHTAR).
+   DM masa panelinde bir kez yazar; "Davet linkini kopyala" bilgiyi linke ekler (#masa=…&aktar=…), link özelden gönderilir,
+   açan oyuncunun tarayıcısı kaydeder ve linkten siler. Kimlik değişince (Metered paneli) yalnızca DM yenisini yazar. */
+const AKTAR_ANAHTAR = 'kervansaray-aktarici';
+function aktarAl() { try { const a = JSON.parse(localStorage.getItem(AKTAR_ANAHTAR) || 'null'); return a && a.u && a.p ? a : null; } catch (e) { return null; } }
+function aktarKaydet(a) { try { if (a) localStorage.setItem(AKTAR_ANAHTAR, JSON.stringify(a)); else localStorage.removeItem(AKTAR_ANAHTAR); } catch (e) { /* gizli pencere */ } }
+function iceSunucular() {
+  const a = aktarAl(), s = [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun.relay.metered.ca:80' }];
+  if (a) s.push({ urls: ['turn:global.relay.metered.ca:80', 'turn:global.relay.metered.ca:80?transport=tcp', 'turn:global.relay.metered.ca:443',
+                         'turns:global.relay.metered.ca:443?transport=tcp'], username: a.u, credential: a.p });
+  return s;
+}
+const peerOptions = () => Object.assign({ debug: 0, config: { iceServers: iceSunucular() } }, window.DE_PEER_OPTIONS || {});
+function aktarHtml() {                                                // masa panelinde: aktarıcı bilgisi (okul ve iş ağları için)
+  const a = aktarAl();
+  return `<details class="choice aktar"><summary><b>Okul ya da iş ağından bağlanamıyorsan</b> <small>${a ? 'Aktarıcı kayıtlı (bu tarayıcıda)' : 'aktarıcı'}</small></summary>
+    <p>Bazı ağlar oyuncular arasındaki doğrudan bağlantıyı engeller; aktarıcı araya girer. DM'in verdiği aktarıcılı davet linkini açtıysan bir şey yapman gerekmez. Bilgi yalnızca bu tarayıcıda saklanır.</p>
+    <label class="f"><span class="f-l">Kullanıcı adı</span><input id="aktarU" autocomplete="off" spellcheck="false" value="${esc(a ? a.u : '')}"></label>
+    <label class="f"><span class="f-l">Şifre</span><input id="aktarP" type="password" autocomplete="off" spellcheck="false" value="${esc(a ? a.p : '')}"></label>
+    <div class="btns"><button class="btn sm accent" data-act="aktar-kaydet">Kaydet</button>${a ? '<button class="btn sm" data-act="aktar-sil">Sil</button>' : ''}</div></details>`;
+}
 
 // Bağlantı kütüphanesini yalnızca gerektiğinde indirir (sayfa açılışını yavaşlatmasın diye)
 function loadPeerLib() {
@@ -4207,7 +4230,7 @@ function playerDial() {
   const conn = net.conn = peer.connect(ROOM_PREFIX + store.net.code, { reliable: true, metadata: { pid: store.net.pid, name: store.net.name } });
   clearTimeout(net.timers.dial);
   net.timers.dial = setTimeout(() => {
-    if (net.conn === conn && !conn.open) { setNet('waiting', 'Bağlantı kurulamadı, yeniden deneniyor. Sürerse farklı bir ağ dene (bazı okul ve iş ağları engeller).'); playerDial(); }
+    if (net.conn === conn && !conn.open) { setNet('waiting', aktarAl() ? 'Bağlantı kurulamadı, yeniden deneniyor.' : 'Bağlantı kurulamadı, yeniden deneniyor. Okul ya da iş ağındaysan DM’den aktarıcılı davet linkini iste (Masa panelinde: "Okul ya da iş ağından bağlanamıyorsan").'); playerDial(); }
   }, 15000);
   conn.on('open', () => {
     if (net.conn !== conn) return;
@@ -4420,6 +4443,7 @@ function renderTableDrawer() {
       </div>
       <div><span class="f-l">Masadakiler</span>
         <ul class="roster" style="margin-top:6px">${net.roster.length ? net.roster.map(r => `<li><span class="dot${r.on ? ' on' : ''}" title="${r.on ? 'Bağlı' : 'Çevrimdışı'}"></span> ${esc(r.name)}${r.char ? ` <small>${esc(r.char)}</small>` : ''}</li>`).join('') : '<li><small>Henüz liste gelmedi.</small></li>'}</ul></div>
+      ${aktarHtml()}
       <button class="btn bad" data-act="table-leave">Masadan ayrıl</button>`;
   } else if (role === 'dm') {
     body.innerHTML = `
@@ -4428,6 +4452,7 @@ function renderTableDrawer() {
       <p class="hint always" style="margin:0">Bu kodu oyuncularına gönder. Bu sekme açık kaldığı sürece masa açıktır.</p>
       <button class="btn accent" data-act="mode-dm">DM ekranına git</button>
       <button class="btn" data-act="copy-code">Kodu kopyala</button>
+      ${aktarHtml()}
       <button class="btn bad" data-act="table-close">Masayı kapat</button>`;
   } else {
     body.innerHTML = `
@@ -4443,7 +4468,8 @@ function renderTableDrawer() {
         <h3>Oyunu ben yönetiyorum (DM)</h3>
         <p>Sana bir masa kodu verilir. Oyuncuların kağıtlarını ve zarlarını tek ekranda görürsün.</p>
         <button class="btn" data-act="table-host">Masa kur</button>
-      </div>`;
+      </div>
+      ${aktarHtml()}`;
   }
 }
 
@@ -4567,7 +4593,15 @@ Object.assign(ACTIONS, {
     broadcastRoster(); renderParty(); renderNetUI();
   },
   'copy-code': () => copyText(prettyCode(store.net.code), 'Masa kodu kopyalandı'),
-  'copy-link': () => copyText(location.origin + location.pathname + '#masa=' + store.net.code, 'Davet linki kopyalandı'),
+  'copy-link': () => { const a = aktarAl();                          // aktarıcı kayıtlıysa link onu da taşır: yalnızca özelden gönderilmeli
+    copyText(location.origin + location.pathname + '#masa=' + store.net.code + (a ? '&aktar=' + encodeURIComponent(btoa(a.u + ':' + a.p)) : ''),
+      a ? 'Davet linki kopyalandı (aktarıcılı: yalnızca özelden gönder)' : 'Davet linki kopyalandı'); },
+  'aktar-kaydet': () => {
+    const u = $('#aktarU').value.trim(), p = $('#aktarP').value.trim();
+    if (!u || !p) { notify('Kullanıcı adı ve şifre gerekli', 'Metered panelindeki Credentials sayfasından.'); return; }
+    aktarKaydet({ u, p }); aktarYenile('Aktarıcı kaydedildi', 'Yalnızca bu tarayıcıda saklanır.');
+  },
+  'aktar-sil': () => { aktarKaydet(null); aktarYenile('Aktarıcı silindi'); },
   'feed-clear': () => { net.feed = []; renderFeed(); },
 });
 
@@ -4587,7 +4621,18 @@ window.addEventListener('pagehide', () => { if (store.net.role === 'player') sen
 const measureTopbar = () => document.documentElement.style.setProperty('--topbar-h', $('.topbar').offsetHeight + 'px');
 window.addEventListener('resize', measureTopbar);
 
+function aktarYenile(baslik, alt) {                                   // yeni aktarıcıyla bağlantı yeniden kurulsun
+  notify(baslik, alt || '');
+  if (store.net.role === 'player' && !(net.conn && net.conn.open)) { stopNet(false); startPlayer(); }
+  else if (store.net.role === 'dm') notify('Masa açık kalıyor', 'Yeni aktarıcı yeni bağlanan oyuncularda kullanılır.');
+  renderNetUI(); if ($('#tableDrawer').classList.contains('open')) renderTableDrawer();
+}
 function resumeTable() {
+  const ak = /[#&]aktar=([^&]+)/.exec(location.hash);                  // aktarıcılı davet linki: kaydet ve adres çubuğundan sil
+  if (ak) {
+    try { const [u, ...p] = atob(decodeURIComponent(ak[1])).split(':'); if (u && p.length) aktarKaydet({ u, p: p.join(':') }); } catch (e) { /* bozuk link */ }
+    history.replaceState(null, '', location.pathname + location.search + location.hash.replace(/[#&]aktar=[^&]+/, '').replace(/^&/, '#'));
+  }
   const m = /[#&]masa=([A-Za-z0-9-]+)/.exec(location.hash);
   if (store.net.role === 'dm') startDM();
   else if (store.net.role === 'player' && cleanCode(store.net.code).length === 6) startPlayer();
