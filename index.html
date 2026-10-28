@@ -1471,16 +1471,6 @@ button.sv-kisi:focus-visible .sv-kart{outline:2px solid var(--accent);outline-of
 .pov-dice .tv-die{position:absolute;width:var(--d);height:auto;aspect-ratio:1;translate:-50% -50%;filter:drop-shadow(0 calc(.25 * var(--u)) calc(.3 * var(--u)) rgba(0,0,0,.6))}
 .pov-dice.shown.crit-hit .tv-die:not(.x){filter:drop-shadow(0 0 calc(.7 * var(--u)) var(--good))}
 .pov-dice.shown.crit-miss .tv-die:not(.x){filter:drop-shadow(0 0 calc(.7 * var(--u)) var(--bad))}
-.pov-hand{position:absolute;left:50%;bottom:0;translate:-50% 0;width:min(100%,calc(100cqh * 9 / 16 * var(--povk,1)));aspect-ratio:3/4;z-index:7}   /* el kareleri 3:4: panelin altında, bozulmadan (panel genişleyince el büyümez, ortada kalır) */
-.pov-hand img{position:absolute;inset:0;width:100%;height:100%;display:block;visibility:hidden;-webkit-user-select:none;user-select:none}
-/* Kare kare değişir: yalnızca data-f ile seçilen kare görünür, arada yumuşak geçiş yok */
-.pov-hand[data-f="2"] .f2,.pov-hand[data-f="1b"] .f1b,.pov-hand[data-f="3"] .f3,.pov-hand[data-f="3a"] .f3a,.pov-hand[data-f="5"] .f5{visibility:visible}
-/* Boştaki el biraz aşağıda ve küçük durur ki karşıdakilerin yüzlerini ve zarları kapatmasın.
-   Atış başlayınca .idle kalkar ve kareler eski (tam) yerinden oynar. */
-.pov-hand.idle{translate:16% 25%;scale:.8;transform-origin:85% 100%;animation:povBreath 3.6s ease-in-out infinite alternate}   /* boştayken nefes alır gibi */
-@keyframes povBreath{to{transform:translateY(-.9%)}}
-/* El görselleri yoksa: el gizlenir, panelde yalnızca masa ve zar görünür */
-.tv-pov.no-hand .pov-hand{display:none}
 
 /* Kendi camın (2026-10-21, vitray; eski parşömen karakter kartının yerine): masada alt ortada, kurşun çerçeveli bir sıra cam.
    Oyuncunun masada lazım olan her şeyi kağıdı açmadan burada: kim olduğu, can, AC, altı yetenek (zar atar), saldırılar
@@ -1815,15 +1805,14 @@ body.tv-full #tableView{height:100dvh}
             <div class="tv-center" id="tvCenter" role="status" aria-live="polite"></div>
           </div>
         </div>
-        <!-- POV paneli (sol şerit): karakterin koltuğundan canlı 3D görünüm (altındaki 3D tuval çizer), zarlar ve el.
-             Tamamen bu tarayıcıda çalışır, ağa bir şey göndermez. El karelerinin adresini JS masa görünümü ilk açıldığında verir. -->
+        <!-- POV paneli (sol şerit): karakterin koltuğundan canlı 3D görünüm (altındaki 3D tuval çizer; kendi 3D kolun da orada).
+             Tamamen bu tarayıcıda çalışır, ağa bir şey göndermez. -->
         <div class="tv-pov" id="tvPov" aria-hidden="true">
           <span class="buyut" data-buyut="pov" title="Sürükleyerek büyüt ya da küçült"></span>
           <span class="buyut yan" data-buyut="povg" title="Sürükleyerek genişlet ya da daralt"></span>
           <div class="pov-name" id="povName"></div>
           <div class="pov-frame" id="povFrame" title="Sağa ya da sola bakmak için sürükle · çift tıkla: masaya dön">
             <div class="pov-dice" id="povDice"></div>
-            <div class="pov-hand idle" id="povHand" data-f="2"><img class="f2" alt=""><img class="f1b" alt=""><img class="f3" alt=""><img class="f3a" alt=""><img class="f5" alt=""></div>
           </div>
         </div>
         <!-- Duvardaki kara tahta: son atışlar. Üstüne gelince (telefonda dokununca) büyür. -->
@@ -5886,7 +5875,7 @@ function sonucSondur(el) {
 
 /* Zarları atanın koltuğundan masanın ortasına fırlatır: döner, seker, durur. Yalnızca konum ve dönüş canlandırılır (telefonda da hafif).
    Uzaklıklar "birim" (cqw) cinsindendir. Aynı anda göz hizası panelinde de zar yuvarlanır (povFly): aynı süre, aynı dönüş.
-   delay: kendi atışımda zar, paneldeki el açılana kadar bekler (iki yerde birden). */
+   delay: zar, atanın 3D eli açılana kadar bekler (iki yerde birden). */
 function flyDice(box, item, fast, delay = 0) {
   const sc = $('#tvScene').getBoundingClientRect(), u = sc.width / 100 || 1;
   const seat = tv.els.get(item.seat), kay = svKaynak(item);           // savaş sahnesinde: atanın kartından
@@ -5931,18 +5920,13 @@ function reveal(box) {
 /* ───────── POV paneli (sol şerit): karakterin koltuğundan ─────────
    "POV" düğmesiyle açılır ve kapanır (seçim tarayıcıda hatırlanır); uzaklaşıp yakınlaşınca kendiliğinden kapanmaz.
    Yalnızca 3D taverna açıkken görünür (povAcik). Görüntüyü 3D tuval panelin altına çizer (BÖLÜM 11b, tavGozDraw):
-   koltuğumdan masa, karşıdakiler (3D manken) ve taverna. Zarlar ana sahneyle aynı anda oynar. Kendi atışımda (oyuncu da
-   DM de) el kareleri sırayla, geçişsiz değişir; "el açılır" karesinin başında zar iki yerde birden kalkar. Animasyon
-   yalnızca gösterimdir: sonucu değiştirmez, yeniden zar atmaz. Ağa hiçbir şey gönderilmez.
-   (2026-10-16'ya kadar panel kapatılınca boyalı panorama, önden figürler ve garson gösteriliyordu; kaldırıldı,
-   görselleri gereksizler/masa/ içinde.) */
+   koltuğumdan masa, karşıdakiler ve taverna. Kendi figürüm başsız çizilir: kollarımı görürüm, kendi atışımda 3D kolum
+   zar atar (tavGozDraw). Zarlar ana sahneyle aynı anda oynar. Ağa hiçbir şey gönderilmez.
+   (2026-10-16'ya kadar panel kapatılınca boyalı panorama, önden figürler ve garson gösteriliyordu; 2026-10-28'e kadar
+   kendi atışımda 2D el kareleri (pov-el-*.webp) oynuyordu. İkisi de kaldırıldı, görselleri gereksizler/masa/ içinde.) */
 const POV = {
-  // Kare sırası ve süreleri (ms). Boşta el-2 (yumruk); sonra ara kare, ileri uzanma, el açılır (zar çıkar), geri çekilir.
-  // pov-el-1 (hareket bulanıklığı) kullanılmaz: bulanık kısmı macentayla karıştığı için atışın başında parlıyordu. Yerine bulanıksız el-1b.
-  seq: [['1b', 80], ['3', 100], ['3a', 150], ['5', 150]],
-  files: { 2:'pov-el-2', '1b':'pov-el-1b', 3:'pov-el-3', '3a':'pov-el-3-acik', 5:'pov-el-5' },
   cur: null,                  // panelin boyutu (piksel): { W, H }
-  ready: false, timers: [], popTimer: 0,
+  ready: false, popTimer: 0,
 };
 const povAcik = () => tav.state === 'on' && tavGozAcik();          // POV paneli görünsün mü?
 const povTek = () => povAcik() && !!store.povTek && !tvView().compact;   // Yalnız POV: panel bütün sahne (telefonda yok)
@@ -5951,7 +5935,7 @@ function povGoster(kaydir) {
   const wrap = $('.tv-wrap'), on = povAcik(), was = wrap.classList.contains('pov-on');
   wrap.classList.toggle('pov-on', on);
   wrap.classList.toggle('pov-tek', povTek());
-  if (!on) { povClear(); povPop(false); }
+  if (!on) povPop(false);
   if (kaydir && on !== was && tav.state === 'on' && !tvView().compact) {
     const pw = tvAlan().h * 9 / 16 + 0.18;                             // panelin genişliği (birim)
     if (tav.all) tavOverview(true);                                    // bütün tavernaya bakarken: taverna kalan alana yeniden sığsın
@@ -5960,30 +5944,7 @@ function povGoster(kaydir) {
   if (mode === 'table') { tvLayout(); renderTable(); }               // kendi camın yeni boşluğa göre yerleşsin
   tavKick();
 }
-// İlk girişte el karelerinin adresi verilir. El kareleri yüklenemezse el gizlenir.
-function povInit() {
-  if (POV.ready) return;
-  POV.ready = true;
-  const pov = $('#tvPov');
-  const fail = what => {
-    if (pov.classList.contains('no-hand')) return;
-    pov.classList.add('no-hand');
-    notify('El görselleri bulunamadı', `${what} "masa" klasöründe olmalı. Şimdilik panelde el olmadan yalnızca masa ve zar gösteriliyor.`);
-  };
-  $$('#povHand img').forEach(im => {
-    const f = im.className.slice(1);
-    im.onerror = () => {
-      if (f === '3a' && !im.dataset.alt) { im.dataset.alt = 1; im.src = ART + POV.files[3] + '.webp'; return; }   // açık el yoksa: ileri uzanan yumruk
-      fail(POV.files[f] + '.webp');
-    };
-    im.src = ART + POV.files[f] + '.webp';
-  });
-}
-function povFrame(f) { $('#povHand').dataset.f = f; }
-function povClear() {                                                // süren el hareketini durdurur, eli boşta duruma alır
-  POV.timers.forEach(clearTimeout); POV.timers = [];
-  povFrame('2'); $('#povHand').classList.add('idle');
-}
+function povInit() { POV.ready = true; }                          // masa görünümü ilk açılınca: panel ölçülebilir (povRender)
 
 // Panelin boyutu: zarların yeri ve uçuşu buna göre. renderTable her çalıştığında (biri katılınca, ayrılınca, pencere boyutu değişince) çağrılır.
 function povRender() {
@@ -6047,23 +6008,6 @@ function povPop(on) {
   tavKick();                                                         // 3D görüntü kutunun altına çizilsin (ya da silinsin)
 }
 function povHideLater() { clearTimeout(POV.popTimer); POV.popTimer = setTimeout(() => povPop(false), 1500); }
-/* Kendi atışımda eli oynatır. Döner: zarın kalkacağı an (ms) — "el açılır" karesinin başı.
-   Hareket azaltılmışsa el oynamaz ve zar beklemez (0). */
-function povThrow(fast) {
-  povClear(); povPop(true);
-  if (reduceMotion.matches) return 0;
-  const hand = $('#povHand');
-  hand.classList.remove('idle');
-  const k = fast ? 0.6 : 1;                                          // sıra uzunsa daha hızlı
-  let t = 0, diceAt = 0;
-  POV.seq.forEach(([f, ms]) => {
-    if (f === '3a') diceAt = t;
-    POV.timers.push(setTimeout(() => povFrame(f), t));
-    t += ms * k;
-  });
-  POV.timers.push(setTimeout(() => { povFrame('2'); hand.classList.add('idle'); }, t));
-  return diceAt;
-}
 
 function addRecent(item) {
   if (item.hist) { pushHistory(item.hist); item.hist = null; }        // zar tepsisinin geçmişi de ancak şimdi
@@ -6091,7 +6035,7 @@ function tableRoll(r, opt) {
     label: opt.remote ? opt.title || '' : r.label,
     total: r.total, detail: r.detail, flag: r.flag || '', note: r.note || '',
     dice: cleanDice(r.dice), ts: Date.now(),
-    mine: !opt.remote,                       // bu tarayıcıdaki kişinin kendi atışı mı? (sol paneldeki el yalnızca bunlarda oynar)
+    mine: !opt.remote,                       // bu tarayıcıdaki kişinin kendi atışı mı? (telefonda POV kutusu yalnızca bunlarda açılır)
     npc: (opt.remote ? opt.npc : r.npc) || '',   // DM bir düşman adına attıysa: savaş sahnesinde zar o düşmanın kartından çıkar
     hist: opt.hist || null,                  // zar tepsisinin geçmişine, zar yere inince eklenecek atış
     // Kendi ekranımda küçük bir hatırlatma: bu zarı kimler görüyor?
@@ -6113,9 +6057,9 @@ async function playNext() {
   const run = ++tv.run, fast = tv.queue.length >= 2;               // sıra uzunsa daha hızlı
   svMerkez();                                                         // savaş sahnesinde zarlar iki tarafın arasına iner
   const box = drawThrow(item, true);
-  // Atanın 3D kolu zar atar (17; herkesin atışında); zar el açıldığı anda kalkar. Kol yoksa: kendi atışımda sol paneldeki el kareleri
-  const kolGec = !reduceMotion.matches && !svAcik() ? tavKolAt(item.seat, fast) : 0;
-  const delay = kolGec || (item.mine && povAcik() && !svAcik() ? povThrow(fast) : 0);   // POV paneli kapalıysa (ya da savaştaysan) el yok, zar beklemez
+  // Atanın 3D kolu zar atar (17; herkesin atışında, POV'da kendiminki de); zar el açıldığı anda kalkar. Kol yoksa zar beklemez
+  const delay = !reduceMotion.matches && !svAcik() ? tavKolAt(item.seat, fast) : 0;
+  if (item.mine && povAcik() && !svAcik()) povPop(true);             // dik telefonda kendi atışımda POV kutusu açılır
   // 3D zar (BÖLÜM 11e) olabiliyorsa o; yoksa 2D zarlar (taverna açılamadıysa, savaşta, bilinmeyen zar türünde). Hareket azaltılmışsa zar doğrudan sonucuyla belirir
   const d3 = !reduceMotion.matches && zar3Olur(item);
   if (!d3 && tav.zarlar && tav.zarlar.length) zarTemizle();          // önceki 3D zarlar masada kalmasın
@@ -6134,7 +6078,7 @@ function tvFlush() {
   tv.run++; clearTimeout(tv.timer);
   tv.anims.forEach(a => { try { a.cancel(); } catch (e) { /* yok say */ } });
   tv.anims = [];
-  if (tv.cur && tv.cur.mine) { povClear(); if ($('#tvPov').classList.contains('pop')) povHideLater(); }   // paneldeki el de yarıda kalmasın
+  if (tv.cur && tv.cur.mine && $('#tvPov').classList.contains('pop')) povHideLater();   // telefondaki POV kutusu açık kalmasın
   if (tv.cur) addRecent(tv.cur);
   tv.queue.forEach(addRecent);
   tv.queue = []; tv.cur = null; tv.busy = false;
@@ -6307,7 +6251,7 @@ function tvReset() {                                                 // masadan 
   tv.els.clear();
   tv.mugs.forEach(m => m.remove()); tv.mugs.clear();
   waiterStop(); wt.bag = []; wt.last = '';
-  povClear(); povPop(false); povDiceDraw(null);
+  povPop(false); povDiceDraw(null);
 }
 Object.assign(ACTIONS, {
   'me-min': () => { store.meMin = !store.meMin; save(); renderMe(); renderTable(); },   // isimlikler kutunun yeni boyuna göre yerleşsin
@@ -6408,7 +6352,8 @@ const TAV = {
   dis: [0.15, 0.15, 0.19],   // dış zeminin rengi (taş dokusunu serin, koyu ve morumsu gri yapar)
   dalga: { olcek: 0.28, guc: 0.16, mat: ['M_Zemin', 'M_Duvar', 'M_Dis_Zemin', 'M_Ahsap', 'M_Ahsap_Koyu', 'M_Tas_Blok', 'M_Tas_Zemin'] },   // tekrarı kıran renk dalgası
   fps: 30,                   // "Canlı" açıkken saniyede en çok bu kadar kare
-  goz: { fov: 84, fovMin: 24, boy: 1.2, ileri: 0.12, zar: [38, 64], don: 100 },   // göz hizası: dikey görüş açısı, göz yüksekliği (m), koltuktan öne kayma (m),
+  goz: { fov: 84, fovMin: 24, boy: 1.2, ileri: 0.12, ileriBas: -0.18, zar: [38, 64], don: 100 },   // göz hizası: dikey görüş açısı, göz yüksekliği (m), koltuktan öne kayma (m;
+                                                             //   ileriBas: kendi figürüm başsız çizilince, gerçek göz yeri: kollarım görüş alanına girer),
                                                              //   masanın ortasının paneldeki yeri (soldan %, yukarıdan %; zarlar ve boyalı el buna göre),
                                                              //   sürükleyerek sağa ya da sola en çok kaç derece bakılır
   ALPHA: ['M_Yaprak', 'M_Kuru_Ot', 'M_Kalkan_1', 'M_Kalkan_2', 'M_Sancak', 'M_Tabela', 'M_Hali', 'M_Post'],   // saydam yerleri kesilerek çizilir
@@ -6655,9 +6600,9 @@ function tavManken(THREE, renk, dm) {
     if (tav.kol) {
       const mix = new THREE.AnimationMixer(b), at = mix.clipAction(tav.kol.klip);
       at.setLoop(THREE.LoopOnce, 1);
-      let el = null, parmak = null;                                  // avuç (tavAvuc): bilekle parmak kökünün ortası
-      b.traverse(o => { if (!o.isBone) return; if (/R_Hand/.test(o.name)) el = o; else if (/R_Finger1_/.test(o.name)) parmak = o; });
-      g.userData.kol = { mix, at, bitis: 0, el, parmak };
+      let el = null, parmak = null, bas = null;                      // avuç (tavAvuc): bilekle parmak kökünün ortası; bas: POV'da gizlenir
+      b.traverse(o => { if (!o.isBone) return; if (/R_Hand/.test(o.name)) el = o; else if (/R_Finger1_/.test(o.name)) parmak = o; else if (/_Head/.test(o.name)) bas = o; });
+      g.userData.kol = { mix, at, bitis: 0, el, parmak, bas };
     }
   } else {                                                         // model yoksa blockout manken
     kutu(ten, body, -0.18, 0.18, -0.12, 0.30, 0.50, 0.64);
@@ -6913,7 +6858,8 @@ function tavGozDraw(cr, dpr) {
   if (!povAcik() || !fr.width) return;
   const k = tav.koltuk.find(x => x.me) || tav.koltuk[0];
   if (!k) return;
-  const cam = tav.camG, G = TAV.goz, [ux, uy, L] = tavYon(k), R = L - G.ileri;
+  const bas = k.g && k.g.userData.kol && k.g.userData.kol.bas;          // iskeletli kendi figürüm: başı gizlenir (aşağıda)
+  const cam = tav.camG, G = TAV.goz, [ux, uy, L] = tavYon(k), R = L - (bas ? G.ileriBas : G.ileri);
   const goz = tav.b3([R * ux, R * uy, G.boy + k.dz]);
   cam.aspect = fr.width / fr.height; cam.position.copy(goz);
   // Masanın ortası panelde TAV.goz.zar noktasına düşsün: önce ortaya bak, sonra bakışı o kadar kaydır
@@ -6931,11 +6877,15 @@ function tavGozDraw(cr, dpr) {
   const p = merkez.clone().project(cam), on = p.z < 1 && Math.abs(p.x) < 4;
   POV.off = on ? [((p.x + 1) / 2 - G.zar[0] / 100) * fr.width, ((1 - p.y) / 2 - G.zar[1] / 100) * fr.height] : [fr.width * 3, 0];
   $('#povDice').style.translate = `${POV.off[0].toFixed(1)}px ${POV.off[1].toFixed(1)}px`;
-  tav.koltuk.forEach(x => { if (x.g) x.g.visible = !x.me; });         // kendi mankenimi görmem (kamera onun içinde)
+  // Kendi figürüm: iskeletli büyücüyse başı (şapkasıyla) bir anlığına sıfıra küçültülür, kollarım ve göğsüm görünür; kolum zar
+  // atar, zar avucumdan çıkar (2026-10-28; eskiden 2D el kareleri). İskeletsiz figür bütünüyle gizli (kamera onun içinde).
+  tav.koltuk.forEach(x => { if (x.g) x.g.visible = !x.me || !!bas; });
+  if (bas) bas.scale.setScalar(0.001);
   tavKesit(false);
   const vp = [fr.left - cr.left, cr.bottom - fr.bottom, fr.width, fr.height];   // WebGL'de y aşağıdan
   tav.boruG.render(tav.S, cam, K_(0) | K_(1) | K_(5) | K_(6) | K_(7) | K_(8), K_(0) | K_(5) | K_(6), Math.round(fr.width * dpr), Math.round(fr.height * dpr), 0, vp);
   tavKesit(true);
+  if (bas) bas.scale.setScalar(1);
 }
 /* 7a: kağıt açılırken kamera koltuğumun arkasından ve yukarısından (masaya bakarak) göz hizasına iner; bütün sahneye
    perspektif çizilir. Kapanırken aynı yoldan yükselir, sonra eğik görünüm geri gelir (tav.inis: yön, başlangıç, süre). */
