@@ -2,7 +2,8 @@
 """
 Hazır karakter portrelerini site için hazırlar (yol haritası 15).
 Girdi:  gorseller/karakter/<ad>.png|jpg|webp   (Nano Banana 2 çıktıları; promptlar: promptlar/karakter-portreleri.txt)
-        adlar: buyucu-1 … buyucu-4, paladin-1 … paladin-4
+        adlar: buyucu-1 … buyucu-4, paladin-1 … paladin-4; DM'in portreleri dm-erkek, dm-kadin (promptlar/dm-portreleri.txt,
+        index.html DM_PORTRE)
 Çıktı:  masa/karakter/<ad>.webp                 480×600 (4:5), ortadan kırpılmış; kart, kağıt ve isimlik bundan kesilir
 Çalıştırma (proje klasöründe):  python araclar\\karakter_hazirla.py
 Gerekenler: Python, Pillow.

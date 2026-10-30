@@ -126,6 +126,9 @@ def hazirla(doku):
         'cam_y':  mat_duz('M_Cam_Yesil', (0.05, 0.20, 0.07), 0.12),
         'cam_k':  mat_duz('M_Cam_Kahve', (0.28, 0.09, 0.015), 0.12),
         'cam_s':  mat_duz('M_Cam_Saydam', (0.32, 0.40, 0.38), 0.08),
+        'mantar': mat_duz('M_Mantar', (0.42, 0.28, 0.15), 0.8),        # şişe tıpası (2026-10-30)
+        'etiket': mat_duz('M_Etiket', (0.72, 0.62, 0.42), 0.85),       # parşömen etiket
+        'kil':    mat_duz('M_Kil', (0.50, 0.30, 0.17), 0.7),           # toprak testi
         'fener':  mat_duz('M_Fener_Cam', (0.12, 0.07, 0.03), 0.1, isik=(1.0, 0.52, 0.2), isik_guc=1.4),
         'bira':   mat_duz('M_Bira', (0.45, 0.22, 0.03), 0.15),
         'alev':   mat_duz('M_Alev', (0, 0, 0), 1.0, isik=(1.0, 0.45, 0.10), isik_guc=8.0),
@@ -430,9 +433,45 @@ def kupa_kur(bm, x, y, z, aci=0):
     P(bm, b_arasi((x + 0.045 * c, y + 0.045 * si, z + 0.09 * s), (x + 0.075 * c, y + 0.075 * si, z + 0.06 * s), 0.009 * s, n=6), 0, yumusak=True)
     P(bm, b_arasi((x + 0.075 * c, y + 0.075 * si, z + 0.06 * s), (x + 0.045 * c, y + 0.045 * si, z + 0.025 * s), 0.009 * s, n=6), 0, yumusak=True)
 
-def sise_kur(bm, x, y, z, h=None, r=None, mi=2):
+SISE_TIP = ('sarap', 'sarap', 'matara', 'kare', 'testi')
+
+def sise_kur(bm, x, y, z, h=None, r=None, mi=2, mantar=None, etiket=None, kil=None):
+    """Şişe (2026-10-30, kullanıcı: "şişelere yeni tasarım"): mantar / etiket / kil malzeme sırası verilirse dört tip: uzun şarap
+    şişesi (omuzlu, boynunda halka), yuvarlak matara (iksir şişesi gibi), kare içki şişesi, kulplu toprak testi; ağızlarında
+    mantar tıpa, bazılarında parşömen etiket bandı. Verilmezse eski düz şişe. Tip ve etiket yerine göre seçilir (sus'un sırası
+    değişmez: hanın geri kalanı aynı kalsın)."""
     h = h or sus.uniform(0.22, 0.32); r = (r or sus.uniform(0.032, 0.045)) * SISE_OLCEK
-    P(bm, b_torna(x, y, [(z, r * 0.9), (z + 0.005, r), (z + h * 0.62, r), (z + h * 0.75, r * 0.45), (z + h * 0.95, 0.013), (z + h, 0.014)], n=10), mi, yumusak=True)
+    if mantar is None:
+        P(bm, b_torna(x, y, [(z, r * 0.9), (z + 0.005, r), (z + h * 0.62, r), (z + h * 0.75, r * 0.45), (z + h * 0.95, 0.013), (z + h, 0.014)], n=10), mi, yumusak=True)
+        return
+    yr = random.Random(int(x * 1000) * 7919 + int(y * 1000) * 104729 + int(z * 100))
+    tip = SISE_TIP[yr.randrange(len(SISE_TIP))]
+    tipa = lambda z0, rr: P(bm, b_torna(x, y, [(z0 - 0.012, rr * 0.9), (z0 + 0.018, rr * 1.05), (z0 + 0.024, rr * 0.95)], n=8), mantar, yumusak=True)
+    if tip == 'sarap':
+        P(bm, b_torna(x, y, [(z, r * 0.9), (z + 0.006, r), (z + h * 0.6, r), (z + h * 0.72, r * 0.5), (z + h * 0.78, 0.014), (z + h * 0.92, 0.0125),
+                             (z + h * 0.925, 0.018), (z + h * 0.95, 0.018), (z + h * 0.955, 0.014)], n=10), mi, yumusak=True)
+        tipa(z + h * 0.955, 0.012)
+        if etiket is not None and yr.random() < 0.6:
+            P(bm, b_torna(x, y, [(z + h * 0.22, r * 1.03), (z + h * 0.44, r * 1.03)], n=10, ust=False, alt=False), etiket)
+    elif tip == 'matara':
+        b = h * 0.62
+        P(bm, b_torna(x, y, [(z, r * 0.6), (z + 0.01, r * 1.05), (z + b * 0.3, r * 1.4), (z + b * 0.58, r * 1.2), (z + b * 0.76, r * 0.45),
+                             (z + b * 0.8, 0.012), (z + b * 0.98, 0.012), (z + b, 0.016)], n=12), mi, yumusak=True)
+        tipa(z + b, 0.011)
+    elif tip == 'kare':
+        P(bm, b_torna(x, y, [(z, r * 1.2), (z + h * 0.66, r * 1.2), (z + h * 0.74, r * 0.55), (z + h * 0.8, 0.014), (z + h * 0.86, 0.014),
+                             (z + h * 0.865, 0.017), (z + h * 0.88, 0.017)], n=4), mi)
+        tipa(z + h * 0.88, 0.012)
+        if etiket is not None and yr.random() < 0.7:
+            P(bm, b_torna(x, y, [(z + h * 0.2, r * 1.23), (z + h * 0.45, r * 1.23)], n=4, ust=False, alt=False), etiket)
+    else:                                                                # testi: toprak, kulplu, tıpasız
+        k = kil if kil is not None else mi; b = h * 0.8
+        P(bm, b_torna(x, y, [(z, r * 0.85), (z + b * 0.12, r * 1.25), (z + b * 0.45, r * 1.35), (z + b * 0.72, r * 0.8), (z + b * 0.86, r * 0.48),
+                             (z + b * 0.95, r * 0.55), (z + b, r * 0.6)], n=12), k, yumusak=True)
+        a = yr.uniform(0, 2 * math.pi); u = (math.cos(a), math.sin(a))
+        p0 = (x + u[0] * r * 0.55, y + u[1] * r * 0.55, z + b * 0.9); p1 = (x + u[0] * r * 1.75, y + u[1] * r * 1.75, z + b * 0.72)
+        p2 = (x + u[0] * r * 1.3, y + u[1] * r * 1.3, z + b * 0.42)
+        P(bm, b_arasi(p0, p1, 0.006, n=6), k, yumusak=True); P(bm, b_arasi(p1, p2, 0.006, n=6), k, yumusak=True)
 
 def tabak_kur(bm, x, y, z, r=0.13, mi=0):
     P(bm, b_torna(x, y, [(z, r * 0.55), (z + 0.008, r * 0.62), (z + 0.016, r), (z + 0.02, r * 1.02)], n=18, ust=True), mi, yumusak=True)

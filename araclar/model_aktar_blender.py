@@ -32,7 +32,7 @@ for h in bpy.data.actions: h.use_fake_user = True                  # bütün har
 bpy.context.scene.frame_set(0)
 cikti = KOK / 'masa' / f'{CIKTI[0]}.glb'
 secenek = dict(filepath=str(cikti), export_format='GLB', use_selection=True, export_yup=True, export_apply=False,
-               export_animations=True, export_skins=True, export_extras=True)
+               export_animations=True, export_skins=True, export_extras=True, export_attributes=True)   # _salla: sallanan kumaş
 try: bpy.ops.export_scene.gltf(**secenek, export_image_format='JPEG', export_image_quality=82)
 except TypeError: bpy.ops.export_scene.gltf(**secenek, export_image_format='JPEG')
 veri = base64.b64encode(cikti.read_bytes()).decode('ascii')

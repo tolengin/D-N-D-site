@@ -500,9 +500,9 @@ for ri, rz in enumerate((1.0, 1.59, 2.19)):
             if sus.random() < 0.72:
                 x, y = w(X, H - 0.16 + sus.uniform(-0.04, 0.04))
                 if sus.random() < 0.25: hp.kupa_kur(bm, x, y, z + rz, sus.uniform(0, 360))
-                else: hp.sise_kur(bm, x, y, z + rz, mi=2 + sus.randrange(3))
+                else: hp.sise_kur(bm, x, y, z + rz, mi=2 + sus.randrange(3), mantar=5, etiket=6, kil=7)   # 2026-10-30: dört tip
             X += sus.uniform(0.11, 0.2)
-    nesne(f'Bar_Raf_{ri + 1}', bm, [M['kalay'], M['bira']] + CAMLAR, K_BAR)
+    nesne(f'Bar_Raf_{ri + 1}', bm, [M['kalay'], M['bira']] + CAMLAR + [M['mantar'], M['etiket'], M['kil']], K_BAR)
 for i in range(3):                                                                            # dolabın üstünde yatık fıçılar (musluklu)
     hp.fici(f'Bar_Fici_{i + 1}', K_BAR, *w(BX0 - 0.2 + i * 0.5, H - 0.25), 0.22, 0.42, 90, z + 1.0, yatik=True)
 bm = bmesh.new()

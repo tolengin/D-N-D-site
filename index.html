@@ -631,6 +631,12 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .dm-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:26px;align-items:center;margin-bottom:16px;padding:20px 22px}
 .dm-code .btns{margin-top:8px}
 .dm-info{display:grid;gap:8px}
+.dmp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dmp .f-l{margin-right:4px}
+.dmp-b{display:grid;place-items:center;width:44px;height:44px;padding:0;overflow:hidden;background:var(--surface);border:var(--lw) solid var(--lead);color:var(--muted);cursor:pointer}
+.dmp-b img{width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.dmp-b[aria-checked="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.dmp-b[hidden]{display:none}
 .dm-act{display:grid;gap:8px}
 .dm-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;align-items:start}
 .dm-grid>div>.card-h{margin:4px 2px 12px}
@@ -2672,7 +2678,7 @@ function normalize(c) {
   return c;
 }
 
-const NET_DEFAULTS = { role:'', code:'', name:'', pid:'', publicRolls:true, dmSecret:true };   // masa (çok oyunculu) ayarları
+const NET_DEFAULTS = { role:'', code:'', name:'', pid:'', publicRolls:true, dmSecret:true, dmPortre:'' };   // masa (çok oyunculu) ayarları
 let store = { v:1, element:'fire', guide:true, diceMode:'normal', tab:'actions', welcomed:false, activeId:'', order:[], chars:{}, net: Object.assign({}, NET_DEFAULTS) };
 let C = null;             // şu an ekranda açık olan karakter
 let migrated = false;
@@ -3800,6 +3806,11 @@ const OL_PORTRE = {
   Paladin: [{ k:'paladin-1', tur:'Human', look:'f' }, { k:'paladin-2', tur:'Dwarf', look:'m' }, { k:'paladin-3', tur:'Dragonborn', look:'m' }, { k:'paladin-4', tur:'Aasimar', look:'f' }],
 };
 const portreYol = k => `masa/karakter/${k}.webp`;
+// DM'in hazır portreleri (2026-10-30, kullanıcı: "DM için de kadın ve erkek görsel, DM istediğini seçsin"; promptlar/dm-portreleri.txt).
+// DM panelinden seçer; oyunculara yalnızca adı gider (roster.dmp), resmi herkes kendi masa/karakter/'inden açar. DM'in kendi
+// yüklediği resimler (NPC portreleri) yine hiç gitmez. Seçilmezse isimlikte zar simgesi.
+const DM_PORTRE = ['dm-erkek', 'dm-kadin'];
+const dmPortre = () => { const k = store.net.role === 'dm' ? store.net.dmPortre : net.dmPortre; return DM_PORTRE.includes(k) ? portreYol(k) : ''; };
 const OL_ONERI = { sinif:['Fighter','Wizard','Paladin','Rogue'], tur:['Human','Elf','Dwarf','Halfling'] };
 const OL_ADIM = ['Sınıf', 'Geçmiş', 'Tür', 'Yetenekler', 'Ekipman ve ad'];
 const DIZI = [15, 14, 13, 12, 10, 8];
@@ -4267,7 +4278,8 @@ const seatSig = c => (c ? [c.name, classKey(c), c.look].join('|') : '');
 function broadcastRoster() {
   const roster = rosterList(), dm = short(store.net.name || 'DM', 30);
   const npcs = npcRoster(), sira = siraPaket();                      // masadaki düşmanlar ve savaş sırası (BÖLÜM 10b)
-  net.players.forEach(p => send(p.conn, { t:'roster', roster, you: p.seat, dm, npcs, sira }));   // you = alıcının kendi koltuğu
+  const dmp = DM_PORTRE.includes(store.net.dmPortre) ? store.net.dmPortre : '';   // DM'in hazır portresinin adı (resmi değil)
+  net.players.forEach(p => send(p.conn, { t:'roster', roster, you: p.seat, dm, dmp, npcs, sira }));   // you = alıcının kendi koltuğu
   hrYay();                                                           // haritadaki piyonlar koltuklara göre (yeni gelen, giden)
   renderNetUI();                                                     // DM'in kendi "Masada:" listesi ve masa görünümü
 }
@@ -4374,7 +4386,7 @@ function playerReceive(conn, msg) {
     if (on) ses('ilham');
     notify(on ? 'DM sana ilham verdi' : 'DM ilhamını geri aldı', on ? 'Bir d20 zarını yeniden atabilirsin. Kullanınca yıldıza bas.' : '');
   }
-  else if (msg.t === 'roster') { net.roster = readRoster(msg.roster); net.npcs = readNpcs(msg.npcs); siraAl(msg.sira); if (msg.dm) net.dmName = short(msg.dm, 30); renderNetUI(); renderTable(); }
+  else if (msg.t === 'roster') { net.roster = readRoster(msg.roster); net.npcs = readNpcs(msg.npcs); siraAl(msg.sira); if (msg.dm) net.dmName = short(msg.dm, 30); net.dmPortre = DM_PORTRE.includes(msg.dmp) ? msg.dmp : ''; renderNetUI(); renderTable(); }
   else if (msg.t === 'hasar') hasarAl(clamp(int(msg.miktar), 0, 9999), short(msg.kimden, 40));   // DM'in uyguladığı hasar (BÖLÜM 10b)
   else if (msg.t === 'face') {                                       // bir koltuğun küçük portresi (yalnızca değişince gelir)
     const id = cleanSeat(msg.id), img = cleanImg(msg.img);
@@ -4581,6 +4593,9 @@ function renderDMHead() {
       <p class="hint always" style="margin:0">Oyuncuların siteyi açar, üstteki Masa düğmesine basar ve bu kodu yazar. Bu sekme açık kaldığı sürece masa açıktır; kapatırsan oyuncular düşer, yeniden açınca kendiliğinden geri bağlanırlar.</p>
       <label class="check"><input type="checkbox" data-net="publicRolls"${store.net.publicRolls ? ' checked' : ''}> Oyuncular birbirinin zar sonuçlarını görsün</label>
       <label class="check"><input type="checkbox" data-net="dmSecret"${store.net.dmSecret ? ' checked' : ''}> Benim attığım zarlar gizli kalsın</label>
+      <div class="dmp" role="radiogroup" aria-label="İsimliğindeki resim"><span class="f-l">İsimliğindeki resim</span>
+        ${['', ...DM_PORTRE].map(k => `<button class="dmp-b" role="radio" aria-checked="${(store.net.dmPortre || '') === k}" data-act="dm-portre" data-k="${k}" title="${k ? (k === 'dm-kadin' ? 'Kadın DM' : 'Erkek DM') : 'Zar simgesi'}">${k ? `<img src="${portreYol(k)}" alt="${k === 'dm-kadin' ? 'Kadın DM' : 'Erkek DM'}">` : '<svg class="ic"><use href="#i-d20"/></svg>'}</button>`).join('')}
+      </div>
     </div>
     <div class="dm-act">
       <button class="btn accent" data-act="mode-table"><svg class="ic"><use href="#i-table"/></svg>Masa görünümü</button>
@@ -4588,6 +4603,7 @@ function renderDMHead() {
       <button class="btn" data-act="table-newcode">Kodu yenile</button>
       <button class="btn bad" data-act="table-close">Masayı kapat</button>
     </div>`;
+  $$('#dmHead .dmp img').forEach(i => i.addEventListener('error', () => { i.closest('button').hidden = true; }));   // görseli henüz yoksa seçenek görünmez
 }
 
 function pcCard(p) {
@@ -4690,6 +4706,7 @@ Object.assign(ACTIONS, {
     broadcastRoster(); renderParty(); renderNetUI();
   },
   'copy-code': () => copyText(prettyCode(store.net.code), 'Masa kodu kopyalandı'),
+  'dm-portre': b => { store.net.dmPortre = DM_PORTRE.includes(b.dataset.k) ? b.dataset.k : ''; save(); broadcastRoster(); renderDMHead(); renderTable(); },
   'copy-link': () => { const a = aktarAl();                          // aktarıcı kayıtlıysa link onu da taşır: yalnızca özelden gönderilmeli
     copyText(location.origin + location.pathname + '#masa=' + store.net.code + (a ? '&aktar=' + encodeURIComponent(btoa(a.u + ':' + a.p)) : ''),
       a ? 'Davet linki kopyalandı (aktarıcılı: yalnızca özelden gönder)' : 'Davet linki kopyalandı'); },
@@ -6112,12 +6129,12 @@ function seatListHam() {
   // Masaya bağlı değilsen tek başına oturursun: masada yalnızca senin koltuğun
   if (!store.net.role) return [{ id: me, me:true, name: myName(), char: own.name.trim(), img: own.portrait, on:true, cls: classKey(own), look: own.look }];
   if (store.net.role === 'dm') {
-    return [{ id:'dm', dm:true, me:true, name: myName(), on: live }]
+    return [{ id:'dm', dm:true, me:true, name: myName(), img: dmPortre(), on: live }]
       .concat(seated().map(p => ({ id: p.seat, name: p.name, char: p.char ? p.char.name.trim() : '', img: p.face, on: !!p.online,
         cls: classKey(p.char), look: p.char ? p.char.look : '',
         hp: p.char ? p.char.hp : null, insp: !!(p.char && p.char.insp) })));   // can çubuğu ve ilham yıldızı yalnızca DM'in kendi ekranında, hiçbir yere gönderilmez
   }
-  const list = [{ id:'dm', dm:true, name: net.dmName || 'DM', on: live }]
+  const list = [{ id:'dm', dm:true, name: net.dmName || 'DM', img: dmPortre(), on: live }]
     .concat(net.roster.map((r, i) => {
       const mine = !!r.id && r.id === me;
       return { id: r.id || 'x' + i, me: mine, name: r.name, char: r.char, on: mine ? live : r.on, img: mine ? own.portrait : net.faces.get(r.id) || '',
@@ -6128,8 +6145,8 @@ function seatListHam() {
 }
 
 function seatHTML(s) {
-  // İsimlikteki küçük resim: DM'de her zaman zar simgesi (DM'in hazırladığı NPC portresi oyunculara sızmasın diye)
-  const av = s.dm ? '<svg class="ic"><use href="#i-d20"/></svg>'
+  // İsimlikteki küçük resim: DM'de zar simgesi ya da seçtiği hazır portre (DM_PORTRE); DM'in yüklediği resim asla (NPC portresi sızmasın)
+  const av = s.dm ? (s.img ? `<img src="${esc(s.img)}" alt="">` : '<svg class="ic"><use href="#i-d20"/></svg>')
     : s.img ? `<img src="${esc(s.img)}" alt="">`
     : esc(((s.char || s.name || '?').trim()[0] || '?').toUpperCase());
   let hp = '';
@@ -7112,6 +7129,26 @@ const SINIF_MODEL = { fighter: ['fighter-iskelet', 'FIGHTER_ISKELET_GLB'] };   /
 const BOSTA = { ara: [10, 15] };                                          // iki özel hareket arası (sn)
 const bostaAra = () => (BOSTA.ara[0] + Math.random() * (BOSTA.ara[1] - BOSTA.ara[0])) * 1000;
 const bostaKlip = g => ({ nefes: g.animations.find(a => a.name === 'nefes'), ozel: g.animations.find(a => a.name === 'ozel') });
+/* Sallanan kumaş (2026-10-30, kullanıcı: "kıyafetlere cloth ver, animasyonla sallansın"). Blender'ın kumaş benzetimi siteye
+   taşınamıyor; modelde her köşenin bir sallanma payı var ('_salla', 0…1; araclar/karakter_kur_blender.py kumas_agirlik: etek ucu 1,
+   bel ve bacaklar 0). Toon malzemenin köşe gölgelendiricisi iskeletten sonra köşeyi bu payla oynatır: yürürken (uKY → 1) etek
+   geride kalır, adımla iki yana savrulur ve hafifçe zıplar; dururken (uKY → 0) uKB kadar kıpırdar. Ölçüler metre. Yalnızca
+   "Canlı"da oynar (zaman orada ilerler). Gölge ve çizgi geçişleri sallanmayı görmez (milimetrelik fark). */
+const KUMAS = { yan: 0.022, geri: 0.035, zipla: 0.008, bos: 0.004, bosDm: 0.009 };
+function kumasMat(m) {
+  const u = { uKT: { value: 0 }, uKY: { value: 0 }, uKB: { value: KUMAS.bos } };
+  m.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, u);
+    sh.vertexShader = 'attribute float _salla;\nuniform float uKT;\nuniform float uKY;\nuniform float uKB;\n' + sh.vertexShader.replace('#include <skinning_vertex>', `#include <skinning_vertex>
+      { float kip = sin(uKT * 1.9 + transformed.x * 9.0 + transformed.z * 7.0);
+        transformed.x += _salla * (${KUMAS.yan.toFixed(3)} * uKY * sin(uKT * 6.2832) + uKB * kip);
+        transformed.z += _salla * (-${KUMAS.geri.toFixed(3)} * uKY + ${KUMAS.zipla.toFixed(3)} * uKY * sin(uKT * 12.566) + uKB * 0.6 * kip); }`);
+  };
+  m.customProgramCacheKey = () => 'kumas';
+  m.userData.kumas = u;
+}
+const kumasTopla = kok => { const l = []; kok.traverse(o => { if (o.isMesh && o.material.userData.kumas) l.push(o.material.userData.kumas); }); return l; };
+
 async function tavBuyucu(THREE, GLTFLoader) {
   try {
     let buf, kol = null;
@@ -7124,6 +7161,7 @@ async function tavBuyucu(THREE, GLTFLoader) {
         if (!o.isMesh) return;
         const m = o.material;
         o.material = new THREE.MeshToonMaterial({ map: m.map || null, color: m.color ? m.color.clone() : 0xffffff, gradientMap: tav.ramp, side: THREE.DoubleSide });
+        if (o.geometry.attributes._salla) kumasMat(o.material);         // etek, önlük, ceket eteği sallanır (KUMAS)
         if (o.isSkinnedMesh) o.frustumCulled = false;                  // kol uzanınca duruştaki sınırların dışına çıkabilir
       });
       gltf.scene.rotation.y = Math.PI;                                  // model +z'ye bakıyor; koltuklar −z'nin masaya dönmesini bekler
@@ -7151,7 +7189,8 @@ async function tavBuyucu(THREE, GLTFLoader) {
     }
     tav.perdeModel = await perP;
     const dmG = dmP && await dmP, dmKlip = dmG && dmG.animations.find(a => a.name === 'zar_at');
-    tav.dm = dmKlip ? { kok: dmG.scene, klip: dmKlip, ...bostaKlip(dmG) } : null;
+    tav.dm = dmKlip ? { kok: dmG.scene, klip: dmKlip, ...bostaKlip(dmG), kumas: kumasTopla(dmG.scene) } : null;   // kopyalar malzemeyi paylaşır
+    if (tav.dm) tav.dm.kumas.forEach(u => { u.uKB.value = KUMAS.bosDm; });
     tav.sinif = {};
     (await snP).forEach(r => { const kl = r && r[1].animations.find(a => a.name === 'zar_at'); if (kl) tav.sinif[r[0]] = { kok: r[1].scene, klip: kl, ...bostaKlip(r[1]) }; });
     tav.buyucu = kok;
@@ -7261,7 +7300,8 @@ function tavGarsonlar(ac) {
       if (oz) { oz.setLoop(tav.THREE.LoopOnce, 1); oz.clampWhenFinished = true; }
       if (yuru) yuru.timeScale = GARSON.hiz / yh;
       const yol = ters ? GARSON.yol.slice().reverse() : GARSON.yol;
-      const G = { g, mix, yuru, bekle, oz, tOz: 0, yol, i: Math.floor(yol.length * faz) % yol.length, u: 0, bek: 0, yon: 0, son: 0, anim: null };
+      const G = { g, mix, yuru, bekle, oz, tOz: 0, yol, i: Math.floor(yol.length * faz) % yol.length, u: 0, bek: 0, yon: 0, son: 0, anim: null,
+        kumas: kumasTopla(g), ky: 0 };                                  // sallanan kumaş; ky: yürüyor mu (yumuşak, 0…1)
       garsonYer(G, 0); garsonAnim(G, 'bekle');
       tav.garsonlar.push(G); tavKick();
     }).catch(e => console.warn('Garson açılamadı (' + ad + '):', e));
@@ -7305,6 +7345,8 @@ function tavGarsonGuncelle(now) {
     const dt = G.son ? Math.min(0.1, (now - G.son) / 1000) : 0; G.son = now;
     if (!canli) return;
     garsonYer(G, dt); G.mix.update(dt);
+    G.ky += ((G.bek > 0 ? 0 : 1) - G.ky) * Math.min(1, dt * 3);
+    G.kumas.forEach(u => { u.uKT.value = now / 1000; u.uKY.value = G.ky; });
   });
 }
 const tavData = () => tavVeri(SAHNE.ad, SAHNE.glob);                   // taverna-npr ya da (denemede) yeni han
@@ -7908,6 +7950,7 @@ function tavKolAt(id, fast) {
 function tavKolGuncelle(now) {
   let var_ = false;
   const canli = tavCanli() && !reduceMotion.matches;
+  if (canli && tav.dm && tav.dm.kumas) tav.dm.kumas.forEach(u => { u.uKT.value = now / 1000; });   // DM'in ceket eteği hafifçe kıpırdar
   tav.koltuk.forEach(k => {
     const kol = k.g && k.g.userData.kol;
     if (!kol) return;
