@@ -125,9 +125,11 @@ def ozel_tablo(arm, tur):
                 (50, [('bip Head_06', 'Y', -30)]), (62, [('bip Head_06', 'X', -6)]), (74, el2(0.0)), (82, el2(0.07) + [('bip Spine1_04', 'X', -4)]),
                 (88, el2(0.03)), (94, el2(0.08) + [('bip Spine1_04', 'X', -4)]), (110, [])]
     if tur == 'sac':
+        # 2026-10-30: el kulağın arkasına (0,04–0,06 geri) uzanınca dirsek ~175° katlanıyor, önkol iki karede 130° burulup
+        # takla atıyordu (kullanıcı: "eli 360 atıyor"). Artık şakaktan kulağın üstüne kayar, bilek dışarıda (yan).
         q = Y['kulak']
-        return [(0, []), (14, uzan(q + on * 0.03 * k, 0.12, [('bip Head_06', 'Y', -10)])), (26, uzan(q - on * 0.04 * k + yuk * 0.01 * k, 0.12, [('bip Head_06', 'Y', -12)])),
-                (34, uzan(q - on * 0.06 * k - yuk * 0.03 * k, 0.12, [('bip Head_06', 'Y', -8)])), (46, inis), (60, []), (72, [])]
+        sv = lambda o, y, bas: uzan(q + on * o * k + yuk * y * k, 0.12, [('bip Head_06', 'Y', bas)], yan=0.7)
+        return [(0, []), (14, sv(0.05, 0.03, -10)), (26, sv(0.01, 0.02, -12)), (34, sv(-0.01, -0.02, -8)), (46, inis), (60, []), (72, [])]
     if tur == 'alin':
         a = Y['alin']
         sil = lambda s: uzan(a + sag * s * k, 0.12, [('bip Head_06', 'X', -8)])
