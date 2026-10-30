@@ -55,7 +55,7 @@ POZ = [
 # Zar atma hareketi (ZAR_AT, BIRAK, ANIM_KEMIK) ve kemik çevirme (cevir) 2026-10-28'den beri araclar/zar_hareket.py'de:
 # karakter_kur_blender.py (hazır modellerden DM, hancı) de aynısını kullanır.
 sys.path.insert(0, str(KOK / 'araclar'))
-from zar_hareket import EKSEN, ZAR_AT, BIRAK, ANIM_KEMIK, cevir, hareket_kur
+from zar_hareket import EKSEN, ZAR_AT, BIRAK, ANIM_KEMIK, cevir, hareket_kur, bosta_kur
 
 
 def iskelet_kur():
@@ -90,6 +90,8 @@ def iskelet_kur():
 
     # zar_at: her anahtar karede kemikler oturuşa döner, ZAR_AT'taki dönüşler uygulanır, ANIM_KEMIK'lerin dönüşü kaydedilir
     hareket_kur(arm)
+    bosta_kur(arm, 'sakal')                                         # nefes + ara sıra sakalını sıvazlar (2026-10-29)
+    arm.animation_data.action = bpy.data.actions['zar_at']          # önizleme zar_at'ı çeker
     sah = bpy.context.scene
 
     # Dışa aktar (iskelet + hareket) ve .js kopyası
@@ -120,6 +122,12 @@ def iskelet_kur():
             sah.frame_set(kare)
             sah.render.filepath = str(KOK / '3d' / f'{ONEK}-zar-{ad}-{kare:02d}.png')
             bpy.ops.render.render(write_still=True)
+    arm.animation_data.action = bpy.data.actions['ozel']             # sakal sıvazlama: önden birkaç kare
+    cam.location = (0, -4, 1.15); cam.rotation_euler = (Vector((0, -0.1, 1.15)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
+    for kare in (0, 16, 28, 50, 72, 86, 108):
+        sah.frame_set(kare)
+        sah.render.filepath = str(KOK / '3d' / f'{ONEK}-ozel-{kare:03d}.png')
+        bpy.ops.render.render(write_still=True)
     print('BITTI')
 
 bpy.ops.wm.read_factory_settings(use_empty=True)

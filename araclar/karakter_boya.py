@@ -357,7 +357,8 @@ def garson_kiz(C, P, parca=None, hata=False):
     lacivert = (h > 0.5) & (h < 0.75) & (v < 0.5) & (s > 0.15)
     mavi = (h > 0.45) & (h < 0.62) & (s > 0.3) & (v > 0.45)            # elindeki bez
     sac = kafa & ~ten & ~beyaz & (z > 0.45) & ~(lacivert & (z < 0.55))
-    bone = kafa & beyaz & (z > 0.8)                                    # hizmetçi bonesi → başörtüsü rengi
+    yuzon = kafa & (y < -0.11) & (z > 0.62) & (z < 0.86) & (ax < 0.075) & (ten | beyaz)   # yüzün önü (aşağıda tene boyanır)
+    bone = kafa & beyaz & (z > 0.8) & ~yuzon                          # hizmetçi bonesi → başörtüsü rengi
     yaka = beyaz & (z > 0.43) & (z < 0.58) & ~kafa | (beyaz & (z > 0.43) & (z < 0.56) & (ax < 0.12))
     kol = (ax > 0.13) & (z > 0.26) & (z < 0.5)                         # kısa kollar ve manşetleri → krem bluz
     ust = lacivert & (z > 0.18) & ~kol                                 # korse
@@ -378,6 +379,11 @@ def garson_kiz(C, P, parca=None, hata=False):
     boya(C, onluk, '#d9cdb3', 0.7)
     boya(C, mavi, '#cfc3a6', 0.7)                                       # bez → krem paçavra
     boya(C, ayakkabi, '#2c2522', 0.8)
+    # Yüzün önü (2026-10-29): modelin dokusunda alnın, burnun ve yanakların ortasında neredeyse beyaz pişmiş parlama var; az
+    # çokgenlide yüz bu yüzden açık gri bir maske gibi görünüyordu (kullanıcı: "kadın garson çirkin duruyor"). Kâğıttaki açık tene
+    # boyanır; aydınlık-karanlık farkı biraz kalır (gözler ve ağız koyu), parlama kırpılır.
+    Ly = L[yuzon]; k = np.clip(Ly / max(np.median(Ly), 1e-3), 0.72, 1.12)
+    C[yuzon] = np.clip(renk('#d9a688') * k[:, None], 0, 1)
     yuz = (kafa & ten).astype(np.float32) * np.clip((-0.1 - y) / 0.03, 0, 1)   # yüzün önü (gözler, ağız) olduğu gibi kalsın
     return boyali(C, P, koru=yuz)
 
@@ -392,17 +398,18 @@ def garson_erkek(C, P, parca=None, hata=False):
     h, s, v = hsv(C)
     ax = np.abs(x)
     kafa = (x ** 2 + (y - 0.02) ** 2 + ((z - 0.81) * 0.9) ** 2) < 0.19 ** 2
-    # Deri tunik tenle aynı renkte: ten yalnızca yüzde, boyunda, göğsün açıklığında ve önkollarda aranır
+    # Deri tunik tenle aynı renkte: ten yalnızca yüzde, boyunda ve göğsün açıklığında aranır. (2026-10-29'a kadar önkollarda da:
+    # önkollar ve eller artık yeniden kuruluyor, karakter_kur_blender.kol_kes; o bölge ellerin yanındaki tuniği de tene boyuyordu)
     tenrenk = (h < 0.1) & (s > 0.2) & (s < 0.68) & (v > 0.3)
     yuz = kafa & (y < 0.03) & (z < 0.85)
-    tenbolge = yuz | ((z > 0.55) & (ax < 0.09) & (y < 0.0)) | ((ax > 0.19) & (z < 0.3) & (z > -0.2))
+    tenbolge = yuz | ((z > 0.55) & (ax < 0.09) & (y < 0.0))
     ten = tenrenk & tenbolge
     sac = kafa & (z > 0.72) & ~(yuz & tenrenk)                           # yüzün teni dışında başın üstü ve arkası
     dudak = ((h < 0.03) | (h > 0.95)) & (s > 0.3) & (v > 0.35)
     sakal = kafa & (y < 0.04) & (z > 0.585) & (z < 0.758) & (ax < 0.078) & ~dudak   # çene, yanak altı, bıyık: tenle kapanır
     teal = (h > 0.42) & (h < 0.62) & (s > 0.15) & (z > 0.15)            # gömlek (kollar, yaka)
     sharvar = (h > 0.42) & (h < 0.7) & (z < 0.0) & (z > -0.62)
-    tunik = (h < 0.12) & (s > 0.3) & ~ten & (z > -0.4) & (z < 0.65) & ~kafa & ~((ax > 0.2) & (z < 0.3))
+    tunik = (h < 0.12) & (s > 0.3) & ~ten & (z > -0.4) & (z < 0.65) & ~kafa
     kemer = (z > 0.08) & (z < 0.2) & (v < 0.32) & (ax < 0.2)
     yelek = tunik & (z > 0.17)
     onluk = tunik & (z <= 0.1) & (y < 0.02)

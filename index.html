@@ -1542,6 +1542,79 @@ body:not(.guide) .mc-rehber{display:none}
 .mc-y i{font-style:normal;font-size:12px;font-weight:700;color:var(--muted)}
 .mc-y.roll:hover{background:var(--accent)}
 .mc-y.roll:hover :is(small,i){color:inherit}
+/* Harita camı (BÖLÜM 10d, 2026-10-29): DM'in yüklediği ülke ve şehir haritaları, noktalar (kilitli / açık), piyonlar.
+   Başlığından sürüklenir, sağ alt köşesinden büyür; haritaya tıklayınca ekran boyunda açılır (.buyuk). Kendi camının (alt
+   ortada) altında kalır: zar düğmelerin hep basılabilir. */
+.hr-pano{position:absolute;z-index:8;display:flex;flex-direction:column;min-width:260px;min-height:200px;background:var(--lead);
+  border:var(--lw) solid var(--lead);box-shadow:var(--shadow);color:var(--text)}
+.hr-pano[hidden]{display:none}
+.hr-pano.buyuk{position:fixed;inset:3vh 3vw;z-index:70}
+.hr-bas{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 6px 4px 12px;background:var(--surface);cursor:grab;user-select:none;touch-action:none}
+.hr-pano.buyuk .hr-bas{cursor:default}
+.hr-bas h2{flex:1;min-width:0;margin:0;font-family:var(--font-display);font-size:18px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hr-bas h2 small{margin-left:8px;font-family:var(--font-ui);font-size:12px;font-weight:600;color:var(--muted)}
+.hr-dugmeler{display:flex;align-items:center;gap:4px;flex:none}
+.hr-dugmeler .btn.on{background:var(--accent);color:var(--on-accent)}
+.hr-cep{display:flex;align-items:center;gap:8px;flex:none;font-size:12px;font-weight:700;color:var(--muted)}
+.hr-govde{position:relative;flex:1;min-height:0;display:grid;place-items:center;overflow:hidden;background:#110c09}
+.hr-sahne{position:relative;cursor:zoom-in}
+.hr-pano.buyuk .hr-sahne{cursor:zoom-out}
+.hr-pano.ekle .hr-sahne{cursor:crosshair}
+.hr-sahne>img{display:block;width:100%;height:100%;user-select:none;pointer-events:none}
+.hr-nokta{position:absolute;translate:-50% -100%;display:grid;justify-items:center;gap:1px;padding:0;border:0;background:none;color:var(--text);cursor:pointer;font:inherit}
+.hr-nokta .ic{width:28px;height:28px;fill:color-mix(in srgb,var(--accent) 75%,#000);stroke:#fff;stroke-width:1.4;filter:drop-shadow(0 1px 2px #000b)}
+.hr-nokta span{padding:1px 7px;background:var(--surface);border:1px solid var(--lead);font-size:12.5px;font-weight:700;white-space:nowrap}
+.hr-nokta.kilit .ic{fill:#4d4943}
+.hr-nokta.kilit span{color:var(--muted)}
+.hr-nokta.bos .ic{opacity:.75}
+.hr-nokta.sec span,.hr-nokta:hover span{background:var(--accent);color:var(--on-accent)}
+/* Piyon: oyuncunun cam renginde kare taş, içinde küçük portresi ya da adının ilk harfi */
+.hr-piyon{position:absolute;translate:-50% -50%;display:grid;place-items:center;width:32px;height:32px;overflow:hidden;border:3px solid var(--g);
+  background:color-mix(in srgb,var(--g) 55%,#000);color:#fff;font-family:var(--font-display);font-weight:700;font-size:16px;line-height:1;
+  box-shadow:0 2px 5px #000b;touch-action:none;user-select:none}
+.hr-piyon img{width:100%;height:100%;object-fit:cover;object-position:50% 20%}
+.hr-piyon.oyna{cursor:grab}
+.hr-piyon.ben{outline:2px solid #fff;outline-offset:-1px}
+.hr-piyon.cep{position:relative;translate:none;width:30px;height:30px}
+.hr-piyon.kalkti{opacity:.3}
+.hr-piyon.tasiniyor{position:fixed;z-index:200;pointer-events:none;cursor:grabbing;translate:-50% -50%}
+.hr-menu,.hr-form{position:absolute;z-index:3;translate:-50% 10px;padding:8px;background:var(--surface);border:var(--lw) solid var(--lead);box-shadow:var(--shadow)}
+.hr-menu{display:grid;gap:4px;min-width:210px}
+.hr-menu b{font-family:var(--font-display);font-size:15px}
+.hr-menu .btn{justify-content:flex-start}
+.hr-form{display:flex;gap:4px}
+.hr-form input{width:150px;min-width:0}
+:is(.hr-menu,.hr-form).sol{translate:-12px 10px}
+:is(.hr-menu,.hr-form).sag{translate:calc(-100% + 12px) 10px}
+:is(.hr-menu,.hr-form).yukari{translate:-50% calc(-100% - 40px)}
+:is(.hr-menu,.hr-form).sol.yukari{translate:-12px calc(-100% - 40px)}
+:is(.hr-menu,.hr-form).sag.yukari{translate:calc(-100% + 12px) calc(-100% - 40px)}
+.hr-bos{display:grid;justify-items:center;gap:12px;max-width:420px;padding:20px;text-align:center}
+.hr-bos p{margin:0}
+.hr-boyut{position:absolute;right:0;bottom:0;width:20px;height:20px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 52%,var(--accent) 52%)}
+.hr-pano.buyuk .hr-boyut{display:none}
+/* Beceriler ve envanter camı (2026-10-29, kullanıcı: "masada kağıda dönmeden beceri zarı atalım, envanter de orada olsun"):
+   üst sıradaki düğmelerle açılır, biri açılınca öbürü kapanır. Ana sıra kadar geniş. */
+.mc-ust>.btn.on{background:color-mix(in srgb,var(--accent) 30%,var(--surface))}
+.mc-sek{align-self:stretch;display:grid;gap:10px;padding:12px 14px;background:var(--surface);border:var(--lw) solid var(--lead);box-shadow:var(--shadow)}
+.mc-sek h3{margin:0;font-family:var(--font-display);font-size:16px;font-weight:700;line-height:1.1}
+.mc-sek h3 em{font-family:var(--font-ui);font-style:normal;font-weight:500;font-size:12px;color:var(--muted);margin-left:6px}
+.mc-bc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.mc-b.roll{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:5px 9px;font-size:14px;text-align:left}
+.mc-b span{display:flex;align-items:center;gap:7px;min-width:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-b span::before{content:"";flex:none;width:8px;height:8px;transform:rotate(45deg);border:1.5px solid currentColor}
+.mc-b.p span::before{background:currentColor}                          /* dolu: yetkinsin */
+.mc-b.u span::before{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px currentColor}   /* çift çerçeve: uzmansın */
+.mc-b small{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted)}
+.mc-b.roll:hover small{color:inherit}
+.mc-esya{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 18px;margin:0;padding:0;list-style:none;max-height:216px;overflow:auto}
+.mc-esya li{display:grid;grid-template-columns:minmax(0,1fr) auto 2.2em auto;align-items:center;gap:4px;min-height:36px;border-bottom:1px solid var(--line)}
+.mc-esya li>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.mc-esya li>b{text-align:center;font-family:var(--font-display);font-size:18px;font-variant-numeric:lining-nums}
+.mc-esya li.sifir>span{color:var(--muted);text-decoration:line-through}
+.mc-para{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;font-size:13px;color:var(--muted)}
+.mc-para b{font-family:var(--font-display);font-size:17px;color:var(--text)}
+.mc-bos{margin:0;color:var(--muted)}
 /* Ayrıntı camı (açılınca, ana sıranın üstünde) */
 .mc-detay{display:grid;grid-template-columns:auto auto;gap:var(--lw);padding:var(--lw);background:var(--lead);box-shadow:var(--shadow)}
 .mc-detay>section{display:grid;align-content:start;gap:8px;padding:12px 14px;background:var(--surface)}
@@ -1594,6 +1667,8 @@ body.tv-full #tableView{height:100dvh}
   .mc-ac{width:auto}
   .mc-y.roll{width:auto}
   .mc-detay{grid-template-columns:minmax(0,1fr)}
+  .mc-bc{grid-template-columns:repeat(2,minmax(0,1fr))}                  /* telefonda beceriler iki sütun, eşyalar tek */
+  .mc-esya{grid-template-columns:minmax(0,1fr)}
   .tv-ust{display:contents}
   .tv-fs{position:absolute;z-index:9;top:8px;left:8px}
   .tv-zoom,#tvAll,#tvGoz{display:none}                        /* telefonda tavernada gezinme ve POV düğmesi yok */
@@ -1686,6 +1761,11 @@ body.tv-full #tableView{height:100dvh}
   <symbol id="i-gec" viewBox="0 0 24 24"><path d="M5 6.5l6.5 5.5L5 17.5zM12.5 6.5 19 12l-6.5 5.5z"/></symbol>
   <symbol id="i-nota" viewBox="0 0 24 24"><path d="M9 17.5V5.8l10-2.3v11.7"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.2" r="2.5"/><path d="M9 9.3l10-2.3"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <!-- Harita (2026-10-29): kilit (kilitli şehir) ve konum iğnesi (açık şehir, harita düğmesi) -->
+  <symbol id="i-kilit" viewBox="0 0 24 24"><path d="M7.5 10.5V8a4.5 4.5 0 0 1 9 0v2.5M5.5 10.5h13v10h-13zM12 14.3v2.6"/></symbol>
+  <symbol id="i-konum" viewBox="0 0 24 24"><path d="M12 21.5s-6.5-6.3-6.5-11.2a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11.2-6.5 11.2z"/><circle cx="12" cy="10.3" r="2.3"/></symbol>
+  <!-- Heybe: envanter (2026-10-29) -->
+  <symbol id="i-canta" viewBox="0 0 24 24"><path d="M9 6.5c0-2 1.3-3 3-3s3 1 3 3M6.2 8h11.6l1.6 10.6a1.6 1.6 0 0 1-1.6 1.9H6.2a1.6 1.6 0 0 1-1.6-1.9zM9.5 11.5h5"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
   <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
@@ -1782,11 +1862,16 @@ body.tv-full #tableView{height:100dvh}
     <div class="tv-wrap">
       <!-- Oyuncunun sağ alttaki kendi kutusu (içini JS doldurur). DM'de görünmez. -->
       <aside class="tv-me" id="tvMe" aria-label="Karakterim" hidden></aside>
+      <!-- Harita camı (BÖLÜM 10d; içini JS doldurur) ve DM'in harita resmi seçtiği gizli kutu -->
+      <section class="hr-pano" id="hrPano" aria-label="Harita" hidden></section>
+      <input type="file" id="hrDosya" accept="image/*" hidden>
       <div class="tv-ust">
         <!-- Tam ekran: tarayıcı desteklemiyorsa (ör. iPhone Safari) JS gizler -->
         <button class="btn sm tv-fs" id="tvFull" data-act="tv-full" aria-pressed="false" title="Tam ekran" hidden><svg class="ic"><use href="#i-expand"/></svg><span>Tam ekran</span></button>
         <!-- Karakter kağıdını açar: kamera koltuğa yaklaşır, kağıt masanın üstünde açılır (madde 7) -->
         <button class="btn sm" id="tvKagit" data-act="mode-sheet" title="Karakter kağıdını aç"><svg class="ic"><use href="#i-scroll"/></svg><span>Kağıdım</span></button>
+        <!-- Harita (BÖLÜM 10d): DM yükler, herkes görür; oyuncuda DM bir harita paylaşınca görünür -->
+        <button class="btn sm" id="tvHarita" data-act="hr-ac" aria-pressed="false" hidden><svg class="ic"><use href="#i-konum"/></svg><span>Harita</span></button>
         <!-- NPR taverna yüklenince görünür: bütün tavernaya bakmak / masaya dönmek -->
         <div class="tv-arac" id="tvArac" hidden>
           <button class="btn sm" id="tvAll" data-act="tav-all" aria-pressed="false" title="Bütün tavernaya bak (bir daha basınca masaya döner)"><svg class="ic"><use href="#i-harita"/></svg><span>Bütün taverna</span></button>
@@ -4034,6 +4119,7 @@ function stopNet(clearRole = true) {
   if (peer) { try { peer.destroy(); } catch (e) { /* zaten kapalı */ } }
   net.players.clear(); net.feed = []; net.roster = []; net.dmName = ''; net.sentPortrait = null;
   net.mySeat = ''; net.faces.clear(); net.dropped = false; net.npcs = []; net.sira = null;
+  HR.resim.clear(); HR.parca.clear(); net.harita = null; HR.goster = ''; HR.menu = ''; HR.yeni = null;   // harita (BÖLÜM 10d); DM'inki kalıcı depoda durur
   if (clearRole) store.sira = null;                                  // masa kapanınca savaş da biter
   if (clearRole) { tvReset(); store.net.role = ''; save(); if (mode !== 'sheet') setMode('table'); }   // DM ekranından ya da masadan: tek başına masaya
   setNet('off', '');
@@ -4120,7 +4206,11 @@ function dmReceive(pid, conn, msg) {
   dbg('rx', msg);
   p.seen = Date.now();
   if (msg.t === 'ping') send(conn, { t:'pong', want: !p.char });        // kağıt henüz gelmediyse yeniden iste
-  else if (msg.t === 'hello') send(conn, { t:'welcome', dm: store.net.name || 'DM', publicRolls: !!store.net.publicRolls, roster: rosterList(), you: p.seat, npcs: npcRoster(), sira: siraPaket() });
+  else if (msg.t === 'hello') {
+    send(conn, { t:'welcome', dm: store.net.name || 'DM', publicRolls: !!store.net.publicRolls, roster: rosterList(), you: p.seat, npcs: npcRoster(), sira: siraPaket() });
+    hrHosgeldin(p, msg.hr);                                          // harita: yapı, piyonlar, oyuncuda olmayan açık resimler (BÖLÜM 10d)
+  }
+  else if (msg.t === 'piyon' || msg.t === 'hresim-iste') hrDmAl(p, msg);
   else if (msg.t === 'sheet' && msg.char && typeof msg.char === 'object') {
     const portrait = typeof msg.portrait === 'string' ? guvenliPortre(msg.portrait) : (p.char ? p.char.portrait : '');
     const c = normalize(Object.assign({}, msg.char, { portrait }));
@@ -4175,6 +4265,7 @@ function broadcastRoster() {
   const roster = rosterList(), dm = short(store.net.name || 'DM', 30);
   const npcs = npcRoster(), sira = siraPaket();                      // masadaki düşmanlar ve savaş sırası (BÖLÜM 10b)
   net.players.forEach(p => send(p.conn, { t:'roster', roster, you: p.seat, dm, npcs, sira }));   // you = alıcının kendi koltuğu
+  hrYay();                                                           // haritadaki piyonlar koltuklara göre (yeni gelen, giden)
   renderNetUI();                                                     // DM'in kendi "Masada:" listesi ve masa görünümü
 }
 // Bir oyuncunun portresinden 96 piksellik kopya yapar ve öbür oyunculara YALNIZCA değiştiğinde yollar
@@ -4217,7 +4308,7 @@ async function startPlayer() {
   net.timers.beat = setInterval(() => {
     if (!net.conn || !net.conn.open) return;
     send(net.conn, { t:'ping' });
-    if (!net.welcomed) send(net.conn, { t:'hello' });                 // ilk selam kaybolduysa yinele
+    if (!net.welcomed) send(net.conn, { t:'hello', hr: hrSende() });  // ilk selam kaybolduysa yinele
     if (Date.now() - net.lastPong > 17000) { try { net.conn.close(); } catch (e) { /* yok say */ } }
   }, 5000);
 }
@@ -4237,7 +4328,7 @@ function playerDial() {
     clearTimeout(net.timers.dial);
     net.lastPong = Date.now(); net.sentPortrait = null; net.welcomed = false;
     setNet('open', '');
-    send(conn, { t:'hello' });
+    send(conn, { t:'hello', hr: hrSende() });                       // elindeki harita resimleri: DM yalnızca eksikleri yollar
     pushSheet();
   });
   conn.on('data', msg => playerReceive(conn, msg));
@@ -4292,6 +4383,8 @@ function playerReceive(conn, msg) {
     }
   }
   else if (msg.t === 'roll' && msg.roll && typeof msg.roll === 'object') showRemoteRoll(Object.assign(cleanRoll(msg.roll), { who: short(msg.who, 30), char: short(msg.char, 40), seat: cleanSeat(msg.seat), npc: cleanHedef(msg.npc), gizli: !!msg.gizli }));
+  else if (msg.t === 'harita') hrAl(msg);                            // DM'in haritaları ve piyonlar (BÖLÜM 10d)
+  else if (msg.t === 'hresim') hrParcaAl(msg);
   else if (msg.t === 'kick') { stopNet(); notify('DM seni masadan çıkardı'); }
   else if (msg.t === 'full') { stopNet(); notify('Masa dolu', `Bir masaya en fazla ${MAX_PLAYERS} oyuncu katılabilir.`); }
 }
@@ -4426,6 +4519,7 @@ function renderNetUI() {
   if ($('#tableDrawer').classList.contains('open')) renderTableDrawer();
   if (mode === 'dm') renderDMHead();
   renderTable();
+  hrCiz();                                                           // harita düğmesi ve camı (BÖLÜM 10d)
 }
 
 function renderTableDrawer() {
@@ -5337,6 +5431,380 @@ if (window.ResizeObserver) new ResizeObserver(() => {
 }).observe($('#svSahne'));
 
 /* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 10d — HARİTA (2026-10-29, kullanıcının isteği)
+   • DM ülke haritasını yükler, masadaki herkes görür. Harita yüzen bir camdadır: ilk açılışta masanın üstünde, başlığından
+     tutup sağa sola (ve yukarı aşağı) sürüklenir, sağ alt köşesinden büyütülüp küçültülür (geniş ekranda haritayı bir yana
+     alıp zar atanları görmek için). Haritaya tıklayınca ekran boyunda açılır, bir daha tıklayınca (ya da Esc) yerine döner.
+   • DM "Şehir ekle" ile haritada bir yere nokta koyar, adını verir, noktaya şehrin haritasını yükler. Şehirler kilitli
+     başlar: oyuncu noktaya bassa da açılmaz; DM kilidi açınca oyuncular şehre girer. Kilitli şehrin resmi oyunculara hiç
+     gitmez (DM açmadan görülmesin). Şehirlerin içine de nokta konabilir (mahalle, zindan…).
+   • Her açık haritada her oyuncunun bir piyonu olur: başlıktaki piyonunu haritaya sürükleyip bırakır, sonra istediği yere
+     taşır. Başkasının piyonunu oynatamaz; DM herkesinkini taşıyabilir. Piyonun yeri DM'e gider, DM herkese yayar.
+   • DM'de resimler tarayıcının kalıcı deposunda (IndexedDB, "kervansaray" / "harita"), yapı ve piyonlar store.harita'da
+     (piyonlar oyuncunun gizli kimliğiyle; oyunculara koltuk kimliğiyle gider). Oyunculara resimler 60 bin karakterlik
+     parçalarla gider: katılınca, kilit açılınca, resim değişince (her oyuncunun hangi sürüme sahip olduğu bilinir).
+   ═══════════════════════════════════════════════════════════════════ */
+const HR = { acik: false, goster: '', buyuk: false, ekle: false, menu: '', yeni: null, sil: '', resim: new Map(), parca: new Map() };
+const HR_PARCA = 60000;                                                  // resim bu kadar karakterlik parçalarla gider
+const hrDM = () => store.net.role !== 'player';                         // DM ya da tek başına: yükler, nokta koyar, kilitler
+const hrYeniId = () => 'h' + newCode().toLowerCase();
+const hrTemiz = v => String(v || '').replace(/[^a-z0-9]/g, '').slice(0, 12);
+function hrY() {                                                          // yapı: DM'de store.harita, oyuncuda DM'den gelen
+  if (!hrDM()) return net.harita || (net.harita = { kok: '', h: {}, p: {} });
+  const Y = store.harita || (store.harita = { kok: '', h: {}, p: {} });
+  Y.h = Y.h || {}; Y.p = Y.p || {};
+  return Y;
+}
+function hrNoktaBul(nid) {                                                // { n: nokta, h: içinde olduğu haritanın kimliği }
+  for (const [id, h] of Object.entries(hrY().h)) { const n = (h.n || []).find(x => x.id === nid); if (n) return { n, h: id }; }
+  return null;
+}
+function hrNokta(id) {                                                    // bu haritaya giden nokta
+  const Y = hrY(), u = Y.h[id] && Y.h[Y.h[id].ust];
+  return u ? (u.n || []).find(n => n.hedef === id) : null;
+}
+function hrAcikMi(id) {                                                   // oyuncular girebilir mi: kök ya da kilidi açık nokta (üstleri de açık)
+  const Y = hrY();
+  if (!Y.h[id]) return false;
+  if (id === Y.kok) return true;
+  const n = hrNokta(id);
+  return !!(n && !n.kilit && hrAcikMi(Y.h[id].ust));
+}
+
+/* ───────── Kalıcı depo (DM) ───────── */
+let hrDbP = null;
+function hrDb() {
+  return hrDbP || (hrDbP = new Promise((ok, fail) => {
+    const r = indexedDB.open('kervansaray', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('harita');
+    r.onsuccess = () => ok(r.result); r.onerror = () => fail(r.error);
+  }));
+}
+function hrDbIs(kip, is) {
+  return hrDb().then(db => new Promise((ok, fail) => {
+    const t = db.transaction('harita', kip), r = is(t.objectStore('harita'));
+    t.oncomplete = () => ok(r && r.result); t.onerror = () => fail(t.error);
+  }));
+}
+const hrDbYaz = (id, v) => hrDbIs('readwrite', s => s.put(v, id));
+const hrDbOku = id => hrDbIs('readonly', s => s.get(id)).catch(() => null);
+const hrDbSil = id => hrDbIs('readwrite', s => s.delete(id)).catch(() => {});
+function hrResim(id) {                                                    // { v, d } ya da null
+  const r = HR.resim.get(id);
+  if (r || !hrDM()) return Promise.resolve(r || null);
+  return hrDbOku(id).then(k => { if (k && k.d) { HR.resim.set(id, k); return k; } return null; });
+}
+// Seçilen resim en çok 1800 piksele küçültülür, JPEG olur (oyunculara gidecek boyut ~300–500 KB)
+function hrKucult(dosya, enCok = 1800) {
+  return new Promise((ok, fail) => {
+    const img = new Image(), url = URL.createObjectURL(dosya);
+    img.onload = () => {
+      const k = Math.min(1, enCok / Math.max(img.naturalWidth, img.naturalHeight));
+      const w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h); URL.revokeObjectURL(url);
+      ok({ d: cv.toDataURL('image/jpeg', 0.84), en: w, boy: h });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); fail(new Error('resim açılamadı')); };
+    img.src = url;
+  });
+}
+// DM: haritayı (nid yoksa ülke haritası, varsa o noktanın şehir haritası) yükler ya da değiştirir
+function hrYukle(nid) {
+  const inp = $('#hrDosya');
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0]; inp.value = '';
+    if (!f) return;
+    let r;
+    try { r = await hrKucult(f); } catch (e) { notify('Resim açılamadı', 'JPG, PNG ya da WEBP bir harita resmi seç.'); return; }
+    const Y = hrY();
+    let id;
+    if (nid) {
+      const b = hrNoktaBul(nid); if (!b) return;
+      id = b.n.hedef || hrYeniId(); b.n.hedef = id;
+      Y.h[id] = Object.assign(Y.h[id] || { n: [] }, { ad: b.n.ad, ust: b.h, en: r.en, boy: r.boy });
+    } else {
+      id = Y.kok || hrYeniId(); Y.kok = id;
+      Y.h[id] = Object.assign(Y.h[id] || { ad: 'Ülke haritası', ust: '', n: [] }, { en: r.en, boy: r.boy });
+    }
+    const k = { v: int(Y.h[id].v) + 1, d: r.d };
+    Y.h[id].v = k.v; HR.resim.set(id, k);
+    try { await hrDbYaz(id, k); } catch (e) { notify('Harita yalnızca bu oturumda duracak', 'Tarayıcı kalıcı depoya yazmaya izin vermedi.'); }
+    save(); hrYay(); hrResimYay(id);
+    HR.goster = id; HR.acik = true; HR.menu = ''; hrCiz();
+    notify(nid ? 'Şehrin haritası yüklendi' : 'Harita yüklendi', nid ? 'Şehir kilitli: oyuncular girebilsin diye noktaya basıp kilidini aç.' : 'Masadakiler görüyor. "Şehir ekle" ile haritaya şehirleri işaretle.');
+  };
+  inp.click();
+}
+function hrSil(nid) {                                                     // DM: noktayı, şehir haritasını ve onun içindekileri siler
+  const b = hrNoktaBul(nid); if (!b) return;
+  const Y = hrY();
+  const agac = id => { const h = Y.h[id]; if (!h) return; (h.n || []).forEach(n => n.hedef && agac(n.hedef)); delete Y.h[id]; delete Y.p[id]; HR.resim.delete(id); hrDbSil(id); };
+  if (b.n.hedef) agac(b.n.hedef);
+  Y.h[b.h].n = Y.h[b.h].n.filter(n => n.id !== nid);
+  HR.menu = ''; HR.sil = ''; save(); hrYay(); hrCiz();
+}
+
+/* ───────── Ağ ───────── */
+function hrPaket() {                                                      // DM → oyuncular: yapı ve piyonlar (koltuk kimliğiyle)
+  const Y = hrY(), p = {};
+  Object.entries(Y.p).forEach(([h, m]) => { p[h] = {}; Object.entries(m || {}).forEach(([pid, xy]) => { const o = net.players.get(pid); if (o && !o.left) p[h][o.seat] = xy; }); });
+  return { t:'harita', y: { kok: Y.kok, h: Y.h }, p };
+}
+function hrYay() { if (store.net.role !== 'dm') return; const m = hrPaket(); net.players.forEach(o => send(o.conn, m)); }
+function hrResimGonder(o, id) {                                           // DM → bir oyuncu: bir haritanın resmi (sende yoksa)
+  const h = hrY().h[id];
+  if (!h || !hrAcikMi(id) || !o.online || (o.hrVar || {})[id] === h.v) return;
+  hrResim(id).then(r => {
+    if (!r || !o.conn) return;
+    (o.hrVar = o.hrVar || {})[id] = r.v;
+    const n = Math.ceil(r.d.length / HR_PARCA);
+    for (let i = 0; i < n; i++) send(o.conn, { t:'hresim', id, v: r.v, i, n, d: r.d.slice(i * HR_PARCA, (i + 1) * HR_PARCA) });
+  });
+}
+function hrResimYay(id) { if (store.net.role === 'dm') net.players.forEach(o => hrResimGonder(o, id)); }
+function hrHerkeseAcik() { Object.keys(hrY().h).forEach(hrResimYay); }   // kilit açılınca: artık açık olan her harita
+function hrHosgeldin(p, sende) {                                          // yeni (ya da yeniden) gelen oyuncu: yapı, piyonlar, açık resimler
+  p.hrVar = {};
+  if (sende && typeof sende === 'object') Object.entries(sende).slice(0, 60).forEach(([id, v]) => { p.hrVar[hrTemiz(id)] = int(v); });
+  send(p.conn, hrPaket());
+  Object.keys(hrY().h).forEach(id => hrResimGonder(p, id));
+}
+function hrDmAl(p, msg) {                                                 // DM: oyuncudan piyon yeri ya da resim isteği
+  const Y = hrY(), h = hrTemiz(msg.h || msg.id);
+  if (!Y.h[h] || !hrAcikMi(h)) return;
+  if (msg.t === 'hresim-iste') { if (p.hrVar) delete p.hrVar[h]; hrResimGonder(p, h); return; }
+  (Y.p[h] = Y.p[h] || {})[p.pid] = [clamp(num(msg.x), 0, 1), clamp(num(msg.y), 0, 1)];
+  save(); hrYay(); hrCiz();
+}
+function hrAl(msg) {                                                      // oyuncu: DM'den gelen yapı ve piyonlar (temizlenerek)
+  const y = msg.y && typeof msg.y === 'object' ? msg.y : {}, h = {};
+  Object.entries(y.h && typeof y.h === 'object' ? y.h : {}).slice(0, 80).forEach(([id, x]) => {
+    id = hrTemiz(id); if (!id || !x || typeof x !== 'object') return;
+    h[id] = { ad: short(x.ad, 40), ust: hrTemiz(x.ust), en: clamp(int(x.en), 1, 9000), boy: clamp(int(x.boy), 1, 9000), v: int(x.v),
+      n: (Array.isArray(x.n) ? x.n : []).slice(0, 80).filter(n => n && typeof n === 'object')
+        .map(n => ({ id: hrTemiz(n.id), x: clamp(num(n.x), 0, 1), y: clamp(num(n.y), 0, 1), ad: short(n.ad, 40), hedef: hrTemiz(n.hedef), kilit: n.kilit !== false })) };
+  });
+  const p = {};
+  Object.entries(msg.p && typeof msg.p === 'object' ? msg.p : {}).forEach(([hid, m]) => {
+    hid = hrTemiz(hid); if (!h[hid] || !m || typeof m !== 'object') return;
+    p[hid] = {};
+    Object.entries(m).slice(0, 12).forEach(([s, xy]) => { s = cleanSeat(s); if (s && Array.isArray(xy)) p[hid][s] = [clamp(num(xy[0]), 0, 1), clamp(num(xy[1]), 0, 1)]; });
+  });
+  const ilk = !(net.harita && net.harita.kok);
+  net.harita = { kok: hrTemiz(y.kok), h, p };
+  if (HR.goster && !hrAcikMi(HR.goster)) HR.goster = net.harita.kok;     // girdiği şehir kilitlendiyse ülkeye döner
+  if (ilk && net.harita.kok) notify('DM bir harita paylaştı', 'Masada sol üstteki "Harita" düğmesiyle açılır.');
+  hrCiz();
+}
+function hrParcaAl(msg) {                                                 // oyuncu: resim parçaları birleşince haritaya konur
+  const id = hrTemiz(msg.id), n = clamp(int(msg.n), 1, 100), i = int(msg.i), v = int(msg.v);
+  if (!id || i < 0 || i >= n || typeof msg.d !== 'string' || msg.d.length > HR_PARCA) return;
+  let b = HR.parca.get(id);
+  if (!b || b.v !== v || b.n !== n) HR.parca.set(id, b = { v, n, p: new Array(n), say: 0 });
+  if (!b.p[i]) { b.p[i] = msg.d; b.say++; }
+  if (b.say < n) return;
+  HR.parca.delete(id);
+  const d = b.p.join('');
+  if (/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(d)) { HR.resim.set(id, { v, d }); hrCiz(); }
+}
+const hrSende = () => { const o = {}; HR.resim.forEach((r, id) => { o[id] = r.v; }); return o; };   // oyuncu: elindeki resimlerin sürümleri
+function hrSifirla() { HR.resim.clear(); HR.parca.clear(); net.harita = null; HR.goster = ''; HR.menu = ''; HR.yeni = null; hrCiz(); }   // masadan çıkınca (oyuncu)
+
+/* ───────── Görünüm ───────── */
+function hrPiyonlar(h) {                                                  // { koltuk: [x, y] }
+  const Y = hrY();
+  if (!hrDM()) return Y.p[h] || {};
+  const out = {};
+  Object.entries(Y.p[h] || {}).forEach(([pid, xy]) => { const o = net.players.get(pid); if (o && !o.left) out[o.seat] = xy; });
+  return out;
+}
+function hrKim(s) {                                                       // koltuğun adı ve küçük portresi
+  if (s === meSeat() && !hrDM()) { const c = ownChar(); return { ad: c.name.trim() || myName(), yuz: c.portrait || '' }; }
+  if (store.net.role === 'dm') { const o = seated().find(x => x.seat === s); return o ? { ad: (o.char && o.char.name.trim()) || o.name, yuz: o.face || '' } : null; }
+  const r = net.roster.find(x => x.id === s); return r ? { ad: r.char || r.name, yuz: net.faces.get(s) || '' } : null;
+}
+const hrBenim = () => (store.net.role === 'player' && net.mySeat ? net.mySeat : '');
+function hrPiyonHTML(s, xy, cep) {
+  const k = hrKim(s) || { ad: '?', yuz: '' }, ben = s === hrBenim(), oyna = ben || store.net.role === 'dm';
+  const ic = k.yuz ? `<img src="${esc(k.yuz)}" alt="">` : esc((k.ad.trim()[0] || '?').toLocaleUpperCase('tr'));
+  const yer = xy ? ` style="left:${(xy[0] * 100).toFixed(2)}%;top:${(xy[1] * 100).toFixed(2)}%;--g:${camOf(s)}"` : ` style="--g:${camOf(s)}"`;
+  return `<span class="hr-piyon${ben ? ' ben' : ''}${oyna ? ' oyna' : ''}${cep ? ' cep' : ''}" data-koltuk="${esc(s)}"${yer} title="${esc(k.ad)}${ben ? (cep ? ': piyonunu haritaya sürükle' : ': sürükleyip taşı') : oyna ? ': sürükleyip taşıyabilirsin' : ''}">${ic}</span>`;
+}
+function hrCiz() {
+  const pano = $('#hrPano'), btn = $('#tvHarita');
+  const Y = hrY(), var_ = !!(Y.kok && Y.h[Y.kok]);
+  if (btn) {
+    btn.hidden = !var_ && !hrDM();
+    btn.setAttribute('aria-pressed', String(HR.acik));
+    btn.title = var_ ? 'Haritayı aç ya da kapat' : 'Harita yükle: ülke ve şehir haritaları, piyonlar';
+  }
+  if (!pano) return;
+  pano.hidden = !HR.acik || mode !== 'table';
+  if (pano.hidden) return;
+  const yazilan = $('#hrYeniAd') ? $('#hrYeniAd').value : '';            // ağdan bir şey gelip yeniden çizilince yazılan kaybolmasın
+  if (!HR.goster || !Y.h[HR.goster] || (!hrDM() && !hrAcikMi(HR.goster))) HR.goster = Y.kok;
+  const id = HR.goster, h = Y.h[id], dm = hrDM(), r = id && HR.resim.get(id);
+  pano.classList.toggle('buyuk', HR.buyuk);
+  pano.classList.toggle('ekle', HR.ekle && !!h);
+  hrYerlestir();
+  const piy = h ? hrPiyonlar(id) : {}, ben = hrBenim(), cep = ben && h && hrAcikMi(id) && !piy[ben];
+  const nk = h && hrNokta(id);
+  const bas = `<header class="hr-bas">
+      ${h && h.ust ? '<button class="btn icon" data-act="hr-geri" title="Üstteki haritaya dön" aria-label="Üstteki haritaya dön"><svg class="ic"><use href="#i-geri"/></svg></button>' : ''}
+      <h2>${esc(h ? h.ad : 'Harita')}${nk && dm ? `<small>${nk.kilit ? 'kilitli: oyuncular giremez' : 'açık'}</small>` : ''}</h2>
+      ${cep ? `<span class="hr-cep">Piyonun ${hrPiyonHTML(ben, null, true)}</span>` : ''}
+      <span class="hr-dugmeler">
+        ${dm && h ? `<button class="btn sm${HR.ekle ? ' on' : ''}" data-act="hr-ekle" aria-pressed="${HR.ekle}" title="Haritaya bas: oraya bir şehir (ya da yer) koy"><svg class="ic"><use href="#i-plus"/></svg>Şehir ekle</button>` : ''}
+        ${dm ? `<button class="btn sm" data-act="hr-yukle" title="${h ? 'Bu haritanın resmini değiştir' : 'Ülke haritası yükle'}"><svg class="ic"><use href="#i-harita"/></svg>${h ? 'Değiştir' : 'Yükle'}</button>` : ''}
+        ${h ? `<button class="btn icon" data-act="hr-buyut" title="${HR.buyuk ? 'Küçült (Esc)' : 'Ekran boyunda aç'}" aria-label="${HR.buyuk ? 'Küçült' : 'Büyüt'}"><svg class="ic"><use href="#i-${HR.buyuk ? 'shrink' : 'expand'}"/></svg></button>` : ''}
+        <button class="btn icon" data-act="hr-kapat" title="Haritayı kapat" aria-label="Haritayı kapat"><svg class="ic"><use href="#i-x"/></svg></button>
+      </span></header>`;
+  let govde;
+  if (!h) govde = `<div class="hr-bos">${dm ? `<p><b>Ülke haritanı yükle.</b> Sonra haritada şehirleri işaretleyip her birine şehrin haritasını koyabilirsin; şehirler kilitli başlar, sen açınca oyuncular girer.</p>
+      <button class="btn accent" data-act="hr-yukle"><svg class="ic"><use href="#i-harita"/></svg>Harita yükle</button>` : '<p>DM henüz harita paylaşmadı.</p>'}</div>`;
+  else if (!r) govde = `<div class="hr-bos"><p>${dm ? 'Harita açılıyor…' : 'Harita geliyor…'}</p></div>`;
+  else {
+    const noktalar = (h.n || []).map(n => `<button class="hr-nokta${n.kilit ? ' kilit' : ''}${n.hedef ? '' : ' bos'}${HR.menu === n.id ? ' sec' : ''}" data-act="hr-nokta" data-id="${esc(n.id)}"
+        style="left:${(n.x * 100).toFixed(2)}%;top:${(n.y * 100).toFixed(2)}%" title="${esc(n.ad)}${n.kilit ? ' (kilitli)' : n.hedef ? ': girmek için bas' : ''}"><svg class="ic"><use href="#i-${n.kilit ? 'kilit' : 'konum'}"/></svg><span>${esc(n.ad)}</span></button>`).join('');
+    const piyonlar = Object.entries(piy).map(([s, xy]) => hrPiyonHTML(s, xy, false)).join('');
+    let menu = '';
+    const mn = dm && HR.menu && (h.n || []).find(n => n.id === HR.menu);
+    const yan = n => (n.x < 0.22 ? ' sol' : n.x > 0.78 ? ' sag' : '') + (n.y > 0.55 ? ' yukari' : '');   // kenara yakınsa içe doğru açılır
+    if (mn) menu = `<div class="hr-menu${yan(mn)}" style="left:${(mn.x * 100).toFixed(2)}%;top:${(mn.y * 100).toFixed(2)}%" role="menu">
+        <b>${esc(mn.ad)}</b>
+        ${mn.hedef ? `<button class="btn sm" data-act="hr-gir" data-id="${esc(mn.id)}"><svg class="ic"><use href="#i-kapi"/></svg>Haritasına gir</button>` : ''}
+        <button class="btn sm${mn.kilit ? ' accent' : ''}" data-act="hr-kilit" data-id="${esc(mn.id)}"><svg class="ic"><use href="#i-${mn.kilit ? 'konum' : 'kilit'}"/></svg>${mn.kilit ? 'Kilidi aç: oyuncular girsin' : 'Kilitle'}</button>
+        <button class="btn sm" data-act="hr-yukle" data-id="${esc(mn.id)}"><svg class="ic"><use href="#i-harita"/></svg>${mn.hedef ? 'Şehir haritasını değiştir' : 'Şehir haritası yükle'}</button>
+        <button class="btn sm${HR.sil === mn.id ? ' bad' : ''}" data-act="hr-sil" data-id="${esc(mn.id)}"><svg class="ic"><use href="#i-x"/></svg>${HR.sil === mn.id ? 'Emin misin? Sil' : 'Sil'}</button></div>`;
+    const form = dm && HR.yeni ? `<form class="hr-form${yan({ x: HR.yeni[0], y: HR.yeni[1] })}" id="hrForm" style="left:${(HR.yeni[0] * 100).toFixed(2)}%;top:${(HR.yeni[1] * 100).toFixed(2)}%">
+        <input id="hrYeniAd" maxlength="40" placeholder="Şehrin adı" aria-label="Şehrin adı" autocomplete="off">
+        <button class="btn sm accent" type="submit">Koy</button><button class="btn sm" type="button" data-act="hr-iptal">Vazgeç</button></form>` : '';
+    govde = `<div class="hr-govde" id="hrGovde"><div class="hr-sahne" id="hrSahne" data-oran="${(h.en / h.boy).toFixed(4)}">
+        <img src="${r.d}" alt="${esc(h.ad)}" draggable="false">${noktalar}${piyonlar}${menu}${form}</div></div>`;
+  }
+  pano.innerHTML = bas + govde + '<span class="hr-boyut" title="Büyüt / küçült" aria-hidden="true"></span>';
+  hrSigdir();
+  const f = $('#hrYeniAd'); if (f) { f.value = yazilan; f.focus(); }
+  if (dm && id && !r && h) hrResim(id).then(k => { if (k) hrCiz(); });    // DM'de resim kalıcı depodan gelir
+}
+function hrSigdir() {                                                     // resmi oranını bozmadan camın içine sığdır
+  const g = $('#hrGovde'), s = $('#hrSahne');
+  if (!g || !s) return;
+  const o = num(s.dataset.oran) || 1, W = g.clientWidth, H = g.clientHeight;
+  const w = Math.min(W, H * o);
+  s.style.width = w + 'px'; s.style.height = w / o + 'px';
+}
+function hrYerlestir() {                                                  // camın yeri ve boyu (tavernanın alanının yüzdesi; bu tarayıcıda saklanır)
+  const pano = $('#hrPano'), y = store.hrPano || (store.hrPano = { x: 28, y: 5, w: 44, h: 60 });
+  if (HR.buyuk) { pano.style.cssText = ''; return; }
+  pano.style.left = y.x + '%'; pano.style.top = y.y + '%'; pano.style.width = y.w + '%'; pano.style.height = y.h + '%';
+}
+function hrAc(ac) { HR.acik = ac; if (!ac) { HR.buyuk = false; HR.ekle = false; HR.menu = ''; HR.yeni = null; } hrCiz(); }
+function hrGir(nid) {
+  const b = hrNoktaBul(nid); if (!b) return;
+  const n = b.n, Y = hrY();
+  if (!n.hedef || !Y.h[n.hedef]) { notify(`${n.ad || 'Bu şehir'}: haritası yok`, hrDM() ? 'Noktaya bas, "Şehir haritası yükle".' : 'DM yükleyince girebilirsin.'); return; }
+  if (!hrDM() && !hrAcikMi(n.hedef)) { notify(`${n.ad || 'Bu şehir'} kilitli`, 'DM açınca girebilirsin.'); return; }
+  HR.goster = n.hedef; HR.menu = ''; HR.yeni = null; HR.ekle = false; hrCiz();
+  if (!hrDM() && !HR.resim.has(n.hedef)) send(net.conn, { t:'hresim-iste', id: n.hedef });   // resmi gelmediyse iste
+}
+function hrPiyonKoy(s, x, y) {
+  const Y = hrY(), h = HR.goster;
+  if (!h || !Y.h[h]) return;
+  if (store.net.role === 'dm') {
+    const o = seated().find(p => p.seat === s); if (!o) return;
+    (Y.p[h] = Y.p[h] || {})[o.pid] = [x, y]; save(); hrYay();
+  } else if (store.net.role === 'player' && s === hrBenim()) {
+    (Y.p[h] = Y.p[h] || {})[s] = [x, y];                                  // hemen görünsün; DM onaylayıp herkese yayar
+    send(net.conn, { t:'piyon', h, x, y });
+  }
+  hrCiz();
+}
+Object.assign(ACTIONS, {
+  'hr-ac': () => hrAc(!HR.acik),
+  'hr-kapat': () => hrAc(false),
+  'hr-buyut': () => { HR.buyuk = !HR.buyuk; hrCiz(); },
+  'hr-geri': () => { const h = hrY().h[HR.goster]; if (h && h.ust) { HR.goster = h.ust; HR.menu = ''; HR.yeni = null; hrCiz(); } },
+  'hr-yukle': b => hrYukle(b.dataset.id || (hrNokta(HR.goster) || {}).id || ''),
+  'hr-ekle': () => { HR.ekle = !HR.ekle; HR.yeni = null; HR.menu = ''; hrCiz(); if (HR.ekle) notify('Şehir koymak için haritaya bas', 'Adını yaz, "Koy"a bas. Sonra noktaya basıp şehrin haritasını yükle.'); },
+  'hr-iptal': () => { HR.yeni = null; hrCiz(); },
+  'hr-nokta': b => {
+    const nid = b.dataset.id;
+    if (hrDM()) { HR.menu = HR.menu === nid ? '' : nid; HR.sil = ''; HR.yeni = null; hrCiz(); }
+    else hrGir(nid);
+  },
+  'hr-gir': b => hrGir(b.dataset.id),
+  'hr-kilit': b => {
+    const r = hrNoktaBul(b.dataset.id); if (!r) return;
+    r.n.kilit = !r.n.kilit; save(); hrYay(); if (!r.n.kilit) hrHerkeseAcik(); hrCiz();
+    notify(r.n.kilit ? `${r.n.ad} kilitlendi` : `${r.n.ad}: kilit açıldı`, r.n.kilit ? 'Oyuncular artık giremez; içindeyseler ülke haritasına dönerler.' : r.n.hedef ? 'Oyuncular noktaya basıp şehre girebilir.' : 'Şehrin haritasını yükleyince oyuncular girebilir.');
+  },
+  'hr-sil': b => { const nid = b.dataset.id; if (HR.sil === nid) hrSil(nid); else { HR.sil = nid; hrCiz(); } },
+});
+(function hrOlaylar() {
+  const pano = $('#hrPano');
+  pano.addEventListener('submit', e => {                                  // DM: yeni noktanın adı
+    if (e.target.id !== 'hrForm') return;
+    e.preventDefault();
+    const ad = short($('#hrYeniAd').value.trim(), 40), Y = hrY(), h = Y.h[HR.goster];
+    if (!ad || !h || !HR.yeni) { $('#hrYeniAd').focus(); return; }
+    const n = { id: hrYeniId(), x: HR.yeni[0], y: HR.yeni[1], ad, hedef: '', kilit: true };
+    (h.n = h.n || []).push(n);
+    HR.yeni = null; HR.menu = n.id; save(); hrYay(); hrCiz();
+  });
+  // Haritaya tıklamak: DM "Şehir ekle" açıksa oraya nokta koyar; değilse harita büyür / küçülür
+  pano.addEventListener('click', e => {
+    const s = e.target.closest('.hr-sahne');
+    if (!s || e.target.closest('.hr-nokta, .hr-piyon, .hr-menu, .hr-form')) return;
+    const r = s.getBoundingClientRect(), x = clamp((e.clientX - r.left) / r.width, 0, 1), y = clamp((e.clientY - r.top) / r.height, 0, 1);
+    if (hrDM() && HR.ekle) { HR.yeni = [x, y]; HR.menu = ''; hrCiz(); return; }
+    if (HR.menu || HR.yeni) { HR.menu = ''; HR.yeni = null; HR.sil = ''; hrCiz(); return; }
+    HR.buyuk = !HR.buyuk; hrCiz();
+  });
+  // Sürüklemek: başlıktan cam taşınır, köşeden büyür, piyon haritada yer değiştirir
+  let d = null;
+  pano.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    const piyon = e.target.closest('.hr-piyon.oyna'), kose = e.target.closest('.hr-boyut'), bas = e.target.closest('.hr-bas');
+    const alan = $('.tv-wrap').getBoundingClientRect(), y = store.hrPano || {};
+    if (piyon) {
+      const g = piyon.cloneNode(true); g.classList.add('tasiniyor'); g.style.cssText = `--g:${piyon.style.getPropertyValue('--g')};left:${e.clientX}px;top:${e.clientY}px`;
+      document.body.appendChild(g); piyon.classList.add('kalkti');
+      d = { tur: 'piyon', id: e.pointerId, s: piyon.dataset.koltuk, g, el: piyon };
+    } else if (kose && !HR.buyuk) d = { tur: 'boy', id: e.pointerId, x: e.clientX, y: e.clientY, w: y.w, h: y.h, A: alan };
+    else if (bas && !HR.buyuk && !e.target.closest('button, .hr-cep')) d = { tur: 'tasi', id: e.pointerId, x: e.clientX, y: e.clientY, x0: y.x, y0: y.y, A: alan };
+    else return;
+    e.preventDefault();
+    try { pano.setPointerCapture(e.pointerId); } catch (er) { /* yok say */ }
+  });
+  pano.addEventListener('pointermove', e => {
+    if (!d || e.pointerId !== d.id) return;
+    const y = store.hrPano;
+    if (d.tur === 'piyon') { d.g.style.left = e.clientX + 'px'; d.g.style.top = e.clientY + 'px'; return; }
+    const dx = (e.clientX - d.x) / d.A.width * 100, dy = (e.clientY - d.y) / d.A.height * 100;
+    if (d.tur === 'tasi') { y.x = clamp(d.x0 + dx, -y.w + 12, 88); y.y = clamp(d.y0 + dy, 0, 92); }
+    else { y.w = clamp(d.w + dx, 20, 100); y.h = clamp(d.h + dy, 24, 100); hrSigdir(); }
+    hrYerlestir(); hrSigdir();
+  });
+  const bitir = e => {
+    if (!d || e.pointerId !== d.id) return;
+    const s = $('#hrSahne'), bu = d; d = null;
+    if (bu.tur === 'piyon') {
+      bu.g.remove(); bu.el.classList.remove('kalkti');
+      const r = s && s.getBoundingClientRect();
+      if (r && e.type === 'pointerup' && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom)
+        hrPiyonKoy(bu.s, clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1));
+      return;
+    }
+    save();
+  };
+  pano.addEventListener('pointerup', bitir); pano.addEventListener('pointercancel', bitir);
+  new ResizeObserver(hrSigdir).observe(pano);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && HR.buyuk) { HR.buyuk = false; hrCiz(); } });
+})();
+
+/* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 11 — MASA GÖRÜNÜMÜ: taverna masası, oturan figürler ve uçan zarlar
    • Masa hap biçimlidir (iki yanı yarım daire, ortası düz). Herkes iki uzun
      kenara karşılıklı oturur, yuvarlak uçlara kimse oturmaz (seatLayout): DM üst
@@ -5882,6 +6350,23 @@ function renderMe() {
   const atk = c.attacks.slice(0, 3).map((a, i) => `<div class="mc-atk" data-row data-i="${i}"><span title="${esc(a.dmg)}">${esc(a.name || 'Saldırı')}<small>${esc(String(a.dmg).split(' ')[0] || 'hasar')}</small></span>
       <button class="roll" data-act="roll" data-roll="attack" title="Vuruş zarı at: ${esc(a.name || 'saldırı')}">${sign(attackBonus(a))}</button>
       <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(a.dmg)}" aria-label="Hasar zarı at">${HASAR_IC}</button></div>`).join('');
+  // Beceriler / envanter camı (store.meSek: '' | 'beceri' | 'envanter')
+  const sek = store.meSek || '';
+  let sekCam = '';
+  if (sek === 'beceri') {
+    const sira = SKILLS.slice().sort((a, b) => a.tr.localeCompare(b.tr, 'tr'));
+    sekCam = `<section class="mc-sek" aria-label="Beceriler"><h3>Beceriler<em>birine bas: zar masaya yuvarlanır · dolu elmas: yetkinsin</em></h3>
+      <div class="mc-bc">${sira.map(sk => { const p = int(c.skills[sk.k]);
+        return `<button class="mc-b roll${p ? ' p' : ''}${p === 2 ? ' u' : ''}" data-act="roll" data-roll="skill" data-k="${sk.k}" title="${esc(sk.en)}: ${esc(sk.hint)}${p === 2 ? ' (uzmansın)' : p ? ' (yetkinsin)' : ''}"><span>${esc(sk.tr)}<small>${sk.ab.toUpperCase()}</small></span>${sign(skillBonus(sk.k))}</button>`; }).join('')}</div></section>`;
+  } else if (sek === 'envanter') {
+    const para = [['pp', 'platin'], ['gp', 'altın'], ['ep', 'elektrum'], ['sp', 'gümüş'], ['cp', 'bakır']].filter(([k]) => int(c.coins[k]))
+      .map(([k, ad]) => `<span><b>${int(c.coins[k])}</b> ${ad}</span>`).join('');
+    const satir = c.items.map((x, i) => String(x.name || '').trim() ? `<li data-row data-i="${i}"${int(x.qty) ? '' : ' class="sifir"'}><span title="${esc(x.name)}">${esc(x.name)}</span>
+        <button class="icon-btn" data-act="me-adet" data-d="-1" title="Bir azalt (kullandın, harcadın)" aria-label="${esc(x.name)}: bir azalt"><svg class="ic"><use href="#i-minus"/></svg></button><b>${int(x.qty)}</b>
+        <button class="icon-btn" data-act="me-adet" data-d="1" title="Bir artır" aria-label="${esc(x.name)}: bir artır"><svg class="ic"><use href="#i-plus"/></svg></button></li>` : '').join('');
+    sekCam = `<section class="mc-sek" aria-label="Envanter"><h3>Envanter<em>adet − / + · eşya eklemek için Kağıdım</em></h3>
+      ${satir ? `<ul class="mc-esya">${satir}</ul>` : '<p class="mc-bos">Envanterin boş. Eşya eklemek için <b>Kağıdım</b>.</p>'}${para ? `<p class="mc-para">${para}</p>` : ''}</section>`;
+  }
   let detay = '';
   if (!min) {
     const down = cur <= 0;
@@ -5903,8 +6388,10 @@ function renderMe() {
         <div class="me-foot"><button class="btn sm" data-act="me-look" title="Masadaki figürünü değiştir (kadın ya da erkek)">Figür: ${c.look === 'f' ? 'kadın' : c.look === 'm' ? 'erkek' : 'seçilmedi'}</button></div></section>
     </div>`;
   }
-  box.innerHTML = `${rehber && min ? `<p class="mc-rehber" role="status">${rehber}</p>` : ''}${detay}
+  box.innerHTML = `${rehber && min && !sek ? `<p class="mc-rehber" role="status">${rehber}</p>` : ''}${sekCam}${detay}
     <div class="mc-izgara mc-ust">${atk}
+      <button class="btn${sek === 'beceri' ? ' on' : ''}" data-act="me-sek" data-k="beceri" aria-expanded="${sek === 'beceri'}" title="Beceri zarları: kağıda dönmeden at"><svg class="ic"><use href="#i-d20"/></svg>Beceriler</button>
+      <button class="btn${sek === 'envanter' ? ' on' : ''}" data-act="me-sek" data-k="envanter" aria-expanded="${sek === 'envanter'}" title="Envanterin: eşyalar ve paralar"><svg class="ic"><use href="#i-canta"/></svg>Envanter</button>
       <button class="btn" data-act="mode-sheet" title="Karakter kağıdının tamamı"><svg class="ic"><use href="#i-scroll"/></svg>Kağıdım</button>
       <button class="btn icon" data-act="me-min" aria-expanded="${!min}" title="${min ? 'Ayrıntıları aç: kurtarma zarları, can, inisiyatif' : 'Ayrıntıları kapat'}" aria-label="${min ? 'Ayrıntıları aç' : 'Ayrıntıları kapat'}"><svg class="ic"><use href="#i-yukari"/></svg></button></div>
     <div class="mc-izgara mc-cam">
@@ -6378,6 +6865,12 @@ function tvReset() {                                                 // masadan 
 }
 Object.assign(ACTIONS, {
   'me-min': () => { store.meMin = !store.meMin; save(); renderMe(); renderTable(); },   // isimlikler kutunun yeni boyuna göre yerleşsin
+  'me-sek': b => { store.meSek = store.meSek === b.dataset.k ? '' : b.dataset.k; save(); renderMe(); renderTable(); },   // beceriler / envanter camı
+  'me-adet': b => {                                                       // masadaki envanterde adet −/+ (kağıttaki satır da değişir)
+    const x = C.items[int(b.closest('[data-row]').dataset.i)];
+    if (!x) return;
+    x.qty = Math.max(0, int(x.qty) + int(b.dataset.d)); renderLists(); changed();
+  },
   'me-kind': b => { tv.meKind = b.dataset.k; renderMe(); },
   // Masadaki figürüm: kadın ↔ erkek. Kağıttaki "Masadaki figür" seçimiyle aynı şeydir; DM'e ve masaya da gider.
   'me-look': () => { if (mode !== 'table') return; C.look = C.look === 'f' ? 'm' : 'f'; setInput('look'); changed(); renderTable(); },
@@ -6449,7 +6942,8 @@ const TAV = {
   kesik: 0.95,               // öndeki duvarların alçaltılmış yüksekliği (m)
   seatR: 1.62,               // koltuğun (oturağın ortası) masanın merkezine uzaklığı (m); figür karesinin ortası bu noktadır
   headZ: 1.33,               // oturan figürün başının yerden yüksekliği (m)
-  perde: { W: 0.22, H: 0.26, K: 0.012, ic: 0.40 },   // DM perdesi: pano eni, boyu, kalınlığı (m); masa kenarından içeri (m; DM gizli zarını perdeyle kendisi arasına atar)
+  perde: { W: 0.22, H: 0.26, K: 0.012, ic: 0.40 },   // DM perdesi: (yedek) pano eni, boyu, kalınlığı (m; tahta kanatların ölçüleri masa/perde.glb'de); masa kenarından
+                                                      // içeri (m; DM gizli zarını perdeyle kendisi arasına atar)
   yanMasa: ['Masa_KuzeyBati'],   // 33: tek başınayken oturulabilen yan masalar (güneydeki ikisi duvara yapışık: figür saksının ve duvarın arkasında kalıyor)
   fig: { kare_m: 2.6, yon: 16 },   // figür kareleri: kapladığı alan (m) ve yön sayısı
   yakin: [160, 90],          // yakın bakışta (ölçek 1) gezinilebilen alan (birim)
@@ -6476,11 +6970,13 @@ const TAV = {
   dis: [0.15, 0.15, 0.19],   // dış zeminin rengi (taş dokusunu serin, koyu ve morumsu gri yapar)
   dalga: { olcek: 0.28, guc: 0.16, mat: ['M_Zemin', 'M_Duvar', 'M_Dis_Zemin', 'M_Ahsap', 'M_Ahsap_Koyu', 'M_Tas_Blok', 'M_Tas_Zemin'] },   // tekrarı kıran renk dalgası
   fps: 30,                   // "Canlı" açıkken saniyede en çok bu kadar kare
-  goz: { fov: 84, fovMin: 24, boy: 1.2, ileri: 0.12, ileriBas: -0.18, ileriDm: -0.08, zar: [38, 64], don: 100 },   // göz hizası: dikey görüş açısı, göz yüksekliği (m), koltuktan öne kayma (m;
+  goz: { fov: 84, fovMin: 24, boy: 1.2, ileri: 0.12, ileriBas: -0.18, ileriDm: -0.08, zar: [38, 64], don: 100, donY: [12, 15], nefes: [0.006, 0.3] },   // göz hizası: dikey görüş açısı, göz yüksekliği (m), koltuktan öne kayma (m;
                                                              //   ileriBas: kendi figürüm başsız çizilince, gerçek göz yeri: kollarım görüş alanına girer;
                                                              //   ileriDm: DM.in ve sınıfların modelinde, boyun ve yaka kesiti gözün arkasında kalsın),
                                                              //   masanın ortasının paneldeki yeri (soldan %, yukarıdan %; zarlar ve boyalı el buna göre),
-                                                             //   sürükleyerek sağa ya da sola en çok kaç derece bakılır
+                                                             //   sürükleyerek sağa ya da sola en çok kaç derece bakılır; donY: aşağı ve yukarı en çok kaç derece
+                                                             //   (2026-10-29); nefes: kendi figürümün nefesiyle kamera kaç metre kalkar, baş kaç derece
+                                                             //   kalkar (mide bulandırmasın diye çok az; "Canlı"da, hareket azaltma kapalıyken)
   ALPHA: ['M_Yaprak', 'M_Kuru_Ot', 'M_Kalkan_1', 'M_Kalkan_2', 'M_Sancak', 'M_Tabela', 'M_Hali', 'M_Post'],   // saydam yerleri kesilerek çizilir
   LIB: 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/',   // importmap'tekiyle aynı sürüm (Draco çözücüsü buradan iner)
   taban: 0,                  // oyun masasındaki koltukların yerden yüksekliği (m); yeni handa masa kürsüde
@@ -6520,7 +7016,7 @@ tavAciKur();
 // 6 yalnızca göz hizası, 7 yalnızca göz hizası ve saydam
 const K_ = n => 1 << n;
 const tav = { state: 'off', all: false, view: { s: 1, x: 0, y: 0 }, raf: 0, dirty: true, last: 0, koltuk: [],
-  bakis: 0 };                // POV panelinde sağa (−) ya da sola (+) bakış (radyan); panelde sürükleyince değişir
+  bakis: 0, bakisY: 0 };     // POV panelinde sağa (−) ya da sola (+) ve yukarı (+) ya da aşağı (−) bakış (radyan); panelde sürükleyince değişir
 
 // Dünyadaki nokta (Blender ekseni) → tablodaki yeri [x, y] (birim)
 function tavProj(x, y, z) {
@@ -6554,6 +7050,13 @@ function tavVeri(ad, glob) {
    17 (2026-10-27): önce iskeletli sürüm (masa/buyucu-iskelet.glb; aynı betik "-- iskelet" ile) denenir: içinde "zar_at"
    hareketi ve elin açıldığı an ("birak", sn) var; atanın kolu oynar (tavKolAt). Açılamazsa iskeletsiz büyücü, kol oynamaz. */
 const SINIF_MODEL = { fighter: ['fighter-iskelet', 'FIGHTER_ISKELET_GLB'] };   // sınıf (classKey) → masa/ içindeki model ve .js değişkeni
+/* Boşta (2026-10-29, kullanıcı: "her karaktere nefes alma, 10–15 saniyede bir özel hareket"): modellerde "nefes" (döngü, hep
+   oynar; zar_at'ın kemiklerine dokunmaz) ve "ozel" (bir kez): büyücü sakalını sıvazlar, DM gözlüğünü iter ve notlarına eğilir,
+   fighter boynunu esnetip parmaklarını çıtlatır (araclar/zar_hareket.py). Yalnızca "Canlı"da; zar atılınca özel hareket kesilir.
+   POV açıkken kendi koltuğumda özel hareket yok (el kameranın önüne gelirdi). */
+const BOSTA = { ara: [10, 15] };                                          // iki özel hareket arası (sn)
+const bostaAra = () => (BOSTA.ara[0] + Math.random() * (BOSTA.ara[1] - BOSTA.ara[0])) * 1000;
+const bostaKlip = g => ({ nefes: g.animations.find(a => a.name === 'nefes'), ozel: g.animations.find(a => a.name === 'ozel') });
 async function tavBuyucu(THREE, GLTFLoader) {
   try {
     let buf, kol = null;
@@ -6574,6 +7077,11 @@ async function tavBuyucu(THREE, GLTFLoader) {
     // DM (2026-10-28): kendi modeli (masa/dm-iskelet.glb; araclar/buyucu_oturt_blender.py -- iskelet dm). Büyücünün iskeleti ve zar_at
     // zamanlamasıyla aynı. Açılamazsa DM koltuğunda eskisi gibi kızıl tonlu büyücü oturur.
     const dmP = kol ? tavVeri('dm-iskelet', 'DM_ISKELET_GLB').then(ac).catch(e => { console.warn('DM modeli açılamadı, büyücü oturacak:', e); return null; }) : null;
+    // DM perdesi (2026-10-29; masa/perde.glb, araclar/perde_blender.py): üç kanat (sol, orta, sağ). Açılamazsa düz panolar.
+    const perP = tavVeri('perde', 'PERDE_GLB').then(ac).then(g => {
+      const k = {}; g.scene.traverse(o => { if (o.isMesh && /^Perde(Sol|Orta|Sag)/.test(o.name)) k[o.name.slice(5)] = o; });
+      return k.Sol && k.Orta && k.Sag ? [k.Sol, k.Orta, k.Sag] : null;
+    }).catch(e => { console.warn('Perde modeli açılamadı, düz panolar:', e); return null; });
     // Sınıfların kendi modelleri (2026-10-28: fighter; araclar/karakter_kur_blender.py -- fighter). Aynı iskelet ve zar_at; yoksa büyücü oturur.
     const snP = kol ? Promise.all(Object.entries(SINIF_MODEL).map(([k, [ad, glob]]) => tavVeri(ad, glob).then(ac).then(g => [k, g])
       .catch(e => { console.warn(k + ' modeli açılamadı, büyücü oturacak:', e); return null; }))) : Promise.resolve([]);
@@ -6584,12 +7092,13 @@ async function tavBuyucu(THREE, GLTFLoader) {
     if (klip) {
       let birak = 1.07;
       kok.traverse(o => { if (o.userData && o.userData.birak) birak = o.userData.birak; });
-      tav.kol = { klon: kol.clone, klip, birak, sure: klip.duration };
+      tav.kol = { klon: kol.clone, klip, birak, sure: klip.duration, ...bostaKlip(gltf) };
     }
+    tav.perdeModel = await perP;
     const dmG = dmP && await dmP, dmKlip = dmG && dmG.animations.find(a => a.name === 'zar_at');
-    tav.dm = dmKlip ? { kok: dmG.scene, klip: dmKlip } : null;
+    tav.dm = dmKlip ? { kok: dmG.scene, klip: dmKlip, ...bostaKlip(dmG) } : null;
     tav.sinif = {};
-    (await snP).forEach(r => { const kl = r && r[1].animations.find(a => a.name === 'zar_at'); if (kl) tav.sinif[r[0]] = { kok: r[1].scene, klip: kl }; });
+    (await snP).forEach(r => { const kl = r && r[1].animations.find(a => a.name === 'zar_at'); if (kl) tav.sinif[r[0]] = { kok: r[1].scene, klip: kl, ...bostaKlip(r[1]) }; });
     tav.buyucu = kok;
     tav.koltuk.splice(0).forEach(k => k.g && tav.S.remove(k.g));        // koltuklar büyücüyle yeniden kurulsun
     $('#tvStage').classList.add('fig3d');
@@ -6612,10 +7121,12 @@ function tavHanci(ac) {
     const g = gltf.scene;
     g.rotation.y = 0;                                                   // ac() koltuktakileri masaya çevirir; hancı zaten salona (güneye) bakıyor
     let on = 0.48;                                                      // modelin kökü leğeninin altında; yumrukları o kadar önde (karakter_kur_blender)
-    g.traverse(o => { o.layers.set(0); if (o.isMesh) o.castShadow = o.receiveShadow = true; if (o.userData && o.userData.yumruk_on) on = o.userData.yumruk_on; });
+    let yh = 0;                                                         // yürüme döngüsünün kendi hızı (m/sn; ayaklar yerde kaymasın)
+    g.traverse(o => { o.layers.set(0); if (o.isMesh) o.castShadow = o.receiveShadow = true; if (o.userData && o.userData.yumruk_on) on = o.userData.yumruk_on; if (o.userData && o.userData.yuru_hiz) yh = o.userData.yuru_hiz; });
     tav.S.add(g);
     const mix = new tav.THREE.AnimationMixer(g), A = {};
     gltf.animations.forEach(k => { A[k.name] = mix.clipAction(k); });
+    if (A.yuru && yh) A.yuru.timeScale = HANCI.hiz / yh;
     ['sil', 'sise'].forEach(n => { if (A[n]) { A[n].setLoop(tav.THREE.LoopOnce, 1); A[n].clampWhenFinished = true; } });
     const h = tav.hanci = { g, mix, A, on, x: HANCI.yer[0], yon: 0, durum: 'bekle', anim: null, t: 0, son: 0,
       tSil: 4 + Math.random() * 4, tSise: HANCI.sise[0] * (0.5 + Math.random() * 0.5) };
@@ -6674,7 +7185,7 @@ function tavHanciGuncelle(now) {                                         // yaln
    Gölge düşürmezler: gölge haritası her karede yenilenmiyor, yürürken gölgeleri geride kalırdı.
    Modeller: "Classic Maid Uniform", restore50; "Medieval Peasant Warrior", Azura_SQ (Sketchfab), CC-BY-4.0. */
 const GARSON = {
-  hiz: 0.9, adim: 1.03,                                                 // m/sn; yürüme döngüsünün hızı (1,07 sn'de 1,1 m)
+  hiz: 0.9, adim: 1.03,                                                 // m/sn; yürüme döngüsünün hızı (modelde yuru_hiz yoksa; eski modeller)
   // Yol (dünya, m; z basamaklara göre). d: o noktada bekleme (sn). Oyun masasının kürsüsünden (r 2,65) ve yan masaların
   // sandalyelerinden uzak. Bar önü y 7,3 (taburelerle basamakların arası), basamaklar y 6,1 → 4,9.
   yol: [[-1.2, 7.3, 3], [-1.2, 4.6], [-2.6, 3.4, 2.5], [-3.0, 0.0], [-2.6, -2.9, 2.5], [0, -3.4], [1.9, -3.0, 2], [3.6, -2.2],
@@ -6686,20 +7197,23 @@ function tavGarsonlar(ac) {
   [['garson-kiz', 'GARSON_KIZ_GLB', false, 0], ['garson-erkek', 'GARSON_ERKEK_GLB', true, 0.5]].forEach(([ad, glob, ters, faz]) => {
     tavVeri(ad, glob).then(ac).then(gltf => {
       const g = gltf.scene; g.rotation.y = 0;
-      g.traverse(o => { o.layers.set(0); if (o.isMesh) { o.castShadow = false; o.receiveShadow = true; } });
+      let yh = GARSON.adim;                                             // yürüme döngüsünün kendi hızı: modelde (2026-10-29'dan beri)
+      g.traverse(o => { o.layers.set(0); if (o.isMesh) { o.castShadow = false; o.receiveShadow = true; } if (o.userData && o.userData.yuru_hiz) yh = o.userData.yuru_hiz; });
       tav.S.add(g);
       const mix = new tav.THREE.AnimationMixer(g), klip = n => gltf.animations.find(a => a.name === n);
       const yuru = klip('yuru') && mix.clipAction(klip('yuru')), bekle = klip('bekle') && mix.clipAction(klip('bekle'));
-      if (yuru) yuru.timeScale = GARSON.hiz / GARSON.adim;
+      const oz = klip('ozel') && mix.clipAction(klip('ozel'));          // durunca ara sıra: kız saçını kulağının arkasına atar, oğlan alnını siler
+      if (oz) { oz.setLoop(tav.THREE.LoopOnce, 1); oz.clampWhenFinished = true; }
+      if (yuru) yuru.timeScale = GARSON.hiz / yh;
       const yol = ters ? GARSON.yol.slice().reverse() : GARSON.yol;
-      const G = { g, mix, yuru, bekle, yol, i: Math.floor(yol.length * faz) % yol.length, u: 0, bek: 0, yon: 0, son: 0, anim: null };
+      const G = { g, mix, yuru, bekle, oz, tOz: 0, yol, i: Math.floor(yol.length * faz) % yol.length, u: 0, bek: 0, yon: 0, son: 0, anim: null };
       garsonYer(G, 0); garsonAnim(G, 'bekle');
       tav.garsonlar.push(G); tavKick();
     }).catch(e => console.warn('Garson açılamadı (' + ad + '):', e));
   });
 }
 function garsonAnim(G, ad) {                                            // yürüme ↔ bekleme yumuşak geçiş
-  const yeni = ad === 'yuru' ? G.yuru : G.bekle;
+  const yeni = ad === 'yuru' ? G.yuru : ad === 'ozel' ? G.oz : G.bekle;
   if (!yeni || G.anim === yeni) return;
   yeni.reset().play();
   if (G.anim) G.anim.crossFadeTo(yeni, 0.3, false);
@@ -6711,7 +7225,16 @@ function garsonYer(G, dt) {                                             // yol b
   else {
     const L = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1e-3;
     G.u += GARSON.hiz * dt / L;
-    if (G.u >= 1) { G.u = 0; G.i = (G.i + 1) % n; if (B[2]) { G.bek = B[2]; garsonAnim(G, 'bekle'); } return garsonYer(G, 0); }
+    if (G.u >= 1) {
+      G.u = 0; G.i = (G.i + 1) % n;
+      if (B[2]) {
+        const now = performance.now();
+        if (G.oz && now >= G.tOz && Math.random() < 0.6) {             // özel hareket (en az BOSTA.ara arayla)
+          G.bek = Math.max(B[2], G.oz.getClip().duration + 0.2); G.tOz = now + bostaAra(); garsonAnim(G, 'ozel');
+        } else { G.bek = B[2]; garsonAnim(G, 'bekle'); }
+      }
+      return garsonYer(G, 0);
+    }
   }
   const x = A[0] + (B[0] - A[0]) * G.u, y = A[1] + (B[1] - A[1]) * G.u;
   G.g.position.copy(tav.b3([x, y, garsonZ(y)]));
@@ -6877,7 +7400,10 @@ function tavManken(THREE, renk, dm, cls) {
       b.traverse(o => { if (!o.isBone) return; if (/R_Hand/.test(o.name)) el = o; else if (/R_Finger1_/.test(o.name)) parmak = o; else if (/_Head/.test(o.name)) bas = o; });
       // Başı ayrı parça olan modeller (DM, araclar/karakter_kur_blender.py: "Bas"): POV'da bu parça gizlenir. Öbürlerinde baş kemiği küçültülür.
       const basParca = []; b.traverse(o => { if (o.isMesh && (/^Bas/.test(o.name) || (o.parent && /^Bas/.test(o.parent.name)))) basParca.push(o); });
-      g.userData.kol = { mix, at, bitis: 0, el, parmak, bas, basParca };
+      const kay = ozel || tav.kol, nf = kay.nefes && mix.clipAction(kay.nefes), oz = kay.ozel && mix.clipAction(kay.ozel);
+      if (nf) { nf.time = Math.random() * kay.nefes.duration; nf.play(); mix.update(0); }   // herkes aynı anda nefes almasın
+      if (oz) oz.setLoop(THREE.LoopOnce, 1);
+      g.userData.kol = { mix, at, bitis: 0, el, parmak, bas, basParca, nf, oz, ozBitis: 0, tOz: performance.now() + 3000 + Math.random() * bostaAra() };
     }
   } else {                                                         // model yoksa blockout manken
     kutu(ten, body, -0.18, 0.18, -0.12, 0.30, 0.50, 0.64);
@@ -6886,17 +7412,21 @@ function tavManken(THREE, renk, dm, cls) {
     cubuk(ten, body, [0, 0.05, 1.16], [0, 0.06, 1.24], 0.05); kure(ten, body, [0, 0.07, 1.33], 0.11);
     for (const s of [-1, 1]) { const o = [0.21 * s, 0.02, 1.04], d = [0.24 * s, 0.20, 0.86], e = [0.14 * s, 0.46, 0.83]; cubuk(ten, body, o, d, 0.055); cubuk(ten, body, d, e, 0.05); kure(ten, body, e, 0.06); }
   }
-  if (dm && tav.dm) {                                              // DM perdesi (kullanıcının kâğıdındaki katlanır perde): dört pano, masada DM'in önünde; yeri tavKoltuklar'da
-    const per = new THREE.Group(), kap = toon([0.29, 0.16, 0.08]), ic = toon([0.80, 0.70, 0.52]), ust = toon([0.62, 0.45, 0.18]);
-    const resim = [[0.45, 0.13, 0.08], [0.55, 0.36, 0.14], [0.20, 0.30, 0.28], [0.50, 0.20, 0.10]];
-    const { W, H, K } = TAV.perde;
-    resim.forEach(c => {
-      const p = new THREE.Group();
-      p.add(new THREE.Mesh(new THREE.BoxGeometry(W, H, K), [kap, kap, ust, kap, ic, kap]));   // +z yüzü (DM'e bakan) parşömen, üst kenarı altın
-      const r = new THREE.Mesh(new THREE.PlaneGeometry(W * 0.78, H * 0.76), toon(c));        // oyunculara bakan yüzdeki resim
-      r.position.z = -K / 2 - 0.002; r.rotation.y = Math.PI; p.add(r);
-      per.add(p);
-    });
+  if (dm && tav.dm) {                                              // DM perdesi: masada DM'in önünde bir yay; yeri tavKoltuklar'da
+    const per = new THREE.Group();
+    if (tav.perdeModel) {                                          // 2026-10-29: tahta kanatlar (masa/perde.glb): ortası kökte, +z DM'e
+      tav.perdeModel.forEach(m => { const c = m.clone(); c.position.set(0, 0, 0); c.rotation.set(0, 0, 0); c.userData = { ...m.userData }; per.add(c); });
+    } else {                                                       // yedek: dört düz pano (2026-10-28'deki ilk perde)
+      const kap = toon([0.29, 0.16, 0.08]), ic = toon([0.80, 0.70, 0.52]), ust = toon([0.62, 0.45, 0.18]);
+      const { W, H, K } = TAV.perde;
+      [[0.45, 0.13, 0.08], [0.55, 0.36, 0.14], [0.20, 0.30, 0.28], [0.50, 0.20, 0.10]].forEach(c => {
+        const p = new THREE.Group(); p.userData = { W, H, K };
+        p.add(new THREE.Mesh(new THREE.BoxGeometry(W, H, K), [kap, kap, ust, kap, ic, kap]));   // +z yüzü (DM'e bakan) parşömen, üst kenarı altın
+        const r = new THREE.Mesh(new THREE.PlaneGeometry(W * 0.78, H * 0.76), toon(c));        // oyunculara bakan yüzdeki resim
+        r.position.z = -K / 2 - 0.002; r.rotation.y = Math.PI; p.add(r);
+        per.add(p);
+      });
+    }
     g.add(per); g.userData.perde = per;
   }
   g.add(body); g.userData.body = body;
@@ -7151,6 +7681,14 @@ function tavGozDraw(cr, dpr) {
   const bas = k.g && k.g.userData.kol && k.g.userData.kol.bas;          // iskeletli kendi figürüm: başı gizlenir (aşağıda)
   const cam = tav.camG, G = TAV.goz, [ux, uy, L] = tavYon(k), R = L - (bas ? ((k.dm && tav.dm) || k.cls ? G.ileriDm : G.ileriBas) : G.ileri);
   const goz = tav.b3([R * ux, R * uy, G.boy + k.dz]);
+  // Nefes (2026-10-29): kendi figürümün "nefes" hareketiyle birlikte (1,6 sn alır, 2,4 sn verir) göz biraz kalkar, baş biraz kalkar
+  const nf = k.g && k.g.userData.kol && k.g.userData.kol.nf;
+  let ne = 0;
+  if (nf && tavCanli() && !reduceMotion.matches) {
+    const t = (nf.time / nf.getClip().duration) % 1, yum = u => u * u * (3 - 2 * u);
+    ne = t < 0.4 ? yum(t / 0.4) : 1 - yum((t - 0.4) / 0.6);
+  }
+  goz.y += ne * G.nefes[0];
   cam.aspect = fr.width / fr.height; cam.position.copy(goz);
   // Masanın ortası panelde TAV.goz.zar noktasına düşsün: önce ortaya bak, sonra bakışı o kadar kaydır
   const merkez = tav.b3([0, 0, TAV.hedef[2]]);                         // masanın üst yüzü (yeni handa kürsüde: 1,10 m)
@@ -7160,7 +7698,7 @@ function tavGozDraw(cr, dpr) {
   // (Eskiden kamera aşağı bakarken kendi ekseninde sağa çevriliyordu; görüntü çapraz duruyordu.)
   const dx = merkez.x - goz.x, dy = merkez.y - goz.y, dz = merkez.z - goz.z;
   const yaw = Math.atan2(-dx, -dz) + Math.atan((G.zar[0] / 50 - 1) * tx) + (tav.bakis || 0);
-  const pitch = Math.atan2(dy, Math.hypot(dx, dz)) - Math.atan((1 - G.zar[1] / 50) * ty);
+  const pitch = Math.atan2(dy, Math.hypot(dx, dz)) - Math.atan((1 - G.zar[1] / 50) * ty) + (tav.bakisY || 0) + ne * G.nefes[1] * Math.PI / 180;
   cam.rotation.set(pitch, yaw, 0, 'YXZ');
   cam.updateMatrixWorld();
   // Paneldeki zarlar masanın ortasında durur: bakış dönünce masayla birlikte kaysınlar (arkada kalırsa panelin dışına)
@@ -7228,11 +7766,12 @@ function tavKoltuklar(lay, seats) {
     const per = k.g.userData.perde;
     if (per) {                                                         // DM perdesi: masanın kenarından biraz içeride, DM'in çevresinde yay
       per.visible = !o.w && !!s.on;
-      const M = zarMasa(), D = TAV.seatR - M.r + TAV.perde.ic, y = M.y - k.g.position.y + TAV.perde.H / 2;
-      const aci = TAV.perde.W * 1.03 / D;                               // panolar arası açı: yan yana, aralıksız
-      per.children.forEach((p, j) => {
-        const a = (j - (per.children.length - 1) / 2) * aci;
-        p.position.set(Math.sin(a) * D, y, -Math.cos(a) * D); p.rotation.y = -a;
+      const M = zarMasa(), D = TAV.seatR - M.r + TAV.perde.ic, olc = p => p.userData.W ? p.userData : TAV.perde;
+      const top = per.children.reduce((t, p) => t + olc(p).W * 1.03, 0);   // kanatlar yan yana, aralarında az boşluk (menteşe)
+      let b = -top / 2;
+      per.children.forEach(p => {
+        const { W, H } = olc(p), a = (b + W * 1.03 / 2) / D; b += W * 1.03;
+        p.position.set(Math.sin(a) * D, M.y - k.g.position.y + H / 2, -Math.cos(a) * D); p.rotation.y = -a;
       });
     }
   });
@@ -7248,19 +7787,33 @@ function tavKolAt(id, fast) {
   const k = tav.koltuk.find(x => x.id === id), kol = k && k.g && k.g.userData.kol;
   if (!kol || !k.g.userData.body.visible) return 0;
   const hiz = fast ? 1.6 : 1, simdi = performance.now();
+  if (kol.ozBitis) { kol.oz.stop(); kol.ozBitis = 0; }                 // özel hareketin ortasındaysa kesilir (avucun yeri doğru hesaplansın)
+  kol.tOz = simdi + bostaAra();
   kol.at.reset(); kol.at.timeScale = hiz; kol.at.play();
   kol.bitis = simdi + tav.kol.sure * 1000 / hiz; kol.son = simdi;
   tavKick();
   return tav.kol.birak * 1000 / hiz;
 }
-// Oynayan kolları ilerletir (tavDraw); oynayan var mı (tavFrame her karede çizsin diye)
+// Oynayan kolları ilerletir (tavDraw); oynayan var mı (tavFrame her karede çizsin diye). "Canlı"da nefes ve özel hareket de.
 function tavKolGuncelle(now) {
   let var_ = false;
+  const canli = tavCanli() && !reduceMotion.matches;
   tav.koltuk.forEach(k => {
     const kol = k.g && k.g.userData.kol;
-    if (!kol || !kol.bitis) return;
-    kol.mix.update(Math.min(0.1, (now - kol.son) / 1000)); kol.son = now;
-    if (now >= kol.bitis) kol.bitis = 0; else var_ = true;
+    if (!kol) return;
+    const dt = kol.son ? Math.min(0.1, (now - kol.son) / 1000) : 0; kol.son = now;
+    if (kol.bitis) {
+      kol.mix.update(dt);
+      if (now >= kol.bitis) kol.bitis = 0; else var_ = true;
+      return;
+    }
+    if (!canli) return;
+    if (kol.ozBitis && now >= kol.ozBitis) { kol.ozBitis = 0; kol.tOz = now + bostaAra(); }
+    else if (kol.oz && !kol.ozBitis && now >= kol.tOz) {
+      if (k.id === meSeat() && povAcik()) kol.tOz = now + bostaAra();
+      else { kol.oz.reset().fadeIn(0.25).play(); kol.ozBitis = now + kol.oz.getClip().duration * 1000; }
+    }
+    kol.mix.update(dt);
   });
   return var_;
 }
@@ -7464,13 +8017,14 @@ function tavOverview(on) {
 })();
 
 /* POV panelinde sağa-sola bakmak: panelde sürükle (en çok TAV.goz.don derece), çift tıkla: yeniden masaya bak.
+   2026-10-29: yukarı-aşağı da (kullanıcı: "hafif bir şekilde"; TAV.goz.donY).
    Yalnızca bu tarayıcıda; ağa bir şey gitmez. Telefondaki küçük kutuda yok. */
 (function povBakis() {
   const fr = $('#povFrame');
   let d = null;
   fr.addEventListener('pointerdown', e => {
     if (!povAcik() || e.button !== 0 || tvView().compact) return;
-    d = { id: e.pointerId, x: e.clientX, b: tav.bakis };
+    d = { id: e.pointerId, x: e.clientX, y: e.clientY, b: tav.bakis, by: tav.bakisY };
     try { fr.setPointerCapture(e.pointerId); } catch (er) { /* yok say */ }
     $('#tvPov').classList.add('drag');
   });
@@ -7479,11 +8033,13 @@ function tavOverview(on) {
     const r = fr.getBoundingClientRect(), max = TAV.goz.don * Math.PI / 180;
     const yatay = 2 * Math.atan(Math.tan((tav.povFov || TAV.goz.fov) * Math.PI / 360) * r.width / r.height);   // panelin yatay görüş açısı
     tav.bakis = clamp(d.b + (e.clientX - d.x) / r.width * yatay, -max, max);                 // sürüklenen yer elin altında kalır
+    const dikey = (tav.povFov || TAV.goz.fov) * Math.PI / 180, [asg, yuk] = TAV.goz.donY;
+    tav.bakisY = clamp(d.by + (e.clientY - d.y) / r.height * dikey, -asg * Math.PI / 180, yuk * Math.PI / 180);
     tavKick();
   });
   const end = e => { if (!d || e.pointerId !== d.id) return; d = null; $('#tvPov').classList.remove('drag'); };
   fr.addEventListener('pointerup', end); fr.addEventListener('pointercancel', end);
-  fr.addEventListener('dblclick', () => { tav.bakis = 0; tav.povFov = 0; tavKick(); });   // çift tık: masaya bak, yakınlaştırmayı sıfırla
+  fr.addEventListener('dblclick', () => { tav.bakis = tav.bakisY = 0; tav.povFov = 0; tavKick(); });   // çift tık: masaya bak, yakınlaştırmayı sıfırla
   // Tekerlek: göz hizasında yakınlaştır / uzaklaştır (görüş açısı daralır; 2026-10-27). Arkadaki eğik görünüm büyümesin diye olay burada durur.
   fr.addEventListener('wheel', e => {
     if (!povAcik() || tvView().compact) return;
@@ -7791,8 +8347,9 @@ function zarAt3(box, item, fast, delay) {
   const duvar = [];
   if (perde) {                                                       // perdenin panoları: zar arkasında kalsın (ince kutular)
     perde.updateWorldMatrix(true, true);
-    const pp = new T.Vector3(), pq = new T.Quaternion(), ps = new T.Vector3(), { W: PW, H: PH, K: PK } = TAV.perde;
+    const pp = new T.Vector3(), pq = new T.Quaternion(), ps = new T.Vector3();
     perde.children.forEach(pn => {
+      const { W: PW, H: PH, K: PK } = pn.userData.W ? pn.userData : TAV.perde;
       pn.matrixWorld.decompose(pp, pq, ps);
       const b = new C.Body({ mass: 0, shape: new C.Box(new C.Vec3(PW / 2 + 0.01, PH / 2, PK / 2 + 0.01)) });
       b.position.set(pp.x, pp.y, pp.z); b.quaternion.set(pq.x, pq.y, pq.z, pq.w); W.addBody(b);

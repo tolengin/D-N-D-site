@@ -32,14 +32,17 @@ ARA.mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, str(KOK / 'araclar'))
 
 AYAR = {
-    'dm': dict(girdi='dm.glb', yuz=32000, doku=2048,
+    'dm': dict(girdi='dm.glb', yuz=32000, doku=2048, alcak=3200,   # 2026-10-29: hepsi hancı gibi az çokgenli (kullanıcı hancıyı beğendi)
                kes_alt=-0.903,                  # ayakların altındaki kaide
                sil_kutu=[((-0.2, 0.35), (-0.43, -0.015), (0.22, 0.66))],    # elindeki kitap (gövdeyle kaynaşık; renginden seçilir)
                koru='DM_KOL'),                  # sol ön kol (karakter_boya.DM_KOL): kitabın gölgesinde, silinmesin
-    'garson_kiz': dict(girdi='kadın-garson.glb', yuz=24000, doku=2048, cikti_doku=1024),     # "Classic Maid Uniform" (restore50)
-    'garson_erkek': dict(girdi='erkek-garson.glb', yuz=24000, doku=2048, cikti_doku=1024,   # "Medieval Peasant Warrior" (Azura_SQ)
-                         sil_kutu=[((0.215, 0.37), (-0.08, 0.22), (-0.46, 0.22))]),   # sol kalçadaki kılıç ve kını
-    'fighter': dict(girdi='archer-v1.glb', yuz=32000, doku=2048),   # "GA Free_251_The Shrewd Scoundrel" (Galaxy Abundant)
+    # kol: önkol ve el bu yükseklikten (modelin kendi ölçüsü) aşağısı yeniden kurulur (kol_kes / kol_ekle); ayir: kol korseden ayrılır
+    'garson_kiz': dict(girdi='kadın-garson.glb', yuz=24000, doku=2048, cikti_doku=1024, alcak=2800,      # "Classic Maid Uniform" (restore50)
+                       kol=dict(kes=0.27, ayir=True)),             # kısa kollu bluzun hemen altı
+    'garson_erkek': dict(girdi='erkek-garson.glb', yuz=24000, doku=2048, cikti_doku=1024, alcak=2800,   # "Medieval Peasant Warrior" (Azura_SQ)
+                         sil_kutu=[((0.215, 0.37), (-0.08, 0.22), (-0.46, 0.22))],   # sol kalçadaki kılıç ve kını
+                         kol=dict(kes=0.31, ayir=False)),           # sıvalı gömleğin altı (dirseğin biraz aşağısı)
+    'fighter': dict(girdi='archer-v1.glb', yuz=32000, doku=2048, alcak=3200),   # "GA Free_251_The Shrewd Scoundrel" (Galaxy Abundant)
     'hanci': dict(girdi='hanci.glb', yuz=None, doku=2048, alcak=2800,   # alcak: büyücü gibi az çokgenli (üçgen sayısı), düz renkli
                   sil=('Anvil', 'Hammer', 'HotIron', 'Plane0', 'ShoulderPads')),   # örs, çekiç, kızgın demir, kıvılcımlar, omuz zırhı
 }[AD]
@@ -154,14 +157,27 @@ def kutu_sil(ob):
     print('SILINDI', int(kitap.sum()), 'yüz')
 
 
-def alcak_poli(ob, ucgen, renk_sayisi=16, hucre=16, temizle=3):
+def _kume(X, k, tohum=5):
+    """k-ortalama: X'in (N×3) k merkezi."""
+    rng = np.random.default_rng(tohum); mer = X[rng.choice(len(X), k, replace=False)].copy()
+    for _ in range(25):
+        es = np.argmin(((X[:, None] - mer[None]) ** 2).sum(-1), 1)
+        for j in range(k):
+            if (es == j).any(): mer[j] = X[es == j].mean(0)
+    return mer
+
+
+def alcak_poli(ob, ucgen, renk_sayisi=16, hucre=16, temizle=3, ro=None, ten_ayir=False):
     """Büyücü gibi az çokgenli (2026-10-28, kullanıcı: "low poly çeksek bu sanatla uyuşur mu"): model ucgen kadar üçgene iner,
     her yüz düz tek renk olur. Renk, boyanmış yüksek çözünürlüklü modelde o yüzün altına düşen küçük yüzlerin ortancası;
     renkler renk_sayisi kadar palete toplanır (k-ortalama); sonra her yüz komşularının çoğunluk rengini alır (temizle kez: dokudaki
     pişmiş ışık-gölge yüzden yüze alaca bir görünüm veriyordu, büyücüde her parça tek renk), palet büyücünün peopleColors'u gibi küçük bir dokuda (8×8 hücre,
-    hücre başına hucre px: uzaktan bakınca komşu hücre karışmasın), her yüzün UV'si kendi hücresinin ortasında."""
+    hücre başına hucre px: uzaktan bakınca komşu hücre karışmasın), her yüzün UV'si kendi hücresinin ortasında.
+    ro: yüksek çözünürlüklü yüzlerin (renk, orta)'sı önceden okunduysa (garson: kumaştaki kapatılan deliklerin dokusu yok).
+    ten_ayir: ten kendi renklerinde kümelenir (garson kızda açık ten krem önlükle aynı renge düşüp yüz bembeyaz görünüyordu)."""
     from mathutils.kdtree import KDTree
-    renk, orta = yuz_renk(ob)                                       # boyanmış dokudan (yüksek çözünürlük)
+    import karakter_boya as kb
+    renk, orta = ro if ro is not None else yuz_renk(ob)            # boyanmış dokudan (yüksek çözünürlük)
     kd = KDTree(len(orta))
     for i, c in enumerate(orta): kd.insert(c, i)
     kd.balance()
@@ -174,12 +190,14 @@ def alcak_poli(ob, ucgen, renk_sayisi=16, hucre=16, temizle=3):
     for p in me.polygons:                                           # yüzün ortası ve köşelere doğru üç nokta: altındaki küçük yüzlerin ortancası
         c = np.array(p.center[:], np.float32); nokta = [c] + [c + (V[i] - c) * 0.6 for i in p.vertices]
         yr[p.index] = np.median([renk[kd.find(q)[1]] for q in nokta], 0)
-    rng = np.random.default_rng(5); mer = yr[rng.choice(len(yr), renk_sayisi, replace=False)]
-    for _ in range(25):                                             # k-ortalama
-        es = np.argmin(((yr[:, None] - mer[None]) ** 2).sum(-1), 1)
-        for k in range(renk_sayisi):
-            if (es == k).any(): mer[k] = yr[es == k].mean(0)
-    es = np.argmin(((yr[:, None] - mer[None]) ** 2).sum(-1), 1)
+    h_, s_, v_ = kb.hsv(yr)
+    tm = (h_ < 0.1) & (s_ > 0.2) & (s_ < 0.55) & (v_ > 0.58) if ten_ayir else np.zeros(len(yr), bool)   # kahve etek ve kızıl saç ten değil
+    kt = 3 if tm.sum() >= 40 else 0                                 # tene 3 renk, kalanına 13
+    mer, es = [], np.zeros(len(yr), int)
+    for idx, k in ([(np.nonzero(tm)[0], kt), (np.nonzero(~tm)[0], renk_sayisi - kt)] if kt else [(np.arange(len(yr)), renk_sayisi)]):
+        m_ = _kume(yr[idx], k)
+        es[idx] = len(mer) + np.argmin(((yr[idx][:, None] - m_[None]) ** 2).sum(-1), 1); mer += list(m_)
+    mer = np.array(mer)
     komsu = [[] for _ in me.polygons]                               # kenar komşuları
     kenar = {}
     for p in me.polygons:
@@ -210,7 +228,9 @@ def alcak_poli(ob, ucgen, renk_sayisi=16, hucre=16, temizle=3):
     m = me.materials[0]
     tx = next(nd for nd in m.node_tree.nodes if nd.type == 'TEX_IMAGE'); tx.image = im; tx.interpolation = 'Closest'
     while len(me.materials) > 1: me.materials.pop()
-    print('ALCAK', len(me.polygons), 'yüz', renk_sayisi, 'renk')
+    print('ALCAK', len(me.polygons), 'yüz', renk_sayisi, 'renk', '(ten ayrı: %d)' % kt if kt else '')
+    print('PALET', ' '.join('#%02x%02x%02x:%d%s' % (*(np.clip(mer[k], 0, 1) * 255).astype(int), int((es == k).sum()), '*' if k < kt else '')
+                            for k in range(renk_sayisi)))
 
 
 def uv_kapsam(ob, n):
@@ -493,9 +513,6 @@ SISE = [(0, gor()), (10, KALK + gor()),
         (212, [ALTA, SOL_KUPA] + gor(sise=1, bardak=1)), (214, [ALTA, SOL_KUPA] + gor(bardak=1)),
         (228, [KALK[1], SOL_TEZ] + gor(bardak=1)), (230, [KALK[1], SOL_TEZ] + gor()), (244, gor())]
 
-# Bar boyunca yürüme (döngü, 32 kare): kollar tezgâhtan kalkık, sallanır; site hancıyı yürüdüğü yöne çevirip taşır
-_YK = lambda a, b, k: _ad(a, b) + [(SOL, 'IK', (0.36, -0.28 - k / 200, 1.0)), (SAG, 'IK', (-0.36, -0.28 + k / 200, 1.0)), ('bip Spine_03', 'Z', k / 4)]
-HANCI_YURU = [(0, _YK(-20, 14, 12) + gor()), (8, _YK(-4, -6, 0) + gor()), (16, _YK(14, -20, -12) + gor()), (24, _YK(-6, -4, 0) + gor()), (32, _YK(-20, 14, 12) + gor())]
 HANCI_ESYA = ['Sise', 'Bardak', 'BezEl']
 HANCI_KEMIK = [PELVIS, 'bip Spine_03', 'bip Spine1_04', 'bip Head_06'] + [f(k) for f in (_L, _R) for k in ('UpperArm', 'Forearm', 'Hand')] + \
               ['bip L Thigh_023', 'bip L Calf_024', 'bip R Thigh_027', 'bip R Calf_028'] + HANCI_ESYA
@@ -517,9 +534,10 @@ ERKEK_EKLEM = dict(legen=(0, 0.03, 0.0), bel=(0, 0.03, 0.10), gogus=(0, 0.03, 0.
 for _k, _sx in (('l', 1), ('r', -1)):
     ERKEK_EKLEM.update({
         f'kprc_{_k}': (0.03 * _sx, 0.03, 0.58), f'omuz_{_k}': (0.19 * _sx, 0.04, 0.56), f'dirsek_{_k}': (0.285 * _sx, 0.05, 0.33),
-        f'bilek_{_k}': (0.265 * _sx, 0.04, 0.04), f'bogum_{_k}': (0.265 * _sx, 0.03, -0.06), f'parmak_{_k}': (0.265 * _sx, 0.02, -0.10),
-        f'uc_{_k}': (0.265 * _sx, 0.01, -0.14), f'bas0_{_k}': (0.245 * _sx, 0.0, 0.0), f'bas1_{_k}': (0.235 * _sx, -0.015, -0.04),
-        f'bas2_{_k}': (0.23 * _sx, -0.025, -0.07), f'kalca_{_k}': (0.10 * _sx, 0.03, -0.02), f'diz_{_k}': (0.12 * _sx, 0.03, -0.48),
+        # el (2026-10-29 düzeltildi; yeni el bunlara göre kurulur): gerçek el eskiden sanılandan 4–6 cm önde (yandan bakınca)
+        f'bilek_{_k}': (0.265 * _sx, -0.005, 0.04), f'bogum_{_k}': (0.27 * _sx, -0.035, -0.06), f'parmak_{_k}': (0.265 * _sx, -0.04, -0.10),
+        f'uc_{_k}': (0.26 * _sx, -0.045, -0.14), f'bas0_{_k}': (0.248 * _sx, -0.03, 0.0), f'bas1_{_k}': (0.238 * _sx, -0.055, -0.035),
+        f'bas2_{_k}': (0.232 * _sx, -0.065, -0.065), f'kalca_{_k}': (0.10 * _sx, 0.03, -0.02), f'diz_{_k}': (0.12 * _sx, 0.03, -0.48),
         f'ayak_{_k}': (0.13 * _sx, 0.07, -0.86), f'tarak_{_k}': (0.13 * _sx, -0.06, -0.93), f'parmakuc_{_k}': (0.13 * _sx, -0.15, -0.94)})
 
 # Garsonun duruşu (dünya yönleri; yüzü −y): bacaklar dik, sağ kol yanda, sol el omuz hizasında tepsiyi taşır (dirsek yana,
@@ -528,22 +546,100 @@ GARSON_YON = {
     'bip L Thigh_023': (0, 0.02, -1), 'bip L Calf_024': (0, 0.05, -1), 'bip L Foot_025': (0, -0.85, -0.5),
     'bip R Thigh_027': (0, 0.02, -1), 'bip R Calf_028': (0, 0.05, -1), 'bip R Foot_00': (0, -0.85, -0.5),
     'bip R UpperArm_016': (-0.2, 0.03, -1), 'bip R Forearm_017': (-0.08, -0.2, -1), 'bip R Hand_018': (-0.03, -0.05, -1),
-    'bip L UpperArm_08': (0.8, -0.2, -0.55), 'bip L Forearm_09': (0.05, -0.3, 0.95), 'bip L Hand_010': (-0.35, -0.2, 0.25),
-}
+    'bip L UpperArm_08': (0.8, -0.2, -0.55), 'bip L Forearm_09': (0.05, -0.3, 0.95), 'bip L Hand_010': (-0.35, -0.2, 0.0),
+}                                                                 # el yatay: avuç yukarı çevrilir (avuc_yukari), tepsi avucun üstünde
 # Erkek garson tepsiyi bel hizasında taşır (üst kol yanda, önkol önde): gömleğinin kolu yeleğin kol oyuğuna kaynaşık, kol omuz
 # hizasına kalkınca oyuk yırtılıyordu
 GARSON_YON_ERKEK = dict(GARSON_YON, **{'bip L UpperArm_08': (0.18, 0.05, -1), 'bip L Forearm_09': (0.12, -1, 0.12), 'bip L Hand_010': (0.05, -1, 0.0)})
-# Yürüme (döngü, 32 kare = 1,07 sn; bir adım 0,55 m: site garsonu saniyede ~1 m ilerletir). Sol kol (tepsi) kımıldamaz.
-_ADIM = lambda on, arka, a, b: [(on[0], 'X', a[0]), (on[1], 'X', a[1]), (arka[0], 'X', b[0]), (arka[1], 'X', b[1])]
-_SOL, _SAG = ('bip L Thigh_023', 'bip L Calf_024'), ('bip R Thigh_027', 'bip R Calf_028')
-YURU = [
-    (0, _ADIM(_SOL, _SAG, (-22, 6), (18, 12)) + [('bip R UpperArm_016', 'X', -14), ('bip Spine_03', 'Z', 4)]),
-    (8, _ADIM(_SOL, _SAG, (-4, 4), (-12, 48)) + [('bip R UpperArm_016', 'X', 0)]),
-    (16, _ADIM(_SAG, _SOL, (-22, 6), (18, 12)) + [('bip R UpperArm_016', 'X', 14), ('bip Spine_03', 'Z', -4)]),
-    (24, _ADIM(_SAG, _SOL, (-4, 4), (-12, 48)) + [('bip R UpperArm_016', 'X', 0)]),
-    (32, _ADIM(_SOL, _SAG, (-22, 6), (18, 12)) + [('bip R UpperArm_016', 'X', -14), ('bip Spine_03', 'Z', 4)]),
-]
-YURU_KEMIK = list(_SOL + _SAG) + ['bip R UpperArm_016', 'bip Spine_03']
+# Yürüme (2026-10-29, kullanıcı: "yürüme animasyonlarını daha iyi yap"). Eskiden elle verilmiş dört bacak açısıydı: ayaklar
+# yerde kayıyordu (adım boyu sitenin ilerletme hızına uymuyordu), leğen inip kalkmıyordu. Artık tablo hesaplanır:
+# - basan ayak (adımın %58'i) iskelete göre tam yürüme hızıyla geriye gider: site karakteri o hızla taşıdığı için dünyada
+#   yerinde durur; havadaki ayak yay çizip öne gelir. Ayak bileği 'IK' ile hedefine (diz önde: önce hafif bükülür).
+# - basışın sonunda topuk kalkar, ayak ucu iter (parmaklar yerde kalır); havada ayak düzelir, topukla basar.
+# - leğen bacakların erişebileceği kadar iner (iki ayak yerdeyken en alçak), ağırlık basan ayağa kayar, leğen adımla döner,
+#   göğüs ters döner, baş ileriye bakar; kollar bacakların tersine sallanır (biraz geriden gelir).
+# Site döngünün hızını modelden okur (yuru_hiz, m/sn): timeScale = ilerletme hızı / yuru_hiz.
+BACAK = {'L': ('bip L Thigh_023', 'bip L Calf_024', 'bip L Foot_025', 'bip L Toe0_026'),
+         'R': ('bip R Thigh_027', 'bip R Calf_028', 'bip R Foot_00', 'bip R Toe0_029')}
+ON_BUK = (-12, 25)                        # IK'dan önce uyluk ve baldır (diz öne bükülsün); ayak bunların toplamı kadar döner, geri alınır
+
+
+def yuru_tablo(arm, hiz, kare=30, yuk=0.07, basis=0.58, kol='sag', eller=None):
+    """Yürüme döngüsü (kare kare tablo, her 2 karede bir) ve oynattığı kemikler. hiz: m/sn (site bu hızla taşır), yuk: havadaki
+    ayağın en yüksek yeri (m). kol: 'sag' yalnızca sağ kol sallanır (garson: sol elde tepsi), 'iki' iki kol. eller: hancı gibi
+    kolları IK ile tutulanlar için (sol, sağ) bilek noktaları; ileri geri sallanır, leğenle iner kalkar."""
+    B = arm.data.bones
+    tur = hiz * kare / 30                                           # bir döngüde alınan yol (iki adım)
+    Ls = tur * basis                                                # basan ayağın iskelete göre gittiği yol
+    bac = {}
+    for t, (th, ca, fo, to) in BACAK.items():
+        L = (B[th].tail_local - B[th].head_local).length + (B[ca].tail_local - B[ca].head_local).length
+        bac[t] = (B[th].head_local.copy(), B[fo].head_local.copy(), L)
+    olc = min(L for _, _, L in bac.values()) / 0.8                  # kısa bacakta (cüce) her şey orantılı
+    sal, kalk = 0.022 * olc, 0.045 * olc
+    tablo = []
+    for f in range(0, kare + 1, 2):
+        p = (f % kare) / kare
+        c = math.cos(2 * math.pi * p)
+        dx = sal * math.sin(2 * math.pi * p)                        # ağırlık basan ayağa (sol ayak +x, p 0…0,58 basar)
+        hedef, aci = {}, {}
+        for t, faz in (('L', 0.0), ('R', 0.5)):
+            q = (p + faz) % 1
+            if q < basis:
+                s = q / basis; dy = Ls * (s - 0.5)                  # öne (−y) basar, geriye gider
+                k = max(0.0, (s - 0.7) / 0.3); dz = kalk * k * k    # topuk kalkar
+                a = 26 * k ** 1.5 if s > 0.7 else -12 * max(0.0, 1 - s / 0.15)
+            else:
+                s = (q - basis) / (1 - basis); e = (1 - math.cos(math.pi * s)) / 2
+                dy = Ls * (0.5 - e); dz = yuk * olc * math.sin(math.pi * s) + kalk * (1 - e)
+                a = 26 * (1 - e) - 12 * e
+            ayak = bac[t][1]
+            hedef[t] = Vector((ayak.x, ayak.y + dy, ayak.z + dz)); aci[t] = a
+        dz_l = 0.0                                                  # leğen: iki bacak da yetişsin (dizler hiç kilitlenmesin)
+        for t, (kalca, _, L) in bac.items():
+            h = hedef[t]; yatay = math.hypot(h.x - kalca.x - dx, h.y - kalca.y)
+            yet = math.sqrt(max((0.985 * L) ** 2 - yatay ** 2, 0)) + h.z - kalca.z
+            dz_l = min(dz_l, yet)
+        dz_l = max(dz_l - 0.008 * olc, -0.07 * olc)
+        don = 5 * c                                                 # leğen: sol ayak öndeyken (p 0) sol kalça önde
+        L_ = [(PELVIS, 'L', (dx, 0, dz_l)), (PELVIS, 'Z', -don),
+              ('bip Spine_03', 'X', 3), ('bip Spine_03', 'Z', don + 4 * c), ('bip Head_06', 'Z', -4 * c),
+              ('bip Head_06', 'X', 1.5 * math.cos(4 * math.pi * p))]
+        for t, (th, ca, fo, to) in BACAK.items():
+            L_ += [(th, 'X', ON_BUK[0]), (ca, 'X', ON_BUK[1]), (fo, 'IK', tuple(hedef[t])),
+                   (fo, 'X', aci[t] - sum(ON_BUK)), (fo, 'Z', don), (to, 'X', -max(aci[t], 0))]   # ayak leğenle dönmesin
+        cg = math.cos(2 * math.pi * (p - 0.05))                     # kollar biraz geriden gelir
+        if eller:
+            sol, sag = eller
+            L_ += [(SOL, 'IK', (sol[0] + dx, sol[1] + 0.07 * olc * cg, sol[2] + dz_l)),
+                   (SAG, 'IK', (sag[0] + dx, sag[1] - 0.07 * olc * cg, sag[2] + dz_l))]
+        else:
+            L_ += [('bip R UpperArm_016', 'X', -18 * cg), ('bip R Forearm_017', 'X', -6 - 10 * (1 + cg) / 2)]
+            if kol == 'iki': L_ += [('bip L UpperArm_08', 'X', 18 * cg), ('bip L Forearm_09', 'X', -6 - 10 * (1 - cg) / 2)]
+        tablo.append((f, L_))
+    kem = [PELVIS, 'bip Spine_03', 'bip Head_06'] + [k for b in BACAK.values() for k in b]
+    kem += ([f(k) for f in (_L, _R) for k in ('UpperArm', 'Forearm', 'Hand')] if eller else
+            ['bip R UpperArm_016', 'bip R Forearm_017'] + (['bip L UpperArm_08', 'bip L Forearm_09'] if kol == 'iki' else []))
+    arm['yuru_hiz'] = round(hiz, 3)
+    return tablo, kem
+
+
+def yuru_olc(arm, kare=30):
+    """Yürüme döngüsünde basan ayağın dünyada ne kadar kaydığını ölçer (site iskeleti yuru_hiz ile −y'ye taşırken; cm)."""
+    hiz = arm['yuru_hiz']; sah = bpy.context.scene
+    for t, (th, ca, fo, to) in BACAK.items():
+        iz = []
+        for f in range(kare):
+            sah.frame_set(f)
+            p = arm.matrix_world @ arm.pose.bones[fo].head
+            iz.append((f, p.y, p.z))
+        yer = min(z for _, _, z in iz)
+        G = [f for f, _, z in iz if z < yer + 0.006]                # yerdeyken (bileğin en alçak hâli)
+        sar = 0 in G and kare - 1 in G                               # basış döngünün sonundan başına taşıyor
+        bas = [iz[f][1] - hiz * (f + (kare if sar and f < kare / 2 else 0)) / 30 for f in G]
+        print('KAYMA', t, 'yerde', len(bas), 'kare', round((max(bas) - min(bas)) * 100, 1), 'cm', 'en yüksek', round((max(z for _, _, z in iz) - yer) * 100, 1), 'cm')
+
+
 GARSON_BEKLE = [
     (0, []),
     (60, [('bip Spine1_04', 'X', 2), ('bip Head_06', 'Z', 12)]),
@@ -590,20 +686,290 @@ def kose_renk(ob, C):
     return top / np.maximum(np.bincount(vi, minlength=len(me.vertices)), 1)[:, None]
 
 
-def kol_izni(V, renk):
-    """Garsonlarda kol kemiklerinin oynatabileceği köşeler (V modelin kendi ölçüsünde). Kollar elbiseye / tuniğe değecek kadar
-    yakın duruyor: uzaklığa göre ağırlıkta kol kaldırılınca eteğin ve önlüğün yanı da kalkıyordu. İzin: ten, kol yeni, elde tutulan."""
+# Garsonların kolları (2026-10-29, kullanıcı: "garsonların elleri kendi üstlerine bağlı ... ona çok önem ver, blenderda iyi bir
+# model çıkart"; "tuttuğu tepsilere elleri girmiş"). Hazır modellerde beden tek parça: eller ve önkollar eteğe / tuniğe kaynaşık
+# (elden yüzey boyunca 6–7 cm gidince kumaşa varılıyor), kızın üst kolu da korsenin yanına (gövdenin ortasından kola yüzey
+# boyunca 10–15 cm; omuzdan dolaşınca 30 cm olmalı). Ağırlıkla çözülmez: kumaş ve el aynı köşeleri paylaşıyor, biri oynayınca
+# öbürü çekiliyordu. Önkol ve el silinir, kumaştaki delikler kapanır (kol_kes), yerine az çokgenli önkol ve el kurulur (kol_ekle;
+# kalınlıklar modelin kendi kolundan ölçülür, her parça yalnızca kendi kemiğine bağlı). Kızda kolun korseye kaynaşık yüzleri
+# ayrılır. Gövdede kol kemikleri yalnızca yüzey boyunca kola gövdeden yakın köşeleri oynatır (kol_etiket).
+def _seg(P, A, B):
+    """P noktalarının (N×3) AB doğru parçasına uzaklığı ve parça üstündeki yeri (0…1)."""
+    A, B = np.asarray(A, float), np.asarray(B, float); AB = B - A
+    t = np.clip(((P - A) @ AB) / max(float(AB @ AB), 1e-12), 0, 1)
+    return np.linalg.norm(P - (A + t[:, None] * AB), axis=1), t
+
+
+def _zincir(P, nokta):
+    """Kırık çizgiye en yakın uzaklık ve çizgi boyunca yeri (baştan, birim)."""
+    en, yol, top = np.full(len(P), np.inf), np.zeros(len(P)), 0.0
+    for a, b in zip(nokta[:-1], nokta[1:]):
+        d, t = _seg(P, a, b); L = float(np.linalg.norm(np.subtract(b, a)))
+        k = d < en; en[k] = d[k]; yol[k] = top + t[k] * L; top += L
+    return en, yol
+
+
+def _z_nokta(nokta, z):
+    """Aşağı inen kırık çizgide (omuz → dirsek → bilek) z yüksekliğindeki nokta ve hangi parçada olduğu."""
+    for i, (a, b) in enumerate(zip(nokta[:-1], nokta[1:])):
+        if b[2] <= z <= a[2]:
+            f = (a[2] - z) / max(a[2] - b[2], 1e-9)
+            return np.asarray(a, float) + (np.asarray(b, float) - a) * f, i
+    return np.asarray(nokta[-1], float), len(nokta) - 2
+
+
+def _komsu(me, V):
+    E = np.zeros(len(me.edges) * 2, np.int32); me.edges.foreach_get('vertices', E); E = E.reshape(-1, 2)
+    kom = [[] for _ in range(len(V))]
+    for a, b in E.tolist():
+        d = float(np.linalg.norm(V[a] - V[b])); kom[a].append((b, d)); kom[b].append((a, d))
+    return kom
+
+
+def _yuzey_uzak(kom, tohum):
+    """Tohum köşelerden yüzey boyunca (kenarlar üstünden) uzaklık (Dijkstra)."""
+    import heapq
+    D = np.full(len(kom), np.inf); h = [(0.0, int(i)) for i in np.nonzero(tohum)[0]]
+    for _, i in h: D[i] = 0.0
+    heapq.heapify(h)
+    while h:
+        d, a = heapq.heappop(h)
+        if d > D[a]: continue
+        for b, w in kom[a]:
+            if d + w < D[b]: D[b] = d + w; heapq.heappush(h, (d + w, b))
+    return D
+
+
+def kol_kes(ob, J, kes, ayir, ilk=None):
+    """Önkolu ve eli siler (modelin kendi duruşunda: kollar aşağıda; ölçüler modelin biriminde), kumaştaki delikleri kapatır.
+    kol_ekle için ölçüleri ve silindikten sonraki, kapatılmadan önceki yüzlerin (renk, orta)'sını döndürür (kapatılan yüzlerin
+    dokusu yok: alcak_poli renklerini çevrelerinden alsın). ayir: koltuk altının altında kol (krem / ten) ile korse (yeşil)
+    arasındaki yüzler silinir (kız: kolun alt yarısı korsenin yanına kaynaşık). ilk: boyamadan önceki köşe renkleri: elin
+    yanındaki mavi bez (kızın sağ elinde; önlüğe kaynaşık, boyanınca krem) de silinir."""
     import karakter_boya as kb
-    h, s_, v = kb.hsv(renk)
-    x, z = V[:, 0], V[:, 2]
-    ax = np.abs(x)
-    ten = (h < 0.1) & (s_ > 0.2) & (s_ < 0.7) & (v > 0.28)
-    if AD == 'garson_kiz':
-        kol = (ax > 0.13) & (z > 0.26)                                 # kısa kollar
-        bez = (h > 0.45) & (h < 0.62) & (s_ > 0.3) & (v > 0.4)
-        return (ten & (ax > 0.17) & (z < 0.45)) | kol | (bez & (ax > 0.17))
-    teal = (h > 0.42) & (h < 0.62) & (s_ > 0.15)                     # erkek: gömlek kolları, omuz başı
-    return (ten & (ax > 0.19) & (z < 0.3)) | (teal & (ax > 0.17) & (z > 0.15)) | ((ax > 0.2) & (z > 0.4))
+    me = ob.data
+    V = np.array([v.co[:] for v in me.vertices]); R = kose_renk(ob, doku_dizi(ob)[0])   # boyanmış renkler
+    h, sa, va = kb.hsv(R)
+    ten = (h < 0.11) & (sa > 0.2) & (sa < 0.7) & (va > 0.3)
+    olcu, sil = {}, np.zeros(len(V), bool)
+    kolv, yesil = np.zeros(len(V), bool), np.zeros(len(V), bool)
+    yt = ten & (V[:, 2] > 0.5) & (np.abs(V[:, 0]) < 0.12)              # kolun rengi: yüzün ve boynun teni, aydınlık yarısı (gölgesiz)
+    L = R[yt] @ np.array([0.3, 0.59, 0.11]) if yt.any() else np.zeros(0)
+    renk_ten = np.median(R[yt][L >= np.median(L)], 0) if yt.sum() > 10 else np.array([0.85, 0.66, 0.55])
+    ten_hex = '#%02x%02x%02x' % tuple((np.clip(renk_ten, 0, 1) * 255).astype(int))
+    for t in 'lr':
+        sx = 1 if t == 'l' else -1
+        g = lambda k: np.array(J[f'{k}_{t}'], float)
+        om, di, bi, bo, uc = g('omuz'), g('dirsek'), g('bilek'), g('bogum'), g('uc')
+        yan = V[:, 0] * sx > 0.06
+        kol = [om, di, bi]
+
+        def yaricap(p, d, varsay=0.04):                              # kesitte eksene uzaklıkların %40'ı (kaynaşık kumaş daha uzakta)
+            d = d / np.linalg.norm(d); q = V - p; boy = q @ d
+            dik = np.linalg.norm(q - boy[:, None] * d, axis=1)
+            k = yan & (np.abs(boy) < 0.012) & (dik < 0.075)
+            return float(np.clip(np.percentile(dik[k], 40), varsay * 0.6, varsay * 1.5)) if k.sum() >= 6 else varsay
+        ust, i_ust = _z_nokta(kol, kes + 0.04)                       # yeni kolun başı: kalan kolun içinde
+        alt, i_alt = _z_nokta(kol, kes - 0.025)                      # kesimin hemen altı
+        rA = yaricap(alt, kol[i_alt + 1] - kol[i_alt])
+        rD = yaricap(di, (di - om) / np.linalg.norm(di - om) + (bi - di) / np.linalg.norm(bi - di))
+        orta = (di + bi) / 2
+        rO = yaricap(orta, bi - di, 0.035)
+        rB = yaricap(bi + (di - bi) * 0.12, bi - di, 0.027)
+        # el: boyu (parmak ucu son eklemin ötesinde olabilir), eni, kalınlığı; avuç bedene bakar, w başparmak yanı
+        a = (uc - bi) / np.linalg.norm(uc - bi)
+        q = V - bi; boy = q @ a; dik = q - boy[:, None] * a; dn = np.linalg.norm(dik, axis=1)
+        elk = yan & (boy > -0.01) & (boy < 0.25) & (dn < 0.04)
+        L0 = float(np.linalg.norm(uc - bi))
+        Lsil = float(np.clip(np.percentile(boy[elk], 97), L0, L0 * 1.5)) if elk.sum() > 20 else L0   # silmek için: eldeki bez dahil
+        if (elk & ten).sum() > 20: elk = elk & ten                   # ölçmek için yalnızca ten (kızın sağ elinde bez var)
+        Lh = float(np.clip(np.percentile(boy[elk], 97), L0, L0 * 1.5)) if elk.sum() > 20 else L0
+        n = np.array([-sx, 0.0, 0.0]); n = n - a * (n @ a); n /= np.linalg.norm(n)
+        w = np.cross(a, n)
+        if (np.array(J[f'bas1_{t}']) - bi) @ w < 0: w = -w
+        avuc = elk & (boy > 0.2 * Lh) & (boy < 0.55 * Lh)
+        W = float(np.clip(2 * np.percentile(np.abs(dik[avuc] @ w), 80), 0.36 * Lh, 0.55 * Lh)) if avuc.sum() > 8 else 0.45 * Lh
+        T = float(np.clip(2 * np.percentile(np.abs(dik[avuc] @ n), 80), 0.13 * Lh, 0.24 * Lh)) if avuc.sum() > 8 else 0.18 * Lh
+        Lp = float(np.clip(np.linalg.norm(bo - bi), 0.4 * Lh, 0.55 * Lh))
+        bas = [np.array(J[f'bas{i}_{t}'], float) for i in range(3)]
+        # silinecekler: kesimin altında, kolun ve elin zarfındakiler (kumaşın kola değen yeri de gider; delik kapanır)
+        zin = [_z_nokta(kol, kes)[0]] + [p for p in kol[1:] if p[2] < kes] + [bi + a * Lsil]
+        d_, yol = _zincir(V, zin)
+        uz = [float(np.linalg.norm(zin[i + 1] - zin[i])) for i in range(len(zin) - 1)]
+        Lkol = sum(uz[:-1])
+        r_kol = np.interp(yol, [0, Lkol * 0.45, Lkol * 0.75, Lkol], [rA, rD if di[2] < kes else rA, rO, rB]) * 1.3 + 0.012
+        esik = np.where(yol <= Lkol, r_kol, 0.62 * W + 0.008)
+        db, _ = _zincir(V, [bas[0], bas[1], bas[2] + (bas[2] - bas[1]) * 0.6])
+        s_ = yan & (V[:, 2] < kes) & ((d_ < esik) | (db < 0.035))
+        if ilk is not None:
+            h0, s0, v0 = kb.hsv(ilk)
+            s_ |= yan & (V[:, 2] < kes) & (d_ < 0.2) & (h0 > 0.45) & (h0 < 0.62) & (s0 > 0.3) & (v0 > 0.4)
+        sil |= s_
+        olcu[t] = dict(ust=ust, ust_kemik='ust' if i_ust == 0 else 'on', rA=rA, di=di, rD=rD, dirsek=bool(di[2] < ust[2] - 0.015),
+                       orta=orta, rO=rO, bi=bi, rB=rB, a=a, n=n, w=w, Lh=Lh, Lp=Lp, W=W, T=T, bas=bas,
+                       ten=ten_hex, zin=zin)
+        print('KOL', t, 'yarıçap', round(rA, 3), round(rD, 3), round(rO, 3), round(rB, 3), 'el boy/en/kalınlık', round(Lh, 3), round(W, 3),
+              round(T, 3), 'ten', olcu[t]['ten'], 'silinecek', int(s_.sum()), 'köşe')
+        if ayir:                                                     # koltuk altının altında kol / korse
+            du, _ = _seg(V, om, di)
+            bant = yan & (V[:, 2] > kes - 0.01) & (V[:, 2] < om[2] - 0.06)
+            kolv |= bant & (du < 0.1) & (((sa < 0.22) & (va > 0.55)) | ten)
+            yesil |= bant & (h > 0.18) & (h < 0.45) & (sa > 0.18)
+    # yeni kollar için ölçüler iki yanın ortalaması (model simetrik; tek yanın ölçüsü kaynaşık kumaştan sapabiliyor), kalınlık
+    # omuzdan bileğe incelir
+    for k in ('rA', 'rD', 'rO', 'rB', 'Lh', 'Lp', 'W', 'T'):
+        ort = float(np.mean([olcu[t][k] for t in 'lr']))
+        for t in 'lr': olcu[t][k] = ort
+    for t in 'lr':
+        o = olcu[t]
+        o['rD'] = min(o['rD'], o['rA']); o['rO'] = min(o['rO'], o['rD'] if o['dirsek'] else o['rA'])
+        o['rB'] = float(np.clip(o['rB'], 0.65 * o['rO'], 0.85 * o['rO']))
+    print('KOL ORTALAMA yarıçap', *(round(olcu['l'][k], 3) for k in ('rA', 'rD', 'rO', 'rB')), 'el', *(round(olcu['l'][k], 3) for k in ('Lh', 'W', 'T')))
+    anahtar = lambda e: tuple(sorted((tuple(np.round(e.verts[0].co[:], 5)), tuple(np.round(e.verts[1].co[:], 5)))))
+    bm = bmesh.new(); bm.from_mesh(me); bm.verts.ensure_lookup_table()
+    eski = {anahtar(e) for e in bm.edges if e.is_boundary}
+    silv = [bm.verts[i] for i in np.nonzero(sil)[0]]
+    if ayir:
+        kopru = [f for f in bm.faces if any(kolv[v.index] for v in f.verts) and any(yesil[v.index] for v in f.verts)]
+        bmesh.ops.delete(bm, geom=kopru, context='FACES')
+        print('KOPRU', len(kopru), 'yüz (kol ile korse arası) silindi')
+    bmesh.ops.delete(bm, geom=[v for v in silv if v.is_valid], context='VERTS')
+    # kopup kalan küçük parçalar (parmak uçları, kumaş kırıntısı): yalnızca kolların çevresindekiler
+    zinler = [olcu[t]['zin'] for t in 'lr']
+    gorulen, kirinti = set(), []
+    for f0 in bm.faces:
+        if f0 in gorulen: continue
+        par, yig = [], [f0]; gorulen.add(f0)
+        while yig:
+            f = yig.pop(); par.append(f)
+            for e in f.edges:
+                for f2 in e.link_faces:
+                    if f2 not in gorulen: gorulen.add(f2); yig.append(f2)
+        if len(par) < 60:
+            c = np.mean([f.calc_center_median()[:] for f in par], 0)[None]
+            if min(_zincir(c, z)[0][0] for z in zinler) < 0.1: kirinti += par
+    bmesh.ops.delete(bm, geom=kirinti, context='FACES')
+    bm.to_mesh(me); bm.free()
+    ro = yuz_renk(ob)                                                # kapatılmadan önce: yalnızca dokusu olan yüzler
+    bm = bmesh.new(); bm.from_mesh(me)
+    yeni = [e for e in bm.edges if e.is_boundary and anahtar(e) not in eski]
+    dolu = bmesh.ops.holes_fill(bm, edges=yeni, sides=0)['faces']
+    bmesh.ops.triangulate(bm, faces=dolu, quad_method='BEAUTY', ngon_method='BEAUTY')
+    bm.to_mesh(me); bm.free()
+    print('KOL KESILDI', int(sil.sum()), 'köşe;', len(kirinti), 'kırıntı yüz;', len(dolu), 'delik kapandı')
+    return olcu, ro
+
+
+def kol_etiket(ob, J, s, kes):
+    """Gövdede (ölçeklenmiş az çokgenli model; önkol ve el ayrı parça) kol kemiklerinin oynatabileceği köşeler: yüzey boyunca
+    kolun dış yanına gövdenin ortasından daha yakın olanlar. Kol gövdeden ayrıldığı için sınır omuzda kalır."""
+    me = ob.data
+    V = np.array([v.co[:] for v in me.vertices]) / s                # modelin kendi ölçüsünde (eklemler gibi)
+    kom = _komsu(me, V)
+    kolt = np.zeros(len(V), bool)
+    for t in 'lr':
+        om, di = np.array(J[f'omuz_{t}']), np.array(J[f'dirsek_{t}'])
+        du, _ = _seg(V, om, di)
+        kolt |= (du < 0.09) & (V[:, 0] * np.sign(om[0]) > abs(om[0])) & (V[:, 2] < om[2] - 0.07) & (V[:, 2] > kes - 0.02)
+    govt = np.abs(V[:, 0]) < 0.08                                    # bedenin ortasındaki dikey şerit: baş, boyun, göğüs, bel, bacakların içi
+    Dk, Dg = _yuzey_uzak(kom, kolt), _yuzey_uzak(kom, govt)
+    izin = Dk < Dg
+    print('KOL IZNI', int(kolt.sum()), 'kol tohumu,', int(govt.sum()), 'gövde tohumu,', int(izin.sum()), 'köşe kolda;',
+          'ulaşılan', int(np.isfinite(Dk).sum()), int(np.isfinite(Dg).sum()), 'toplam', len(V))
+    for t in 'lr':                                                   # kolda sayılan köşelerin yeri (kontrol)
+        k = izin & (np.sign(V[:, 0]) == (1 if t == 'l' else -1))
+        if k.any(): print('  ', t, 'z', V[k, 2].min().round(3), V[k, 2].max().round(3), '|x|', np.abs(V[k, 0]).min().round(3), np.abs(V[k, 0]).max().round(3))
+    return izin
+
+
+KOL_KEMIK = {t: dict(ust=f'bip {T} UpperArm_0{n[0]}', on=f'bip {T} Forearm_0{n[1]}', el=f'bip {T} Hand_0{n[2]}', b0=f'bip {T} Finger0_0{n[3]}',
+                     b1=f'bip {T} Finger01_0{n[4]}', p0=f'bip {T} Finger1_0{n[5]}', p1=f'bip {T} Finger11_0{n[6]}')
+             for t, T, n in (('l', 'L', (8, 9, 10, 11, 12, 13, 14)), ('r', 'R', (16, 17, 18, 19, 20, 21, 22)))}
+
+
+def _halka(c, d, u, r1, r2, n):
+    """c merkezli, d eksenine dik n köşeli halka: u yönünde r1, öbür yönde r2 yarıçaplı."""
+    d = d.normalized(); u = (u - d * u.dot(d)).normalized(); v = d.cross(u)
+    return [c + u * (r1 * math.cos(2 * math.pi * (i + 0.5) / n)) + v * (r2 * math.sin(2 * math.pi * (i + 0.5) / n)) for i in range(n)]
+
+
+def _yassi(c, w, n, W, T):
+    """El ve parmak kesiti: w yönünde W genişlik, n yönünde T kalınlık (yassı altıgen)."""
+    return [c + w * (W / 2 * x) + n * (T / 2 * y) for x, y in ((1, 0), (0.55, 1), (-0.55, 1), (-1, 0), (-0.55, -1), (0.55, -1))]
+
+
+def _boru(kv, yz, ag, halkalar, agirlik):
+    """Aynı köşe sayılı halkaları sırayla birleştirir, iki ucu kapatır; ag: her köşenin [(kemik, ağırlık)]'ı."""
+    bas, n = len(kv), len(halkalar[0])
+    for hk, w in zip(halkalar, agirlik): kv += hk; ag += [w] * n
+    for j in range(len(halkalar) - 1):
+        for i in range(n):
+            a0, a1 = bas + j * n + i, bas + j * n + (i + 1) % n
+            yz.append((a0, a1, a1 + n, a0 + n))
+    son = bas + (len(halkalar) - 1) * n
+    yz += [tuple(range(bas, bas + n))[::-1], tuple(range(son, son + n))]
+
+
+def kol_ekle(arm, olcu, s, kivir):
+    """kol_kes'in ölçülerinden az çokgenli önkol (6 köşeli halkalar) ve el (yassı avuç, birleşik dört parmak, başparmak). Modelin
+    kendi duruşunda kurulur (kollar aşağıda), duruşla birlikte çevrilir. Her halka kendi kemiğine bağlı, eklemlerde ikisine
+    paylaştırılır. kivir: {'l'/'r': (kök, uç)} parmak bükümü (derece; avuca doğru)."""
+    kollar = {}
+    for t, o in olcu.items():
+        K = KOL_KEMIK[t]; P = lambda p: Vector(tuple(p)) * s
+        kv, yz, ag = [], [], []
+        a, n, w = Vector(tuple(o['a'])), Vector(tuple(o['n'])), Vector(tuple(o['w']))
+        dur = [(P(o['ust']), o['rA'] * 0.92, [(K[o['ust_kemik']], 1.0)])]          # baş: kalan kolun (bluz / gömlek kolu) içinde
+        if o['dirsek']: dur.append((P(o['di']), o['rD'], [(K['ust'], 0.5), (K['on'], 0.5)]))
+        dur += [(P(o['orta']), o['rO'], [(K['on'], 1.0)]), (P(o['bi']), o['rB'], [(K['on'], 0.6), (K['el'], 0.4)])]
+        hal = []
+        for i, (c, r, _) in enumerate(dur):
+            d = dur[min(i + 1, len(dur) - 1)][0] - dur[max(i - 1, 0)][0]
+            hal.append(_halka(c, d, w, r * s * 1.12, r * s * 0.9, 6))   # başparmak yanına doğru biraz geniş (önkol yassı)
+        _boru(kv, yz, ag, hal, [x[2] for x in dur])
+        bi = P(o['bi']); Lh, Lp, W, T = o['Lh'] * s, o['Lp'] * s, o['W'] * s, o['T'] * s
+        k1, k2 = kivir.get(t, (0, 0))
+        eks = a.cross(n)                                             # bu eksen çevresinde çevrilen parmaklar avuca doğru bükülür
+        dug = bi + a * Lp
+        R1 = Matrix.Rotation(math.radians(k1), 3, eks); R2 = Matrix.Rotation(math.radians(k1 + k2), 3, eks)
+        orta_p = dug + R1 @ (a * (Lh - Lp) * 0.55); uc = orta_p + R2 @ (a * (Lh - Lp) * 0.45)
+        kes_ = [(_yassi(bi - a * 0.01 * s, w, n, W * 0.8, T), [(K['on'], 0.5), (K['el'], 0.5)]),
+                (_yassi(bi + a * Lp * 0.5, w, n, W * 0.95, T), [(K['el'], 1.0)]),
+                (_yassi(dug, w, n, W, T * 0.85), [(K['el'], 0.4), (K['p0'], 0.6)]),
+                (_yassi(orta_p, R1 @ w, R1 @ n, W * 0.9, T * 0.7), [(K['p0'], 0.5), (K['p1'], 0.5)]),
+                (_yassi(uc, R2 @ w, R2 @ n, W * 0.78, T * 0.55), [(K['p1'], 1.0)])]
+        _boru(kv, yz, ag, [x[0] for x in kes_], [x[1] for x in kes_])
+        b0, b1, b2 = (P(p) for p in o['bas'])
+        b0 = b0 + (bi + a * Lp * 0.4 - b0) * 0.3                     # başparmağın kökü avucun içinde
+        b3 = b2 + (b2 - b1) * 0.6
+        _boru(kv, yz, ag, [_halka(b0, b1 - b0, n, 0.1 * Lh, 0.1 * Lh, 4), _halka(b1, b2 - b0, n, 0.085 * Lh, 0.085 * Lh, 4),
+                           _halka(b3, b3 - b1, n, 0.065 * Lh, 0.065 * Lh, 4)],
+              [[(K['el'], 0.5), (K['b0'], 0.5)], [(K['b0'], 0.5), (K['b1'], 0.5)], [(K['b1'], 1.0)]])
+        me = bpy.data.meshes.new('Kol' + t.upper()); me.from_pydata([tuple(v) for v in kv], [], yz)
+        bm = bmesh.new(); bm.from_mesh(me); bmesh.ops.recalc_face_normals(bm, faces=bm.faces); bm.to_mesh(me); bm.free()
+        ko = bpy.data.objects.new('Kol' + t.upper(), me); bpy.context.scene.collection.objects.link(ko)
+        ko.data.materials.append(malzeme('Ten', o['ten']))
+        for i, ws in enumerate(ag):
+            for kemik, wv in ws: (ko.vertex_groups.get(kemik) or ko.vertex_groups.new(name=kemik)).add([i], wv, 'REPLACE')
+        ko.parent = arm; md = ko.modifiers.new('Iskelet', 'ARMATURE'); md.object = arm
+        kollar[t] = ko
+        print('KOL KURULDU', t, len(kv), 'köşe', len(yz), 'yüz')
+    return kollar
+
+
+def avuc_yukari(arm, kemik, n_dur):
+    """Tepsi tutan el kendi ekseni çevresinde çevrilir: avucu yukarı baksın (n_dur: duruştaki avuç yönü)."""
+    secili([arm]); bpy.ops.object.mode_set(mode='POSE')
+    pb, b = arm.pose.bones[kemik], arm.data.bones[kemik]
+    nn = (pb.matrix.to_3x3() @ b.matrix_local.to_3x3().inverted()) @ Vector(tuple(n_dur))
+    ek = (pb.tail - pb.head).normalized()
+    yuk = Vector((0, 0, 1)); yuk = (yuk - ek * yuk.dot(ek)).normalized(); nn = (nn - ek * nn.dot(ek)).normalized()
+    aci = nn.angle(yuk) * (1 if ek.dot(nn.cross(yuk)) > 0 else -1)
+    M = pb.matrix.copy(); hb = M.translation.copy()
+    pb.matrix = Matrix.Translation(hb) @ Matrix.Rotation(aci, 4, ek) @ Matrix.Translation(-hb) @ M
+    bpy.context.view_layer.update()
+    bpy.ops.object.mode_set(mode='OBJECT')
+    print('AVUC', kemik, round(math.degrees(aci), 1), 'derece çevrildi')
 
 
 def agirlik_ver(ob, arm, us=4.0, yumusat=4, kol_izin=None):
@@ -701,13 +1067,14 @@ def yon_ver(arm, hedef, burgu=None, yalniz=None):
 
 def kur():
     import karakter_boya as kb
-    from zar_hareket import hareket_kur, cevir
+    from zar_hareket import hareket_kur, cevir, bosta_kur, ozel_tablo, OZEL_KEMIK
     DM, GARSON, OTUR = AD == 'dm', AD.startswith('garson'), AD in ('dm', 'fighter')   # oturanlar: masada zar atar
     bpy.ops.wm.open_mainfile(filepath=str(ARA / f'{AD}-ham.blend'))
     ob = bpy.data.objects[AD]
     # 1) doku: kâğıda göre yeniden boya (konum haritası pişirilirken olduğu gibi satır 0 altta)
     C, im = doku_dizi(ob)
-    izin = kol_izni(np.array([v.co[:] for v in ob.data.vertices]), kose_renk(ob, C)) if GARSON else None   # boyamadan önce: asıl renkler
+    R0 = kose_renk(ob, C) if GARSON else None                      # boyamadan önceki renkler (kızın elindeki mavi bez)
+    J = {'dm': DM_EKLEM, 'fighter': FIGHTER_EKLEM, 'hanci': HANCI_EKLEM, 'garson_kiz': KIZ_EKLEM, 'garson_erkek': ERKEK_EKLEM}[AD]
     if im.size[0] != AYAR['doku']:                                 # hancının dokusu 4096: konum haritasının boyuna (ve web'e uygun boya) indir
         im.scale(AYAR['doku'], AYAR['doku']); C, im = doku_dizi(ob)
     d = np.load(ARA / f'{AD}-konum.npz')
@@ -722,23 +1089,29 @@ def kur():
             if n.type in ('NORMAL_MAP', 'SEPARATE_COLOR', 'UVMAP') or (n.type == 'TEX_IMAGE' and n.image != im): nt.nodes.remove(n)
     if AYAR.get('cikti_doku'):                                     # garsonlar küçük görünür: doku dosyası küçülsün
         im.scale(AYAR['cikti_doku'], AYAR['cikti_doku']); im.pack()
-    if AYAR.get('alcak'): alcak_poli(ob, AYAR['alcak'])
+    olcu = ro = None
+    if GARSON: olcu, ro = kol_kes(ob, J, ilk=R0, **AYAR['kol'])             # önkol ve el silinir (yeniden kurulur), kumaştaki delikler kapanır
+    if AYAR.get('alcak'): alcak_poli(ob, AYAR['alcak'], ro=ro, ten_ayir=GARSON)
     # 2) ölçü: DM ayakta 1,80 m; hancı (cüce) 1,35 m; garsonlar (genç) 1,62 ve 1,74 m
     s = {'dm': 1.80, 'fighter': 1.80, 'hanci': 1.35, 'garson_kiz': 1.62, 'garson_erkek': 1.74}[AD] / ob.dimensions.z
     ob.scale = (s, s, s); secili([ob]); bpy.ops.object.transform_apply(scale=True)
     # 3) iskelet, ağırlıklar
-    arm = iskelet_yap({'dm': DM_EKLEM, 'fighter': FIGHTER_EKLEM, 'hanci': HANCI_EKLEM, 'garson_kiz': KIZ_EKLEM, 'garson_erkek': ERKEK_EKLEM}[AD], s)
-    agirlik_ver(ob, arm, kol_izin=izin)
+    arm = iskelet_yap(J, s)
+    agirlik_ver(ob, arm, kol_izin=kol_etiket(ob, J, s, AYAR['kol']['kes']) if GARSON else None)
     ob.parent = arm
     md = next((m for m in ob.modifiers if m.type == 'ARMATURE'), None) or ob.modifiers.new('Iskelet', 'ARMATURE')
     md.object = arm
     # 4) kâğıttaki ekler: DM gözlük ve tüy; hancı örgü, anahtar halkası, havlu
     ekler = dm_ekler(ob, s) if DM else [] if OTUR else garson_kulak(ob, s) if AD == 'garson_erkek' else [] if GARSON else hanci_ekler(ob, s)
+    if GARSON:                                                     # yeni önkollar ve eller (sağ el gevşek, sol el tepsi için düz)
+        kollar = kol_ekle(arm, olcu, s, {'r': (10, 22), 'l': (0, 0)})
+        ekler += list(kollar.values())
     # 5) duruş: kemikler büyücünün oturuşuna çevrilir (hancıda yalnızca kollar: yumruklar tezgâhta), poz modele işlenir,
     #    iskeletin yeni duruşu olur
     if GARSON:                                                     # garsonlar ayakta: bacaklar dik, sol elde tepsi
         yonler = GARSON_YON_ERKEK if AD == 'garson_erkek' else GARSON_YON
         yon_ver(arm, yon_hedef(arm, yonler), None, list(yonler))
+        avuc_yukari(arm, 'bip L Hand_010', olcu['l']['n'])           # tepsi avucun üstünde
     else:
         yon_ver(arm, hedef_duruş(), DM_BURGU if DM else FIGHTER_BURGU if OTUR else None, None if OTUR else HANCI_KOLLAR)
     if DM:
@@ -772,7 +1145,7 @@ def kur():
     for o in [arm, ob] + ekler:
         o.parent = None; o.matrix_world = T @ o.matrix_world
     secili([arm, ob] + ekler, ob); bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-    if GARSON: ekler += garson_tepsi(ob, arm)                       # tepsi (ve kızda uzun etek) duruştan sonra: tepsi yatay dursun
+    if GARSON: ekler += garson_tepsi(ob, arm, kollar['l'])          # tepsi duruştan sonra: yatay, elin üstünde
     if AD == 'hanci': ekler += hanci_esyalar(ob, arm)        # şişe, kupa, el bezi (kendi kemiklerinde)
     secili([ob] + ekler, ob); bpy.ops.object.join()
     ob.parent = arm
@@ -784,23 +1157,32 @@ def kur():
     if OTUR:
         bas_ayir(ob, arm)
         hareket_kur(arm)
+        bosta_kur(arm, 'gozluk' if DM else 'boyun')                 # nefes + ara sıra özel hareket (zar_hareket.py)
+        arm.animation_data.action = bpy.data.actions['zar_at']
         disa_aktar(arm, ob, KOK / 'masa' / f'{AD}-iskelet.glb', f'{AD.upper()}_ISKELET_GLB', 'İskeletli ' + {'dm': 'DM', 'fighter': 'fighter'}[AD])
     elif GARSON:
         hareket_kur(arm, 'bekle', GARSON_BEKLE, BEKLE_KEMIK, None)
-        hareket_kur(arm, 'yuru', YURU, YURU_KEMIK, None)            # son kurulan önizlemede oynar
+        hareket_kur(arm, 'ozel', ozel_tablo(arm, 'sac' if AD == 'garson_kiz' else 'alin'), OZEL_KEMIK, None)   # durunca ara sıra
+        hareket_kur(arm, 'yuru', *yuru_tablo(arm, 0.9), None)       # son kurulan önizlemede oynar; hız: index.html GARSON.hiz
+        yuru_olc(arm)
         ad = AD.replace('_', '-')
         disa_aktar(arm, ob, KOK / 'masa' / f'{ad}.glb', AD.upper() + '_GLB', 'Garson')
     else:
-        for ad, tablo, kem in (('yuru', HANCI_YURU, HANCI_KEMIK), ('sise', SISE, HANCI_KEMIK), ('sil', SIL, HANCI_KEMIK),
+        yt, yk = yuru_tablo(arm, 0.7, kare=28, eller=((0.36, -0.28, 1.0), (-0.36, -0.28, 1.0)))   # hız: index.html HANCI.hiz;
+        for ad, tablo, kem in (('yuru', [(k, l + gor()) for k, l in yt], yk + HANCI_ESYA),         #   kollar tezgâhtan kalkık
+                               ('sise', SISE, HANCI_KEMIK), ('sil', SIL, HANCI_KEMIK),
                                ('bekle', [(k, l + gor()) for k, l in BEKLE], BEKLE_KEMIK + HANCI_ESYA)):
             hareket_kur(arm, ad, tablo, kem, None)
             arm['sure_' + ad] = arm['sure']
+            if ad == 'yuru': yuru_olc(arm, 28)
         disa_aktar(arm, ob, KOK / 'masa' / 'hanci.glb', 'HANCI_GLB', 'Hancı')
     bpy.context.scene.frame_set(0)
     bpy.ops.wm.save_as_mainfile(filepath=str(ARA / f'{AD}-kur.blend'))
     modeller_kopya()
     if AD == 'hanci': hanci_onizle(arm, ob)
     else: onizle(arm, ob)
+    if GARSON: el_onizle(arm)
+    if 'ozel' in bpy.data.actions: ozel_onizle(arm)
 
 
 def garson_kulak(ob, s):
@@ -823,25 +1205,31 @@ def garson_kulak(ob, s):
     return parca
 
 
-def garson_tepsi(ob, arm):
-    """Sol elde yuvarlak tahta tepsi, üstünde iki köpüklü kupa (kâğıtlardaki gibi); kızda dizden aşağı uzun kahverengi etek
-    (modelin kısa elbisesinin eteğinden bileğe, kıvrımlı). Duruş işlendikten sonra kurulur: tepsi yatay; ağırlıkları elle."""
+def garson_tepsi(ob, arm, kol):
+    """Sol elde yuvarlak tahta tepsi, üstünde iki köpüklü kupa (kâğıtlardaki gibi). Duruş işlendikten sonra kurulur: tepsi yatay,
+    ortası avucun üstünde, altı elin (başparmak, bilek dahil) tepsinin altına düşen en yüksek köşesinin 3 mm üstünde (2026-10-29'a
+    kadar el kemiğinin 4,5 cm üstündeydi: parmaklar tepsinin içinden çıkıyordu). Ağırlıkları elle."""
     parca = []
-    el = arm.data.bones['bip L Hand_010']
-    m = (el.head_local + el.tail_local) / 2 + Vector((0, 0, 0.045))
+    el, pr = arm.data.bones['bip L Hand_010'], arm.data.bones['bip L Finger1_013']
+    m = el.head_local.lerp(pr.tail_local, 0.45)                    # avucun ortası (parmaklara doğru)
+    P = np.array([v.co[:] for v in kol.data.vertices])
+    alt = P[np.hypot(P[:, 0] - m.x, P[:, 1] - m.y) < 0.17, 2]
+    m = Vector((m.x, m.y, (alt.max() if len(alt) else m.z) + 0.003 + 0.007))   # tepsi 1,4 cm kalın: ortası
+    print('TEPSI', tuple(round(v, 3) for v in m), 'elin üstü', round(float(alt.max()), 3) if len(alt) else None)
     def bag(o, agir):
         for kemik, w in agir:
             vg = o.vertex_groups.get(kemik) or o.vertex_groups.new(name=kemik); vg.add(range(len(o.data.vertices)), w, 'REPLACE')
         parca.append(o)
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.17, depth=0.014, vertices=28, location=m)
+    az = AYAR.get('alcak')                                          # az çokgenlide tepsi ve kupalar da köşeli
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.17, depth=0.014, vertices=12 if az else 28, location=m)
     t = bpy.context.active_object; t.data.materials.append(malzeme('Tepsi', '#6b4a2f'))
-    bpy.ops.mesh.primitive_torus_add(major_radius=0.165, minor_radius=0.009, major_segments=28, minor_segments=5, location=m + Vector((0, 0, 0.012)))
+    bpy.ops.mesh.primitive_torus_add(major_radius=0.165, minor_radius=0.009, major_segments=12 if az else 28, minor_segments=3 if az else 5, location=m + Vector((0, 0, 0.012)))
     k = bpy.context.active_object; k.data.materials.append(malzeme('Tepsi', '#6b4a2f'))
     secili([t, k]); bpy.ops.object.join(); t = bpy.context.active_object; t.name = 'Tepsi'
     bag(t, [('bip L Hand_010', 1.0)])
     for dx, dy in ((-0.06, 0.03), (0.06, -0.03)):
         c = m + Vector((dx, dy, 0.007 + 0.05))
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.035, depth=0.1, vertices=12, location=c)
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.035, depth=0.1, vertices=7 if az else 12, location=c)
         g = bpy.context.active_object; g.data.materials.append(malzeme('Kupa', '#7a5434'))
         bpy.ops.mesh.primitive_torus_add(major_radius=0.036, minor_radius=0.004, major_segments=12, minor_segments=4, location=c + Vector((0, 0, 0.025)))
         b = bpy.context.active_object; b.data.materials.append(malzeme('Cember', '#5a5a5e'))
@@ -851,48 +1239,7 @@ def garson_tepsi(ob, arm):
         kp = bpy.context.active_object; kp.scale = (1, 1, 0.45); kp.data.materials.append(malzeme('Kopuk', '#efe6cf'))
         secili([g, b, sap, kp]); bpy.ops.object.join(); g = bpy.context.active_object; g.name = 'Kupa'
         bag(g, [('bip L Hand_010', 1.0)])
-    if AD == 'garson_kiz': parca.append(uzun_etek(ob, arm))
     return parca
-
-
-def uzun_etek(ob, arm, n=56):
-    """Kızın kısa elbisesinin eteğinden bileğe uzun etek. Üst halka eteğin ucunun çevresine oturur (her açıda modelin o
-    yükseklikteki en dış noktası); aşağı doğru açılır, dikey kıvrımları var. Üstü leğene, altı yakın bacağa bağlı (yürürken sallanır)."""
-    legen = arm.data.bones['bip Pelvis_02'].head_local
-    V = np.array([v.co[:] for v in ob.data.vertices])
-    ust_z = legen.z - 0.15                                          # kısa eteğin içinden başlar (ucu leğenin ~24 cm altı): arada aralık kalmasın
-    alt_z = 0.10
-    dilim = V[np.abs(V[:, 2] - ust_z) < 0.015]
-    a = np.arctan2(dilim[:, 1] - legen.y, dilim[:, 0] - legen.x); rr = np.hypot(dilim[:, 1] - legen.y, dilim[:, 0] - legen.x)
-    R0 = np.full(n, 0.15)
-    for i in range(n):
-        th = -np.pi + 2 * np.pi * i / n
-        fark = np.abs((a - th + np.pi) % (2 * np.pi) - np.pi)
-        sec = rr[(fark < 2 * np.pi / n * 1.5) & (rr < 0.3)]
-        if len(sec): R0[i] = sec.max() - 0.012
-    halka = 9
-    kv, yz = [], []
-    for j in range(halka):
-        t = j / (halka - 1); z = ust_z + 0.01 - (ust_z + 0.01 - alt_z) * t
-        for i in range(n):
-            th = -np.pi + 2 * np.pi * i / n
-            r = R0[i] + 0.21 * t ** 1.1 + 0.012 * t * np.sin(th * 11) + 0.006 * t * np.sin(th * 23 + 1.3)
-            kv.append((legen.x + r * np.cos(th), legen.y + r * np.sin(th), z))
-    for j in range(halka - 1):
-        for i in range(n):
-            a0, a1 = j * n + i, j * n + (i + 1) % n
-            yz.append((a0, a1, a1 + n, a0 + n))
-    me = bpy.data.meshes.new('Etek'); me.from_pydata(kv, [], yz)
-    for f in me.polygons: f.use_smooth = True
-    et = bpy.data.objects.new('Etek', me); bpy.context.scene.collection.objects.link(et)
-    et.data.materials.append(malzeme('Etek', '#6a5241'))
-    gl, gr, gp = (et.vertex_groups.new(name=k) for k in ('bip L Thigh_023', 'bip R Thigh_027', 'bip Pelvis_02'))
-    for idx, (x, y, z) in enumerate(kv):
-        t = (ust_z - z) / (ust_z - alt_z)
-        sol = min(1.0, max(0.0, 0.5 + (x - legen.x) / 0.16))
-        wl, wr = 0.7 * t * sol, 0.7 * t * (1 - sol)
-        gl.add([idx], wl, 'REPLACE'); gr.add([idx], wr, 'REPLACE'); gp.add([idx], 1 - wl - wr, 'REPLACE')
-    return et
 
 
 def hanci_esyalar(ob, arm):
@@ -1154,6 +1501,33 @@ def disa_aktar(arm, ob, cikti, glob, aciklama):
     veri = base64.b64encode(cikti.read_bytes()).decode('ascii')
     cikti.with_suffix('.js').write_text(f'// {aciklama} (araclar/karakter_kur_blender.py -- {AD} üretir). Site bilgisayardan açılınca .glb yerine bu okunur.\nwindow.{glob} = "' + veri + '";\n', encoding='utf-8')
     print('YAZILDI', cikti, cikti.stat().st_size)
+
+
+def el_onizle(arm):
+    """Garsonun elleri yakından (3d/karakter/<ad>-el-<ne>.png): tepsiyi tutan el önden-yukarıdan ve alttan (parmaklar tepsiye
+    girmesin), sağ el yürürken yandan (kumaşa yapışmasın)."""
+    sah = bpy.context.scene; cam = sah.camera; cam.data.ortho_scale = 0.5
+    arm.animation_data.action = bpy.data.actions['yuru']
+    for ne, kare, kemik, ofs in (('tepsi-ust', 0, 'bip L Hand_010', (0.55, -1.0, 0.75)), ('tepsi-alt', 0, 'bip L Hand_010', (0.9, -0.5, -0.35)),
+                                 ('sag-0', 0, 'bip R Hand_018', (-1.2, -0.35, 0.15)), ('sag-15', 15, 'bip R Hand_018', (-1.2, -0.35, 0.15)),
+                                 ('sag-on', 8, 'bip R Hand_018', (-0.25, -1.2, 0.1))):
+        sah.frame_set(kare); bpy.context.view_layer.update()
+        h = arm.matrix_world @ arm.pose.bones[kemik].head
+        cam.location = h + Vector(ofs); cam.rotation_euler = (h - cam.location).to_track_quat('-Z', 'Y').to_euler()
+        sah.render.filepath = str(ARA / f'{AD}-el-{ne}.png'); bpy.ops.render.render(write_still=True)
+
+
+def ozel_onizle(arm):
+    """Özel hareketin birkaç karesi önden ve sitenin eğik bakışına yakın (3d/karakter/<ad>-ozel-<kare>-<yön>.png); onizle'den sonra."""
+    sah = bpy.context.scene; cam = sah.camera
+    arm.animation_data.action = bpy.data.actions['ozel']
+    son = int(bpy.data.actions['ozel'].frame_range[1])
+    hedef = Vector((0, -0.1, 1.15)) if AD in ('dm', 'fighter') else Vector((0, 0, 1.4))
+    for yon, yer in (('on', (0, -3.5, 1.3)), ('ust', (-1.6, -2.6, 3.0))):
+        cam.location = yer; cam.rotation_euler = (hedef - Vector(yer)).to_track_quat('-Z', 'Y').to_euler(); cam.data.ortho_scale = 1.1
+        for k in range(0, son + 1, max(1, son // 6)):
+            sah.frame_set(k); sah.render.filepath = str(ARA / f'{AD}-ozel-{k:03d}-{yon}.png'); bpy.ops.render.render(write_still=True)
+    arm.animation_data.action = bpy.data.actions['zar_at' if 'zar_at' in bpy.data.actions else 'yuru']
 
 
 def onizle(arm, ob):
