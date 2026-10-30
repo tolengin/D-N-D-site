@@ -5440,6 +5440,8 @@ if (window.ResizeObserver) new ResizeObserver(() => {
      alıp zar atanları görmek için). Başlıktaki düğmeyle ekran boyunda açılır, yine düğmeyle (ya da Esc) yerine döner.
      Harita tekerlekle ve sol alttaki + / − ile yakınlaşır (farenin altındaki yer yerinde kalır), yakınken sürükleyip
      kaydırılır; başka haritaya geçince yakınlık sıfırlanır (2026-10-30; haritaya tıklayınca büyümesi kalktı).
+   • Masada (2026-10-30, tavHarita, BÖLÜM 11b): camda baktığın harita masanın ortasına serilir, piyonlar üstünde küçük figürler;
+     herkes kendi baktığını görür. Başlıktaki masa düğmesi yalnızca senin masandan kaldırır (store.hrMasa).
    • DM "Şehir ekle" ile haritada bir yere nokta koyar, adını verir, noktaya şehrin haritasını yükler. Şehirler kilitli
      başlar: oyuncu noktaya bassa da açılmaz; DM kilidi açınca oyuncular şehre girer. Kilitli şehrin resmi oyunculara hiç
      gitmez (DM açmadan görülmesin). Şehirlerin içine de nokta konabilir (mahalle, zindan…).
@@ -5641,6 +5643,7 @@ function hrPiyonHTML(s, xy, cep) {
 function hrCiz() {
   const pano = $('#hrPano'), btn = $('#tvHarita');
   const Y = hrY(), var_ = !!(Y.kok && Y.h[Y.kok]);
+  tavHarita();                                                            // masadaki harita ve piyonlar (BÖLÜM 11b), cam kapalıyken de
   if (btn) {
     btn.hidden = !var_ && !hrDM();
     btn.setAttribute('aria-pressed', String(HR.acik));
@@ -5666,6 +5669,7 @@ function hrCiz() {
       <span class="hr-dugmeler">
         ${dm && h ? `<button class="btn sm${HR.ekle ? ' on' : ''}" data-act="hr-ekle" aria-pressed="${HR.ekle}" title="Haritaya bas: oraya bir şehir (ya da yer) koy"><svg class="ic"><use href="#i-plus"/></svg>Şehir ekle</button>` : ''}
         ${dm ? `<button class="btn sm" data-act="hr-yukle" title="${h ? 'Bu haritanın resmini değiştir' : 'Ülke haritası yükle'}"><svg class="ic"><use href="#i-harita"/></svg>${h ? 'Değiştir' : 'Yükle'}</button>` : ''}
+        ${h ? `<button class="btn icon${store.hrMasa !== false ? ' on' : ''}" data-act="hr-masa" aria-pressed="${store.hrMasa !== false}" title="${store.hrMasa !== false ? 'Haritayı masadan kaldır' : 'Haritayı masaya ser'} (yalnızca sende)" aria-label="Haritayı masada göster"><svg class="ic"><use href="#i-table"/></svg></button>` : ''}
         ${h ? `<button class="btn icon" data-act="hr-buyut" title="${HR.buyuk ? 'Küçült (Esc)' : 'Ekran boyunda aç'}" aria-label="${HR.buyuk ? 'Küçült' : 'Büyüt'}"><svg class="ic"><use href="#i-${HR.buyuk ? 'shrink' : 'expand'}"/></svg></button>` : ''}
         <button class="btn icon" data-act="hr-kapat" title="Haritayı kapat" aria-label="Haritayı kapat"><svg class="ic"><use href="#i-x"/></svg></button>
       </span></header>`;
@@ -5750,6 +5754,7 @@ Object.assign(ACTIONS, {
   'hr-ac': () => hrAc(!HR.acik),
   'hr-kapat': () => hrAc(false),
   'hr-buyut': () => { HR.buyuk = !HR.buyuk; hrCiz(); },
+  'hr-masa': () => { store.hrMasa = store.hrMasa === false; save(); hrCiz(); },
   'hr-yakin': () => hrZum(HR.zoom * HR_ZUM.adim),
   'hr-uzak': () => hrZum(HR.zoom / HR_ZUM.adim),
   'hr-geri': () => { const h = hrY().h[HR.goster]; if (h && h.ust) { HR.goster = h.ust; HR.menu = ''; HR.yeni = null; hrCiz(); } },
@@ -6992,6 +6997,8 @@ const TAV = {
   headZ: 1.33,               // oturan figürün başının yerden yüksekliği (m)
   perde: { W: 0.22, H: 0.26, K: 0.012, ic: 0.40 },   // DM perdesi: (yedek) pano eni, boyu, kalınlığı (m; tahta kanatların ölçüleri masa/perde.glb'de); masa kenarından
                                                       // içeri (m; DM gizli zarını perdeyle kendisi arasına atar)
+  harita: { r: 0.58, kenar: 0.022, yuk: 0.002, ton: [0.80, 0.72, 0.60], kagit: [0.70, 0.58, 0.40], piyon: 1.6 },   // masadaki harita (tavHarita): köşeleri bu
+                                                      // yarıçapta (perdenin içinde), kâğıt payı, masadan yüksekliği (m), resmin rengi (mum ışığı), kâğıdın rengi, piyonun büyüklüğü
   yanMasa: ['Masa_KuzeyBati'],   // 33: tek başınayken oturulabilen yan masalar (güneydeki ikisi duvara yapışık: figür saksının ve duvarın arkasında kalıyor)
   fig: { kare_m: 2.6, yon: 16 },   // figür kareleri: kapladığı alan (m) ve yön sayısı
   yakin: [160, 90],          // yakın bakışta (ölçek 1) gezinilebilen alan (birim)
@@ -7333,6 +7340,7 @@ async function tavStart() {
   tavButonlar();
   povGoster(false);                                                     // POV paneli (düğme basılıysa) şimdi görünür
   tavSetView(1, ...tavMasaBakis());
+  tavHarita();                                                          // harita yüklendiyse masada (BÖLÜM 10d)
   if (mode === 'table') renderTable();
   void st.offsetWidth;                                                  // yeni yerler kayma olmadan uygulansın
   st.classList.remove('snap', 'tav-wait');
@@ -7825,6 +7833,60 @@ function tavKoltuklar(lay, seats) {
   });
   tav.koltuk.splice(seats.length).forEach(k => k.g && tav.S.remove(k.g));
   tav.golgeTaze = true;                                                 // 18: oturanlar değişti, gölge haritası yenilensin
+  tavKick();
+}
+
+/* Harita masada (2026-10-30, kullanıcı: "harita eklenince masada da görelim; herkes kendi harita görünümünü görsün"): harita camında
+   baktığın harita (cam kapalıyken de en son baktığın; yoksa ülke haritası) masanın ortasına serili bir kâğıt olur, o haritadaki
+   piyonlar üstünde küçük figürler. Herkes kendi tarayıcısında kendi baktığını görür: ülkedeki ülkeyi, şehre girmiş olan şehri
+   (ağa bir şey gitmez). Haritanın üstü ekranın üstüne bakar (eğik kameradan okunsun); DM perdesinin içinde kalır (TAV.harita.r).
+   Harita camının başlığındaki düğmeyle masadan kaldırılır (store.hrMasa, bu tarayıcıda). Çağıran: hrCiz (her değişiklikte), açılış. */
+function tavHarita() {
+  if (tav.state !== 'on') return;
+  const T = tav.THREE, Y = hrY(), A = TAV.harita;
+  const H = tav.hrMasa || (tav.hrMasa = { g: null, kagit: null, id: '', v: -1, o: 0, piyon: new Map(), mat: new Map(), geo: null });
+  const id = HR.goster && Y.h[HR.goster] && (hrDM() || hrAcikMi(HR.goster)) ? HR.goster : Y.kok;
+  const h = id && Y.h[id], r = h && HR.resim.get(id);
+  if (h && !r && hrDM()) hrResim(id).then(k => { if (k) tavHarita(); });   // DM'de resim kalıcı depodan gelir
+  if (H.eski === undefined) H.eski = tav.S.getObjectByName('Masa_Harita') || null;   // handa masanın ortasındaki boyalı harita: bizimki serilince gizlenir
+  if (!h || !r || store.hrMasa === false) {
+    if (H.g && H.g.visible) { H.g.visible = false; if (H.eski) H.eski.visible = true; tavKick(); }
+    return;
+  }
+  if (!H.g) { H.g = new T.Group(); H.g.name = 'Harita_Masa'; tav.S.add(H.g); }
+  H.g.visible = true; if (H.eski) H.eski.visible = false;
+  const M = zarMasa(), o = h.en / h.boy || 1, w = 2 * A.r * o / Math.hypot(1, o), b = w / o;   // daireye sığan en büyük dikdörtgen
+  const s = TAV.sag, sag = new T.Vector3(s[0], 0, -s[1]).normalize(), ust = new T.Vector3(-s[1], 0, -s[0]).normalize();   // ekranın sağı ve üstü (yerde)
+  if (H.id !== id || H.v !== r.v || H.o !== o) {                       // başka harita ya da yeni resim: kâğıt yeniden
+    if (H.kagit) { H.g.remove(H.kagit); H.kagit.traverse(x => { if (x.isMesh) { x.geometry.dispose(); if (x.material.map) x.material.map.dispose(); x.material.dispose(); } }); }
+    const tex = new T.TextureLoader().load(r.d, () => tavKick());
+    tex.colorSpace = T.SRGBColorSpace; tex.anisotropy = 8;
+    const k = A.kenar, kagit = new T.Group();
+    kagit.add(new T.Mesh(new T.PlaneGeometry(w + 2 * k, b + 2 * k), new T.MeshBasicMaterial({ color: new T.Color().setRGB(...A.kagit, T.SRGBColorSpace) })));
+    const res = new T.Mesh(new T.PlaneGeometry(w, b), new T.MeshBasicMaterial({ map: tex, color: new T.Color().setRGB(...A.ton) }));
+    res.position.z = 0.001; kagit.add(res);
+    H.g.add(kagit); Object.assign(H, { kagit, id, v: r.v, o });
+  }
+  H.kagit.quaternion.setFromRotationMatrix(new T.Matrix4().makeBasis(sag, ust, new T.Vector3(0, 1, 0)));
+  H.kagit.position.set(M.c.x, M.y + A.yuk, M.c.z);
+  // Piyonlar: cam renginde baş + gövde, ayağında yuvarlak taban (seninki beyaz); geometri hepsinde ortak
+  const G = H.geo || (H.geo = { taban: new T.CylinderGeometry(0.019, 0.021, 0.006, 16), govde: new T.CylinderGeometry(0.010, 0.017, 0.040, 12), bas: new T.SphereGeometry(0.012, 14, 10) });
+  const mat = c => H.mat.get(c) || (H.mat.set(c, new T.MeshToonMaterial({ color: new T.Color(c), gradientMap: tav.ramp })), H.mat.get(c));
+  const kok = getComputedStyle(document.documentElement), piy = hrPiyonlar(id), ben = hrBenim();
+  for (const [ks, p] of H.piyon) if (!piy[ks]) { H.g.remove(p); H.piyon.delete(ks); }
+  Object.entries(piy).forEach(([ks, xy]) => {
+    const renk = kok.getPropertyValue((camOf(ks).match(/--[\w-]+/) || ['--g-kobalt'])[0]).trim() || '#4b7bec', taban = ks === ben ? '#f4efe6' : '#2a1d14';
+    let p = H.piyon.get(ks);
+    if (!p || p.userData.renk !== renk + taban) {
+      if (p) H.g.remove(p);
+      p = new T.Group(); p.userData.renk = renk + taban;
+      const t = new T.Mesh(G.taban, mat(taban)), g = new T.Mesh(G.govde, mat(renk)), bs = new T.Mesh(G.bas, mat(renk));
+      t.position.y = 0.003; g.position.y = 0.026; bs.position.y = 0.056;
+      p.add(t, g, bs); p.scale.setScalar(A.piyon); H.g.add(p); H.piyon.set(ks, p);
+    }
+    p.position.copy(H.kagit.position).addScaledVector(sag, (xy[0] - 0.5) * w).addScaledVector(ust, (0.5 - xy[1]) * b);
+    p.position.y += 0.001;
+  });
   tavKick();
 }
 
