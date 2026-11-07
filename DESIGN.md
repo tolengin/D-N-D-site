@@ -351,6 +351,23 @@ Sağ üstte yüzen kurşun sütun (17 birim genişlik): Kurşun Çubuk başlık 
 ### Düşmanlar Panosu
 Son atışlarla aynı kurşun sütun. Her düşman bir cam satırı: kare lal portre (yoksa baş harf), ad (Eczar), "6/10 can · AC 15" (oyuncuda yalnız DM izin verdiyse), ince can çubuğu. Satıra basınca hedef seçilir (kesikli çizgi); sırası gelenin satırı lal ile %45 dolar; canı biten soluk ve üstü çizili.
 
+### Sohbet (2026-10-30)
+Aynı kurşun sütunun en altında. Her mesaj yazanın camıyla %16 boyanmış bir satır; ad kalın ve yazanın rengine çalar, mesaj aynı satırda akar. En yenisi altta, gelince Son Atışlar gibi 1,6 sn ışık alır. Gizli mesaj kesikli çerçeveli, adın yanında soluk "gizli → DM / sen / Ayla" (DM ekranındaki gizli zarlarla aynı dil). Altta Kurşun Çubuk üstünde "Kime" seçimi (Herkese ya da gizli), yazı kutusu ve gönder düğmesi; gizli yazarken kutu da kesikli. Kapalıyken başlıkta senin camının renginde okunmamış sayısı. Yeni mesajda kadeh tınlaması (yalnızca sohbete bakmıyorken). Sütun "Zar at"ın üstünde biter; sığmazsa düşman listesi ve sohbet kendi içinde kayar.
+
+### Konuşma Balonu (2026-10-30)
+Herkese yazılan mesaj 3,5–9 sn yazanın isimliğinin üstünde durur: yazanın camıyla %24 boyanmış küçük cam, kurşun kenar, kurşun renkli üçgen kuyruk isimliği gösterir. En çok üç satır. Ekranın üstüne taşacaksa isimliğin altına geçer, bir cama ya da POV paneline değecekse yana kayar. Gizli mesajda balon yok. Biri yazarken aynı balonda üç kare nokta sırayla kalkıp iner ("yazıyor"); mesaj gelince yerini mesaja bırakır. Sohbetin altında soluk italik "Ayla yazıyor…" satırı.
+
+### Müzik Camı ve Sahne Panosu (2026-10-30; 2026-11-07'de bölündü)
+**Sahne panosu:** link hanın ozan sahnesine yazılır. Cam, sahnenin ortasına iğnelidir, kamera kaydıkça sahneyle gider, görünen alanın ve sağ sütunun dışına taşmaz; sahne ekranda değilse görünmez, araç şeridindeki "Sahne" oraya götürür. Üstte nota simgesi + "Sahne" (çalarken üç küçük çubuk), altında link kutusu ve accent "Başlat" (oyuncuda "Ekle"), altında sıra. Uzaktan bakınca (ölçek < 0,4) daralır, yalnızca link satırı kalır; üstüne gelince sıra açılır. Telefonda ve 3D açılamazsa sağ sütunda durur.
+**Müzik camı:** yalnızca şarkı seçiliyken görünür. Sohbetle aynı koyu cam: üstte 16:9 küçük YouTube videosu (YouTube'un kuralı: video görünür olmalı; sahne ekranda olmayabileceği için video sahnede değil, burada durur; üstüne basılmaz), altında şarkının adı ve "Çalıyor · Ayla ekledi", DM ve tek başına oynayanda Kurşun Çubuk üstünde çal / sonraki. Çalan satır accent %24 boyalı; çalınamayan soluk ve üstü çizili. Tarayıcı engellediyse accent "Müziği aç".
+**Ses:** camda sürgü yok. Üstteki ses panelinin "Müzik" sürgüsü hem taverna şarkısını hem sahneyi ayarlar.
+
+### Yüzen Camlar ve Düzen (2026-10-30)
+Son atışlar, Düşmanlar, Sohbet ve Müzik birer cam: başlığından sürüklenince sağ sütundan çıkıp tavernanın üstünde yüzer (taşırken gölgesi derinleşir), köşesindeki kurşun tutamaktan büyür (rıhtımda sol alt, yüzerken sağ alt; üstüne gelince görünür). Taşınmamışlar sağ sütunda alt alta, sütun "Zar at"ın üstünde biter. Araç şeridinde "Düzen" düğmesi küçük bir cam açar: kısa açıklama, "Kullanmadığım camlar solsun" seçimi, "Varsayılan düzene dön". Telefonda camlar her zaman sahnenin altında, taşıma ve büyütme yok.
+
+### Solma (2026-10-30)
+Camlar ve araç şeridi 12 sn dokunulmayınca %20'ye iner (0,9 sn'de); tavernaya bakılırken arayüz geri çekilir. Üstüne gelince, içinde yazarken ya da başına bir şey gelince (yeni atış, mesaj, yazan biri, yeni şarkı) hemen tam görünür olur: imza hareketi "arkadan ışık"ın sessiz eşi. Düzen'den kapatılır. Telefonda yok.
+
 ### Taverna İsimliği
 Oyuncunun koltuk camıyla %26 boyanmış koyu cam levha, kurşun kenarlı; solda kare küçük pencere içinde portre (pencere çerçevesi koltuk renginde), köşesinde bağlantı işareti. Ad Eczar 700, altında karakter adı. Kendi isimliğin daha çok ışık alır (%52). DM'in portresi yerine her zaman zar simgesi, rengi sedef. Bağlantısı kopanın isimliği %62 soluk, portresi gri. Seçili hedefin isimliği kesikli çizgiyle çevrilir.
 

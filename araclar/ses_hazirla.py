@@ -22,10 +22,11 @@ HAM, CIKTI = KOK / 'gorseller' / 'ses-ham', KOK / 'ses'
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 
 EFEKTLER = ['zar-salla', 'zar-yuvarlan-1', 'zar-yuvarlan-2', 'zar-yuvarlan-3', 'kagit-ac', 'kagit-ac-rulo', 'kagit-kapa',
-            'kapi-ac', 'gecis', 'adim', 'kupa', 'tik', 'dogal-20', 'dogal-1', 'ilham', 'katildi']
+            'kapi-ac', 'gecis', 'adim', 'kupa', 'tik', 'dogal-20', 'dogal-1', 'ilham', 'katildi', 'soz']
 DONGULER = {'ambiyans': 36, 'ambiyans-2': 27, 'ates': 40, 'gece': 40}   # ad: uzunluk (sn, ham dosyanın başından)
 MUZIK = {'Mead and Moonlight': 'muzik'}                                 # ham ad: sitedeki ad
 DUZELT = {'zar-yuvarlan-3': -9.0}                                    # kulakla düzeltme (dB): diğer zarlardan çok yüksekti
+KISALT = {'soz': 1.2}                                                   # en çok bu kadar sn; son 0,3 sn'de kısılarak biter
 GECIS = 2.0                                                             # döngünün dikiş geçişi (sn)
 
 
@@ -45,7 +46,8 @@ def efekt(ad):
     kirp = 'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.01'
     tepe, ort = olc(HAM / f'{ad}.mp3', kirp)
     kazan = min(-1.0 - tepe, -22.0 - ort) + DUZELT.get(ad, 0)           # ortalama -22 dB'e çek ama tepe -1 dB'i aşmasın
-    ff('-i', str(HAM / f'{ad}.mp3'), '-af', f'{kirp},volume={kazan:.2f}dB', '-ac', '1', '-b:a', '64k', str(CIKTI / f'{ad}.mp3'))
+    son = f',atrim=0:{KISALT[ad]},afade=t=out:st={KISALT[ad] - 0.3}:d=0.3' if ad in KISALT else ''
+    ff('-i', str(HAM / f'{ad}.mp3'), '-af', f'{kirp}{son},volume={kazan:.2f}dB', '-ac', '1', '-b:a', '64k', str(CIKTI / f'{ad}.mp3'))
 
 
 def dongu(ad, uzun):

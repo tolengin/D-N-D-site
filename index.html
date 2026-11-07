@@ -1114,7 +1114,7 @@ body.tv-on .tablebar{margin:8px 12px}
   padding:var(--lw);background:var(--lead);box-shadow:var(--shadow)}
 .tv-arac{display:flex;flex-direction:column;gap:var(--lw)}
 /* Arayüz gizli (2026-10-27): masa ekranında yalnızca han ve geri getirme düğmesi kalır */
-body.hud-yok :is(.tv-zoom,.tv-me,.tv-sag,.tv-sira,.tv-tag,.tv-center,.fab,.ust-tutamak,#toast){display:none!important}
+body.hud-yok :is(.tv-zoom,.tv-me,.tv-sag,.tv-camlar,.tv-sira,.tv-tag,.tv-center,.fab,.ust-tutamak,#toast){display:none!important}
 body.hud-yok .tv-wrap:not(.pov-tek) .tv-pov{display:none!important}        /* Yalnız POV'da sahne POV'un kendisidir: kalır */
 body.hud-yok .tv-ust>:not(.tv-arac),body.hud-yok .tv-arac>:not(#tvHud){display:none!important}
 body.hud-yok .tv-ust{opacity:.55;transition:opacity .2s}
@@ -1124,7 +1124,7 @@ body.hud-yok .tv-ust:hover,body.hud-yok .tv-ust:focus-within{opacity:1}
 :is(.tv-ust,.tv-zoom,.hr-zoom) .btn{--h:44px;width:var(--h);padding:0;border:0;background:var(--surface);color:var(--muted)}
 :is(.tv-ust,.tv-zoom,.hr-zoom) .btn .ic{width:20px;height:20px}
 :is(.tv-ust,.tv-zoom,.hr-zoom) .btn:hover{background:var(--lit);color:var(--text)}
-:is(.tv-ust,.tv-zoom) .btn[aria-pressed="true"]{background:var(--lit);color:var(--text)}
+:is(.tv-ust,.tv-zoom) .btn:is([aria-pressed="true"],[aria-expanded="true"]){background:var(--lit);color:var(--text)}
 :is(.tv-ust,.tv-zoom) .btn[aria-pressed="true"] .ic{color:color-mix(in srgb,var(--accent) 55%,#fff)}
 .tv-ust .btn span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}   /* yazı yalnızca ekran okuyucu için */
 .tv-wrap.has-me #tvKagit{display:none}                                   /* oyuncuda "Kağıdım" alttaki kendi camında */
@@ -1264,7 +1264,7 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 /* Son atışlar (2026-10-21, vitray): sağ üstte koyu bir cam; her atış ayrı bir cam satırı, solunda atanın cam rengi (--g).
    En yeni atış gelince satırı bir an kendi renginde ışık alır, sonra söner (imza hareket: "arkadan ışık").
    Normalde yalnızca sonuç ve ad görünür; üstüne gelince (telefonda dokununca) cam sola doğru genişler, ayrıntılar okunur. */
-.tv-log{position:relative;box-sizing:border-box;width:calc(17 * var(--u) * var(--sagg,1));max-height:calc(100% - 2.8 * var(--u));overflow:hidden;
+.tv-log{position:relative;box-sizing:border-box;width:calc(var(--cw,17) * var(--u));max-height:calc(100% - 2.8 * var(--u));overflow:hidden;
   border:var(--lw) solid var(--lead);background:var(--lead);cursor:zoom-in;outline:0;color:var(--text);box-shadow:var(--shadow);
   font-family:var(--font-ui);transition:width .28s ease}
 .tv-log h2{margin:0;padding:calc(.7 * var(--u)) calc(2.6 * var(--u)) calc(.6 * var(--u)) calc(1 * var(--u));background:var(--bar);
@@ -1286,9 +1286,9 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 @media (prefers-reduced-motion:reduce){.tv-log li.yeni{animation:none}}
 .tv-log li:nth-child(n+7){display:none}
 .tv-log li.none{display:block;padding:calc(.8 * var(--u)) calc(1 * var(--u));color:var(--muted);white-space:normal;font-size:clamp(12px,calc(1.05 * var(--u)),15px)}
-.tv-log.open,.tv-log:focus-visible{width:max(calc(40 * var(--u)),calc(17 * var(--u) * var(--sagg,1)));overflow:auto;cursor:zoom-out}
+.tv-log.open,.tv-log:focus-visible{width:max(calc(40 * var(--u)),calc(var(--cw,17) * var(--u)));overflow:auto;cursor:zoom-out}
 @media (hover:hover){
-  .tv-log:hover{width:max(calc(40 * var(--u)),calc(17 * var(--u) * var(--sagg,1)));overflow:auto}
+  .tv-log:hover{width:max(calc(40 * var(--u)),calc(var(--cw,17) * var(--u)));overflow:auto}
   .tv-log:hover h2 em{display:inline}
   .tv-log:hover li:nth-child(n+7){display:grid}
   .tv-log:hover li .d{display:block;grid-column:2/4;white-space:normal;color:var(--muted);font-size:.9em;line-height:1.3}
@@ -1301,38 +1301,76 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 .tv-log li .d i{font-style:normal;opacity:.85}
 /* Sağ sütun (BÖLÜM 10b): son atışlar ve altında düşmanlar; ikisi de başlıktaki düğmeyle kapanıp açılır (store.pano) */
 .tv-sag{position:absolute;z-index:8;right:12px;top:12px;display:flex;flex-direction:column;align-items:flex-end;gap:12px;
-  scale:var(--sagk,1);transform-origin:top right;pointer-events:none}                 /* --sagk: sütunun büyüklüğü (madde 11) */
+  pointer-events:none}
+/* Sütun sağ alttaki "Zar at"ın (.fab, 72 px) üstünde biter; sığmazsa düşman listesi ve sohbet kendi içinde kayar (2026-10-30) */
+.tv-sag{max-height:calc(100% - 12px - 84px)}
+/* Yüzen camlar (2026-10-30, BÖLÜM 11 camYerlestir): her cam başlığından taşınır, köşesinden büyür. Taşınmamışlar sağ sütunda
+   (rıhtım) alt alta; taşınan cam sahnenin üstünde yüzer (.yuzer, yeri tavernanın yüzdesi). --cw genişlik, --ch liste boyu (birim). */
+.tv-camlar{position:absolute;inset:0;z-index:8;pointer-events:none}
+.tv-camlar>.cam{position:absolute;pointer-events:auto;max-height:calc(100% - 8px)}
+.cam>h2{cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+.cam.tasiniyor{box-shadow:0 10px 30px rgba(0,0,0,.6);opacity:.92}
+.cam.tasiniyor>h2{cursor:grabbing}
+/* Büyütme tutamağı: rıhtımda sol alt köşe (cam sola doğru büyür), yüzerken sağ alt köşe */
+.cam-boy{position:absolute;z-index:3;left:-8px;bottom:-8px;width:22px;height:22px;cursor:nesw-resize;touch-action:none;pointer-events:auto;
+  background:linear-gradient(45deg,transparent 0 29%,var(--muted) 29% 36%,transparent 36% 48%,var(--muted) 48% 55%,transparent 55%) var(--lead);opacity:0;transition:opacity .15s}
+.cam.yuzer .cam-boy{left:auto;right:-8px;cursor:nwse-resize;
+  background:linear-gradient(135deg,transparent 0 45%,var(--muted) 45% 52%,transparent 52% 64%,var(--muted) 64% 71%,transparent 71%) var(--lead)}
+.cam:hover .cam-boy,.cam-boy.surukle{opacity:.8}
+.cam.kapali .cam-boy{display:none}
+@media (hover:none){.cam-boy{opacity:.6}}
+/* Boyu elle ayarlanmış cam: liste o boyda, kendi içinde kayar (son atışlarda altı satır sınırı kalkar) */
+.tv-log.boyutlu ol{height:calc(var(--ch) * var(--u));overflow:auto;align-content:start}
+.tv-log.boyutlu li:nth-child(n+7){display:grid}
+.tv-log.boyutlu{max-height:none}
+.tv-dus.boyutlu ol{max-height:none;height:calc(var(--ch) * var(--u))}
+.tv-soz.boyutlu .soz-liste{max-height:none;height:calc(var(--ch) * var(--u))}
+/* Solma (2026-10-30): dokunulmayan cam ve araç şeridi 12 sn sonra %20'ye iner; üstüne gelince, içinde yazarken ya da
+   başına bir şey gelince (yeni atış, mesaj) geri gelir. Düzen kutusundan kapatılır. Telefonda yok. */
+@media (hover:hover){
+  :is(.cam,.tv-ust,.tv-zoom){transition:opacity .25s}
+  :is(.cam,.tv-ust,.tv-zoom).uyku{opacity:.2;transition:opacity .9s}
+}
+/* Düzen kutusu: araç şeridindeki "Düzen" düğmesinin sağında */
+.duzen-pop{position:absolute;z-index:12;left:calc(var(--povw) + 12px + 44px + 4 * var(--lw) + 8px);width:290px;display:grid;gap:10px;padding:14px 16px;
+  background:var(--surface);border:var(--lw) solid var(--lead);box-shadow:var(--shadow);color:var(--text);font-size:14px}
+.duzen-pop[hidden]{display:none}
+.duzen-pop h3{margin:0;font-family:var(--font-display);font-size:18px}
+.duzen-pop p{margin:0;color:var(--muted);line-height:1.4}
+.duzen-sec{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:start;cursor:pointer}
+.duzen-sec input{margin-top:3px}
+.duzen-sec small{grid-column:2;color:var(--muted)}
 .tv-sag>*{pointer-events:auto}
 /* Büyütme tutamağı (madde 11): POV panelinin sağ alt, sağ sütunun sol alt köşesinde; sürükleyince büyür ya da küçülür */
 .buyut{position:absolute;z-index:12;width:22px;height:22px;cursor:nwse-resize;touch-action:none;pointer-events:auto;
   background:linear-gradient(135deg,transparent 0 45%,var(--muted) 45% 52%,transparent 52% 64%,var(--muted) 64% 71%,transparent 71%);
   background-color:var(--lead);opacity:0;transition:opacity .15s}
-:is(.tv-pov,.tv-sag):hover .buyut{opacity:.7}
+.tv-pov:hover .buyut{opacity:.7}
 .buyut:hover,.buyut.surukle{opacity:1}
 @media (hover:none){.buyut{opacity:.6}}
 .tv-pov .buyut{right:4px;bottom:4px}
-.tv-sag .buyut{left:-10px;bottom:-10px;cursor:nesw-resize;transform:scaleX(-1)}
 /* Yandaki tutamak: yalnızca yatayda genişletir (POV'un sağ kenarı, sağ sütunun sol kenarı); ince dik çubuk, iki çizgi */
 .buyut.yan{width:12px;height:56px;top:50%;bottom:auto;translate:0 -50%;cursor:ew-resize;transform:none;
   background:linear-gradient(90deg,transparent 0 30%,var(--muted) 30% 42%,transparent 42% 58%,var(--muted) 58% 70%,transparent 70%) center / 100% 60% no-repeat;
   background-color:var(--lead)}
 .tv-pov .buyut.yan{right:-6px}
-.tv-sag .buyut.yan{left:-18px}
 .tv-wrap:not(.pov-on) .tv-pov .buyut{display:none}
 .tv-log h2,.tv-dus h2{position:relative}
 .tv-kapa{position:absolute;right:calc(.5 * var(--u));top:50%;translate:0 -50%;display:grid;place-items:center;width:28px;height:28px;
   padding:0;border:0;border-radius:0;background:none;color:var(--muted);cursor:pointer}
 .tv-kapa:hover{color:var(--text);background:var(--lit)}
 .tv-kapa .ic{width:16px;height:16px}
-.tv-log.kapali,.tv-log.kapali:hover,.tv-log.kapali:is(.open,:focus-visible){width:calc(17 * var(--u) * var(--sagg,1));cursor:default}
+.tv-log.kapali,.tv-log.kapali:hover,.tv-log.kapali:is(.open,:focus-visible){width:calc(var(--cw,17) * var(--u));cursor:default}
 .tv-log.kapali ol,.tv-log.kapali h2 em{display:none!important}
 /* Düşmanlar: son atışlarla aynı koyu cam; her düşman bir cam satırı (kare portre, ad, can). Basınca hedef seçilir. */
-.tv-dus{position:relative;box-sizing:border-box;width:calc(17 * var(--u) * var(--sagg,1));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);box-shadow:var(--shadow)}
+.tv-dus{position:relative;box-sizing:border-box;width:calc(var(--cw,17) * var(--u));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);box-shadow:var(--shadow);
+  display:flex;flex-direction:column;min-height:0}
 .tv-dus[hidden]{display:none}
+.tv-dus>:not(ol){flex:none}
 .tv-dus h2{margin:0;padding:calc(.7 * var(--u)) calc(2.6 * var(--u)) calc(.6 * var(--u)) calc(1 * var(--u));background:var(--bar);
   font-family:var(--font-display);font-weight:700;font-size:clamp(14px,calc(1.45 * var(--u)),21px);line-height:1.1}
 .tv-dus.kapali ol,.tv-dus.kapali .tv-dus-alt{display:none}
-.tv-dus ol{list-style:none;margin:var(--lw) 0 0;padding:0;display:grid;gap:var(--lw);max-height:calc(24 * var(--u));overflow:auto}
+.tv-dus ol{list-style:none;margin:var(--lw) 0 0;padding:0;display:grid;gap:var(--lw);max-height:calc(24 * var(--u));overflow:auto;min-height:calc(4 * var(--u))}
 .dus-i{--g:var(--g-dus);display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:calc(.8 * var(--u));width:100%;padding:calc(.5 * var(--u)) calc(.9 * var(--u));
   border:0;border-radius:0;background:var(--surface);color:inherit;text-align:left;cursor:pointer;font:inherit}
 .dus-i:hover{background:var(--lit)}
@@ -1354,6 +1392,111 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 .tv-dus-alt{display:flex;gap:var(--lw);margin-top:var(--lw)}
 .tv-dus-alt .btn{flex:1;border:0}
 .tv-dus-alt:empty{display:none}
+/* Sohbet (BÖLÜM 10e, 2026-10-30): düşmanlar panosunun altında aynı koyu cam. Her mesaj yazanın cam renginde bir satır, en yenisi
+   altta. Gizli mesajlar kesikli çerçeveli (DM ekranındaki gizli zarlar gibi). Kapalıyken başlıkta okunmamışların sayısı. */
+.tv-soz{position:relative;box-sizing:border-box;width:calc(var(--cw,17) * var(--u));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);
+  box-shadow:var(--shadow);font-family:var(--font-ui);display:flex;flex-direction:column;min-height:0}
+.tv-soz[hidden]{display:none}
+.tv-soz>:not(ol){flex:none}
+.tv-soz h2{position:relative;margin:0;padding:calc(.7 * var(--u)) calc(2.6 * var(--u)) calc(.6 * var(--u)) calc(1 * var(--u));background:var(--bar);
+  font-family:var(--font-display);font-weight:700;font-size:clamp(14px,calc(1.45 * var(--u)),21px);line-height:1.1}
+.tv-soz.kapali :is(.soz-liste,.soz-yaz,.soz-durum){display:none}
+.soz-yeni{display:inline-grid;place-items:center;min-width:1.6em;height:1.6em;margin-left:.5em;padding:0 .4em;vertical-align:.12em;
+  background:var(--accent);color:#0b0910;font-family:var(--font-ui);font-size:.62em;font-weight:800;line-height:1}
+.soz-yeni[hidden]{display:none}
+.soz-liste{list-style:none;margin:var(--lw) 0 0;padding:0;display:grid;align-content:start;gap:var(--lw);max-height:calc(15 * var(--u));min-height:calc(6 * var(--u));overflow:auto;overscroll-behavior:contain}
+.soz-liste li{--g:var(--g-kobalt);padding:calc(.45 * var(--u)) calc(1 * var(--u));background:color-mix(in srgb,var(--g) 16%,var(--surface));
+  font-size:clamp(12px,calc(1.05 * var(--u)),15px);line-height:1.35;overflow-wrap:anywhere}
+.soz-liste li b{font-weight:700;color:color-mix(in srgb,var(--g) 45%,var(--text));margin-right:.4em}
+.soz-liste li small{margin-right:.4em;color:var(--muted);font-size:.86em;font-weight:600}
+.soz-liste li.gizli{outline:2px dashed color-mix(in srgb,var(--text) 50%,transparent);outline-offset:-4px}
+.soz-liste li.yeni{animation:camIsik 1.6s cubic-bezier(.2,.7,.3,1)}
+.soz-liste li.bos{background:var(--surface);color:var(--muted)}
+.soz-yaz{display:grid;gap:var(--lw);margin:var(--lw) 0 0}
+.soz-kime{display:flex;align-items:center;gap:8px;padding:0 0 0 calc(1 * var(--u));background:var(--bar);color:var(--muted);font-size:clamp(12px,calc(.98 * var(--u)),14px);font-weight:600}
+.soz-kime[hidden]{display:none}
+.soz-kime select{flex:1;padding:4px 8px;border:0;background:var(--field);font-size:inherit;color:var(--text)}
+.soz-satir{display:flex;gap:var(--lw)}
+.soz-satir input{flex:1;border:0;padding:8px 10px;font-size:clamp(13px,calc(1.05 * var(--u)),15px)}
+.soz-satir .btn{border:0;flex:none}
+.tv-soz.gizli-yaz .soz-satir input{outline:2px dashed color-mix(in srgb,var(--text) 50%,transparent);outline-offset:-4px}   /* gizli yazarken kutu da kesikli */
+/* Konuşma balonu: herkese yazılan mesaj birkaç saniye yazanın isimliğinin üstünde küçük bir cam olarak durur (isimlikle birlikte kayar) */
+.tv-balon{position:absolute;z-index:6;left:calc(var(--px) * 1cqw);top:calc(var(--py) * 1cqw);width:max-content;max-width:clamp(150px,16cqw,260px);
+  translate:calc(-50% + var(--bx,0px)) calc(-100% - clamp(84px,10.4cqw,160px) * .157 - 12px);padding:6px 10px;
+  background:color-mix(in srgb,var(--g) 24%,var(--surface));border:max(2px,.22cqw) solid var(--lead);box-shadow:0 .3cqw .8cqw rgba(0,0,0,.55);
+  color:var(--text);font-family:var(--font-ui);font-size:clamp(12px,1.05cqw,15px);font-weight:500;line-height:1.3;white-space:normal;pointer-events:none;
+  transform-origin:50% 100%;animation:balonGel .22s ease-out;transition:opacity .4s}
+.tv-balon span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.tv-balon::after{content:"";position:absolute;left:calc(50% - var(--bx,0px));top:100%;translate:-50% 0;border:7px solid transparent;border-top-color:var(--lead);border-bottom:0}
+/* Müzik camı (BÖLÜM 10f, 2026-10-30; 2026-11-07'den beri yalnızca şarkı seçiliyken): sohbetle aynı koyu cam. Üstte küçük YouTube
+   videosu (YouTube'un kuralı: video görünür olmalı), altında çalan şarkı ve çal / sonraki. Link ve sıra sahne panosunda (.sa-pano). */
+.tv-mz{position:relative;box-sizing:border-box;width:calc(var(--cw,17) * var(--u));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);
+  box-shadow:var(--shadow);font-family:var(--font-ui);display:flex;flex-direction:column;min-height:0}
+.tv-mz[hidden]{display:none}
+.tv-mz>:not(ol){flex:none}
+.tv-mz h2{position:relative;margin:0;padding:calc(.7 * var(--u)) calc(2.6 * var(--u)) calc(.6 * var(--u)) calc(1 * var(--u));background:var(--bar);
+  font-family:var(--font-display);font-weight:700;font-size:clamp(14px,calc(1.45 * var(--u)),21px);line-height:1.1}
+.mz-isaret{display:inline-flex;align-items:flex-end;gap:2px;height:.7em;margin-left:.5em}
+.mz-isaret[hidden]{display:none}
+.mz-isaret i{width:3px;height:100%;background:var(--accent);transform-origin:bottom;animation:mzCubuk .9s ease-in-out infinite}
+.mz-isaret i:nth-child(2){animation-delay:.3s}
+.mz-isaret i:nth-child(3){animation-delay:.6s}
+@keyframes mzCubuk{0%,100%{scale:1 .35}50%{scale:1 1}}
+.mz-video{position:relative;aspect-ratio:16/9;margin-top:var(--lw);background:#000}
+.mz-video[hidden]{display:none}
+.mz-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}   /* videoya basınca kendi başına durmasın: düğmeler camda */
+.mz-simdi{margin:var(--lw) 0 0;padding:6px calc(1 * var(--u));background:var(--surface);font-size:clamp(12px,calc(1.02 * var(--u)),15px);line-height:1.3}
+.mz-simdi b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mz-simdi small{display:block;color:var(--muted)}
+.mz-dug{display:flex;align-items:center;gap:var(--lw);margin-top:var(--lw);padding-right:12px;background:var(--bar)}
+.mz-dug .btn{--h:38px;width:var(--h);padding:0;border:0;background:var(--surface)}
+.mz-dug .btn[hidden]{display:none}
+.mz-ac{margin-top:var(--lw);border:0}
+.mz-ac[hidden]{display:none}
+.mz-not{margin:var(--lw) 0 0;padding:6px calc(1 * var(--u));background:var(--surface);color:var(--muted);font-size:13px;line-height:1.35}
+.mz-not[hidden]{display:none}
+.mz-liste{list-style:none;margin:var(--lw) 0 0;padding:0;display:grid;align-content:start;gap:var(--lw);max-height:calc(11 * var(--u));min-height:0;overflow:auto;overscroll-behavior:contain}
+.mz-liste li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;background:var(--surface);font-size:clamp(12px,calc(1 * var(--u)),14px)}
+.mz-liste li.simdi{background:color-mix(in srgb,var(--accent) 24%,var(--surface))}
+.mz-liste li.hata{opacity:.5}
+.mz-liste li.hata b{text-decoration:line-through}
+.mz-sec{display:block;min-width:0;padding:6px calc(1 * var(--u));border:0;background:none;color:inherit;font:inherit;text-align:left}
+button.mz-sec{cursor:pointer}
+button.mz-sec:hover{background:var(--lit)}
+.mz-sec b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.mz-sec small{color:var(--muted)}
+.mz-sil{display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;background:none;color:var(--muted);cursor:pointer}
+.mz-sil:hover{color:var(--text);background:var(--lit)}
+.mz-sil .ic{width:15px;height:15px}
+.mz-ekle{display:flex;gap:var(--lw);margin-top:var(--lw)}
+.mz-ekle input{flex:1;border:0;padding:8px 10px;font-size:clamp(13px,calc(1.02 * var(--u)),15px)}
+.mz-ekle .btn{border:0}
+/* Sahne panosu (2026-11-07, kullanıcının isteği): hanın ozan sahnesine iğneli cam; kamera kaydıkça sahneyle gider (saPanoYer). Sahne ekranda
+   değilse görünmez; araç şeridindeki "Sahne" oraya götürür. Telefonda ve 3D açılamazsa sağ sütunda durur. */
+.sa-pano{position:absolute;left:0;top:0;z-index:0;box-sizing:border-box;width:calc(20 * var(--u));min-width:250px;display:flex;flex-direction:column;border:var(--lw) solid var(--lead);
+  background:var(--lead);color:var(--text);box-shadow:var(--shadow);font-family:var(--font-ui);pointer-events:auto;will-change:transform}
+.sa-pano[hidden]{display:none}
+.sa-pano h2{display:flex;align-items:center;gap:.4em;margin:0;padding:calc(.7 * var(--u)) calc(1 * var(--u)) calc(.6 * var(--u));background:var(--bar);
+  font-family:var(--font-display);font-weight:700;font-size:clamp(14px,calc(1.45 * var(--u)),21px);line-height:1.1}
+.sa-pano h2 .ic{width:1em;height:1em;color:var(--accent)}
+.sa-pano .mz-isaret{margin-left:auto}
+.sa-pano.uzak{width:calc(15 * var(--u))}
+.sa-pano.uzak:not(:hover,:focus-within) .mz-liste{display:none}
+.tv-sag .sa-pano{position:relative;transform:none!important;width:calc(var(--cw,17) * var(--u));min-width:0}
+.tv-wrap:is(.pov-tek,.inis) .sa-pano{display:none}
+#tvSahne[hidden]{display:none}
+.tv-balon.git{opacity:0}
+/* "Yazıyor": üç nokta sırayla kalkar iner */
+.tv-balon .nokta{display:flex;gap:6px;padding:4px 3px}
+.tv-balon .nokta i{width:8px;height:8px;background:var(--text);opacity:.85;animation:nokta 1.1s ease-in-out infinite}
+.tv-balon .nokta i:nth-child(2){animation-delay:.15s}
+.tv-balon .nokta i:nth-child(3){animation-delay:.3s}
+@keyframes nokta{0%,60%,100%{translate:0 0;opacity:.45}30%{translate:0 -4px;opacity:1}}
+.soz-durum{margin:0;padding:3px calc(1 * var(--u));background:var(--surface);color:var(--muted);font-size:clamp(11px,calc(.92 * var(--u)),13px);font-style:italic}
+.soz-durum[hidden]{display:none}
+.tv-balon.alt{translate:calc(-50% + var(--bx,0px)) calc(clamp(84px,10.4cqw,160px) * .157 + 12px);transform-origin:50% 0}   /* üst kenara taşacaksa isimliğin altında */
+.tv-balon.alt::after{top:auto;bottom:100%;border:7px solid transparent;border-bottom-color:var(--lead);border-top:0}
+@keyframes balonGel{from{opacity:0;scale:.9}}
 /* Savaş sırası (2026-10-21, vitray): üst ortada bir sıra kemerli pencere (lansetler). Her pencere bir kişi: oyuncular kendi
    cam renginde, düşmanlar lal. Sırası gelenin penceresi arkadan ışık alır (camın kendi rengiyle dolar), hafifçe uzar. */
 .tv-sira{position:absolute;z-index:9;left:calc(var(--povw) + (100% - var(--povw)) / 2);translate:-50% 0;top:12px;max-width:calc(100% - var(--povw) - 2 * 19 * var(--u));
@@ -1388,7 +1531,7 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 .tv-wrap.pov-tek{--povgen:calc(100cqw - .36 * var(--u));--povw:0px}            /* araç çubuğu ve savaş sırası panelin üstünde, solda */
 .tv-wrap.pov-tek .tv-pov{height:100cqh}
 .tv-wrap.pov-tek .tv-scene{visibility:hidden}                        /* ölçüsü kalsın (3D çizimi ona bakar), görünmesin */
-.tv-wrap.pov-tek :is(.tv-zoom,.tv-pov .buyut,#tvAll){display:none!important}
+.tv-wrap.pov-tek :is(.tv-zoom,.tv-pov .buyut,#tvAll,#tvSahne){display:none!important}
 .tv-wrap.pov-tek .pov-name{top:auto;bottom:calc(.8 * var(--u))}      /* ad sol altta: sol üst araç çubuğunun */
 /* Savaş sahnesi (BÖLÜM 10c): savaş açıkken taverna yerine 2D orman açıklığı. Solda oyuncular, sağda düşmanlar; ayakta
    duran kare kart figürler. Zarlar iki tarafın arasına, havaya iner. Taverna arkada durur ama görünmez ve çizilmez. */
@@ -1679,7 +1822,7 @@ body.tv-full #tableView{height:100dvh}
   .mc-esya{grid-template-columns:minmax(0,1fr)}
   .tv-ust{display:contents}
   .tv-fs{position:absolute;z-index:9;top:8px;left:8px}
-  .tv-zoom,#tvAll,#tvGoz{display:none}                        /* telefonda tavernada gezinme ve POV düğmesi yok */
+  .tv-zoom,#tvAll,#tvSahne,#tvGoz{display:none}                        /* telefonda tavernada gezinme ve POV düğmesi yok */
   .tv-arac{position:absolute;z-index:9;top:8px;right:8px}     /* yalnızca "Canlı" kalır, sağ üstte */
   .tv-stage.tav{cursor:auto;touch-action:auto}
   /* Panel sürekli görünmez; yalnızca kendi zarımı atınca sahnenin sol altında küçük bir kutu olarak açılır (.pop).
@@ -1693,11 +1836,23 @@ body.tv-full #tableView{height:100dvh}
   .tv-nm{position:static;display:block;text-align:left}
   .tv-nm b{position:static;display:block;translate:none;font-size:10px;max-width:56px}
   .tv-nm small,.tv-hp{display:none}
-  .tv-sag{position:static;display:block;scale:none}
+  .tv-sag{position:static;display:block;scale:none;max-height:none;padding-bottom:84px}   /* altta boşluk: son cam "Zar at"ın üstüne kaydırılabilsin */
   .buyut{display:none}                                       /* telefonda büyütme yok: her şey alt alta */
   .tv-sag .tv-log.kapali,.tv-sag .tv-log.kapali:hover{width:auto;padding:10px 14px}
   .tv-dus{width:auto;margin-top:12px}
   .tv-dus h2{font-size:20px}
+  .tv-soz{width:auto;margin-top:12px}
+  .tv-soz h2{font-size:20px}
+  .soz-liste{max-height:40vh}
+  .soz-liste li{padding:8px 12px;font-size:15px}
+  .soz-satir input,.mz-ekle input{font-size:16px}               /* 16 px: iPhone yazarken sayfayı büyütmesin */
+  .tv-mz,.tv-sag .sa-pano{width:auto;margin-top:12px}
+  .tv-sag .sa-pano .mz-liste{max-height:30vh}
+  .cam-boy{display:none}                                         /* telefonda taşıma ve büyütme yok */
+  .cam>h2{cursor:auto;touch-action:auto}
+  .tv-mz h2,.sa-pano h2{font-size:20px}
+  .tv-balon{translate:calc(-50% + var(--bx,0px)) calc(-100% - 20px);max-width:150px;padding:4px 8px;font-size:12px}
+  .tv-balon.alt{translate:calc(-50% + var(--bx,0px)) 20px}
   .dus-av{width:34px;height:34px}
   .dus-ad b{font-size:16px}
   .dus-ad small{font-size:12.5px}
@@ -1774,6 +1929,10 @@ body.tv-full #tableView{height:100dvh}
   <symbol id="i-konum" viewBox="0 0 24 24"><path d="M12 21.5s-6.5-6.3-6.5-11.2a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11.2-6.5 11.2z"/><circle cx="12" cy="10.3" r="2.3"/></symbol>
   <!-- Heybe: envanter (2026-10-29) -->
   <symbol id="i-canta" viewBox="0 0 24 24"><path d="M9 6.5c0-2 1.3-3 3-3s3 1 3 3M6.2 8h11.6l1.6 10.6a1.6 1.6 0 0 1-1.6 1.9H6.2a1.6 1.6 0 0 1-1.6-1.9zM9.5 11.5h5"/></symbol>
+  <symbol id="i-duzen" viewBox="0 0 24 24"><path d="M4 4.5h7v7H4zM13 4.5h7v4.5h-7zM13 11h7v8.5h-7zM4 13.5h7v6H4z"/></symbol>
+  <symbol id="i-oynat" viewBox="0 0 24 24"><path d="M7.5 5v14l11-7z"/></symbol>
+  <symbol id="i-duraklat" viewBox="0 0 24 24"><path d="M8 5.5v13M16 5.5v13"/></symbol>
+  <symbol id="i-gonder" viewBox="0 0 24 24"><path d="M4 11.6 20 4l-5.6 16-3.1-6.7zM11.3 13.3 20 4"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
   <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
@@ -1810,7 +1969,7 @@ body.tv-full #tableView{height:100dvh}
           </div>
           <div class="ses-row" data-k="muzik">
             <button class="btn icon sm ses-ic" data-act="ses-sustur" data-k="muzik" data-ic="i-nota"><svg class="ic"><use href="#i-nota"/></svg></button>
-            <label class="ses-ad" for="sesMuzik">Müzik<small>taverna şarkısı</small></label><output class="ses-v" for="sesMuzik"></output>
+            <label class="ses-ad" for="sesMuzik">Müzik<small>taverna ve sahne</small></label><output class="ses-v" for="sesMuzik"></output>
             <input class="ses-sur" id="sesMuzik" type="range" min="0" max="100" step="1" data-ses="muzik">
           </div>
           <div class="ses-row" data-k="ortam">
@@ -1872,6 +2031,12 @@ body.tv-full #tableView{height:100dvh}
       <aside class="tv-me" id="tvMe" aria-label="Karakterim" hidden></aside>
       <!-- Harita camı (BÖLÜM 10d; içini JS doldurur) ve DM'in harita resmi seçtiği gizli kutu -->
       <section class="hr-pano" id="hrPano" aria-label="Harita" hidden></section>
+      <div class="duzen-pop" id="duzenPop" role="dialog" aria-label="Düzen" hidden>
+        <h3>Düzen</h3>
+        <p>Sağdaki camları başlığından sürükleyip istediğin yere taşı, köşesinden büyüt. Yerleri bu tarayıcıda kalır.</p>
+        <label class="duzen-sec"><input type="checkbox" id="duzenSolma"><span>Kullanmadığım camlar solsun</span><small>12 sn dokunulmayınca; üstüne gelince ya da yeni bir şey olunca geri gelir</small></label>
+        <button class="btn sm" data-act="duzen-sifirla">Varsayılan düzene dön</button>
+      </div>
       <input type="file" id="hrDosya" accept="image/*" hidden>
       <div class="tv-ust">
         <!-- Tam ekran: tarayıcı desteklemiyorsa (ör. iPhone Safari) JS gizler -->
@@ -1880,9 +2045,13 @@ body.tv-full #tableView{height:100dvh}
         <button class="btn sm" id="tvKagit" data-act="mode-sheet" title="Karakter kağıdını aç"><svg class="ic"><use href="#i-scroll"/></svg><span>Kağıdım</span></button>
         <!-- Harita (BÖLÜM 10d): DM yükler, herkes görür; oyuncuda DM bir harita paylaşınca görünür -->
         <button class="btn sm" id="tvHarita" data-act="hr-ac" aria-pressed="false" hidden><svg class="ic"><use href="#i-konum"/></svg><span>Harita</span></button>
+        <!-- Düzen (2026-10-30): camları varsayılan yerine al, kullanılmayan camlar solsun (camlar her zaman başlığından taşınır) -->
+        <button class="btn sm" id="tvDuzen" data-act="duzen" aria-expanded="false" aria-controls="duzenPop" title="Düzen: camları taşı ve büyüt, varsayılana dön, solma"><svg class="ic"><use href="#i-duzen"/></svg><span>Düzen</span></button>
         <!-- NPR taverna yüklenince görünür: bütün tavernaya bakmak / masaya dönmek -->
         <div class="tv-arac" id="tvArac" hidden>
           <button class="btn sm" id="tvAll" data-act="tav-all" aria-pressed="false" title="Bütün tavernaya bak (bir daha basınca masaya döner)"><svg class="ic"><use href="#i-harita"/></svg><span>Bütün taverna</span></button>
+          <!-- Sahne: kamera ozan sahnesine gider (bir daha basınca masaya döner) -->
+          <button class="btn sm" id="tvSahne" data-act="tav-sahne" aria-pressed="false" title="Sahneye git: müziği buradan başlat (bir daha basınca masaya döner)"><svg class="ic"><use href="#i-nota"/></svg><span>Sahne</span></button>
           <!-- Tam tepeden: han harita gibi, kuzey yukarıda; galeri gizlenir (bir daha basınca eğik görünüm) -->
           <button class="btn sm" id="tvTepe" data-act="tav-tepe" aria-pressed="false" title="Tam tepeden bak: hanı harita gibi gör (bir daha basınca eğik görünüme döner)"><svg class="ic"><use href="#i-tepe"/></svg><span>Tam tepeden</span></button>
           <!-- Canlı: sahne sürekli çizilir, ışıklar titrer. Kapalıyken yalnızca bir şey değişince çizilir (bilgisayarı daha az yorar). -->
@@ -1935,17 +2104,52 @@ body.tv-full #tableView{height:100dvh}
         <div class="tv-sira" id="tvSira" hidden></div>
         <!-- Sağ sütun: kara tahta (son atışlar) ve düşmanlar panosu; ikisi de açılıp kapanır -->
         <div class="tv-sag">
-          <span class="buyut" data-buyut="sag" title="Sürükleyerek büyüt ya da küçült" aria-hidden="true"></span>
-          <span class="buyut yan" data-buyut="sagg" title="Sürükleyerek genişlet ya da daralt" aria-hidden="true"></span>
-          <aside class="tv-log" id="tvLogBox" tabindex="0" data-act="log-toggle" aria-label="Son atışlar" title="Son atışlar: ayrıntı için üstüne gel">
+          <aside class="tv-log cam" data-cam="log" id="tvLogBox" tabindex="0" data-act="log-toggle" aria-label="Son atışlar" title="Son atışlar: ayrıntı için üstüne gel">
             <h2>Son atışlar<em>en yenisi üstte</em><button class="tv-kapa" data-act="pano-kapa" data-p="log" aria-expanded="true" title="Tahtayı kapat" aria-label="Son atışları kapat"><svg class="ic"><use href="#i-minus"/></svg></button></h2>
             <ol id="tvLog"></ol>
           </aside>
-          <aside class="tv-dus" id="tvDus" aria-label="Düşmanlar" hidden>
+          <aside class="tv-dus cam" data-cam="dus" id="tvDus" aria-label="Düşmanlar" hidden>
             <h2>Düşmanlar<button class="tv-kapa" data-act="pano-kapa" data-p="dus" aria-expanded="true" title="Panoyu kapat" aria-label="Düşmanlar panosunu kapat"><svg class="ic"><use href="#i-minus"/></svg></button></h2>
             <ol id="tvDusList"></ol>
             <div class="tv-dus-alt" id="tvDusAlt"></div>
           </aside>
+          <!-- Sohbet (BÖLÜM 10e): masadakiler yazışır; gizli mesaj yalnızca DM ile bir oyuncu arasında. Masaya bağlı değilken görünmez. -->
+          <aside class="tv-soz cam" data-cam="soz" id="tvSoz" aria-label="Sohbet" hidden>
+            <h2>Sohbet<span class="soz-yeni" id="sozYeni" hidden></span><button class="tv-kapa" data-act="pano-kapa" data-p="soz" aria-expanded="true" title="Kapat" aria-label="Sohbeti kapat"><svg class="ic"><use href="#i-minus"/></svg></button></h2>
+            <ol class="soz-liste" id="sozListe" aria-live="polite" aria-relevant="additions"></ol>
+            <p class="soz-durum" id="sozDurum" hidden></p>
+            <form class="soz-yaz" id="sozYaz" autocomplete="off">
+              <label class="soz-kime" id="sozKimeBox"><span>Kime</span><select id="sozKime"></select></label>
+              <div class="soz-satir">
+                <input id="sozIn" maxlength="300" enterkeyhint="send" spellcheck="true" aria-label="Mesaj">
+                <button class="btn icon" type="submit" title="Gönder (Enter)" aria-label="Gönder"><svg class="ic"><use href="#i-gonder"/></svg></button>
+              </div>
+            </form>
+          </aside>
+          <!-- Müzik (BÖLÜM 10f): şarkı seçiliyken görünür. Video + ad + çal / sonraki. Link ve sıra sahnedeki panoda (#saPano), ses üstteki ses panelinde -->
+          <aside class="tv-mz cam" data-cam="muzik" id="tvMuzik" aria-label="Çalan müzik" hidden>
+            <h2>Müzik<span class="mz-isaret" id="mzIsaret" title="Çalıyor" hidden><i></i><i></i><i></i></span></h2>
+            <div class="mz-video" id="mzVideo" hidden><div id="mzOynatici"></div></div>
+            <p class="mz-simdi" id="mzSimdi"></p>
+            <div class="mz-dug" id="mzDug">
+              <button class="btn icon" id="mzCalBtn" data-act="mz-cal" title="Çal" aria-label="Çal"><svg class="ic"><use href="#i-oynat"/></svg></button>
+              <button class="btn icon" id="mzSonBtn" data-act="mz-sonraki" title="Sonraki şarkı" aria-label="Sonraki şarkı"><svg class="ic"><use href="#i-gec"/></svg></button>
+            </div>
+            <button class="btn sm accent mz-ac" id="mzAc" data-act="mz-ac" hidden><svg class="ic"><use href="#i-oynat"/></svg>Müziği aç</button>
+            <p class="mz-not" id="mzNot" hidden></p>
+          </aside>
+        </div>
+        <!-- Yüzen camlar: başlığından sürüklenip sağ sütundan çıkarılan camlar burada, tavernanın üstünde durur (camYerlestir) -->
+        <div class="tv-camlar" id="tvCamlar">
+          <!-- Sahne panosu (BÖLÜM 10f, 2026-11-07): hanın ozan sahnesine iğneli. Link buraya yazılıp başlatılır, sıra burada durur -->
+          <section class="sa-pano" id="saPano" aria-label="Sahne: YouTube linkiyle müzik başlat" hidden>
+            <h2><svg class="ic"><use href="#i-nota"/></svg>Sahne<span class="mz-isaret" id="saIsaret" title="Çalıyor" hidden><i></i><i></i><i></i></span></h2>
+            <form class="mz-ekle" id="mzEkleForm" autocomplete="off">
+              <input id="mzLink" inputmode="url" spellcheck="false" aria-label="YouTube linki">
+              <button class="btn sm accent" id="mzBaslat" type="submit">Başlat</button>
+            </form>
+            <ol class="mz-liste" id="mzListe" aria-label="Sıradaki şarkılar"></ol>
+          </section>
         </div>
       </div>
     </div>
@@ -4134,7 +4338,9 @@ function stopNet(clearRole = true) {
   net.players.clear(); net.feed = []; net.roster = []; net.dmName = ''; net.sentPortrait = null;
   net.mySeat = ''; net.faces.clear(); net.dropped = false; net.npcs = []; net.sira = null;
   HR.resim.clear(); HR.parca.clear(); net.harita = null; HR.goster = ''; HR.menu = ''; HR.yeni = null;   // harita (BÖLÜM 10d); DM'inki kalıcı depoda durur
-  if (clearRole) store.sira = null;                                  // masa kapanınca savaş da biter
+  sozSifirla();                                                      // sohbet (BÖLÜM 10e): hiçbir yere kaydedilmez
+  net.muzik = null;                                                  // müzik (BÖLÜM 10f): oyuncunun DM'den aldığı sıra
+  if (clearRole) store.sira = null;                                 // masa kapanınca savaş da biter
   if (clearRole) { tvReset(); store.net.role = ''; save(); if (mode !== 'sheet') setMode('table'); }   // DM ekranından ya da masadan: tek başına masaya
   setNet('off', '');
 }
@@ -4223,8 +4429,13 @@ function dmReceive(pid, conn, msg) {
   else if (msg.t === 'hello') {
     send(conn, { t:'welcome', dm: store.net.name || 'DM', publicRolls: !!store.net.publicRolls, roster: rosterList(), you: p.seat, npcs: npcRoster(), sira: siraPaket() });
     hrHosgeldin(p, msg.hr);                                          // harita: yapı, piyonlar, oyuncuda olmayan açık resimler (BÖLÜM 10d)
+    sozGecmisYolla(p);                                               // sohbetin son mesajları (BÖLÜM 10e)
+    mzYay(p);                                                        // müzik: sıra ve çalan (BÖLÜM 10f)
   }
   else if (msg.t === 'piyon' || msg.t === 'hresim-iste') hrDmAl(p, msg);
+  else if (msg.t === 'soz') sozDmAl(p, msg);                         // sohbet (BÖLÜM 10e)
+  else if (msg.t === 'yaz') yazDmAl(p, msg);
+  else if (msg.t === 'mz-ekle') mzDmEkle(p, msg);                    // müzik: oyuncu link ekledi (BÖLÜM 10f)                         // "yazıyor" (üç nokta)
   else if (msg.t === 'sheet' && msg.char && typeof msg.char === 'object') {
     const portrait = typeof msg.portrait === 'string' ? guvenliPortre(msg.portrait) : (p.char ? p.char.portrait : '');
     const c = normalize(Object.assign({}, msg.char, { portrait }));
@@ -4400,6 +4611,12 @@ function playerReceive(conn, msg) {
   else if (msg.t === 'roll' && msg.roll && typeof msg.roll === 'object') showRemoteRoll(Object.assign(cleanRoll(msg.roll), { who: short(msg.who, 30), char: short(msg.char, 40), seat: cleanSeat(msg.seat), npc: cleanHedef(msg.npc), gizli: !!msg.gizli }));
   else if (msg.t === 'harita') hrAl(msg);                            // DM'in haritaları ve piyonlar (BÖLÜM 10d)
   else if (msg.t === 'hresim') hrParcaAl(msg);
+  else if (msg.t === 'soz') sozEkle(sozKayit(msg));                  // sohbet (BÖLÜM 10e)
+  else if (msg.t === 'soz-gecmis') sozGecmisAl(msg);
+  else if (msg.t === 'yaz') { const k = cleanSeat(msg.kim); if (k && k !== net.mySeat) yazGoster(k, !!msg.on); }
+  else if (msg.t === 'mz') mzAl(msg);                                // müzik (BÖLÜM 10f)
+  else if (msg.t === 'mz-yavas') notify('Şarkın eklenmedi', 'Dakikada en çok 4 şarkı. Biraz sonra yeniden dene.');
+  else if (msg.t === 'soz-yavas') notify('Mesajın gitmedi', 'Çok hızlı yazıyorsun. Birkaç saniye bekleyip yeniden dene.');
   else if (msg.t === 'kick') { stopNet(); notify('DM seni masadan çıkardı'); }
   else if (msg.t === 'full') { stopNet(); notify('Masa dolu', `Bir masaya en fazla ${MAX_PLAYERS} oyuncu katılabilir.`); }
 }
@@ -4535,6 +4752,8 @@ function renderNetUI() {
   if (mode === 'dm') renderDMHead();
   renderTable();
   hrCiz();                                                           // harita düğmesi ve camı (BÖLÜM 10d)
+  sozCiz();                                                          // sohbet camı (BÖLÜM 10e)
+  mzCiz(); mzUygula();                                               // müzik camı ve oynatıcı (BÖLÜM 10f): rol değişince de
 }
 
 function renderTableDrawer() {
@@ -4971,9 +5190,9 @@ $('#npcGorselInput').addEventListener('change', e => {
 });
 
 /* ───────── Masada sağ sütun: kara tahta ve düşmanlar panosu (açılır / kapanır) ───────── */
-const panoAcik = k => !(store.pano && store.pano[k] === false);
+const panoAcik = k => !store.pano || store.pano[k] !== false;
 function panoUI() {
-  [['log', '#tvLogBox', 'Son atışları'], ['dus', '#tvDus', 'Düşmanlar panosunu']].forEach(([k, sel, ad]) => {
+  [['log', '#tvLogBox', 'Son atışları'], ['dus', '#tvDus', 'Düşmanlar panosunu'], ['soz', '#tvSoz', 'Sohbeti']].forEach(([k, sel, ad]) => {
     const box = $(sel), ac = panoAcik(k), b = $('.tv-kapa', box);
     box.classList.toggle('kapali', !ac);
     b.setAttribute('aria-expanded', String(ac)); $('use', b).setAttribute('href', ac ? '#i-minus' : '#i-plus');
@@ -5152,6 +5371,7 @@ Object.assign(ACTIONS, {
     store.pano = Object.assign({}, store.pano, { [k]: !panoAcik(k) }); save();
     if (k === 'log') $('#tvLogBox').classList.remove('open');
     panoUI();
+    if (k === 'soz') { SOZ.dibe = true; sozCiz(); }                  // açılınca okunmamışlar sıfırlanır, en alttan
   },
   'npc-ekle': () => {
     npcler().push({ id: 'n' + newCode().toLowerCase(), ad: '', can: 10, max: 10, ac: 12, ini: 0, img: '', gor: true, canGor: false });
@@ -5220,7 +5440,7 @@ function svRender() {
   if (!W) return;
   const { oyuncu, dus } = svListe(), u = Math.min(W / 100, H / 56.25), kw = 9.5 * u;
   // Sağ kenar: oyuncunun sağ alttaki kutusu ve (kartların boyuna uzanıyorsa) sağ sütun kartları kapatmasın
-  const sag = [$('#tvMe'), $('.tv-sag')].filter(el => el && !el.hidden && el.offsetParent).map(el => el.getBoundingClientRect())
+  const sag = [$('#tvMe'), ...$$('.cam')].filter(el => el && !el.hidden && el.offsetParent).map(el => el.getBoundingClientRect())
     .filter(b => b.left > st.left + W * 0.5 && b.bottom > st.top + H * 0.42).map(b => b.left - st.left - u * 1.5);
   const L = W * 0.05, R = Math.min(W * 0.95, ...sag), gap = Math.max(W * 0.05, u * 4);
   SV.mid = (L + R) / 2;
@@ -5875,6 +6095,472 @@ Object.assign(ACTIONS, {
 })();
 
 /* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 10e — SOHBET (2026-10-30, kullanıcının isteği)
+   • Masadakiler yazışır. Oyuncunun mesajı DM'e gider, DM öbürlerine dağıtır (oyuncular birbirine bağlı değildir).
+     Yazanın koltuğunu DM kendisi ekler (zarlardaki gibi): kimse başkası adına yazamaz.
+   • Gizli mesaj: oyuncu yalnızca DM'e, DM yalnızca bir oyuncuya yazar; başka hiç kimseye gitmez.
+   • DM son 100 mesajı bellekte tutar. Masaya gelen (ya da yeniden bağlanan) oyuncuya son 50'si gider; gizlilerden yalnızca
+     kendisininkiler. Hiçbir yere kaydedilmez: DM'in sekmesi kapanınca silinir.
+   • Herkese yazılan mesaj birkaç saniye yazanın isimliğinin üstünde balon olur. Sohbet kapalıyken, kağıttayken ya da sekme
+     arkadayken gelen mesajda başlıkta sayı ve kadeh tınlaması (ses/soz.mp3, Efektler kanalı). Yazan kişinin isimliğinde üç nokta.
+   • Masaya bağlı değilken sohbet görünmez.
+   ═══════════════════════════════════════════════════════════════════ */
+const SOZ = { liste: [], okunmadi: 0, uzun: 300, tut: 100, gecmis: 50, son: 0, sesSon: 0, sinir: new Map(), kirli: true, dibe: false,
+  yazanlar: new Map(), yaziyor: false, yazGitti: 0 };            // yazanlar: koltuk → üç noktanın kendiliğinden gitme zamanlayıcısı
+const sozTemiz = v => String(v ?? '').replace(/[\u0000-\u001f\u007f\u2028\u2029]+/g, ' ').trim().slice(0, SOZ.uzun);
+const sozKimlik = () => Math.random().toString(36).slice(2, 10);
+// Ağdan gelen mesaj: yalnızca bu alanlar okunur, hepsi sınırlanır
+const sozKayit = m => ({ id: short(m.id, 12).replace(/[^a-z0-9]/g, ''), kim: cleanSeat(m.kim), ad: short(m.ad, 30), m: sozTemiz(m.m),
+  ts: int(m.ts) || Date.now(), gizli: !!m.gizli, kime: cleanSeat(m.kime) });
+const sozPaket = e => ({ id: e.id, kim: e.kim, ad: e.ad, m: e.m, ts: e.ts, gizli: e.gizli ? 1 : 0, kime: e.kime || '' });
+const sozBakiyor = () => panoAcik('soz') && mode === 'table' && !document.hidden;
+
+function sozAd(kim, yedek) {                                          // bir koltuğun bugünkü adı; masadan gittiyse mesajdaki ad
+  if (kim === 'dm') return store.net.role === 'dm' ? myName() : net.dmName || yedek || 'DM';
+  const o = store.net.role === 'dm' ? seated().find(p => p.seat === kim) : net.roster.find(r => r.id === kim);
+  return (o && o.name) || yedek || 'Biri';
+}
+function sozSatir(e, yeni) {
+  let etiket = '';
+  if (e.gizli) {                                                      // kime gittiği: "gizli → DM", "gizli → sen", "gizli → Ayla"
+    const ben = meSeat(), hedef = e.kime === ben ? 'sen' : e.kime === 'dm' ? 'DM' : sozAd(e.kime, '');
+    etiket = `<small>gizli → ${esc(hedef)}</small>`;
+  }
+  return `<li class="${e.gizli ? 'gizli' : ''}${yeni ? ' yeni' : ''}" style="--g:${camOf(e.kim)}" title="${hhmm(e.ts)}"><b>${esc(sozAd(e.kim, e.ad))}</b>${etiket}${esc(e.m)}</li>`;
+}
+function sozListeCiz() {
+  const ol = $('#sozListe');
+  SOZ.kirli = false;
+  ol.innerHTML = SOZ.liste.length ? SOZ.liste.map(e => sozSatir(e)).join('')
+    : `<li class="bos">${store.net.role === 'dm' ? 'Masadakilere buradan yaz. Gizli mesaj için "Kime"den bir oyuncu seç.' : 'Masadakilere buradan yaz. "Kime"den DM\'i seçersen yalnızca o görür.'}</li>`;
+  SOZ.dibe = true;
+}
+// Camın kendisi: görünür mü, okunmamış sayısı, "Kime" seçenekleri, yazı kutusu (renderNetUI her seferinde çağırır)
+function sozCiz() {
+  const box = $('#tvSoz'), role = store.net.role;
+  box.hidden = !role;
+  if (!role) return;
+  if (sozBakiyor()) SOZ.okunmadi = 0;
+  const yeni = $('#sozYeni');
+  yeni.hidden = !SOZ.okunmadi; yeni.textContent = SOZ.okunmadi > 99 ? '99+' : String(SOZ.okunmadi);
+  yeni.title = `${SOZ.okunmadi} okunmamış mesaj`;
+  // Kime: herkese ya da gizli (oyuncu yalnızca DM'e; DM bağlı bir oyuncuya)
+  const sec = role === 'dm' ? seated().filter(p => p.online).map(p => [p.seat, `${p.name} (gizli)`]) : [['dm', `${net.dmName || 'DM'} (gizli)`]];
+  const sel = $('#sozKime'), imza = sec.map(s => s.join('=')).join('|');
+  if (sel._imza !== imza) {                                           // seçenekler değişmediyse dokunma (açık liste kapanmasın)
+    const once = sel.value;
+    sel._imza = imza;
+    sel.innerHTML = '<option value="">Herkese</option>' + sec.map(([v, t]) => `<option value="${esc(v)}">${esc(t)}</option>`).join('');
+    sel.value = sec.some(s => s[0] === once) ? once : '';
+  }
+  $('#sozKimeBox').hidden = !sec.length;
+  box.classList.toggle('gizli-yaz', !!sel.value);
+  const inp = $('#sozIn'), bagli = role === 'dm' || net.status === 'open';
+  inp.disabled = !bagli;
+  inp.placeholder = !bagli ? 'Bağlantı bekleniyor…' : sel.value ? 'Gizli mesaj, Enter ile gönder' : 'Yaz, Enter ile gönder';
+  if (SOZ.kirli) sozListeCiz();
+  const ol = $('#sozListe');
+  if (SOZ.dibe && ol.clientHeight) { ol.scrollTop = ol.scrollHeight; SOZ.dibe = false; }   // gizliyken gelenler: açılınca en alttan
+}
+function sozEkle(e) {
+  if (!e.m) return;
+  SOZ.liste.push(e);
+  if (SOZ.liste.length > SOZ.tut) SOZ.liste.splice(0, SOZ.liste.length - SOZ.tut);
+  const ol = $('#sozListe');
+  if (SOZ.kirli || SOZ.liste.length === 1) sozListeCiz();             // ilk mesajda "buradan yaz" satırı gider
+  else {
+    const altta = ol.scrollHeight - ol.scrollTop - ol.clientHeight < 40;   // yukarıda eski mesajları okuyorsa kaydırma
+    ol.insertAdjacentHTML('beforeend', sozSatir(e, true));
+    while (ol.children.length > SOZ.tut) ol.firstElementChild.remove();
+    if (!ol.clientHeight) SOZ.dibe = true; else if (altta) ol.scrollTop = ol.scrollHeight;
+  }
+  yazGoster(e.kim, false);                                            // yazıyordu, yazdı: üç nokta gider, yerine mesaj
+  uyandir($('#tvSoz'));                                              // solmuşsa geri gelir
+  if (!e.gizli) balonTak(e.kim, `<span>${esc(e.m)}</span>`, clamp(3500 + e.m.length * 55, 3500, 9000));   // uzun mesaj biraz daha uzun durur
+  if (e.kim !== meSeat() && !sozBakiyor()) { SOZ.okunmadi++; sozSes(); }
+  sozCiz();
+}
+/* Konuşma balonu: isimliğin üstünde (isimlikle birlikte kayar; renderTable isimliği yenilerse yeniden takılır, yeniden belirmez).
+   Bir koltukta tek balon: mesaj ya da üç nokta ("yazıyor"); yenisi eskisinin yerine geçer. sure 0: kaldırılana kadar.
+   Ekrandan ve camlardan taşmasın: üst kenara (Menü şeridine) değecekse isimliğin altına geçer; bir cama ya da soldaki POV paneline
+   değecekse yana kayar (--bx; kuyruğu yine isimliği gösterir). Ölçü beliriş hareketinin küçük hâlinden: 12 px pay. */
+function balonTak(kim, html, sure, cls = '') {
+  const el = tv.els.get(kim);
+  if (!el) return null;
+  balonKaldir(el);
+  const b = el._balon = document.createElement('div');
+  b.className = 'tv-balon' + (cls ? ' ' + cls : ''); b.setAttribute('aria-hidden', 'true');
+  b.innerHTML = html;
+  el.appendChild(b);
+  const st = $('#tvStage').getBoundingClientRect(), pov = $('#tvPov').getBoundingClientRect();
+  if (b.getBoundingClientRect().top < st.top + 36) b.classList.add('alt');
+  const r = b.getBoundingClientRect(), cx = (r.left + r.right) / 2;
+  let sag = st.right - 12, sol = Math.max(st.left, pov.width ? pov.right : 0) + 12;
+  $$('.cam').forEach(c => {                                           // görünen camlar (telefonda sahnenin altındakiler değmez)
+    const k = c.getBoundingClientRect();
+    if (!k.width || k.top > r.bottom + 20 || k.bottom < r.top - 20 || k.left > r.right + 12 || k.right < r.left - 12) return;
+    if ((k.left + k.right) / 2 > cx) sag = Math.min(sag, k.left - 12); else sol = Math.max(sol, k.right + 12);
+  });
+  const dx = r.right > sag ? sag - r.right : r.left < sol ? sol - r.left : 0;
+  if (dx) b.style.setProperty('--bx', Math.round(dx) + 'px');
+  if (sure) b._t = setTimeout(() => balonKaldir(el, b), sure);
+  return b;
+}
+function balonKaldir(el, b = el._balon) {                             // söner (0,4 sn), sonra gider
+  if (!b || el._balon !== b) return;
+  clearTimeout(b._t); el._balon = null;
+  b.classList.add('git');
+  setTimeout(() => b.remove(), 420);
+}
+/* "Yazıyor": biri yazarken isimliğinin üstünde üç nokta (6 sn haber gelmezse kendiliğinden gider). Altta "Ayla yazıyor…" satırı.
+   Gizli yazılıyorsa yalnızca alıcı görür. Ağda: oyuncu → DM { t:'yaz', on, kime }, DM → oyuncu { t:'yaz', kim, on }. */
+function yazGoster(kim, on) {
+  clearTimeout(SOZ.yazanlar.get(kim));
+  if (on) SOZ.yazanlar.set(kim, setTimeout(() => yazGoster(kim, false), 6000)); else SOZ.yazanlar.delete(kim);
+  if (on) uyandir($('#tvSoz'));                                      // solmuşsa "yazıyor…" satırı görünsün
+  const el = tv.els.get(kim);
+  if (el && on && !(el._balon && el._balon.classList.contains('yaz'))) balonTak(kim, '<span class="nokta"><i></i><i></i><i></i></span>', 0, 'yaz');
+  else if (el && !on && el._balon && el._balon.classList.contains('yaz')) balonKaldir(el);
+  const adlar = [...SOZ.yazanlar.keys()].map(k => sozAd(k, ''));
+  const d = $('#sozDurum');
+  d.hidden = !adlar.length;
+  d.textContent = adlar.length > 2 ? `${adlar.length} kişi yazıyor…` : `${adlar.join(' ve ')} yazıyor…`;
+}
+function yazGonder(on) {                                              // kendi yazışım: başladım / bıraktım (yazarken 3 sn'de bir yinelenir)
+  const role = store.net.role, kime = $('#sozKime').value;
+  if (!role || (!on && !SOZ.yaziyor)) return;
+  SOZ.yaziyor = on; SOZ.yazGitti = on ? Date.now() : 0;
+  if (role === 'player') send(net.conn, { t:'yaz', on: on ? 1 : 0, kime: kime ? 'dm' : '' });
+  else net.players.forEach(p => { if (!kime || p.seat === kime) send(p.conn, { t:'yaz', kim:'dm', on: on ? 1 : 0 }); });
+}
+function yazDmAl(p, msg) {                                            // DM: bir oyuncu yazıyor; gizli değilse öbürlerine de söyler
+  const on = !!msg.on;
+  yazGoster(p.seat, on);
+  if (msg.kime !== 'dm') net.players.forEach(o => { if (o !== p) send(o.conn, { t:'yaz', kim: p.seat, on: on ? 1 : 0 }); });
+}
+// Mesaj sesi: kadehe vurulur (ses/soz.mp3, Efektler kanalı). Peş peşe gelenlerde 1,5 sn'de bir. ses()'ten farkı: sekme
+// arkadayken de çalar (başka sekmedeyken gelen mesaj duyulsun).
+function sozSes() {
+  const a = sesAyar(), simdi = Date.now();
+  if (!a.on || !a.efekt || !a.ana || !SES.basladi || simdi - SOZ.sesSon < 1500) return;
+  SOZ.sesSon = simdi;
+  if (!SES.ctx) { const el = new Audio(SES.yol + 'soz.mp3'); el.volume = clamp(SES.vol.soz * a.efekt * a.ana, 0, 1); el.play().catch(() => {}); return; }
+  sesYukle('soz').then(b => {
+    if (!b) return;
+    const s = SES.ctx.createBufferSource(), g = SES.ctx.createGain();
+    s.buffer = b; g.gain.value = SES.vol.soz; s.connect(g).connect(SES.kanal.efekt); s.start();
+  });
+}
+function sozGonder() {
+  const inp = $('#sozIn'), role = store.net.role, kime = $('#sozKime').value, m = sozTemiz(inp.value);
+  if (!m || !role || Date.now() - SOZ.son < 700) return;              // çok hızlı: yazı kutuda kalır
+  const e = { id: sozKimlik(), kim: meSeat(), ad: myName(), m, ts: Date.now(), gizli: !!kime, kime };
+  if (role === 'player' && !send(net.conn, { t:'soz', m, kime: kime ? 'dm' : '' })) { notify('Mesajın gitmedi', 'Masayla bağlantı yok. Bağlanınca yeniden dene.'); return; }
+  if (role === 'dm') sozDagit(e);
+  SOZ.son = Date.now(); inp.value = '';
+  SOZ.yaziyor = false; SOZ.yazGitti = 0;                              // mesajın kendisi "yazmayı bıraktı" sayılır (karşıda üç nokta gider)
+  sozEkle(e);
+}
+function sozDagit(e) {                                                // DM: mesajı gitmesi gerekenlere yollar
+  const paket = Object.assign({ t:'soz' }, sozPaket(e));
+  net.players.forEach(p => {
+    if (p.seat === e.kim || (e.gizli && p.seat !== e.kime)) return;   // yazan kendininkini gördü; gizli yalnızca alıcıya (DM'e yazılan hiç kimseye)
+    send(p.conn, paket);
+  });
+}
+function sozDmAl(p, msg) {                                            // DM: bir oyuncu yazdı
+  const m = sozTemiz(msg.m), ts = Date.now();
+  if (!m) return;
+  const son = (SOZ.sinir.get(p.pid) || []).filter(t => ts - t < 10000);
+  if (son.length >= 6) { send(p.conn, { t:'soz-yavas' }); return; }  // 10 sn'de en çok 6 mesaj: masayı doldurmasın
+  son.push(ts); SOZ.sinir.set(p.pid, son);
+  const e = { id: sozKimlik(), kim: p.seat, ad: p.name, m, ts, gizli: msg.kime === 'dm', kime: msg.kime === 'dm' ? 'dm' : '' };
+  sozEkle(e); sozDagit(e);
+}
+function sozGecmisYolla(p) {                                          // DM: gelen oyuncuya son mesajlar (gizlilerden yalnızca kendisininkiler)
+  const liste = SOZ.liste.filter(e => !e.gizli || e.kim === p.seat || e.kime === p.seat).slice(-SOZ.gecmis).map(sozPaket);
+  send(p.conn, { t:'soz-gecmis', liste });
+}
+function sozGecmisAl(msg) {                                           // oyuncu: DM'in yolladığı son mesajlar, eldekinin yerine
+  SOZ.liste = (Array.isArray(msg.liste) ? msg.liste : []).slice(-SOZ.gecmis).filter(x => x && typeof x === 'object').map(sozKayit).filter(e => e.m);
+  SOZ.kirli = true; sozCiz();
+}
+function sozSifirla() {
+  SOZ.liste = []; SOZ.okunmadi = 0; SOZ.sinir.clear(); SOZ.kirli = true; SOZ.yaziyor = false;
+  [...SOZ.yazanlar.keys()].forEach(k => yazGoster(k, false));
+}
+$('#sozYaz').addEventListener('submit', e => { e.preventDefault(); sozGonder(); });
+$('#sozKime').addEventListener('change', () => {                       // alıcı değişti: eski alıcıya "bıraktı", yenisine "yazıyor"
+  if (SOZ.yaziyor) { const kime = $('#sozKime').value; $('#sozKime').value = SOZ.kimeOnce ?? ''; yazGonder(false); $('#sozKime').value = kime; }
+  SOZ.kimeOnce = $('#sozKime').value;
+  sozCiz(); $('#sozIn').focus();
+  if (sozTemiz($('#sozIn').value)) yazGonder(true);
+});
+$('#sozIn').addEventListener('input', e => {
+  const dolu = !!sozTemiz(e.target.value);
+  if (dolu && Date.now() - SOZ.yazGitti > 3000) yazGonder(true);
+  else if (!dolu) yazGonder(false);
+});
+$('#sozIn').addEventListener('blur', () => yazGonder(false));
+$('#sozIn').addEventListener('keydown', e => { if (e.key === 'Escape') e.target.blur(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) sozCiz(); });
+
+/* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 10f — MÜZİK: YouTube (2026-10-30, kullanıcının isteği)
+   • 2026-11-07: Link sahnedeki panoya yazılır (#saPano, hanın ozan sahnesine iğneli; saPanoYer). DM ya da tek başına "Başlat"la
+     hemen çalar; oyuncunun linki sıraya girer, DM başlatır. Sesi üstteki ses panelinin "Müzik" sürgüsü ayarlar (taverna şarkısıyla
+     aynı sürgü, herkes kendi ekranında). Sağ sütundaki cam yalnızca şarkı seçiliyken görünür: video, ad, çal / sonraki.
+   • Çal / durdur / sonraki / sil yalnızca DM'de. Masaya bağlı değilken (tek başına) sıra senindir, sen yönetirsin.
+   • DM'in oynatıcısı saattir: DM çalınca, durdurunca ya da şarkı değişince herkese { t:'mz', sira, simdi, cal, pos } gider;
+     çalarken 10 sn'de bir yinelenir (geç gelen de aynı yerden başlar). Oyuncunun oynatıcısı 2,5 sn'den çok kaydıysa yerine sarar.
+   • YouTube'un kuralı: video görünür olmalı (yalnız sesi çalınamaz). Sahne ekranda olmayabileceği için video sahnede değil, camda durur.
+     Tarayıcı taşınan iframe'i baştan yükler: cam sütundan çıkınca oynatıcı yeniden kurulur, aynı yerden sürer (mzYeniden).
+   • Bazı videolar başka sitede oynatılamaz (sahibi kapatmıştır): eklerken YouTube'a sorulur (oEmbed; adı da oradan gelir),
+     oynatılamayan eklenmez; çalarken hata verirse işaretlenir, sıradakine geçilir.
+   • YouTube duyulurken tavernanın kendi müziği kısılır (ortam sesi kalır); susturunca geri gelir.
+   • Sıra DM'in tarayıcısında saklanır (store.muzik); başta üç şarkı. Sayfa yenilenince müzik kendiliğinden başlamaz.
+   • YouTube yalnızca sitenin kendisinde (https) çalışır; bilgisayardan açılan dosyada (file://) çalışmaz.
+   ═══════════════════════════════════════════════════════════════════ */
+const MZ_ILK = [
+  { v: 'ipFaubyDUT4', ad: 'Medieval Celtic Music and Fantasy Celtic Music - 10 Hour No ads', kim: 'Kervansaray' },
+  { v: '4WIMyqBG9gs', ad: 'Fantasy Medieval Music for Focus & Calm | The Dwarf’s Long Mountain Journey', kim: 'Kervansaray' },
+  { v: 't3B802PIuB0', ad: 'D&D/RPG Combat Music Mix | 1 Hour | Royalty Free | Travis Savoie', kim: 'Kervansaray' },
+];
+const MZ = { kat: 1.7, oyn: null, hazir: false, kuruluyor: false, apiP: null, v: '', durum: -1, sar: false, yayinT: 0, engel: false, engelT: 0, not: '', sinir: new Map() };
+const mzKimlik = () => 'm' + Math.random().toString(36).slice(2, 9);
+// kat: YouTube sesi, taverna şarkısına göre bu kadar yukarıda (varsayılan ana 0,5 × müzik 0,35 → YouTube 30)
+const mzSeviye = () => { const a = sesAyar(); return a.on ? Math.min(100, Math.round(100 * a.ana * a.muzik * MZ.kat)) : 0; };   // 0–100
+const mzYonetir = () => store.net.role !== 'player';                  // DM ya da tek başına
+if (store.muzik) store.muzik.cal = false;                             // sayfa yenilenince kendiliğinden çalmasın
+function mzY() {                                                      // sıra ve çalan: DM / tek başına store.muzik, oyuncuda DM'den gelen
+  if (mzYonetir()) return store.muzik || (store.muzik = { sira: MZ_ILK.map(x => Object.assign({ id: mzKimlik() }, x)), simdi: '', cal: false, pos: 0, t: 0 });
+  return net.muzik || { sira: [], simdi: '', cal: false, pos: 0, t: 0 };
+}
+const mzSimdi = Y => Y.sira.find(x => x.id === Y.simdi) || null;
+const mzPos = Y => (Y.cal ? Y.pos + Math.max(0, Date.now() - Y.t) / 1000 : Y.pos);   // şu an nerede olmalı (sn; t bu tarayıcının saati)
+function mzVid(link) {                                                // YouTube linkinden 11 harflik video kimliği
+  const s = String(link || '').trim();
+  if (/^[\w-]{11}$/.test(s)) return s;
+  const m = s.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/))([\w-]{11})/);
+  return m ? m[1] : '';
+}
+function mzKonum() { try { return MZ.hazir && MZ.v ? MZ.oyn.getCurrentTime() || 0 : null; } catch (e) { return null; } }
+
+/* DM / tek başına: sırayı değiştirmek */
+function mzDegisti() { save(); mzUygula(); mzCiz(); mzYay(); uyandir($('#tvMuzik')); }
+function mzYay(p) {                                                   // DM: sıra ve çalan herkese (ya da yalnızca gelen oyuncuya)
+  if (store.net.role !== 'dm') return;
+  const Y = mzY(), paket = { t:'mz', sira: Y.sira.map(x => ({ id: x.id, v: x.v, ad: x.ad, kim: x.kim, hata: x.hata ? 1 : 0 })), simdi: Y.simdi, cal: !!Y.cal, pos: +mzPos(Y).toFixed(1) };
+  if (p) { send(p.conn, paket); return; }
+  MZ.yayinT = Date.now();
+  net.players.forEach(o => send(o.conn, paket));
+}
+function mzCal(id) {
+  const Y = mzY();
+  if (!Y.sira.some(x => x.id === id)) return;
+  Object.assign(Y, { simdi: id, cal: true, pos: 0, t: Date.now() }); MZ.sar = true; mzDegisti();
+}
+function mzDurdurDevam() {
+  const Y = mzY();
+  if (!mzSimdi(Y)) { const ilk = Y.sira.find(x => !x.hata); if (ilk) mzCal(ilk.id); return; }
+  const k = mzKonum(); Y.pos = k != null ? k : mzPos(Y); Y.t = Date.now(); Y.cal = !Y.cal; mzDegisti();
+}
+function mzSonraki() {                                                // sonda başa döner; oynatılamayanları atlar
+  const Y = mzY(), n = Y.sira.length, i = Y.sira.findIndex(x => x.id === Y.simdi);
+  for (let j = 1; j <= n; j++) { const x = Y.sira[(i + j + n) % n]; if (x && !x.hata) { mzCal(x.id); return; } }
+  Y.cal = false; mzDegisti();
+}
+function mzSil(id) {
+  const Y = mzY();
+  Y.sira = Y.sira.filter(x => x.id !== id);
+  if (Y.simdi === id) Object.assign(Y, { simdi: '', cal: false, pos: 0 });
+  mzDegisti();
+}
+function mzEkleYerel(v, kim) {
+  const Y = mzY();
+  if (Y.sira.length >= 50) { notify('Sıra dolu', 'En çok 50 şarkı. Birkaçını sil.'); return null; }
+  const x = { id: mzKimlik(), v, ad: '', kim: short(kim, 30) };
+  Y.sira.push(x); mzDegisti();
+  // YouTube'a sor: adı ne, başka sitede oynatılabilir mi (oEmbed; sahibi kapattıysa 401, video yoksa 400 / 404)
+  fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + v))
+    .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then(j => { x.ad = short(j.title, 120); mzDegisti(); })
+    .catch(st => {
+      if (![400, 401, 403, 404].includes(st)) return;                   // internet ya da başka bir sorun: şarkı kalır, çalınca anlaşılır
+      notify('Bu video sıraya eklenmedi', st === 401 || st === 403 ? 'Sahibi başka sitelerde oynatılmasını kapatmış. Başka bir link dene.' : 'Böyle bir video yok ya da gizli.');
+      mzSil(x.id);
+    });
+  return x;
+}
+function mzEkle() {                                                   // sahnedeki link kutusu: DM / tek başına hemen başlatır, oyuncu DM'in sırasına yollar
+  const inp = $('#mzLink'), v = mzVid(inp.value);
+  if (!v) { notify('Bu bir YouTube linki değil', 'Örnek: https://www.youtube.com/watch?v=… ya da https://youtu.be/…'); inp.focus(); return; }
+  if (mzYonetir()) { const x = mzY().sira.find(o => o.v === v) || mzEkleYerel(v, myName()); if (x) mzCal(x.id); }
+  else if (!send(net.conn, { t:'mz-ekle', v })) { notify('Şarkı eklenemedi', 'Masayla bağlantı yok.'); return; }
+  inp.value = '';
+}
+function mzDmEkle(p, msg) {                                           // DM: bir oyuncu link ekledi (dakikada en çok 4)
+  const v = mzVid(msg.v); if (!v) return;
+  const ts = Date.now(), son = (MZ.sinir.get(p.pid) || []).filter(t => ts - t < 60000);
+  if (son.length >= 4) { send(p.conn, { t:'mz-yavas' }); return; }
+  son.push(ts); MZ.sinir.set(p.pid, son);
+  if (mzEkleYerel(v, p.name)) notify(`${p.name} sıraya şarkı ekledi`, 'Sahnedeki panodan başlatabilirsin.');
+}
+function mzAl(msg) {                                                  // oyuncu: DM'den sıra ve çalan (yalnızca bu alanlar okunur)
+  const sira = (Array.isArray(msg.sira) ? msg.sira : []).slice(0, 50).filter(x => x && typeof x === 'object')
+    .map(x => ({ id: short(x.id, 12).replace(/\W/g, ''), v: mzVid(x.v), ad: short(x.ad, 120), kim: short(x.kim, 30), hata: !!x.hata })).filter(x => x.id && x.v);
+  const once = net.muzik, Y = net.muzik = { sira, simdi: short(msg.simdi, 12), cal: !!msg.cal, pos: clamp(num(msg.pos), 0, 86400), t: Date.now() };
+  if (Y.cal && (!once || !once.cal || once.simdi !== Y.simdi)) uyandir($('#tvMuzik'));   // yeni şarkı: solmuş cam geri gelir
+  mzUygula(); mzCiz();
+}
+
+/* Oynatıcı: YouTube'un iframe kütüphanesi yalnızca ilk şarkıda indirilir */
+function mzApi() {
+  if (window.YT && YT.Player) return Promise.resolve();
+  if (!MZ.apiP) MZ.apiP = new Promise((ok, no) => {
+    const once = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { if (typeof once === 'function') once(); ok(); };
+    const sc = document.createElement('script');
+    sc.src = 'https://www.youtube.com/iframe_api';
+    sc.onerror = () => { MZ.apiP = null; sc.remove(); no(new Error('yt')); };
+    document.head.appendChild(sc);
+  });
+  return MZ.apiP;
+}
+function mzKur() {
+  if (MZ.kuruluyor) return;
+  if (location.protocol === 'file:') { MZ.not = 'YouTube yalnızca sitenin kendisinde çalışır (bilgisayardan açılan dosyada değil).'; mzCiz(); return; }
+  MZ.kuruluyor = true;
+  mzApi().then(() => {
+    MZ.oyn = new YT.Player('mzOynatici', {
+      width: '100%', height: '100%', host: 'https://www.youtube-nocookie.com',
+      playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, rel: 0, playsinline: 1, iv_load_policy: 3, origin: location.origin },
+      events: {
+        onReady: () => { MZ.hazir = true; mzSesUygula(); mzUygula(); },
+        onStateChange: e => {
+          MZ.durum = e.data;
+          if (e.data === 1) { MZ.engel = false; MZ.not = ''; }
+          if (e.data === 0 && mzYonetir() && mzY().cal) mzSonraki();   // şarkı bitti: sıradaki
+          mzYtDurum(); mzCiz();
+        },
+        onError: e => mzHata(e.data),
+      },
+    });
+  }).catch(() => { MZ.kuruluyor = false; MZ.not = 'YouTube açılamadı. İnternetini ya da reklam engelleyicini kontrol et.'; mzCiz(); });
+}
+function mzYeniden() {                                                // cam taşındı, tarayıcı iframe'i baştan yükledi: oynatıcıyı yeniden kur, aynı yerden sürsün
+  if (!MZ.oyn) return;
+  const Y = mzY(), k = mzKonum();
+  if (mzYonetir() && k != null) { Y.pos = k; Y.t = Date.now(); }
+  try { MZ.oyn.destroy(); } catch (e) { /* yok say */ }
+  Object.assign(MZ, { oyn: null, hazir: false, kuruluyor: false, v: '', durum: -1 });
+  $('#mzVideo').innerHTML = '<div id="mzOynatici"></div>';
+  mzUygula();
+}
+function mzHata(kod) {
+  const neden = [101, 150, 153].includes(kod) ? 'Sahibi başka sitelerde oynatılmasını kapatmış.' : kod === 100 ? 'Video bulunamadı (silinmiş ya da gizli).' : 'Video açılamadı.';
+  const Y = mzY(), x = mzSimdi(Y);
+  if (mzYonetir() && x) { x.hata = 1; notify(`Çalınamadı: ${x.ad || 'şarkı'}`, neden + ' Sıradakine geçildi.'); mzSonraki(); }
+  else { MZ.not = neden; mzCiz(); }
+}
+// Oynatıcıyı sıraya uydurur: şarkı, çal / durdur, yer. DM / tek başına kendi oynatıcısı saattir (yalnızca kendi işiyle sarar).
+function mzUygula() {
+  const Y = mzY(), x = mzSimdi(Y);
+  if (!x) {
+    if (MZ.hazir && MZ.v) { try { MZ.oyn.stopVideo(); } catch (e) { /* yok say */ } }
+    MZ.v = ''; MZ.engel = false; mzYtDurum(); return;
+  }
+  if (!MZ.oyn) { mzKur(); return; }                                    // hazır olunca kendisi yeniden çağırır
+  if (!MZ.hazir) return;
+  const o = MZ.oyn, hedef = mzPos(Y), sar = MZ.sar || !mzYonetir();
+  MZ.sar = false;
+  try {
+    if (MZ.v !== x.v) {
+      MZ.v = x.v; MZ.engelT = Date.now(); MZ.not = '';
+      if (Y.cal) o.loadVideoById({ videoId: x.v, startSeconds: hedef }); else o.cueVideoById({ videoId: x.v, startSeconds: hedef });
+      return;
+    }
+    const st = o.getPlayerState(), calis = st === 1 || st === 3;
+    if (Y.cal) {
+      if (sar && Math.abs((o.getCurrentTime() || 0) - hedef) > 2.5) o.seekTo(hedef, true);
+      if (!calis) { o.playVideo(); if (!MZ.engelT) MZ.engelT = Date.now(); }
+    } else if (calis) { o.pauseVideo(); if (sar) o.seekTo(hedef, true); }
+  } catch (e) { /* oynatıcı o an hazır değil */ }
+}
+function mzSesUygula() {                                              // bu ekrandaki ses: üstteki ses panelinin Müzik sürgüsü × ana ses; ses kapalıysa sessiz
+  if (!MZ.hazir) return;
+  const v = mzSeviye();
+  try { if (!v) MZ.oyn.mute(); else { MZ.oyn.unMute(); MZ.oyn.setVolume(v); } } catch (e) { /* yok say */ }
+  mzYtDurum();
+}
+function mzYtDurum() {                                                // YouTube duyuluyor mu? Duyuluyorsa tavernanın müziği kısılır
+  const duy = !!MZ.v && (MZ.durum === 1 || MZ.durum === 3) && mzSeviye() > 0;
+  if (duy !== SES.yt) { SES.yt = duy; sesSeviye(1.5); }
+}
+// 5 sn'de bir: DM çalarken herkese yer bildirir (10 sn'de bir), oyuncu kaydıysa sarar, tarayıcı kendiliğinden çalmayı engellediyse "Müziği aç"
+setInterval(() => {
+  if (!MZ.hazir) return;
+  const Y = mzY();
+  if (store.net.role === 'dm' && Y.cal && Date.now() - MZ.yayinT > 10000) { const k = mzKonum(); if (k != null) { Y.pos = k; Y.t = Date.now(); } mzYay(); }
+  if (!mzYonetir()) mzUygula();
+  const engel = Y.cal && !!MZ.v && MZ.durum !== 1 && MZ.durum !== 3 && MZ.engelT > 0 && Date.now() - MZ.engelT > 4000;
+  if (engel !== MZ.engel) { MZ.engel = engel; mzCiz(); }
+}, 5000);
+
+/* Cam */
+function mzCiz() {
+  const Y = mzY(), x = mzSimdi(Y), yon = mzYonetir(), dm = store.net.role === 'dm', cal = !!(x && Y.cal);
+  $('#tvMuzik').hidden = !x;
+  $('#mzVideo').hidden = !x || location.protocol === 'file:';
+  $('#mzIsaret').hidden = $('#saIsaret').hidden = !cal;
+  $('#mzSimdi').innerHTML = x ? `<b title="${esc(x.ad)}">${esc(x.ad || 'YouTube videosu')}</b><small>${Y.cal ? 'Çalıyor' : 'Durdu'}${x.kim ? ' · ' + esc(x.kim) + ' ekledi' : ''}</small>` : '';
+  const cb = $('#mzCalBtn');
+  $('#mzDug').hidden = !yon;
+  $('use', cb).setAttribute('href', cal ? '#i-duraklat' : '#i-oynat');
+  cb.title = cal ? (dm ? 'Herkes için durdur' : 'Durdur') : (dm ? 'Herkes için çal' : 'Çal'); cb.setAttribute('aria-label', cb.title);
+  $('#mzAc').hidden = !MZ.engel;
+  const n = $('#mzNot'); n.hidden = !MZ.not; n.textContent = MZ.not;
+  $('#mzListe').innerHTML = Y.sira.length ? Y.sira.map(o => {
+    const ic = `<b>${esc(o.ad || 'YouTube videosu')}</b><small>${o.hata ? 'çalınamıyor' : esc(o.kim)}</small>`;
+    return `<li class="${o.id === Y.simdi ? 'simdi' : ''}${o.hata ? ' hata' : ''}">`
+      + (yon ? `<button class="mz-sec" data-act="mz-sec" data-id="${esc(o.id)}" title="Bunu çal">${ic}</button><button class="mz-sil" data-act="mz-sil" data-id="${esc(o.id)}" title="Sıradan çıkar" aria-label="Sıradan çıkar"><svg class="ic"><use href="#i-x"/></svg></button>`
+        : `<span class="mz-sec">${ic}</span><span></span>`) + '</li>';
+  }).join('') : `<li><span class="mz-sec"><small>Sıra boş.</small></span><span></span></li>`;
+  $('#mzLink').placeholder = yon ? 'YouTube linki yapıştır' : 'YouTube linki (DM\'in sırasına)';
+  $('#mzBaslat').textContent = yon ? 'Başlat' : 'Ekle';
+  saPanoYer();
+}
+/* Sahne panosunun yeri (2026-11-07): tavDraw her karede, renderTable ve mzCiz birer kez çağırır. Sol üstü sahnenin ortasına iğnelidir,
+   görünen alanın dışına taşmaz, sağ sütunun altına girmez. Sahne ekranda değilse gizlenir (kaydırırken "Sahne" düğmesi oraya götürür).
+   Telefonda (gezinme yok) ve 3D açılamazsa sağ sütunda durur. */
+function saPanoYer(sc) {
+  const el = $('#saPano'), sag = $('.tv-sag'), yuz = $('#tvCamlar');
+  if (telefonDik.matches || tav.state === 'fail' || !SAHNE.ozan) {
+    if (el.parentNode !== sag) sag.appendChild(el);
+    el.hidden = false; el.style.transform = ''; return;
+  }
+  if (el.parentNode !== yuz) yuz.prepend(el);
+  if (tav.state !== 'on' || mode !== 'table' || svAcik()) { el.hidden = true; return; }
+  const A = yuz.getBoundingClientRect(), S = sc || $('#tvScene').getBoundingClientRect(), u = S.width / 100, [x, y] = tavProj(...SAHNE.ozan);
+  const px = S.left - A.left + x * u, py = S.top - A.top + y * u, pr = $('#tvPov').getBoundingClientRect(), sr = sag.getBoundingClientRect();
+  const sol = (pr.width ? pr.right - A.left : 0) + 8, on = px > sol && px < A.width && py > 0 && py < A.height;
+  if (el.hidden !== !on) el.hidden = !on;
+  if (!on) return;
+  el.classList.toggle('uzak', tav.view.s < 0.4);                        // uzaktan bakınca yalnızca link satırı: sahnenin üstünü kapatmasın
+  const w = el.offsetWidth, h = el.offsetHeight, sagSin = sr.width ? sr.left - A.left - 8 : A.width - 8;
+  el.style.transform = `translate(${Math.round(clamp(px, sol, Math.max(sol, sagSin - w)))}px,${Math.round(clamp(py - h / 2, 8, Math.max(8, A.height - h - 8)))}px)`;
+}
+Object.assign(ACTIONS, {
+  'mz-cal': () => { if (mzYonetir()) mzDurdurDevam(); },
+  'mz-sonraki': () => { if (mzYonetir()) mzSonraki(); },
+  'mz-sec': b => { if (mzYonetir()) mzCal(b.dataset.id); },
+  'mz-sil': b => { if (mzYonetir()) mzSil(b.dataset.id); },
+  'mz-ac': () => { try { MZ.oyn.playVideo(); } catch (e) { /* yok say */ } MZ.engel = false; MZ.engelT = Date.now(); mzCiz(); },   // tarayıcı ancak bir tıklamayla çaldırır
+});
+$('#mzEkleForm').addEventListener('submit', e => { e.preventDefault(); mzEkle(); });
+['pointerdown', 'wheel', 'dblclick'].forEach(t => $('#saPano').addEventListener(t, e => e.stopPropagation()));   // panoda sürüklemek ve kaydırmak tavernayı oynatmasın
+
+/* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 11 — MASA GÖRÜNÜMÜ: taverna masası, oturan figürler ve uçan zarlar
    • Masa hap biçimlidir (iki yanı yarım daire, ortası düz). Herkes iki uzun
      kenara karşılıklı oturur, yuvarlak uçlara kimse oturmaz (seatLayout): DM üst
@@ -6260,6 +6946,7 @@ function renderTable() {
     const html = seatHTML(s);
     if (el._html !== html) {                                         // değişmediyse dokunma (portre titremesin)
       el._html = html; el.innerHTML = html;
+      if (el._balon) { el._balon.style.animation = 'none'; el.appendChild(el._balon); }   // konuşma balonu isimlikle kalır, yeniden belirmez (BÖLÜM 10e)
       const fig = $('.tv-fig img', el);                              // tek bir figür görseli eksikse onun yerine çizim figür
       if (fig) fig.onerror = () => { fig.parentNode.innerHTML = figureSVG({ dm: s.dm, cls: s.cls, look: s.look, seed: s.id }); $('.tv-chairw', el)?.remove(); };
     }
@@ -6699,6 +7386,7 @@ function renderTableLog() {
   $('#tvLog').innerHTML = tv.recent.length ? tv.recent.map((e, i) => `<li class="${e.flag}${!i && simdi - e.ts < 1500 ? ' yeni' : ''}" style="--g:${camOf(e.seat)}"><b>${esc(e.total)}</b><span class="w">${esc(e.who)}</span>
       <span class="d">${esc(e.label)}${e.detail ? ` <i>(${esc(e.detail)})</i>` : ''}</span><time>${hhmm(e.ts)}</time></li>`).join('')
     : '<li class="none">Henüz zar atılmadı</li>';
+  if (tv.recent.length && simdi - tv.recent[0].ts < 1500) uyandir($('#tvLogBox'));   // yeni atış: solmuş tahta geri gelir
 }
 
 /* showRoll buraya gelir: atışı sıraya alır. Masa görünümü kapalıysa ya da sekme
@@ -6764,7 +7452,8 @@ function tvFlush() {
   tv.queue = []; tv.cur = null; tv.busy = false;
 }
 function tvEnter() {
-  buyutUI();                                                         // POV paneli ve sağ sütunun büyüklüğü (madde 11)
+  buyutUI();                                                         // POV panelinin büyüklüğü (madde 11)
+  camYerlestir(); solmaBasla(); saPanoYer();                         // camların yeri ve boyu, solma (yüzen camlar), sahne panosu
   if (tav.inis && tav.inis.yon > 0) { tav.inis = { yon: -1, t0: performance.now(), sure: KAGIT.cikis }; }   // 7a: kağıt kapandı, kamera yükselir
   store.meMin = true;                                                         // oyuncu kutusu her girişte küçük başlar: masayı kapatmasın
   tvArtCheck(); povInit(); tavStart(); tavKick();                             // NPR taverna (BÖLÜM 11b)
@@ -6835,27 +7524,28 @@ document.addEventListener('pointerdown', e => { if (document.body.classList.cont
 window.addEventListener('resize', ustUI);
 
 /* ───────── Büyütme tutamakları (madde 11) ─────────
-   POV panelinin sağ alt köşesinden (panel büyür ya da küçülür; sahne kalan alana kayar) ve sağ sütunun (kara tahta +
-   düşmanlar) sol alt köşesinden sürüklenir. Büyüklükler tarayıcıda hatırlanır (store.boy). */
-const BUYUT = { pov: [0.45, 1], sag: [0.7, 1.8], povg: [0.6, 3], sagg: [0.8, 2.6] };   // en küçük, en büyük (…g: yandan, yalnızca genişlik)
+   POV panelinin sağ alt köşesinden (panel büyür ya da küçülür; sahne kalan alana kayar) ve sağ kenarından (yalnızca genişlik)
+   sürüklenir. Büyüklükler tarayıcıda hatırlanır (store.boy). Sağ sütunun toplu büyütmesi 2026-10-30'da kalktı: her cam kendi
+   köşesinden büyür (camTut). */
+const BUYUT = { pov: [0.45, 1], povg: [0.6, 3] };                     // en küçük, en büyük (…g: yandan, yalnızca genişlik)
 const buyutDeger = k => clamp(+((store.boy || {})[k]) || 1, BUYUT[k][0], BUYUT[k][1]);
 function buyutUI() {
   const w = $('.tv-wrap');
-  Object.keys(BUYUT).forEach(k => w.style.setProperty('--' + k + (k.length === 3 ? 'k' : ''), buyutDeger(k)));   // --povk, --sagk, --povg, --sagg
+  Object.keys(BUYUT).forEach(k => w.style.setProperty('--' + k + (k.length === 3 ? 'k' : ''), buyutDeger(k)));   // --povk, --povg
 }
 (function buyutTut() {
   let d = null;
   document.addEventListener('pointerdown', e => {
     const g = e.target.closest('.buyut');
     if (!g || e.button !== 0) return;
-    const k = g.dataset.buyut, r = g.closest(k.startsWith('pov') ? '.tv-pov' : '.tv-sag').getBoundingClientRect();
+    const k = g.dataset.buyut, r = g.closest('.tv-pov').getBoundingClientRect();
     d = { k, g, id: e.pointerId, x: e.clientX, y: e.clientY, w: r.width, h: r.height, v: buyutDeger(k), pov: tvAlan().pov };
     try { g.setPointerCapture(e.pointerId); } catch (er) { /* yok say */ }
     g.classList.add('surukle'); e.preventDefault(); e.stopPropagation();
   }, true);
   document.addEventListener('pointermove', e => {
     if (!d || e.pointerId !== d.id) return;
-    const dx = d.k.startsWith('pov') ? e.clientX - d.x : d.x - e.clientX, dy = e.clientY - d.y;   // pov: sağa / aşağı büyür; sütun: sola / aşağı
+    const dx = e.clientX - d.x, dy = e.clientY - d.y;                   // sağa / aşağı büyür
     const kat = d.k.length > 3 ? (d.w + dx) / d.w : Math.max((d.w + dx) / d.w, (d.h + dy) / d.h);   // yandaki tutamak: yalnızca genişlik
     store.boy = Object.assign({}, store.boy, { [d.k]: clamp(d.v * kat, BUYUT[d.k][0], BUYUT[d.k][1]) });
     buyutUI(); tavKick();
@@ -6863,11 +7553,133 @@ function buyutUI() {
   const bit = e => {
     if (!d || e.pointerId !== d.id) return;
     const k = d.k, pov0 = d.pov; d.g.classList.remove('surukle'); d = null; save();
-    if (k.startsWith('pov') && tav.state === 'on' && !tav.all) { const fark = tvAlan().pov - pov0; tavSetView(tav.view.s, tav.view.x + fark / 2, tav.view.y, true); }   // masa kalan alanın ortasında kalsın
+    if (tav.state === 'on' && !tav.all) { const fark = tvAlan().pov - pov0; tavSetView(tav.view.s, tav.view.x + fark / 2, tav.view.y, true); }   // masa kalan alanın ortasında kalsın
     renderTable(); tavKick();
   };
   document.addEventListener('pointerup', bit); document.addEventListener('pointercancel', bit);
 })();
+
+/* ───────── Yüzen camlar (2026-10-30, yol haritası 20 "Düzenle") ─────────
+   Son atışlar, Düşmanlar, Sohbet ve Müzik birer cam: başlığından sürüklenip taşınır, köşesindeki tutamaktan büyür (genişlik ve
+   listenin boyu, birim cinsinden: ekranla birlikte ölçeklenir). Taşınmamış camlar sağ sütunda alt alta durur (rıhtım); taşınan
+   cam tavernanın üstünde yüzer (yeri tavernanın yüzdesi). Hepsi bu tarayıcıda saklanır (store.cam). Araç şeridindeki "Düzen":
+   varsayılan düzene dön, kullanılmayan camlar solsun. Telefonda camlar her zaman sahnenin altında alt alta. */
+const CAM = { sira: ['log', 'dus', 'soz', 'muzik'], el: { log: '#tvLogBox', dus: '#tvDus', soz: '#tvSoz', muzik: '#tvMuzik' },
+  liste: { log: '#tvLog', dus: '#tvDusList', soz: '#sozListe' }, w: [13, 60], h: [4, 60], yut: false };
+const telefonDik = matchMedia('(max-width:640px) and (orientation:portrait)');
+const camAyar = k => (store.cam && store.cam[k]) || {};
+function camKaydet(k, deg) { store.cam = Object.assign({}, store.cam, { [k]: Object.assign({}, camAyar(k), deg) }); }
+function camBirim() { const A = $('.tv-wrap').getBoundingClientRect(); return Math.min(A.width / 100, A.height / 56.25) || 1; }   // --u, piksel
+function camYerlestir() {
+  const sag = $('.tv-sag'), yuz = $('#tvCamlar'), tel = telefonDik.matches;
+  let i = 0;
+  CAM.sira.forEach(k => {
+    const el = $(CAM.el[k]); if (!el) return;
+    if (!$(':scope > .cam-boy', el)) el.insertAdjacentHTML('beforeend', '<span class="cam-boy" title="Sürükleyerek büyüt ya da küçült" aria-hidden="true"></span>');
+    const a = camAyar(k), yuzer = !tel && a.x != null;
+    // Yalnızca yeri değişecekse taşınır (taşınan öğe odağı kaybeder: sohbete yazarken pencere büyüse yazı kutusu kapanmasın)
+    if (yuzer) { if (el.parentNode !== yuz) { yuz.appendChild(el); if (k === 'muzik') mzYeniden(); } el.style.left = a.x + '%'; el.style.top = a.y + '%'; }
+    else { if (sag.children[i] !== el) { sag.insertBefore(el, sag.children[i] || null); if (k === 'muzik') mzYeniden(); } i++; el.style.left = el.style.top = ''; }
+    el.classList.toggle('yuzer', yuzer);
+    el.classList.toggle('boyutlu', !tel && a.h > 0);
+    if (!tel && a.w > 0) el.style.setProperty('--cw', a.w); else el.style.removeProperty('--cw');
+    if (!tel && a.h > 0) el.style.setProperty('--ch', a.h); else el.style.removeProperty('--ch');
+  });
+  camSinirla();
+}
+function camSinirla() {                                               // yüzen cam (pencere küçülünce) tavernanın dışında kalmasın
+  const A = $('.tv-wrap').getBoundingClientRect();
+  if (!A.width) return;
+  $$('#tvCamlar > .cam').forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (!r.width) return;
+    const x = clamp(r.left, A.left, Math.max(A.left, A.right - r.width)), y = clamp(r.top, A.top, Math.max(A.top, A.bottom - 48));
+    if (x !== r.left) el.style.left = ((x - A.left) / A.width * 100) + '%';
+    if (y !== r.top) el.style.top = ((y - A.top) / A.height * 100) + '%';
+  });
+}
+(function camTut() {
+  let d = null;
+  document.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || telefonDik.matches) return;
+    const boy = e.target.closest('.cam-boy'), bas = !boy && e.target.closest('.cam > h2');
+    if (!boy && (!bas || e.target.closest('button'))) return;          // başlıktaki "−" düğmesi kendi işini yapar
+    const el = e.target.closest('.cam'), A = $('.tv-wrap').getBoundingClientRect(), r = el.getBoundingClientRect(), u = camBirim();
+    const li = CAM.liste[el.dataset.cam] && $(CAM.liste[el.dataset.cam], el);
+    d = { el, k: el.dataset.cam, id: e.pointerId, x: e.clientX, y: e.clientY, A, r, u, boy: !!boy, oynadi: false, yuzer: el.classList.contains('yuzer'),
+          w0: camAyar(el.dataset.cam).w || 17, h0: li && li.offsetParent ? li.getBoundingClientRect().height / u : 0 };   // w0: camın kendi genişliği (açık "Son atışlar"ın 40 birimi değil)
+    if (boy) { e.preventDefault(); e.stopPropagation(); boy.classList.add('surukle'); try { boy.setPointerCapture(e.pointerId); } catch (er) { /* yok say */ } }
+  }, true);
+  document.addEventListener('pointermove', e => {
+    if (!d || e.pointerId !== d.id) return;
+    const dx = e.clientX - d.x, dy = e.clientY - d.y;
+    if (!d.oynadi) {
+      if (Math.hypot(dx, dy) < 5) return;                              // kıpırdamadan bırakmak tıklama sayılır ("Son atışlar"ı açmak gibi)
+      d.oynadi = true;
+      if (!d.boy) {
+        if (!d.yuzer) { camKaydet(d.k, { x: (d.r.left - d.A.left) / d.A.width * 100, y: (d.r.top - d.A.top) / d.A.height * 100 }); camYerlestir(); }   // rıhtımdan çıkar, olduğu yerde yüzer
+        d.x0 = camAyar(d.k).x; d.y0 = camAyar(d.k).y;
+        d.el.classList.add('tasiniyor');
+        try { d.el.setPointerCapture(e.pointerId); } catch (er) { /* yok say */ }
+      }
+    }
+    if (d.boy) {                                                       // rıhtımda sola, yüzerken sağa doğru büyür
+      const w = clamp(d.w0 + (d.yuzer ? dx : -dx) / d.u, CAM.w[0], CAM.w[1]), h = clamp(d.h0 + dy / d.u, CAM.h[0], CAM.h[1]);
+      camKaydet(d.k, { w: +w.toFixed(2), h: d.h0 ? +h.toFixed(2) : 0 });
+    } else {
+      const gen = d.el.getBoundingClientRect().width / d.A.width * 100;
+      camKaydet(d.k, { x: +clamp(d.x0 + dx / d.A.width * 100, 0, 100 - gen).toFixed(2), y: +clamp(d.y0 + dy / d.A.height * 100, 0, 100 - 4800 / d.A.height).toFixed(2) });
+    }
+    camYerlestir();
+  });
+  const bit = e => {
+    if (!d || e.pointerId !== d.id) return;
+    const bu = d; d = null;
+    bu.el.classList.remove('tasiniyor'); $(':scope > .cam-boy', bu.el).classList.remove('surukle');
+    if (bu.oynadi) { CAM.yut = true; setTimeout(() => { CAM.yut = false; }, 0); save(); renderTable(); }   // ardından gelen tıklama sayılmaz
+  };
+  document.addEventListener('pointerup', bit); document.addEventListener('pointercancel', bit);
+  document.addEventListener('click', e => { if (CAM.yut) { CAM.yut = false; e.stopPropagation(); e.preventDefault(); } }, true);
+  window.addEventListener('resize', camYerlestir);
+  telefonDik.addEventListener('change', camYerlestir);
+})();
+
+/* Solma: dokunulmayan cam ve araç şeridi 12 sn sonra %20'ye iner (CSS .uyku). Üstüne gelince, içinde yazarken ya da başına bir
+   şey gelince (yeni atış, mesaj, şarkı) geri gelir. Düzen kutusundan kapatılır (store.solma). */
+const SOLMA = 12000;
+function uyandir(el, tut) {
+  if (!el) return;
+  el.classList.remove('uyku'); clearTimeout(el._uyku);
+  if (tut || store.solma === false || mode !== 'table') return;
+  el._uyku = setTimeout(() => {
+    if (el.matches(':hover, :focus-within') || (el.matches('.tv-ust') && !$('#duzenPop').hidden)) uyandir(el);   // Düzen kutusu açıkken şerit solmaz
+    else el.classList.add('uyku');
+  }, SOLMA);
+}
+function solmaBasla() { $$('.cam, .tv-ust, .tv-zoom').forEach(el => uyandir(el)); }
+$$('.cam, .tv-ust, .tv-zoom').forEach(el => {
+  el.addEventListener('pointerenter', () => uyandir(el, true));
+  el.addEventListener('pointerleave', () => uyandir(el));
+  el.addEventListener('focusin', () => uyandir(el, true));
+  el.addEventListener('focusout', () => uyandir(el));
+});
+
+/* Düzen kutusu (araç şeridindeki "Düzen") */
+function duzenAc(ac) {
+  const pop = $('#duzenPop'), b = $('#tvDuzen');
+  pop.hidden = !ac; b.setAttribute('aria-expanded', String(ac));
+  if (!ac) return;
+  $('#duzenSolma').checked = store.solma !== false;
+  const w = $('.tv-wrap').getBoundingClientRect(), r = b.getBoundingClientRect();
+  pop.style.top = clamp(r.top - w.top - 10, 8, Math.max(8, w.height - pop.offsetHeight - 8)) + 'px';
+}
+Object.assign(ACTIONS, {
+  'duzen': () => duzenAc($('#duzenPop').hidden),
+  'duzen-sifirla': () => { store.cam = {}; save(); camYerlestir(); renderTable(); duzenAc(false); notify('Camlar varsayılan yerinde'); },
+});
+$('#duzenSolma').addEventListener('change', e => { store.solma = e.target.checked; save(); solmaBasla(); });
+document.addEventListener('pointerdown', e => { if (!$('#duzenPop').hidden && !e.target.closest('#duzenPop, #tvDuzen')) duzenAc(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#duzenPop').hidden) duzenAc(false); });
 
 // Esc: açık çekmece, pencere ya da zar tepsisi yoksa kağıdı kapatır (onları kapatan Esc'den önce bakılır)
 document.addEventListener('keydown', e => {
@@ -6949,6 +7761,7 @@ Object.assign(ACTIONS, {
   'tv-full': () => fsToggle(!fsElement()),
   'tav-all': () => tavOverview(!tav.all),
   'tav-tepe': () => tavTepe(!tav.tepe),
+  'tav-sahne': () => tavSahneGit(),
   'tav-canli': () => { store.tavCanli = !tavCanli(); save(); tavButonlar(); tavKick(); },
   'tav-goz': () => { store.tavGoz = !tavGozAcik(); if (!store.tavGoz) store.povTek = false; save(); tavButonlar(); povGoster(true); },   // POV panelini aç / kapat
   hud: () => hudGizle(!document.body.classList.contains('hud-yok')),
@@ -7066,7 +7879,8 @@ const SAHNE = (() => {
   const q = new URLSearchParams(location.search), ad = q.get('sahne') === 'taverna' ? null : (q.get('sahne') === 'han' ? 'han' : 'han-pismis');
   const s = { ad: 'taverna-npr', glob: 'TAVERNA_NPR', pismis: false, fps: q.get('fps') === '1' };
   if (ad === 'han' || ad === 'han-pismis') {
-    Object.assign(s, { ad, glob: ad === 'han' ? 'HAN_GLB' : 'HAN_PISMIS_GLB', pismis: ad === 'han-pismis' });
+    Object.assign(s, { ad, glob: ad === 'han' ? 'HAN_GLB' : 'HAN_PISMIS_GLB', pismis: ad === 'han-pismis',
+      ozan: [11.2, -1.2, 0.30] });                                       // ozan sahnesinin ortası (dünya, m; sahne panosu buraya iğnelidir)
     TAV.hedef = [0, 0, 1.10]; TAV.taban = 0.30;                          // masa +0,30'luk kürsüde
     TAV.LIGHT.avize = [0xffa458, 10, 7, 0.06];                           // eski tavernada avizenin ışığı yoktu
     TAV.LIGHT.oda = [0xff9a48, 1.5, 3, 0.05];                            // galerideki aralık kapıların ardı
@@ -7743,6 +8557,7 @@ function tavTitre(now) {
 function tavDraw(now) {
   const cv = $('#tvNpr'), cr = cv.getBoundingClientRect(), sc = $('#tvScene').getBoundingClientRect();
   if (!cr.width || !sc.width) return;
+  saPanoYer(sc);                                                       // sahne panosu sahneyle birlikte kayar (yumuşak geçişte de)
   const sMin = tavBounds(1).sMin, seyrek = clamp((1 - tav.view.s) / (1 - sMin), 0, 1);   // 0 yakın … 1 bütün taverna
   const dpr = Math.min(window.devicePixelRatio || 1, 1.25) * (1 + 0.25 * seyrek), u = sc.width / 100, m = TAV.m, cam = tav.cam;
   const w = Math.round(cr.width * dpr), h = Math.round(cr.height * dpr);
@@ -8012,7 +8827,8 @@ if (SAHNE.fps) {
     if (now - t0 >= 1000) { el.textContent = `${SAHNE.ad} · kare ${(top / n).toFixed(1)} ms · ${Math.round(n * 1000 / (now - t0))} kare/sn`; top = n = 0; t0 = now; }
   };
 }
-window.addEventListener('resize', () => tavKick());
+window.addEventListener('resize', () => { tavKick(); saPanoYer(); });
+$('#tvSahne').hidden = !SAHNE.ozan;                                    // eski tavernada ozan sahnesi yok
 if (window.ResizeObserver) new ResizeObserver(() => {             // pencere boyutu değişince: gezinme sınırları da değişir
   if (tav.state === 'on' && mode === 'table') tavSetView(tav.view.s, tav.view.x, tav.view.y); else tavKick();
 }).observe($('#tvStage'));
@@ -8128,8 +8944,22 @@ function tavSetView(s, x, y, ease) {
   btn.setAttribute('aria-pressed', tav.all);
   $('span', btn).textContent = tav.all ? 'Masaya dön' : 'Bütün taverna';
   $('use', btn).setAttribute('href', tav.all ? '#i-table' : '#i-harita');   // uzaktayken masa ikonu: "masaya dön"
+  if (SAHNE.ozan) {                                                     // "Sahne" düğmesi: kamera sahnenin önündeyse basılı
+    const h = tavSahneBakis(), B = tavBounds(h[0]), v = tav.view;
+    tav.sahnede = Math.abs(v.s - h[0]) < 0.02 && Math.abs(v.x - clamp(h[1], Math.min(B.x0, B.x1), Math.max(B.x0, B.x1))) < 4 && Math.abs(v.y - clamp(h[2], Math.min(B.y0, B.y1), Math.max(B.y0, B.y1))) < 4;
+    $('#tvSahne').setAttribute('aria-pressed', String(tav.sahnede));
+  }
   btn.title = tav.all ? 'Oyun masasına yaklaş' : 'Bütün tavernaya bak (sürükleyerek de gezinebilirsin)';
   tavKick();
+}
+// Sahneye bakış: kamera ozan sahnesini panonun soluna alır; sahnedeyken masaya döner
+function tavSahneBakis() {
+  const [x, y] = tavProj(...SAHNE.ozan), a = tvAlan(), s = Math.max(tavBounds(1).sMin, 0.55);
+  return [s, (a.pov + a.w) / 2 - s * x - 8, a.h / 2 - s * y];
+}
+function tavSahneGit() {
+  if (tav.state !== 'on' || !SAHNE.ozan) return;
+  if (tav.sahnede) tavSetView(1, ...tavMasaBakis(), true); else { const [s, x, y] = tavSahneBakis(); tavSetView(s, x, y, true); }
 }
 function tavOverview(on) {
   if (tav.state !== 'on') return;
@@ -8681,7 +9511,7 @@ const SES = {
   varsayilan: { on: true, ana: 0.5, muzik: 0.35, ortam: 0.5, efekt: 0.8 },   // ana: hepsinin çarpanı
   // Efektlerin kendi aralarındaki dengesi (dosyalar aynı güçte hazırlandı; burada kulağa göre ayarlanır)
   vol: { 'zar-salla': 0.55, 'zar-yuvarlan': 0.9, 'kagit-ac': 0.7, 'kagit-kapa': 0.6, kupa: 0.6, tik: 0.3, 'dogal-20': 0.7, 'dogal-1': 0.8,
-         ilham: 0.6, katildi: 0.5, gecis: 0.6, 'kapi-ac': 0.8, adim: 0.7 },
+         ilham: 0.6, katildi: 0.5, gecis: 0.6, 'kapi-ac': 0.8, adim: 0.7, soz: 0.5 },
   secenek: { 'zar-yuvarlan': ['zar-yuvarlan-1', 'zar-yuvarlan-2', 'zar-yuvarlan-3'] },   // her seferinde biri, tekrar gibi durmasın
   degis: new Set(['zar-salla', 'zar-yuvarlan', 'tik', 'kupa']),        // bunların perdesi her çalışta biraz oynar (yine tekrar duyulmasın)
   dongu: { ortam: ['ambiyans', 'ates'], muzik: ['muzik'], gece: ['gece'] },   // kanal → birlikte çalan döngüler
@@ -8691,6 +9521,7 @@ const SES = {
   dis: { hz: 20000, kat: 1, gece: 0 },
   web: /^https?:$/.test(location.protocol) && !!(window.AudioContext || window.webkitAudioContext),
   ctx: null, kanal: {}, buf: new Map(), calan: new Map(), basladi: false,
+  yt: false,                                                         // YouTube müziği duyuluyor (BÖLÜM 10f): tavernanın müziği kısılır
 };
 function sesAyar() {                                                 // eski kayıtlarda yoksa ya da eksikse varsayılanla tamamlar
   if (!store.ses || typeof store.ses !== 'object') store.ses = {};
@@ -8756,7 +9587,7 @@ function sesDongu() {                                                // ortam ve
 function sesSeviye(sure = 0.75) {
   const a = sesAyar(), duy = a.on && !document.hidden, d = SES.dis;
   // Kanalların duyulan seviyesi: ayar × kapının neresindesin (gece sesi ortam ayarına bağlı)
-  const sev = { muzik: a.ana * a.muzik * d.kat, ortam: a.ana * a.ortam * d.kat, gece: a.ana * a.ortam * d.gece, efekt: a.ana * a.efekt };
+  const sev = { muzik: a.ana * a.muzik * d.kat * (SES.yt ? 0 : 1), ortam: a.ana * a.ortam * d.kat, gece: a.ana * a.ortam * d.gece, efekt: a.ana * a.efekt };
   if (SES.ctx) {
     const t = SES.ctx.currentTime, tc = Math.max(0.01, sure / 3);
     ['muzik', 'ortam', 'gece'].forEach(k => SES.kanal[k].gain.setTargetAtTime(duy ? sev[k] : 0, t, tc));
@@ -8769,6 +9600,7 @@ function sesSeviye(sure = 0.75) {
     if (v > 0 && (SES.ctx ? sev[kanal] > 0 : true)) { if (el.paused) el.play().catch(() => {}); }
     else if (!el.paused) el.pause();
   });
+  mzSesUygula();                                                     // YouTube'un sesi de ana ses ve açık / kapalıya uyar
 }
 // Efekt çalar. gecikme (ms): animasyonla eşzamanlı olsun diye (ör. zar masaya değdiğinde).
 // bitis (ms, şimdiden): ses en geç bu anda bitmiş olmalı (ör. zarın sayısı yazılmadan). Sığmazsa önce biraz hızlanır

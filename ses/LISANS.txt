@@ -144,6 +144,13 @@ katildi.mp3
   Link    : https://freesound.org/s/96132/
   Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
 
+soz.mp3
+  Ne icin : Sohbette yeni mesaj (kadehe vurulur; 2026-10-30)
+  Kaynak  : wine glass clink by fleurescence
+  Sahibi  : fleurescence
+  Link    : https://freesound.org/s/573157/
+  Lisans  : Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/) (CC0, atif gerekmez)
+
 muzik.mp3  (ham adi: Mead and Moonlight.mp3)
   Ne icin : Taverna muzigi
   Kaynak  : Kullanicinin Suno ile yaptigi sarki (2026-10-19)
