@@ -143,7 +143,22 @@ GEAR = {
  'araba':     p('M3 8.5h15v6.5H3z', 1) + p('M18 11.5h3.5') + c(7, 18, 2.8) + c(14.5, 18, 2.8),
  'gemi':      p('M2.5 15.5h19l-3.2 5H5.7z', 1) + p('M12 15.5V2.5') + p('M12.8 3.5q5 4.6 6.4 10H12.8zM11.2 6q-3.4 3.8-4.6 7.5h4.6z', 1),
 }
-HEPSI = [(k, True, v) for k, v in SILAH.items()] + [(k, False, v) for k, v in SILAH_DIK.items()] + [(k, False, v) for k, v in {**ZIRH, **GEAR}.items()]
+
+KAPAK = 'M6 3.5h11a1.5 1.5 0 0 1 1.5 1.5v15.5H7.5A1.5 1.5 0 0 1 6 19z'
+def kitap(simge, f=False): return p(KAPAK, 1) + p('M6 19a1.5 1.5 0 0 1 1.5-1.5h11') + p(simge, f)
+KITAP = {   # kütüphanenin kitapları (2026-11-10): kapak + konusunun simgesi
+ 'ksaglik':   kitap('M12.5 14s-3.6-2.2-3.6-4.6a1.9 1.9 0 0 1 3.6-.8 1.9 1.9 0 0 1 3.6.8c0 2.4-3.6 4.6-3.6 4.6z'),
+ 'kguc':      kitap('M9.2 10.5h6.6M9.2 8.3v4.4M15.8 8.3v4.4M8 9.2v2.6M17 9.2v2.6'),
+ 'kceviklik': kitap('M9.4 14.6l5.4-7M15.2 7.2c-2.8-.3-5.3 1.9-5.7 5.6 2.2-.2 4.8-1.8 5.7-5.6z'),
+ 'kzeka':     kitap('M12.5 6.4v1.3M9.4 7.7l.9.9M15.6 7.7l-.9.9M8.4 10.6h1.3M15.3 10.6h1.3M11.2 14.2h2.6') + c(12.5, 10.8, 2.1),
+ 'konder':    kitap('M9 13.6h7l.6-5.2-2.3 1.9-1.8-3.1-1.8 3.1-2.3-1.9z'),
+ 'kanlayis':  kitap('M8.6 10.6s1.6-2.7 3.9-2.7 3.9 2.7 3.9 2.7-1.6 2.7-3.9 2.7-3.9-2.7-3.9-2.7z') + c(12.5, 10.6, 1.1),
+ 'ktarih':    kitap('M9.4 14V9h1.3v1.3H12V9h1.3v1.3h1.3V9h1.3v5zM11.6 14v-1.8h1.6V14'),
+ 'kbuyu':     kitap('M14.2 7.2a3.4 3.4 0 1 0 0 6.6 4.2 4.2 0 0 1 0-6.6zM15.6 8.2l.4.9.9.4-.9.4-.4.9-.4-.9-.9-.4.9-.4z'),
+ 'kdoga':     kitap('M9.4 14c0-4.2 3-6.4 6.8-6.4 0 3.8-2.2 6.4-6.8 6.4zM9.4 14l4.2-4.2'),
+ 'kdin':      kitap('M12.5 7v1M12.5 13.2v1M9 10.6h1M15 10.6h1M10.1 8.2l.7.7M14.9 8.2l-.7.7M10.1 13l.7-.7M14.9 13l-.7-.7') + c(12.5, 10.6, 1.8),
+}
+HEPSI = [(k, True, v) for k, v in SILAH.items()] + [(k, False, v) for k, v in SILAH_DIK.items()] + [(k, False, v) for k, v in {**ZIRH, **GEAR, **KITAP}.items()]
 
 def sembol(k, don, ic):
     if don: ic = f'<g transform="rotate(45 12 12)">{ic}</g>'
