@@ -1410,6 +1410,24 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 .dus-can{display:block;height:max(4px,calc(.32 * var(--u)));margin-top:calc(.3 * var(--u));background:var(--lead);overflow:hidden}
 .dus-can .hp-fill{display:block;height:100%}
 .tv-dus .bos{margin:0;padding:calc(.8 * var(--u)) calc(1 * var(--u));background:var(--surface);color:var(--muted);font-size:clamp(12px,calc(1.05 * var(--u)),15px)}
+/* Savaşa katılanlar (DM, 2026-11-10): oyuncu başına koltuğunun camında bir düğme; basınca Savaşta → İzliyor → Dışarıda.
+   Savaşta: camı arkadan ışık almış; İzliyor: kurşun zemin; Dışarıda: soluk. */
+.tv-katil{margin-top:var(--lw);padding:calc(.5 * var(--u)) calc(.7 * var(--u)) calc(.7 * var(--u));background:var(--surface)}
+.tv-katil[hidden],.tv-dus.kapali .tv-katil{display:none}
+.tv-katil h3{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 calc(.45 * var(--u));font-family:var(--font-ui);
+  font-size:clamp(12px,calc(1 * var(--u)),14px);font-weight:700;color:var(--text)}
+.tv-katil h3 small{font-weight:500;color:var(--muted);font-size:.9em}
+.katil-ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--lw)}
+.katil-i{--g:var(--g-kobalt);display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding:calc(.35 * var(--u)) calc(.6 * var(--u));
+  border:0;border-left:3px solid var(--g);border-radius:0;background:var(--lead);color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.katil-i b{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(12px,calc(1.1 * var(--u)),15px);font-weight:700;line-height:1.2}
+.katil-i small{font-size:clamp(11px,calc(.92 * var(--u)),13px);font-weight:600;color:var(--muted);line-height:1.2}
+.katil-i[data-d="katil"]{background:color-mix(in srgb,var(--g) 38%,var(--lead))}
+.katil-i[data-d="katil"] small{color:var(--text)}
+.katil-i[data-d="dis"]{opacity:.55}
+.katil-i:hover{background:color-mix(in srgb,var(--g) 22%,var(--lead))}
+.katil-i[data-d="katil"]:hover{background:color-mix(in srgb,var(--g) 50%,var(--lead))}
+.katil-i:focus-visible{outline:2px solid var(--text);outline-offset:-2px}
 .tv-dus-alt{display:flex;gap:var(--lw);margin-top:var(--lw)}
 .tv-dus-alt .btn{flex:1;border:0}
 .tv-dus-alt:empty{display:none}
@@ -1540,6 +1558,7 @@ button.mz-sec:hover{background:var(--lit)}
 .sira-i.olu b{text-decoration:line-through}
 .sira-dug{display:flex;flex-direction:column;justify-content:center;gap:var(--lw);flex:none}
 .sira-dug .btn{border:0;flex:1}
+.sira-izle{display:grid;place-items:center;padding:0 calc(.9 * var(--u));background:var(--surface);color:var(--muted);font-weight:700;font-size:clamp(12px,calc(1 * var(--u)),14px);white-space:nowrap}   /* savaşı izleyen oyuncu (2026-11-10) */
 .tv-log li.none{grid-template-columns:1fr!important}
 
 /* POV paneli (sol şerit): masaya oturan kişinin koltuğundan, göz hizasında canlı 3D görüntü (BÖLÜM 11b, tavGozDraw), zarlar ve eli.
@@ -2133,6 +2152,8 @@ body.tv-full #tableView{height:100dvh}
           <aside class="tv-dus cam" data-cam="dus" id="tvDus" aria-label="Düşmanlar" hidden>
             <h2>Düşmanlar<button class="tv-kapa" data-act="pano-kapa" data-p="dus" aria-expanded="true" title="Panoyu kapat" aria-label="Düşmanlar panosunu kapat"><svg class="ic"><use href="#i-minus"/></svg></button></h2>
             <ol id="tvDusList"></ol>
+            <!-- Savaşa katılanlar (yalnızca DM, 2026-11-10): her oyuncu Savaşta / İzliyor / Dışarıda (renderDus, 'katil') -->
+            <div class="tv-katil" id="tvKatil" hidden></div>
             <div class="tv-dus-alt" id="tvDusAlt"></div>
           </aside>
           <!-- Sohbet (BÖLÜM 10e): masadakiler yazışır; gizli mesaj yalnızca DM ile bir oyuncu arasında. Masaya bağlı değilken görünmez. -->
@@ -4394,7 +4415,7 @@ function stopNet(clearRole = true) {
   net.peer = null; net.conn = null;
   if (peer) { try { peer.destroy(); } catch (e) { /* zaten kapalı */ } }
   net.players.clear(); net.feed = []; net.roster = []; net.dmName = ''; net.sentPortrait = null;
-  net.mySeat = ''; net.faces.clear(); net.dropped = false; net.npcs = []; net.sira = null;
+  net.mySeat = ''; net.faces.clear(); net.dropped = false; net.npcs = []; net.sira = null; net.savas = '';
   HR.resim.clear(); HR.parca.clear(); net.harita = null; HR.goster = ''; HR.menu = ''; HR.yeni = null;   // harita (BÖLÜM 10d); DM'inki kalıcı depoda durur
   sozSifirla();                                                      // sohbet (BÖLÜM 10e): hiçbir yere kaydedilmez
   net.muzik = null;                                                  // müzik (BÖLÜM 10f): oyuncunun DM'den aldığı sıra
@@ -4485,7 +4506,7 @@ function dmReceive(pid, conn, msg) {
   p.seen = Date.now();
   if (msg.t === 'ping') send(conn, { t:'pong', want: !p.char });        // kağıt henüz gelmediyse yeniden iste
   else if (msg.t === 'hello') {
-    send(conn, { t:'welcome', dm: store.net.name || 'DM', publicRolls: !!store.net.publicRolls, roster: rosterList(), you: p.seat, npcs: npcRoster(), sira: siraPaket() });
+    send(conn, Object.assign({ t:'welcome', dm: store.net.name || 'DM', publicRolls: !!store.net.publicRolls, roster: rosterList(), you: p.seat, npcs: npcRoster() }, siraIcin(p)));
     hrHosgeldin(p, msg.hr);                                          // harita: yapı, piyonlar, oyuncuda olmayan açık resimler (BÖLÜM 10d)
     sozGecmisYolla(p);                                               // sohbetin son mesajları (BÖLÜM 10e)
     mzYay(p);                                                        // müzik: sıra ve çalan (BÖLÜM 10f)
@@ -4511,9 +4532,10 @@ function dmReceive(pid, conn, msg) {
     const entry = Object.assign({}, roll, { who: p.name, char: p.char ? p.char.name : '', seat: p.seat, ts: Date.now() });
     // Hedef: masadaki bir düşman ya da başka bir oyuncu olmalı; hasarı DM uygular (BÖLÜM 10b)
     const hedef = cleanHedef(msg.hedef);
-    if (hedef && msg.hasar && (npcler().some(n => n.id === hedef && n.gor) || seated().some(o => o.seat === hedef && o.pid !== pid))) hasarUygula(hedef, roll.total, entry.char.trim() || p.name);
+    const savasDisi = siraAktif() && savasDurum(p.seat) !== 'katil';  // savaşı izleyen ya da dışarıdaki oyuncu vuramaz
+    if (hedef && msg.hasar && !savasDisi && (npcler().some(n => n.id === hedef && n.gor) || seated().some(o => o.seat === hedef && o.pid !== pid))) hasarUygula(hedef, roll.total, entry.char.trim() || p.name);
     // İnisiyatif zarı savaş sırasına yazılır (zar yere indikten sonra; sonuç zardan önce görünmesin)
-    if (msg.ini && store.sira && store.sira.aktif) setTimeout(() => {
+    if (msg.ini && store.sira && store.sira.aktif && !savasDisi) setTimeout(() => {
       const s = store.sira; if (!s || !s.aktif) return;
       let e = s.liste.find(x => x.id === p.seat);
       if (!e) s.liste.push(e = { id: p.seat, ini: null });             // savaş başladıktan sonra gelen oyuncu
@@ -4547,9 +4569,9 @@ const rosterList = () => seated().map(p => ({ id: p.seat, name: p.name, char: p.
 const seatSig = c => (c ? [c.name, classKey(c), c.look].join('|') : '');
 function broadcastRoster() {
   const roster = rosterList(), dm = short(store.net.name || 'DM', 30);
-  const npcs = npcRoster(), sira = siraPaket();                      // masadaki düşmanlar ve savaş sırası (BÖLÜM 10b)
+  const npcs = npcRoster();                                           // masadaki düşmanlar (BÖLÜM 10b)
   const dmp = DM_PORTRE.includes(store.net.dmPortre) ? store.net.dmPortre : '';   // DM'in hazır portresinin adı (resmi değil)
-  net.players.forEach(p => send(p.conn, { t:'roster', roster, you: p.seat, dm, dmp, npcs, sira }));   // you = alıcının kendi koltuğu
+  net.players.forEach(p => send(p.conn, Object.assign({ t:'roster', roster, you: p.seat, dm, dmp, npcs }, siraIcin(p))));   // you = alıcının kendi koltuğu; savaş: kişiye göre
   hrYay();                                                           // haritadaki piyonlar koltuklara göre (yeni gelen, giden)
   renderNetUI();                                                     // DM'in kendi "Masada:" listesi ve masa görünümü
 }
@@ -4640,7 +4662,7 @@ function playerReceive(conn, msg) {
   if (msg.t === 'welcome') {
     net.dmName = short(msg.dm, 30); net.publicRolls = !!msg.publicRolls;
     if (msg.roster) net.roster = readRoster(msg.roster);
-    net.npcs = readNpcs(msg.npcs); siraAl(msg.sira);
+    net.npcs = readNpcs(msg.npcs); siraAl(msg.sira, msg.savas);
     if (!net.welcomed) {
       net.welcomed = true;
       if (net.dropped) { net.dropped = false; notify('Masaya yeniden bağlandın'); }
@@ -4656,7 +4678,7 @@ function playerReceive(conn, msg) {
     if (on) ses('ilham');
     notify(on ? 'DM sana ilham verdi' : 'DM ilhamını geri aldı', on ? 'Bir d20 zarını yeniden atabilirsin. Kullanınca yıldıza bas.' : '');
   }
-  else if (msg.t === 'roster') { net.roster = readRoster(msg.roster); net.npcs = readNpcs(msg.npcs); siraAl(msg.sira); if (msg.dm) net.dmName = short(msg.dm, 30); net.dmPortre = DM_PORTRE.includes(msg.dmp) ? msg.dmp : ''; renderNetUI(); renderTable(); }
+  else if (msg.t === 'roster') { net.roster = readRoster(msg.roster); net.npcs = readNpcs(msg.npcs); siraAl(msg.sira, msg.savas); if (msg.dm) net.dmName = short(msg.dm, 30); net.dmPortre = DM_PORTRE.includes(msg.dmp) ? msg.dmp : ''; renderNetUI(); renderTable(); }
   else if (msg.t === 'hasar') hasarAl(clamp(int(msg.miktar), 0, 9999), short(msg.kimden, 40));   // DM'in uyguladığı hasar (BÖLÜM 10b)
   else if (msg.t === 'face') {                                       // bir koltuğun küçük portresi (yalnızca değişince gelir)
     const id = cleanSeat(msg.id), img = cleanImg(msg.img);
@@ -5080,7 +5102,8 @@ function hedefler() {
   const ek = n => (n.max ? `${Math.max(0, int(n.can))}/${int(n.max)} can` : '') + (n.ac ? `${n.max ? ', ' : ''}AC ${int(n.ac)}` : '');
   if (role === 'dm') return seated().map(p => ({ id: p.seat, ad: (p.char && p.char.name.trim()) || p.name, tur: 'Oyuncular' }))
     .concat(npcler().map(n => ({ id: n.id, ad: n.ad || 'İsimsiz düşman', tur: 'Düşmanlar', ek: ek(n) })));
-  if (role === 'player') return net.npcs.map(n => ({ id: n.id, ad: n.ad || 'İsimsiz düşman', tur: 'Düşmanlar', ek: ek(n) }));
+  if (role === 'player') return net.savas === 'izle' || net.savas === 'dis' ? []                 // savaşı izleyen ya da dışarıdaki vuramaz
+    : net.npcs.map(n => ({ id: n.id, ad: n.ad || 'İsimsiz düşman', tur: 'Düşmanlar', ek: ek(n) }));
   return [];
 }
 const hedefAd = id => (hedefler().find(h => h.id === id) || {}).ad || '';
@@ -5274,6 +5297,13 @@ function renderDus() {
       <span class="dus-ad"><b>${esc(n.ad || 'İsimsiz düşman')}</b>${bilgi ? `<small>${esc(bilgi)}</small>` : ''}${n.max
         ? `<span class="dus-can"><span class="hp-fill" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span></span>` : ''}</span></button></li>`;
   }).join('') : '<li class="bos">Henüz düşman yok.</li>';
+  const kb = $('#tvKatil'), oy = dm ? seated() : [];
+  kb.hidden = !oy.length;
+  if (oy.length) kb.innerHTML = `<h3>Savaşa katılanlar<small>${siraAktif() ? 'hemen değişir' : 'savaş başlayınca'}</small></h3><div class="katil-ol">${oy.map(p => {
+    const d = savasDurum(p.seat), sonra = KATIL_SIRA[(KATIL_SIRA.indexOf(d) + 1) % 3], ad = (p.char && p.char.name.trim()) || p.name;
+    return `<button class="katil-i" data-act="katil" data-id="${esc(p.seat)}" data-d="${d}" style="--g:${camOf(p.seat)}" title="${esc(ad)}: ${KATIL_AD[d]}. Basınca: ${KATIL_AD[sonra]}"
+      aria-label="${esc(ad)}: ${KATIL_AD[d]}. Değiştirmek için bas"><b>${esc(ad)}</b><small>${KATIL_AD[d]}</small></button>`;
+  }).join('')}</div>`;
   svRender();
   $('#tvDusAlt').innerHTML = dm ? (list.length ? `<button class="btn sm${siraAktif() ? '' : ' accent'}" data-act="savas">${siraAktif() ? 'Savaşı bitir' : 'Savaşı başlat'}</button>` : '')
     + '<button class="btn sm" data-act="mode-dm">Düşman ekle</button>' : '';
@@ -5281,6 +5311,34 @@ function renderDus() {
 
 /* ───────── Savaş sırası (inisiyatif) ───────── */
 const siraAktif = () => (store.net.role === 'dm' ? !!(store.sira && store.sira.aktif) : !!(net.sira && net.sira.aktif));
+/* Savaşa katılanlar (2026-11-10, kullanıcının isteği): DM her oyuncu için seçer: katil (savaşta: sıraya girer, inisiyatif atar,
+   düşmana vurur), izle (orman sahnesini ve sırayı görür; sıraya girmez, vuramaz), dis (tavernada kalır, "masada savaş sürüyor").
+   DM'de store.savasDurum { koltuk: 'izle' | 'dis' } (yazılmayan: katil; yeni gelen de savaşa katılır). Seçim savaştan önce de
+   yapılır, savaş sürerken değişince hemen uygulanır. Oyuncuya kendi durumu gider (siraIcin); hasar ve inisiyatifi DM yine kendisi süzer. */
+const KATIL_AD = { katil: 'Savaşta', izle: 'İzliyor', dis: 'Dışarıda' }, KATIL_SIRA = ['katil', 'izle', 'dis'];
+const savasDurum = seat => { const d = store.savasDurum && store.savasDurum[seat]; return d === 'izle' || d === 'dis' ? d : 'katil'; };
+function siraIcin(p) {                                                // bu oyuncuya giden savaş bilgisi
+  const sp = siraPaket(), d = savasDurum(p.seat);
+  return d === 'dis' ? { sira: null, savas: sp ? 'dis' : '' } : { sira: sp, savas: sp ? d : '' };
+}
+function katilDegis(seat) {                                           // DM: Savaşta → İzliyor → Dışarıda → Savaşta
+  if (store.net.role !== 'dm' || !seated().some(p => p.seat === seat)) return;
+  const yeni = KATIL_SIRA[(KATIL_SIRA.indexOf(savasDurum(seat)) + 1) % 3];
+  store.savasDurum = Object.assign({}, store.savasDurum);
+  if (yeni === 'katil') delete store.savasDurum[seat]; else store.savasDurum[seat] = yeni;
+  const s = store.sira;
+  if (s && s.aktif) {
+    const var_ = s.liste.some(e => e.id === seat);
+    if (yeni === 'katil' && !var_) s.liste.push({ id: seat, ini: null });                // sonradan katılan: inisiyatif atınca sırasına girer
+    if (yeni !== 'katil' && var_) {
+      if (s.simdi === seat) siraIleri();                                                  // sıra ondaysa sonrakine geçer
+      s.liste = s.liste.filter(e => e.id !== seat);
+      if (s.simdi === seat) s.simdi = '';
+    }
+    if (store.hedef === seat) store.hedef = '';
+  }
+  siraYay();
+}
 const siraSimdi = () => (store.net.role === 'dm' ? (store.sira && store.sira.aktif && store.sira.simdi) || '' : (net.sira && net.sira.simdi) || '');
 // DM'de: sıradakiler inisiyatife göre (büyükten küçüğe; eşitse oyuncu önce). Masadan ayrılan oyuncu ve silinen düşman düşer.
 // oyuncuya: oyunculara gidecek hâli (masada olmayan düşmanlar çıkar)
@@ -5309,12 +5367,25 @@ const readSira = s => (s && typeof s === 'object' && s.aktif ? {
     img: e.tip === 'npc' ? cleanNpcImg(e.img) : '', olu: !!e.olu })),
 } : null);
 // Oyuncuda: DM'den gelen sıra; savaş başlayınca, bitince ve sıra bana gelince haber verir
-function siraAl(gelen) {
-  const once = net.sira; net.sira = readSira(gelen);
-  const s = net.sira, me = net.mySeat;
-  if (s && !once) { notify('Savaş başladı!', 'İnisiyatif zarını at: sıra şeridindeki "İnisiyatif at" düğmesine bas.'); ses('dogal-1'); }
-  else if (!s && once) notify('Savaş bitti');
-  if (s && me && s.simdi === me && (!once || once.simdi !== me)) { notify('Sıra sende!', 'Hamleni yap; bitince DM sıradakine geçer.'); ses('katildi'); }
+// savas: bu oyuncunun durumu ('katil' | 'izle' | 'dis'; savaş yoksa ''). Eski DM bunu yollamaz: sıra geldiyse savaştasın.
+function siraAl(gelen, savas) {
+  const once = net.sira, onceD = net.savas || '';
+  net.sira = readSira(gelen);
+  net.savas = KATIL_SIRA.includes(savas) ? savas : net.sira ? 'katil' : '';
+  if (net.savas !== 'dis' && !net.sira) net.savas = '';
+  const s = net.sira, me = net.mySeat, d = net.savas;
+  if (d && onceD && d !== onceD) {                                   // savaş sürerken DM durumumu değiştirdi
+    if (d === 'katil') { notify('DM seni savaşa aldı!', 'İnisiyatif zarını at: sıra şeridindeki "İnisiyatif at" düğmesine bas.'); ses('dogal-1'); }
+    else if (d === 'izle') notify(onceD === 'katil' ? 'DM seni savaştan çıkardı' : 'Savaşı izleyebilirsin', 'Savaşı izliyorsun: sıraya girmezsin, düşmana vuramazsın.');
+    else notify('DM seni savaştan çıkardı', 'Savaş bitene kadar tavernadasın.');
+  }
+  else if (d && !onceD) {                                            // savaş başladı (ya da savaş sürerken masaya geldim)
+    if (d === 'katil') { notify('Savaş başladı!', 'İnisiyatif zarını at: sıra şeridindeki "İnisiyatif at" düğmesine bas.'); ses('dogal-1'); }
+    else if (d === 'izle') notify('Masada bir savaş başladı', 'Bu savaşta yoksun ama izleyebilirsin.');
+    else notify('Masada bir savaş başladı', 'Bu savaşta yoksun. DM seni savaşa alırsa haber gelir.');
+  }
+  else if (!d && onceD) notify('Savaş bitti');
+  if (s && me && d === 'katil' && s.simdi === me && (!once || once.simdi !== me)) { notify('Sıra sende!', 'Hamleni yap; bitince DM sıradakine geçer.'); ses('katildi'); }
 }
 function koltukGorsel(id) {                                          // sıra şeridindeki oyuncu resmi
   if (id === meSeat()) return ownChar().portrait || '';
@@ -5332,6 +5403,7 @@ function renderSira() {
   const durum = !s.simdi ? 'İnisiyatif zarları bekleniyor' : s.simdi === 'gizli' ? 'Sıra DM\'de' : simdi ? (simdi.id === me ? 'Sıra sende!' : `Sıra: ${simdi.ad}`) : '';
   const dug = dm ? `<button class="btn sm accent" data-act="sira-ileri"><svg class="ic"><use href="#i-gec"/></svg>${s.simdi ? 'Sıradaki' : 'Sırayı başlat'}</button>
       <button class="btn sm" data-act="savas" title="Savaşı bitir">Bitir</button>`
+    : net.savas === 'izle' ? '<span class="sira-izle">İzliyorsun</span>'
     : !benim || benim.ini === null ? '<button class="btn sm accent" data-act="ini-at"><svg class="ic"><use href="#i-d20"/></svg>İnisiyatif at</button>' : '';
   box.innerHTML = `<div class="sira-bas"><b>Savaş · Tur ${s.tur}</b><small>${esc(durum)}</small></div>
     <ol class="sira-ol">${s.liste.map(e => `<li class="sira-i t-${e.tip}${e.id === s.simdi ? ' simdi' : ''}${e.olu ? ' olu' : ''}${e.id === me ? ' ben' : ''}"${e.tip === 'oyuncu' ? ` style="--g:${camOf(e.id)}"` : ''}
@@ -5345,7 +5417,7 @@ function savasBaslat() {
   if (store.net.role !== 'dm') return;
   const npcs = npcler().filter(n => n.gor && !(int(n.max) > 0 && int(n.can) <= 0));
   const zar = npcs.map(n => ({ n, d: die(20) }));
-  store.sira = { aktif: true, tur: 1, simdi: '', liste: seated().map(p => ({ id: p.seat, ini: null })).concat(zar.map(x => ({ id: x.n.id, ini: x.d + int(x.n.ini) }))) };
+  store.sira = { aktif: true, tur: 1, simdi: '', liste: seated().filter(p => savasDurum(p.seat) === 'katil').map(p => ({ id: p.seat, ini: null })).concat(zar.map(x => ({ id: x.n.id, ini: x.d + int(x.n.ini) }))) };
   store.atan = '';
   siraYay();
   zar.forEach(({ n, d }) => {                                        // düşmanların inisiyatifi masada atılır (DM gizliyse yalnızca DM görür)
@@ -5423,6 +5495,7 @@ Object.assign(ACTIONS, {
     save(); renderNpcs(); npcDegisti(true);
   },
   'savas': () => (siraAktif() ? savasBitir() : savasBaslat()),
+  'katil': b => katilDegis(cleanSeat(b.dataset.id)),
   'sira-ileri': () => siraIleri(),
   'ini-at': () => iniAt(),
   'pano-kapa': b => {
@@ -5469,7 +5542,8 @@ const svAcik = () => SV.acik;
 // Sahnedekiler: oyuncular (DM hariç) ve düşmanlar. can/max null: bu tarayıcı o canı bilmiyor.
 function svListe() {
   const role = store.net.role, dm = role === 'dm';
-  const oyuncu = seatList().filter(s => !s.dm).map(s => {
+  const icerde = new Set((dm ? siraSirali(false) : net.sira ? net.sira.liste : []).map(e => e.id));   // savaştaki oyuncular (izleyen ve dışarıdaki yok)
+  const oyuncu = seatList().filter(s => !s.dm && icerde.has(s.id)).map(s => {
     const hp = s.me ? ownChar().hp : dm ? s.hp : null;
     return { id: s.id, tip: 'oyuncu', ad: s.char || s.name, img: s.img || '', me: !!s.me, off: !s.on,
       can: hp && int(hp.max) ? int(hp.cur) : null, max: hp && int(hp.max) ? int(hp.max) : null };
@@ -7265,6 +7339,8 @@ function renderMe() {
 function rehberMetni(c) {
   const me = meSeat(), cur = int(c.hp.cur), max = int(c.hp.max);
   if (max > 0 && cur <= 0 && !olu(c)) return 'Canın 0: yere düştün. Sıran gelince ayrıntıları aç ve <b>Ölüm zarı</b> at.';
+  if (net.savas === 'dis') return 'Masada bir savaş sürüyor, sen bu savaşta yoksun. DM seni savaşa alırsa ya da izlemene izin verirse burada yazar.';
+  if (net.savas === 'izle' && siraAktif()) return 'Savaşı izliyorsun: sıraya girmezsin, düşmana vuramazsın. DM seni savaşa alırsa inisiyatif atarsın.';
   if (siraAktif() && net.sira) {
     const s = net.sira, benim = s.liste.find(e => e.id === me), simdi = s.liste.find(e => e.id === s.simdi);
     if (!benim || benim.ini === null) return 'Savaş başladı. Önce <b>İnisiyatif at</b>: kimin önce oynayacağını belirler (üstteki sıra şeridinde).';
