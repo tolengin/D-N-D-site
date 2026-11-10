@@ -473,6 +473,8 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .slash{font-family:var(--font-display);font-size:30px;color:var(--muted)}
 .hp-temp{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);white-space:nowrap}
 .hp-temp input{width:62px;text-align:center}
+.hp-dog{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.hb-dog,.mc-dog{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
 .hp-bar{height:10px;border-radius:0;background:var(--field);border:1px solid var(--line);overflow:hidden;margin:0 0 12px}
 .hp-fill{display:block;height:100%;width:0;border-radius:0;background:var(--good);transition:width .35s ease,background-color .35s}
 .hp-fill[data-s="mid"]{background:var(--warn)}
@@ -2629,7 +2631,7 @@ body.tv-full #tableView{height:100dvh}
             <label class="check"><input type="checkbox" data-bind="shield"> Kalkan</label>
           </div>
           <span class="sub-note" data-out="acNote"></span>
-          <p class="hint">Düşmanın sana vurabilmesi için tutturması gereken sayı. Envanterde zırhını ve kalkanını kuşanınca kendiliğinden hesaplanır; istersen kendin de yazabilirsin.</p>
+          <p class="hint">Düşmanın sana vurabilmesi için tutturması gereken sayı; hasarı azaltmaz (vurulursan hasar önce geçici candan, sonra candan düşer). Envanterde zırhını ve kalkanını kuşanınca kendiliğinden hesaplanır; istersen kendin de yazabilirsin.</p>
         </section>
 
         <section class="card vital">
@@ -2669,6 +2671,7 @@ body.tv-full #tableView{height:100dvh}
                 <button class="btn bad" data-act="hp" data-k="dmg">Hasar al</button>
                 <button class="btn good" data-act="hp" data-k="heal">İyileş</button>
                 <label class="hp-temp" title="Büyü ya da yetenekten gelen fazladan can; hasar önce bundan düşer">Geçici can <input type="number" data-bind="hp.temp" min="0"></label>
+                <label class="check hp-dog" title="İşaretliyse hasar geçici canı atlayıp doğrudan canından düşer (DM'in kararı; kurallarda yok)"><input type="checkbox" id="hpDogrudan"> Doğrudan cana</label>
               </div>
               <p class="hp-note" data-out="hpNote"></p>
             </div>
@@ -5031,10 +5034,8 @@ const ACTIONS = {
     const inp = b.dataset.src === 'me' ? $('#meAmount') : $('#hpAmount'), n = Math.max(0, int(inp.value));
     if (!n) { inp.focus(); notify('Önce miktarı yaz', 'Kutuya sayıyı gir, sonra düğmeye bas.'); return; }
     if (b.dataset.k === 'dmg') {
-      const fromTemp = Math.min(int(C.hp.temp), n);
-      C.hp.temp = int(C.hp.temp) - fromTemp;
-      C.hp.cur = Math.max(0, int(C.hp.cur) - (n - fromTemp));
-      notify(`${n} hasar aldın`, (fromTemp ? `${fromTemp} tanesi geçici candan düştü. ` : '') + (dusunce(C) || `Kalan can: ${C.hp.cur}`));
+      const dog = !!($(b.dataset.src === 'me' ? '#meDogrudan' : '#hpDogrudan') || {}).checked, t = hasarDus(C, n, dog);
+      notify(`${n} hasar aldın`, hasarAyrinti(n, t, dog) + (dusunce(C) || `Kalan can: ${C.hp.cur}`));
     } else {
       C.hp.cur = Math.min(Math.max(0, int(C.hp.max)), Math.max(0, int(C.hp.cur)) + n);
       notify(`${n} can yeniledin`, `Şimdiki can: ${C.hp.cur}`);
@@ -6354,7 +6355,7 @@ function playerReceive(conn, msg) {
     notify(on ? 'DM sana ilham verdi' : 'DM ilhamını geri aldı', on ? 'Bir d20 zarını yeniden atabilirsin. Kullanınca yıldıza bas.' : '');
   }
   else if (msg.t === 'roster') { net.roster = readRoster(msg.roster); net.npcs = readNpcs(msg.npcs); siraAl(msg.sira, msg.savas); if (msg.dm) net.dmName = short(msg.dm, 30); net.dmPortre = DM_PORTRE.includes(msg.dmp) ? msg.dmp : ''; renderNetUI(); renderTable(); }
-  else if (msg.t === 'hasar') hasarAl(clamp(int(msg.miktar), 0, 9999), short(msg.kimden, 40));   // DM'in uyguladığı hasar (BÖLÜM 10b)
+  else if (msg.t === 'hasar') hasarAl(clamp(int(msg.miktar), 0, 9999), short(msg.kimden, 40), !!msg.dogrudan);   // DM'in uyguladığı hasar (BÖLÜM 10b)
   else if (msg.t === 'face') {                                       // bir koltuğun küçük portresi (yalnızca değişince gelir)
     const id = cleanSeat(msg.id), img = cleanImg(msg.img);
     if (id && id !== 'dm') {
@@ -6802,7 +6803,7 @@ function zarHedefle(r) {
   if (r.hasar && SAVAS.hasarSecili) { SAVAS.hasarSecili = false; hedefUI(); }   // "Sonraki zar hasar" tek zarlıktır
 }
 // DM'de: hasarı uygular (zar yere indikten sonra; hemen: DM'in "Hasarı vur" düğmesinden). Düşmansa canından düşer, oyuncuysa oyuncuya gider.
-function hasarUygula(hedef, miktar, kimden, hemen) {
+function hasarUygula(hedef, miktar, kimden, hemen, dogrudan) {
   miktar = clamp(int(miktar), 0, 9999);
   if (!miktar || store.net.role !== 'dm') return;
   setTimeout(() => {
@@ -6814,8 +6815,8 @@ function hasarUygula(hedef, miktar, kimden, hemen) {
       return;
     }
     const p = seated().find(x => x.seat === hedef);
-    if (p && !send(p.conn, { t:'hasar', miktar, kimden: short(kimden, 40) })) notify(`${p.name} şu an bağlı değil`, `${miktar} hasarı kağıdından elle düş.`);
-    else if (p && hemen) notify(`${(p.char && p.char.name.trim()) || p.name} ${miktar} hasar aldı`, `${kimden || 'Düşman'} vurdu.`);
+    if (p && !send(p.conn, { t:'hasar', miktar, kimden: short(kimden, 40), dogrudan: dogrudan ? 1 : 0 })) notify(`${p.name} şu an bağlı değil`, `${miktar} hasarı kağıdından elle düş.`);
+    else if (p && hemen) notify(`${(p.char && p.char.name.trim()) || p.name} ${miktar} hasar aldı`, `${kimden || 'Düşman'} vurdu.${dogrudan ? ' Doğrudan canından.' : ''}`);
   }, hemen ? 0 : SAVAS.gecikme);
 }
 
@@ -6842,6 +6843,7 @@ function renderBekleyen() {
       <button class="btn sm" data-act="hb-yari" title="Hasarı yarıya indir (aşağı yuvarlanır)">Yarısı</button>
       <span class="hb-zar" title="Zarın sonucu">${b.miktar !== b.zar ? `zar ${b.zar}` : ''}</span>
     </div>
+    ${seated().some(p => p.seat === b.hedef) ? `<label class="check hb-dog" title="Oyuncunun geçici canı varsa onu atlayıp doğrudan canından düşer"><input type="checkbox" class="hb-dogrudan"${b.dog ? ' checked' : ''}> Doğrudan cana (geçici canı atla)</label>` : ''}
     <div class="hb-btn"><button class="btn sm" data-act="hb-iptal">Vazgeç</button><button class="btn sm accent" data-act="hb-vur"><svg class="ic"><use href="#i-hancer"/></svg>Hasarı vur</button></div>
   </div>`).join('');
 }
@@ -6851,18 +6853,26 @@ document.addEventListener('input', e => {
   if (!e.target.classList.contains('hb-n')) return;
   const b = hbBul(e.target); if (b) { b.miktar = clamp(int(e.target.value), 0, 9999); const z = e.target.parentNode.querySelector('.hb-zar'); z.textContent = b.miktar !== b.zar ? `zar ${b.zar}` : ''; }
 });
+document.addEventListener('change', e => { if (e.target.classList.contains('hb-dogrudan')) { const b = hbBul(e.target); if (b) b.dog = e.target.checked; } });
 function hbKaldir(b) { SAVAS.bekleyen = SAVAS.bekleyen.filter(x => x !== b); renderBekleyen(); }
 // Oyuncuda: DM'den gelen hasar kendi canımdan düşer (önce geçici can)
-function hasarAl(miktar, kimden) {
+/* Hasar (2026-11-10, kullanıcının sorusu üzerine; kurala uygun): AC hasarı azaltmaz, yalnızca düşmanın vurmak için tutturması
+   gereken sayıdır. Vuran hasar önce geçici candan, o bitince candan düşer. "Doğrudan cana": DM'in (ya da oyuncunun) kararıyla
+   geçici canı atlayan hasar (masa kuralı; kurallarda yok). */
+function hasarDus(c, n, dogrudan) {                                   // düşer; geçici candan düşeni döndürür
+  const t = dogrudan ? 0 : Math.min(Math.max(0, int(c.hp.temp)), n);
+  c.hp.temp = int(c.hp.temp) - t;
+  c.hp.cur = Math.max(0, int(c.hp.cur) - (n - t));
+  return t;
+}
+const hasarAyrinti = (n, t, dogrudan) => dogrudan ? 'Doğrudan canından düştü (geçici can atlandı). ' : t ? `${t} tanesi geçici candan, ${n - t} tanesi candan düştü. ` : '';
+function hasarAl(miktar, kimden, dogrudan) {
   if (!miktar) return;
-  const c = ownChar(); let kalan = miktar;
-  const t = int(c.hp.temp);
-  if (t > 0) { const d = Math.min(t, kalan); c.hp.temp = t - d; kalan -= d; }
-  c.hp.cur = Math.max(0, int(c.hp.cur) - kalan);
+  const c = ownChar(), t = hasarDus(c, miktar, dogrudan);
   if (C === c) { setInput('hp.cur'); setInput('hp.temp'); }
   changed();
   if (mode === 'table') { renderMe(); renderTable(); }
-  notify(`${kimden || 'Bir düşman'} sana ${miktar} hasar verdi`, dusunce(c) || `Kalan can: ${c.hp.cur} / ${int(c.hp.max)}`);
+  notify(`${kimden || 'Bir düşman'} sana ${miktar} hasar verdi`, hasarAyrinti(miktar, t, dogrudan) + (dusunce(c) || `Kalan can: ${c.hp.cur} / ${int(c.hp.max)}`));
 }
 
 /* ───────── Tepsideki atan / hedef / hasar ve "Zar at"ın üstündeki hedef etiketi ───────── */
@@ -7163,7 +7173,7 @@ Object.assign(ACTIONS, {
     hbKaldir(b);
     if (!b.miktar) { notify('Hasar vurulmadı', 'Miktar 0.'); return; }
     if (!npcler().some(n => n.id === b.hedef) && !seated().some(p => p.seat === b.hedef)) { notify(`${b.ad || 'Hedef'} masada değil`, 'Hasar vurulamadı.'); return; }
-    hasarUygula(b.hedef, b.miktar, b.kimden, true);
+    hasarUygula(b.hedef, b.miktar, b.kimden, true, b.dog);
   },
   'hedef-kaldir': () => { store.hedef = ''; SAVAS.hasarSecili = false; save(); hedefUI(); renderTable(); },
   'hasar-sec': () => { SAVAS.hasarSecili = !SAVAS.hasarSecili && !!gecerliHedef(); hedefUI(); },
@@ -8994,6 +9004,7 @@ function renderMe() {
       <section><h3>Can<em>hasar ya da iyileşme</em></h3>
         <div class="mc-hp"><input type="number" id="meAmount" min="0" placeholder="Miktar" aria-label="Hasar ya da iyileşme miktarı" value="${esc(amount)}">
           <button class="btn sm bad" data-act="hp" data-k="dmg" data-src="me">Hasar</button><button class="btn sm good" data-act="hp" data-k="heal" data-src="me">İyileş</button></div>
+        ${int(c.hp.temp) ? `<label class="check mc-dog" title="Hasar geçici canı (${int(c.hp.temp)}) atlayıp doğrudan canından düşsün"><input type="checkbox" id="meDogrudan"> Doğrudan cana (geçici canı atla)</label>` : ''}
         ${down && !olu(c) ? `<button class="btn sm bad" data-act="roll" data-roll="death" title="Kalkma hakkı ${3 - int(c.ds.s)}/3 · başarısızlık ${int(c.ds.f)}/3 (uzun dinlenmeye kadar)">Ölüm zarı at (${3 - int(c.ds.f)} hakkın kaldı)</button>` : ''}
         ${olu(c) ? `<p class="hp-note" style="margin:0">${oluNeden(c)}</p>` : ''}
         ${c.insp ? '<button class="me-insp" data-act="insp" title="Kullanınca bas: bir d20 zarını yeniden atabilirsin"><svg class="ic"><use href="#i-star"/></svg>İlhamın var: kullan</button>' : ''}</section>
