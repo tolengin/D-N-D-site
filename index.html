@@ -792,6 +792,7 @@ body:not(.sade) .atk-yuva{display:none}
 .li.atk.oku [data-act="atk-duzen"]{grid-column:8}
 /* Not (menzil, özellik) silahın adının altında küçük satır: hasarın yanında tek başına "21" gibi anlamsız duruyordu */
 .atk-ad{display:flex;flex-direction:column;min-width:0}
+.list.silahsiz{margin-top:var(--lw);padding-top:var(--lw);border-top:1px dashed var(--line)}   /* yumruk / tekme: kendi saldırılarından ayrı, hep duran satır */
 .atk-ad b{font-family:var(--font-display);font-size:18px;font-weight:600;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .atk-ad small{font-size:13px;font-weight:500;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Okunur satırda hasar bir zardır (Die Or Field): hançer + "1d8+3 slashing" tek düğme */
@@ -1334,6 +1335,8 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
   background:linear-gradient(45deg,transparent 0 29%,var(--muted) 29% 36%,transparent 36% 48%,var(--muted) 48% 55%,transparent 55%) var(--lead);opacity:0;transition:opacity .15s}
 .cam.yuzer .cam-boy{left:auto;right:-8px;cursor:nwse-resize;
   background:linear-gradient(135deg,transparent 0 45%,var(--muted) 45% 52%,transparent 52% 64%,var(--muted) 64% 71%,transparent 71%) var(--lead)}
+.cam.yuzer.sagda .cam-boy{left:-8px;right:auto;cursor:nesw-resize;
+  background:linear-gradient(45deg,transparent 0 29%,var(--muted) 29% 36%,transparent 36% 48%,var(--muted) 48% 55%,transparent 55%) var(--lead)}   /* sağ yarıda: sola doğru büyür */
 .cam:hover .cam-boy,.cam-boy.surukle{opacity:.8}
 .cam.kapali .cam-boy{display:none}
 @media (hover:none){.cam-boy{opacity:.6}}
@@ -2436,11 +2439,13 @@ body.tv-full #tableView{height:100dvh}
           <div class="panel-h">
             <div>
               <h3>Weapons &amp; attacks<em>Silahlar ve saldırılar</em></h3>
-              <p class="hint">Saldırı bonusu kendiliğinden hesaplanır: seçtiğin yeteneğin modifiyesi, yetkinsen yetkinlik bonusu ve varsa ek bonus. Hasar kutusuna zarı yaz (örnek: 1d8+3), yanındaki zar düğmesine bas.</p>
+              <p class="hint">Saldırı bonusu kendiliğinden hesaplanır: seçtiğin yeteneğin modifiyesi, yetkinsen yetkinlik bonusu ve varsa ek bonus. Hasar kutusuna zarı yaz (örnek: 1d8+3), yanındaki zar düğmesine bas. Yumruk / tekme her karakterde hep vardır.</p>
             </div>
             <button class="btn accent sm" data-act="add" data-list="attacks"><svg class="ic"><use href="#i-plus"/></svg>Saldırı ekle</button>
           </div>
           <div class="list" id="attacks"></div>
+          <!-- Yumruk / tekme (silahsız vuruş; 2026-11-10): her karakterde hep durur, listeye kaydedilmez (silahsizCiz) -->
+          <div class="list silahsiz" id="silahsiz"></div>
           </div>
         </div>
 
@@ -2998,6 +3003,26 @@ const pb = () => 2 + Math.floor((C.level - 1) / 4);                // seviye 1-4
 const saveBonus = k => mod(k) + (C.saves[k] ? pb() : 0);
 const skillBonus = k => mod(SKILL[k].ab) + int(C.skills[k]) * pb();
 const attackBonus = a => mod(a.ab) + (a.prof ? pb() : 0) + int(a.bonus);
+/* Yumruk / tekme (2026-11-10, kullanıcının isteği): SRD 5.2.1 "Unarmed Strike" (2024 kuralları). Herkes silahsız vuruşta yetkindir:
+   vuruş STR + yetkinlik, hasar 1 + STR (ezici). Tutma ya da itme: hedef ZD = 8 + STR + yetkinlik ile STR ya da DEX kurtarma zarı atar.
+   Monk (Martial Arts): STR ile DEX'ten yüksek olanı kullanır (tutma / itme ZD'sinde de); hasar Martial Arts zarı + o yetenek
+   (1d6; 5. seviye 1d8, 11. 1d10, 17. 1d12). Saldırı listesine kaydedilmez: hep durur, silinmez. c: kağıt (C) ya da masadaki kendi karakterim */
+function silahsiz(c = C) {
+  const m = k => Math.floor((int(c.abilities[k]) - 10) / 2), p = 2 + Math.floor((int(c.level) - 1) / 4);
+  const monk = String(c.cls || '').trim().toLowerCase() === 'monk';
+  const ab = monk && m('dex') > m('str') ? 'dex' : 'str', am = m(ab), lv = int(c.level);
+  const dmg = monk ? `1d${lv >= 17 ? 12 : lv >= 11 ? 10 : lv >= 5 ? 8 : 6}${am ? (am > 0 ? '+' : '') + am : ''}` : String(Math.max(0, 1 + am));
+  return { ab, am, p, vurus: am + p, dmg, zd: 8 + am + p, monk };
+}
+function silahsizCiz() {
+  const u = silahsiz();
+  $('#silahsiz').innerHTML = `
+    <div class="li atk oku" data-i="-1">
+      <span class="atk-ad"><b>Yumruk / tekme</b><small title="Silahsız vuruşla hasar vermek yerine hedefi tutabilir ya da itebilirsin: hedef bu zorluk derecesine karşı STR ya da DEX kurtarma zarı atar (hangisini isterse)">Silahsız vuruş${u.monk ? ' · Martial Arts' : ''} · tutma / itme: hedef ZD ${u.zd}</small></span>
+      <button class="roll" data-act="roll" data-roll="silahsiz" title="Yumruk ya da tekme: vuruş zarı at (${u.ab.toUpperCase()} + yetkinlik)">${sign(u.vurus)}</button>
+      <button class="roll atk-hasar" data-act="roll" data-roll="silahsiz-hasar" title="Hasar: ${esc(u.dmg)} ezici">${HASAR_IC}<span>${esc(u.dmg)} ezici</span></button>
+    </div>`;
+}
 const exhPenalty = () => 2 * clamp(int(C.exh), 0, 6);              // bitkinlik: her kademe d20 zarlarından 2 düşer
 const findClass = () => { const n = C.cls.trim().toLowerCase(); const key = Object.keys(CLASSES).find(k => k.toLowerCase() === n); return key ? Object.assign({ name: key }, CLASSES[key]) : null; };
 function slotsFor(cl, level) {
@@ -3138,6 +3163,16 @@ function doRoll(btn) {
       { on20:'Kritik vuruş! Şimdi hasar zarına bas, zarlar iki kez atılır.', on1:'Doğal 1: saldırı ıskalar.' });
     critRow = r.kept === 20 ? i : -1;
   }
+  else if (kind === 'silahsiz') {                                     // yumruk / tekme (masada kendi camımdan da: C her zaman benim kağıdım ya da DM'in baktığı)
+    const u = silahsiz();
+    const r = rollD20('Yumruk / tekme: vuruş zarı', [[u.ab.toUpperCase(), u.am], ['yetkinlik', u.p]],
+      { on20:'Kritik vuruş! Şimdi hasar zarına bas.', on1:'Doğal 1: saldırı ıskalar.' });
+    critRow = r && r.kept === 20 ? 'silahsiz' : -1;
+  }
+  else if (kind === 'silahsiz-hasar') {
+    rollExpr(silahsiz().dmg, 'Yumruk / tekme: hasar (ezici)', { crit: critRow === 'silahsiz', hasar: true });
+    critRow = -1;
+  }
   else if (kind === 'damage') {
     const a = C.attacks[i]; if (!a) return;
     if (!String(a.dmg).trim()) { notify('Önce hasar zarını yaz', 'Örnek: 1d8+3 slashing'); return; }
@@ -3253,6 +3288,7 @@ function renderLists() {
       <button class="icon-btn sade-only" data-act="atk-duzen" title="Bitti" aria-label="Değiştirmeyi bitir"><svg class="ic"><use href="#i-check"/></svg></button>
     </div>`).join('')
     : '<p class="empty">Henüz saldırı yok. “Saldırı ekle” ile kılıcını, yayını ya da büyü saldırını yaz.</p>';
+  silahsizCiz();
 
   $('#spells').innerHTML = C.spells.length ? `
     <div class="li-head spell"><span>Seviye</span><span>Ad</span><span>Süre</span><span>Menzil</span><span>Özellik</span><span>Hazır</span><span>Not</span><span></span></div>` +
@@ -3392,6 +3428,7 @@ function refresh() {
 
   // Saldırı satırlarındaki vuruş bonusları
   $$('#attacks .li').forEach(row => { const a = C.attacks[int(row.dataset.i)]; if (a) $('[data-roll="attack"]', row).textContent = sign(attackBonus(a)); });
+  silahsizCiz();                                                     // yumruk / tekme: güç, seviye ya da sınıf değişmiş olabilir
 
   // Envanter
   const carried = C.items.reduce((sum, it) => sum + Math.max(0, num(it.qty)) * Math.max(0, num(it.wt)), 0);
@@ -7166,7 +7203,10 @@ function renderMe() {
   const rehber = rehberMetni(c);
   const atk = c.attacks.slice(0, 3).map((a, i) => `<div class="mc-atk" data-row data-i="${i}"><span title="${esc(a.dmg)}">${esc(a.name || 'Saldırı')}<small>${esc(String(a.dmg).split(' ')[0] || 'hasar')}</small></span>
       <button class="roll" data-act="roll" data-roll="attack" title="Vuruş zarı at: ${esc(a.name || 'saldırı')}">${sign(attackBonus(a))}</button>
-      <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(a.dmg)}" aria-label="Hasar zarı at">${HASAR_IC}</button></div>`).join('');
+      <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(a.dmg)}" aria-label="Hasar zarı at">${HASAR_IC}</button></div>`).join('')
+    + (u => `<div class="mc-atk" data-row data-i="-1"><span title="Silahsız vuruş · tutma / itme: hedef ZD ${u.zd}">Yumruk / tekme<small>${esc(u.dmg)}</small></span>
+      <button class="roll" data-act="roll" data-roll="silahsiz" title="Yumruk ya da tekme: vuruş zarı at">${sign(u.vurus)}</button>
+      <button class="roll die" data-act="roll" data-roll="silahsiz-hasar" title="Hasar: ${esc(u.dmg)} ezici" aria-label="Yumruk / tekme hasarı">${HASAR_IC}</button></div>`)(silahsiz(c));
   // Beceriler / envanter camı (store.meSek: '' | 'beceri' | 'envanter')
   const sek = store.meSek || '';
   let sekCam = '';
@@ -7230,8 +7270,8 @@ function rehberMetni(c) {
     if (!benim || benim.ini === null) return 'Savaş başladı. Önce <b>İnisiyatif at</b>: kimin önce oynayacağını belirler (üstteki sıra şeridinde).';
     if (s.simdi === me) {
       const a = c.attacks[0], dus = net.npcs.length && !gecerliHedef();
-      if (dus) return `Sıra sende. Önce sağdaki <b>Düşmanlar</b>dan hedefini seç${a ? `, sonra <b>${esc(a.name || 'saldırı')}</b> zarına bas` : ''}.`;
-      return a ? `Sıra sende. Saldırmak için <b>${esc(a.name || 'saldırı')}</b> yanındaki sayıya bas; vurursan hasar zarını at.` : 'Sıra sende. Ne yapacağını DM\'e söyle; DM hangi zarı atacağını söyler.';
+      if (dus) return `Sıra sende. Önce sağdaki <b>Düşmanlar</b>dan hedefini seç, sonra <b>${esc(a ? a.name || 'saldırı' : 'Yumruk / tekme')}</b> zarına bas.`;
+      return `Sıra sende. Saldırmak için <b>${esc(a ? a.name || 'saldırı' : 'Yumruk / tekme')}</b> yanındaki sayıya bas; vurursan hasar zarını at. Başka bir şey yapacaksan DM'e söyle.`;
     }
     return simdi ? `Sıradaki: <b>${esc(simdi.ad)}</b>. Sıran gelince burada yazar.` : 'İnisiyatif zarları bekleniyor.';
   }
@@ -7637,13 +7677,23 @@ function camYerlestir() {
     const el = $(CAM.el[k]); if (!el) return;
     if (!$(':scope > .cam-boy', el)) el.insertAdjacentHTML('beforeend', '<span class="cam-boy" title="Sürükleyerek büyüt ya da küçült" aria-hidden="true"></span>');
     const a = camAyar(k), yuzer = !tel && a.x != null;
-    // Yalnızca yeri değişecekse taşınır (taşınan öğe odağı kaybeder: sohbete yazarken pencere büyüse yazı kutusu kapanmasın)
-    if (yuzer) { if (el.parentNode !== yuz) { yuz.appendChild(el); if (k === 'muzik') mzYeniden(); } el.style.left = a.x + '%'; el.style.top = a.y + '%'; }
-    else { if (sag.children[i] !== el) { sag.insertBefore(el, sag.children[i] || null); if (k === 'muzik') mzYeniden(); } i++; el.style.left = el.style.top = ''; }
-    el.classList.toggle('yuzer', yuzer);
-    el.classList.toggle('boyutlu', !tel && a.h > 0);
     if (!tel && a.w > 0) el.style.setProperty('--cw', a.w); else el.style.removeProperty('--cw');
     if (!tel && a.h > 0) el.style.setProperty('--ch', a.h); else el.style.removeProperty('--ch');
+    // Yalnızca yeri değişecekse taşınır (taşınan öğe odağı kaybeder: sohbete yazarken pencere büyüse yazı kutusu kapanmasın)
+    let sagda = false;
+    if (yuzer) {
+      if (el.parentNode !== yuz) { yuz.appendChild(el); if (k === 'muzik') mzYeniden(); }
+      // 2026-11-10: ekranın sağ yarısındaki cam sağ kenarından tutulur: "Son atışlar" açılınca ve köşeden büyütülünce sola doğru açılır
+      const W = yuz.clientWidth || 1, gen = camGen(el) / W * 100;
+      sagda = a.x + gen / 2 > 50;
+      el.style.left = sagda ? 'auto' : a.x + '%';
+      el.style.right = sagda ? Math.max(0, 100 - a.x - gen) + '%' : '';
+      el.style.top = a.y + '%';
+    }
+    else { if (sag.children[i] !== el) { sag.insertBefore(el, sag.children[i] || null); if (k === 'muzik') mzYeniden(); } i++; el.style.left = el.style.top = el.style.right = ''; }
+    el.classList.toggle('yuzer', yuzer);
+    el.classList.toggle('sagda', sagda);
+    el.classList.toggle('boyutlu', !tel && a.h > 0);
   });
   camSinirla();
 }
@@ -7651,8 +7701,10 @@ function camYerlestir() {
    kendi camının kenarlarına CAM_YAPIS pikselden yakınsa oraya çekilir: yan yana (8 px ara), aynı hizada ya da köşede.
    Yatay ve dikey ayrı bakılır; ikisi birden tutunca cam köşeye oturur. Kapalıysa (store.camYapis false) ya da Alt basılıysa yapışmaz. */
 const CAM_YAPIS = 16, CAM_ARA = 8;
+// Camın kendi (kapalı) genişliği, piksel: "Son atışlar" üstüne gelince 40 birime açılır; yer ve yapışma kapalı genişliğe göre
+function camGen(el) { return el.dataset.cam === 'log' ? (camAyar('log').w || 17) * camBirim() : el.getBoundingClientRect().width; }
 function camYapistir(el, xp, yp, A) {
-  const W = A.width, H = A.height, r = el.getBoundingClientRect(), w = r.width, h = r.height;
+  const W = A.width, H = A.height, r = el.getBoundingClientRect(), w = camGen(el), h = r.height;
   const px = xp / 100 * W, py = yp / 100 * H;
   const xs = [CAM_ARA, W - w - CAM_ARA], ys = [CAM_ARA, H - h - CAM_ARA];   // ekranın kenarları (köşeler bunların birleşimi)
   const hedefler = [...$$('.cam'), $('.tv-ust'), $('#tvMe'), $('.tv-sag')].filter(t => t && t !== el && !el.contains(t) && !t.contains(el) && t.offsetParent);
@@ -7672,7 +7724,7 @@ function camSinirla() {                                               // yüzen 
     const r = el.getBoundingClientRect();
     if (!r.width) return;
     const x = clamp(r.left, A.left, Math.max(A.left, A.right - r.width)), y = clamp(r.top, A.top, Math.max(A.top, A.bottom - 48));
-    if (x !== r.left) el.style.left = ((x - A.left) / A.width * 100) + '%';
+    if (x !== r.left) { if (el.classList.contains('sagda')) el.style.right = ((A.right - x - r.width) / A.width * 100) + '%'; else el.style.left = ((x - A.left) / A.width * 100) + '%'; }
     if (y !== r.top) el.style.top = ((y - A.top) / A.height * 100) + '%';
   });
 }
@@ -7684,7 +7736,7 @@ function camSinirla() {                                               // yüzen 
     if (!boy && (!bas || e.target.closest('button'))) return;          // başlıktaki "−" düğmesi kendi işini yapar
     const el = e.target.closest('.cam'), A = $('.tv-wrap').getBoundingClientRect(), r = el.getBoundingClientRect(), u = camBirim();
     const li = CAM.liste[el.dataset.cam] && $(CAM.liste[el.dataset.cam], el);
-    d = { el, k: el.dataset.cam, id: e.pointerId, x: e.clientX, y: e.clientY, A, r, u, boy: !!boy, oynadi: false, yuzer: el.classList.contains('yuzer'),
+    d = { el, k: el.dataset.cam, id: e.pointerId, x: e.clientX, y: e.clientY, A, r, u, boy: !!boy, oynadi: false, yuzer: el.classList.contains('yuzer'), sagda: el.classList.contains('sagda'), xb: camAyar(el.dataset.cam).x,
           w0: camAyar(el.dataset.cam).w || 17, h0: li && li.offsetParent ? li.getBoundingClientRect().height / u : 0 };   // w0: camın kendi genişliği (açık "Son atışlar"ın 40 birimi değil)
     if (boy) { e.preventDefault(); e.stopPropagation(); boy.classList.add('surukle'); try { boy.setPointerCapture(e.pointerId); } catch (er) { /* yok say */ } }
   }, true);
@@ -7701,11 +7753,14 @@ function camSinirla() {                                               // yüzen 
         try { d.el.setPointerCapture(e.pointerId); } catch (er) { /* yok say */ }
       }
     }
-    if (d.boy) {                                                       // rıhtımda sola, yüzerken sağa doğru büyür
-      const w = clamp(d.w0 + (d.yuzer ? dx : -dx) / d.u, CAM.w[0], CAM.w[1]), h = clamp(d.h0 + dy / d.u, CAM.h[0], CAM.h[1]);
-      camKaydet(d.k, { w: +w.toFixed(2), h: d.h0 ? +h.toFixed(2) : 0 });
+    if (d.boy) {                                                       // rıhtımda ve sağ yarıda sola, sol yarıda sağa doğru büyür
+      const sola = !d.yuzer || d.sagda;
+      const w = clamp(d.w0 + (sola ? -dx : dx) / d.u, CAM.w[0], CAM.w[1]), h = clamp(d.h0 + dy / d.u, CAM.h[0], CAM.h[1]);
+      const deg = { w: +w.toFixed(2), h: d.h0 ? +h.toFixed(2) : 0 };
+      if (d.yuzer && d.sagda) deg.x = +(d.xb - (w - d.w0) * d.u / d.A.width * 100).toFixed(2);   // sağ kenar yerinde kalsın
+      camKaydet(d.k, deg);
     } else {
-      const gen = d.el.getBoundingClientRect().width / d.A.width * 100;
+      const gen = camGen(d.el) / d.A.width * 100;
       let x = d.x0 + dx / d.A.width * 100, y = d.y0 + dy / d.A.height * 100;
       if (store.camYapis !== false && !e.altKey) [x, y] = camYapistir(d.el, x, y, d.A);
       camKaydet(d.k, { x: +clamp(x, 0, 100 - gen).toFixed(2), y: +clamp(y, 0, 100 - 4800 / d.A.height).toFixed(2) });
