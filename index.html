@@ -634,6 +634,34 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .lv-r select{width:auto;flex:0 1 160px;min-width:0;padding:6px 8px}
 .lv-uyari{margin:6px 0 0;color:var(--bad)}
 .lv-atla{margin-top:4px}
+.lv-atla:disabled{opacity:.45;cursor:not-allowed}
+.lv-atla.hazir{box-shadow:0 0 0 2px var(--accent),0 0 14px color-mix(in srgb,var(--accent) 55%,transparent)}   /* XP doldu: kazanılmış ışık */
+.xp-cubuk{display:block;width:100%;height:6px;margin-top:4px;background:var(--lead);overflow:hidden}
+.xp-cubuk>span{display:block;height:100%;width:0;background:var(--accent);transition:width .4s}
+.xp-yazi{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums lining-nums}
+/* Sınıf hakları (2026-11-10): kağıtta Dinlenme camında, masada kendi camında */
+.haklar{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.haklar[hidden]{display:none}
+.hk-bas{margin:0 0 8px;font-family:var(--font-display);font-size:16px}
+.hk-bas em{margin-left:8px;font-family:var(--font-ui);font-style:normal;font-size:12px;font-weight:500;color:var(--muted)}
+.hk-liste{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.hk-liste li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 8px;background:var(--surface)}
+.hk-ad{display:flex;flex-direction:column;min-width:0}
+.hk-ad b{font-weight:700;line-height:1.2}
+.hk-ad small{font-size:12px;color:var(--muted);line-height:1.3}
+.hk-sayi{display:flex;align-items:center;gap:4px;flex:none}
+.hk-sayi input{width:58px;text-align:center;padding:4px}
+.hk-sayi small{color:var(--muted)}
+.hk-pip{flex:none;gap:2px}
+body.peek #haklar{pointer-events:none}
+body.peek #sheet [data-act="kisa-dinlen"]{display:none}
+.mc-dinlen{display:flex;gap:var(--lw);margin-top:var(--lw)}
+.mc-dinlen .btn{flex:1;border:0}
+.xp-ver{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.xp-ver input{width:110px}
+.xp-ver select{width:auto;min-width:140px}
+.kp-xp{display:flex;gap:6px;margin-top:6px}
+.kp-xp input{width:84px;padding:4px 8px}
 .foot{margin-top:28px;text-align:center;font-size:12px;color:var(--muted)}
 .foot p{max-width:96ch;margin:0 auto 6px}
 .foot a{color:inherit;overflow-wrap:anywhere}
@@ -2073,6 +2101,8 @@ body.tv-full #tableView{height:100dvh}
     <div class="dm-grid">
       <div>
         <div class="card-h"><h2>Party<em>Oyuncular</em></h2></div>
+        <!-- XP ver (2026-11-10): herkese ya da bir oyuncuya; oyuncunun XP çubuğu dolunca Seviye atla açılır -->
+        <div class="xp-ver"><span class="f-l">XP ver</span><input type="number" id="xpMiktar" min="1" max="100000" placeholder="Miktar" aria-label="Verilecek XP"><select id="xpKime" aria-label="Kime"><option value="">Herkese</option></select><button class="btn sm accent" data-act="xp-ver">Ver</button></div>
         <div class="party" id="party"></div>
         <!-- Düşmanlar ve NPC'ler: DM ekler, canını ve görünürlüğünü belirler; oyuncular hedef seçip hasar verir (BÖLÜM 10b) -->
         <section class="card npc-kart">
@@ -2309,6 +2339,8 @@ body.tv-full #tableView{height:100dvh}
           <button data-act="lvl" data-d="1" aria-label="Seviyeyi artır"><svg class="ic"><use href="#i-plus"/></svg></button>
         </div>
         <!-- Seviye atla (2026-11-10, BÖLÜM 8c): can, yeni özellikler, yetenek artışı. −/+ elle düzeltmek için kalır -->
+        <!-- XP (2026-11-10): DM verir; bir sonraki seviyenin XP'si dolunca "Seviye atla" açılır (lvDugmeler) -->
+        <span class="xp-cubuk" id="xpCubuk" aria-hidden="true"><span></span></span><small class="xp-yazi" id="xpYazi"></small>
         <button class="btn sm accent lv-atla" id="lvAtla" data-act="seviye-atla" title="Seviye atla: can zarı, bu seviyede gelen özellikler, yetenek artışı">Seviye atla</button>
         <button class="btn sm lv-atla" id="lvGeri" data-act="lv-geri" title="Son seviye atlamayı geri al" hidden>Geri al</button>
       </div>
@@ -2434,13 +2466,16 @@ body.tv-full #tableView{height:100dvh}
             <select data-bind="hitDie" aria-label="Can zarı türü"><option>d6</option><option>d8</option><option>d10</option><option>d12</option></select>
             <span><span class="sade-blok">Can zarın: <b data-out="hdTur">d8</b> · </span><b data-out="hdLeft">1</b> / <span data-out="level">1</span> kaldı</span>
             <button class="btn sm tam-only" data-act="hitdie">Zar harca</button>
+            <button class="btn sm tam-only" data-act="kisa-dinlen" title="Kısa dinlenme: kısa dinlenmede dolan hakların yenilenir, canın eksikse bir can zarı harcanır">Kısa dinlenme</button>
           </div>
           <div class="btns hd-dinlen sade-blok">
-            <button class="btn sm" data-act="hitdie" title="Bir can zarı atıp canını doldurursun (zar + CON modifiyen)"><svg class="ic"><use href="#i-flame"/></svg>Kısa dinlenme</button>
+            <button class="btn sm" data-act="kisa-dinlen" title="Kısa dinlenmede dolan hakların yenilenir; canın eksikse bir can zarı atıp canını doldurursun (zar + CON modifiyen)"><svg class="ic"><use href="#i-flame"/></svg>Kısa dinlenme</button>
             <button class="btn sm" data-act="longrest" title="Canı, can zarlarını ve büyü yuvalarını yeniler"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button>
           </div>
           <p class="hint tam-only">Kısa dinlenmede harcayıp can yenilersin: zar sonucu + CON modifiyen. Uzun dinlenmede hepsi geri gelir.</p>
           <p class="hint sade-blok">Kısa dinlenme bir can zarı harcar: zar sonucu + CON modifiyen kadar can yenilersin. Uzun dinlenmede can ve can zarların geri gelir.</p>
+          <!-- Sınıf hakları (2026-11-10, hakCiz): Öfke, İkinci soluk, El koyma… kısa / uzun dinlenmede dolar -->
+          <div class="haklar" id="haklar" hidden></div>
 
           <div data-tam="ds">
           <div class="card-h sub">
@@ -3235,6 +3270,7 @@ function lvHd() { const cl = findClass(); return cl ? cl.hd : C.hitDie; }
 function lvAc() {
   if (mode === 'peek') return;
   if (int(C.level) >= 20) { notify('Zaten 20. seviyedesin', 'Daha yukarısı yok.'); return; }
+  const xd = xpDurum(); if (!xd.hazir) { notify('XP yetmiyor', `${xd.ust - xd.xp} XP daha gerekiyor. XP'yi DM verir.`); return; }
   LV.l = int(C.level) + 1;
   const k = LV.kayit && LV.kayit.id === C.id && LV.kayit.l === LV.l ? LV.kayit : null;   // bu seviye için zaten atılmış can
   LV.can = k ? k.can : null; LV.ayrinti = k ? k.ayrinti : '';
@@ -3338,11 +3374,93 @@ function lvGeriAl() {
   showChar(); changed(); renderChars();
   notify(`${g.l}. seviyeye çıkış geri alındı`, 'Kağıdın seviye atlamadan önceki hâline döndü.');
 }
-function lvDugmeler() {                                               // refresh her çalıştığında
+function lvDugmeler() {                                               // refresh her çalıştığında: XP çubuğu, Seviye atla, Geri al, haklar
   const a = $('#lvAtla'), g = $('#lvGeri'), ro = mode === 'peek';
   if (!a) return;
-  a.hidden = ro || int(C.level) >= 20;
+  const d = xpDurum();
+  a.hidden = ro || d.l >= 20;
   g.hidden = ro || !LV.geri || LV.geri.id !== C.id;
+  a.disabled = !d.hazir; a.classList.toggle('hazir', d.hazir);
+  a.title = d.hazir ? 'XP doldu: seviye atla' : `${d.ust - d.xp} XP daha gerekiyor (XP'yi DM verir)`;
+  $('#xpCubuk span').style.width = (d.pct * 100).toFixed(1) + '%';
+  $('#xpYazi').textContent = d.l >= 20 ? `${d.xp} XP · en yüksek seviye` : d.hazir ? `${d.xp} XP · seviye atlayabilirsin` : `${d.xp} / ${d.ust} XP`;
+  hakCiz();
+}
+
+/* ───────── Hak sayacı ve XP (2026-11-10, kullanıcının isteği) ─────────
+   Haklar: sınıfın harcanan hakları (SRD 5.2.1). C.hak = { anahtar: harcanan } (harcanan saklanır: seviye atlayınca en çok
+   artınca kalan da artar). kisa: kısa dinlenmede 'hepsi' dolar, 'bir' 1 gelir, 0 yalnızca uzun dinlenmede. havuz: tek tek
+   değil miktarla harcanır (El koyma, büyü puanı, odak). Kağıtta Dinlenme camında, masada kendi camında "Haklar".
+   XP: DM verir ({t:'xp'}), kağıtta seviye kutusunda çubuk; bir sonraki seviyenin XP'si dolunca "Seviye atla" açılır. */
+const XP_ESIK = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000];
+function hakListe() {                                                  // C'nin hakları (sınıf, seviye ve yeteneklere göre)
+  const cl = findClass(), ad = cl ? cl.name : '', v = SINIF_OZ[ad], l = int(C.level);
+  const m = k => Math.floor((int(C.abilities[k]) - 10) / 2), en1 = k => Math.max(1, m(k));
+  const alt = !!v && (!deger(C.subclass) || deger(C.subclass).toLowerCase() === v.alt.toLowerCase());
+  const H = [], h = (k, en, tr, max, kisa, havuz) => { if (max > 0) H.push({ k, en, tr, max, kisa: kisa || 0, havuz: !!havuz }); };
+  if (ad === 'Barbarian') { h('ofke', 'Rage', 'Öfke', [2,2,3,3,3,4,4,4,4,4,4,5,5,5,5,5,6,6,6,6][l - 1], 'bir'); if (alt && l >= 14) h('korku', 'Intimidating Presence', 'Korkutucu varlık', 1); }
+  if (ad === 'Bard') h('ilham', 'Bardic Inspiration', 'Bard ilhamı', en1('cha'), l >= 5 ? 'hepsi' : 0);
+  if (ad === 'Cleric') { if (l >= 2) h('ilahi', 'Channel Divinity', 'İlahi güç', l >= 18 ? 4 : l >= 6 ? 3 : 2, 'bir'); if (l >= 10) h('mudahale', 'Divine Intervention', 'İlahi müdahale', 1); }
+  if (ad === 'Druid') { if (l >= 2) h('vahsi', 'Wild Shape', 'Vahşi biçim', l >= 17 ? 4 : l >= 6 ? 3 : 2, 'bir'); if (l >= 5) h('dirilis', 'Wild Resurgence', 'Vahşi diriliş (yuva)', 1); if (alt && l >= 6) h('toparlan', 'Natural Recovery', 'Doğal toparlanma', 1); }
+  if (ad === 'Fighter') { h('soluk', 'Second Wind', 'İkinci soluk', l >= 10 ? 4 : l >= 4 ? 3 : 2, 'bir'); if (l >= 2) h('atilim', 'Action Surge', 'Atılım', l >= 17 ? 2 : 1, 'hepsi'); if (l >= 9) h('yilmaz', 'Indomitable', 'Yılmazlık', l >= 17 ? 3 : l >= 13 ? 2 : 1); }
+  if (ad === 'Monk') { if (l >= 2) { h('odak', 'Focus Points', 'Odak puanı', l, 'hepsi', true); h('metabolizma', 'Uncanny Metabolism', 'Olağanüstü metabolizma', 1); } if (alt && l >= 6) h('butunluk', 'Wholeness of Body', 'Bedenin bütünlüğü', en1('wis')); }
+  if (ad === 'Paladin') { h('elkoy', 'Lay On Hands', 'El koyma', 5 * l, 0, true); if (l >= 2) h('smite', 'Paladin’s Smite', 'Yuvasız Divine Smite', 1); if (l >= 3) h('ilahi', 'Channel Divinity', 'İlahi güç', l >= 11 ? 3 : 2, 'bir'); if (l >= 5) h('binek', 'Faithful Steed', 'Yuvasız Find Steed', 1); if (alt && l >= 20) h('hale', 'Holy Nimbus', 'Kutsal hale', 1); }
+  if (ad === 'Ranger') { h('gozde', 'Favored Enemy', 'Yuvasız Hunter’s Mark', [2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6][l - 1]); if (l >= 10) h('yorulmaz', 'Tireless', 'Yorulmaz', en1('wis')); if (l >= 14) h('ortu', 'Nature’s Veil', 'Doğanın örtüsü', en1('wis')); }
+  if (ad === 'Rogue' && l >= 20) h('sans', 'Stroke of Luck', 'Şans vuruşu', 1, 'hepsi');
+  if (ad === 'Sorcerer') { h('dogustan', 'Innate Sorcery', 'Doğuştan büyü', 2); if (l >= 2) h('puan', 'Sorcery Points', 'Büyü puanı', l, 0, true); if (l >= 5) h('tazelen', 'Sorcerous Restoration', 'Büyü tazelenmesi', 1); if (alt && l >= 14) h('kanat', 'Dragon Wings', 'Ejder kanatları', 1); if (alt && l >= 18) h('ejder', 'Dragon Companion', 'Yuvasız Summon Dragon', 1); }
+  if (ad === 'Warlock') { if (l >= 2) h('kurnaz', 'Magical Cunning', 'Büyü kurnazlığı', 1); if (l >= 9) h('hami', 'Contact Patron', 'Hamiyle konuşma', 1); [[11, 6], [13, 7], [15, 8], [17, 9]].forEach(([s, b]) => { if (l >= s) h('sir' + b, 'Mystic Arcanum', `Gizemli sır (${b}. seviye)`, 1); }); if (alt && l >= 6) h('sans', 'Dark One’s Own Luck', 'Karanlığın şansı', en1('cha')); if (alt && l >= 14) h('cehennem', 'Hurl Through Hell', 'Cehenneme fırlat', 1); }
+  if (ad === 'Wizard') { h('toparlan', 'Arcane Recovery', 'Büyü toparlanması', 1); if (l >= 20) h('imza', 'Signature Spells', 'İmza büyüleri', 2, 'hepsi'); }
+  return H;
+}
+const hakKalan = h => h.max - clamp(int((C.hak || {})[h.k]), 0, h.max);
+const hakDinlenYazi = h => (h.kisa === 'hepsi' ? 'kısa dinlenmede dolar' : h.kisa === 'bir' ? 'kısa dinlenmede 1 gelir, uzunda dolar' : 'uzun dinlenmede dolar');
+function hakHtml() {                                                  // C'nin hak listesi (kağıtta ve masadaki camda aynı)
+  const L = hakListe();
+  if (!L.length) return '';
+  return `<ul class="hk-liste">${L.map(h => {
+    const kalan = hakKalan(h);
+    const say = h.havuz || h.max > 6
+      ? `<span class="hk-sayi"><button class="icon-btn" data-act="hak" data-k="${h.k}" data-d="-1" title="Bir harca" aria-label="${esc(h.tr)}: bir harca"><svg class="ic"><use href="#i-minus"/></svg></button><input type="number" data-hak="${h.k}" min="0" max="${h.max}" value="${kalan}" aria-label="${esc(h.tr)}: kalan"><small>/ ${h.max}</small><button class="icon-btn" data-act="hak" data-k="${h.k}" data-d="1" title="Bir geri al" aria-label="${esc(h.tr)}: bir geri al"><svg class="ic"><use href="#i-plus"/></svg></button></span>`
+      : `<span class="pips hk-pip">${Array.from({ length: h.max }, (_, i) => `<button class="pip${i < kalan ? ' on' : ''}" data-act="hak" data-k="${h.k}" data-v="${i < kalan ? i : i + 1}" aria-label="${esc(h.tr)}: ${i < kalan ? 'harca' : 'geri al'}"></button>`).join('')}</span>`;
+    return `<li><span class="hk-ad"><b>${esc(h.tr)}</b><small>${esc(h.en)} · ${hakDinlenYazi(h)}</small></span>${say}</li>`;
+  }).join('')}</ul>`;
+}
+function hakAyarla(k, kalan) {
+  if (mode === 'peek') return;
+  const h = hakListe().find(x => x.k === k); if (!h) return;
+  C.hak = Object.assign({}, C.hak, { [k]: h.max - clamp(int(kalan), 0, h.max) });
+  changed(); if (mode === 'table') renderMe();
+}
+function hakDinlen(tur) {                                             // 'kisa' | 'uzun': yenilenenlerin adları
+  const yen = [];
+  C.hak = Object.assign({}, C.hak);
+  hakListe().forEach(h => {
+    const once = clamp(int(C.hak[h.k]), 0, h.max);
+    const sonra = tur === 'uzun' || h.kisa === 'hepsi' ? 0 : h.kisa === 'bir' ? Math.max(0, once - 1) : once;
+    if (sonra !== once) { C.hak[h.k] = sonra; yen.push(h.tr); }
+  });
+  return yen;
+}
+function hakCiz() {                                                   // refresh her çalıştığında (kağıttaki Dinlenme camı)
+  const el = $('#haklar'); if (!el) return;
+  const html = hakHtml();
+  el.hidden = !html;
+  if (html && !el.contains(document.activeElement)) el.innerHTML = `<h3 class="hk-bas">Class resources<em>Sınıf hakları: harcadıkça dokun</em></h3>${html}`;
+}
+// Kısa dinlenme: kısa dinlenmede dolan haklar (Warlock'ta antlaşma yuvaları da) + canın eksikse bir can zarı
+function kisaDinlen() {
+  if (mode === 'peek') return;
+  const yen = hakDinlen('kisa'), cl = findClass();
+  if (cl && cl.name === 'Warlock' && C.slots.some(s => int(s.u) > 0)) { C.slots.forEach(s => { s.u = 0; }); yen.push('antlaşma yuvaları'); }
+  const zar = int(C.level) - int(C.hdUsed) > 0 && int(C.hp.cur) < int(C.hp.max);
+  if (zar) ACTIONS.hitdie(); else changed();
+  if (mode === 'table') renderMe();
+  notify('Kısa dinlenme', (yen.length ? `Yenilenen: ${yen.join(', ')}.` : 'Kısa dinlenmede yenilenen bir hakkın yoktu.') + (zar ? ' Bir can zarı harcandı.' : int(C.hp.cur) >= int(C.hp.max) ? ' Canın dolu, can zarı harcanmadı.' : ' Can zarın kalmadı.'));
+}
+// XP çubuğu ve "Seviye atla" (refresh'ten, lvDugmeler)
+function xpDurum(c = C) {
+  const l = int(c.level), alt = XP_ESIK[l - 1] || 0, ust = XP_ESIK[l], xp = Math.max(int(c.xp), alt);
+  return { l, xp, alt, ust, hazir: l < 20 && xp >= ust, pct: ust ? clamp((xp - alt) / (ust - alt), 0, 1) : 1 };
 }
 
 const ALIGN = [
@@ -3388,7 +3506,7 @@ function blankChar() {
     saves:{ str:0, dex:0, con:0, int:0, wis:0, cha:0 },
     skills: Object.fromEntries(SKILLS.map(s => [s.k, 0])),          // 0 yok, 1 yetkin, 2 uzman
     ac:10, armorType:'', shield:false, initBonus:0, speed:30,
-    hp:{ cur:10, max:10, temp:0 }, hitDie:'d8', hdUsed:0, ds:{ s:0, f:0 },
+    hp:{ cur:10, max:10, temp:0 }, hitDie:'d8', hdUsed:0, ds:{ s:0, f:0 }, hak:{},
     conds:[], exh:0,
     spellAbility:'', slots: Array.from({ length:9 }, () => ({ t:0, u:0 })),   // t toplam, u harcanan
     attacks:[], spells:[], items:[], feats:[],
@@ -3425,6 +3543,8 @@ function normalize(c) {
   }
   if (!c.id) c.id = uid();
   c.level = clamp(int(c.level) || 1, 1, 20);
+  c.xp = Math.max(int(c.xp), XP_ESIK[c.level - 1]);                     // XP en az seviyenin alt sınırı (XP'siz eski kayıtlar)
+  if (!c.hak || typeof c.hak !== 'object' || Array.isArray(c.hak)) c.hak = {};
   c.slots = Array.from({ length:9 }, (_, i) => { const s = c.slots[i] || {}; const t = clamp(int(s.t), 0, 9); return { t, u: clamp(int(s.u), 0, t) }; });
   c.attune = [0, 1, 2].map(i => String(c.attune[i] ?? ''));
   for (const list in NEW_ROW) c[list] = c[list].filter(r => r && typeof r === 'object').map(r => Object.assign(NEW_ROW[list](), r));
@@ -4206,6 +4326,7 @@ function sampleChar() {
    Sayfadaki her düğmenin bir data-act adı var; ne yapacağı burada yazılı.
    ═══════════════════════════════════════════════════════════════════ */
 function changed() { refresh(); save(); }
+document.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.hak; if (k) hakAyarla(k, e.target.value); });   // hak sayacına elle yazılan kalan
 // Seviye atlama penceresi: yetenek artışı seçimi, Esc ve arkaya basınca kapanır
 $('#lvIc').addEventListener('change', e => {
   const t = e.target;
@@ -4241,8 +4362,10 @@ const ACTIONS = {
   'welcome-close': () => { store.welcomed = true; $('#welcome').hidden = true; save(); },
   sample: () => { store.welcomed = true; $('#welcome').hidden = true; adopt(sampleChar()); openDrawer(false); toTop(); },
 
-  lvl: b => { C.level = clamp(C.level + int(b.dataset.d), 1, 20); C.hdUsed = clamp(C.hdUsed, 0, C.level); changed(); renderChars(); },
+  lvl: b => { C.level = clamp(C.level + int(b.dataset.d), 1, 20); C.hdUsed = clamp(C.hdUsed, 0, C.level); C.xp = Math.max(int(C.xp), XP_ESIK[C.level - 1]); setInput('xp'); changed(); renderChars(); },
   'seviye-atla': () => lvAc(),                                       // BÖLÜM 8c
+  hak: b => { const h = hakListe().find(x => x.k === b.dataset.k); if (h) hakAyarla(h.k, 'v' in b.dataset ? int(b.dataset.v) : hakKalan(h) + int(b.dataset.d)); },
+  'kisa-dinlen': () => kisaDinlen(),
   'lv-kapa': () => lvKapa(),
   'lv-zar': () => lvCan(true),
   'lv-sabit': () => lvCan(false),
@@ -4307,12 +4430,14 @@ const ACTIONS = {
   'durum-ac': b => { b.setAttribute('aria-expanded', String($('#conds').classList.toggle('acik'))); gorunumUI(); },
   kaydet: () => { flush(); const ok = $('#saveState').dataset.s === 'ok'; notify(ok ? 'Kaydedildi' : 'Kaydedilemedi', ok ? 'Karakterlerin bu tarayıcıda saklı. Başka cihaz için “Karakterler > Dışa aktar”.' : $('#saveState').parentNode.title); },
   longrest: async () => {
-    if (!await confirmBox('Uzun dinlenme yapılsın mı? Canın, can zarların ve büyü yuvaların yenilenir, geçici can ve ölüm zarı işaretleri sıfırlanır, bitkinlik bir kademe azalır.', 'Dinlen')) return;
+    if (mode === 'peek') return;
+    if (!await confirmBox('Uzun dinlenme yapılsın mı? Canın, can zarların, büyü yuvaların ve sınıf hakların yenilenir, geçici can ve ölüm zarı işaretleri sıfırlanır, bitkinlik bir kademe azalır.', 'Dinlen')) return;
     C.hp.cur = Math.max(0, int(C.hp.max)); C.hp.temp = 0; C.hdUsed = 0; C.ds = { s:0, f:0 };
     C.slots.forEach(s => { s.u = 0; });
     C.exh = Math.max(0, int(C.exh) - 1);
-    fillInputs(); changed();
-    notify('Uzun dinlenme tamamlandı', 'Can, can zarları ve büyü yuvaları yenilendi.');
+    const hak = hakDinlen('uzun');
+    fillInputs(); changed(); if (mode === 'table') renderMe();
+    notify('Uzun dinlenme tamamlandı', `Can, can zarları ve büyü yuvaları${hak.length ? ', sınıf hakların' : ''} yenilendi.`);
   },
   'ds-s': b => { const n = int(b.dataset.n) + 1, once = int(C.ds.s); C.ds.s = once === n ? n - 1 : n; if (C.ds.s > once && int(C.hp.cur) <= 0 && C.ds.f < 3) reviveAtOne(true); changed(); },
   'ds-f': b => { const n = int(b.dataset.n) + 1; C.ds.f = C.ds.f === n ? n - 1 : n; changed(); },
@@ -5194,6 +5319,17 @@ function playerReceive(conn, msg) {
   }
   else if (msg.t === 'pong') { if (msg.want) { net.sentPortrait = null; pushSheet(); } }
   else if (msg.t === 'cfg') { net.publicRolls = !!msg.publicRolls; renderNetUI(); }
+  else if (msg.t === 'xp') {                                         // DM XP verdi (2026-11-10)
+    const own = ownChar(), n = clamp(int(msg.miktar), 0, 100000);
+    if (n) {
+      const once = xpDurum(own).hazir;
+      own.xp = Math.min(999999, Math.max(int(own.xp), XP_ESIK[int(own.level) - 1] || 0) + n); changed(); if (C === own) setInput('xp');
+      const d = xpDurum(own);
+      notify(`${net.dmName || 'DM'} sana ${n} XP verdi`, d.hazir ? 'XP\'n doldu: kağıdındaki "Seviye atla"ya basabilirsin!' : d.ust ? `${d.ust - d.xp} XP sonra ${d.l + 1}. seviye.` : '');
+      if (d.hazir && !once) ses('ilham');
+      if (mode === 'table') renderMe();
+    }
+  }
   else if (msg.t === 'insp') {                                       // ilhamı DM verir ya da geri alır
     const own = ownChar(), on = !!msg.on;
     if (own.insp !== on) { own.insp = on; changed(); }
@@ -5467,6 +5603,9 @@ function pcCard(p) {
 function renderParty() {
   renderTable();                         // masa görünümündeysek koltukları ve DM'in can çubuklarını tazele
   if (mode !== 'dm') return;
+  const sel = $('#xpKime'), sv = sel.value;                          // XP ver: kime listesi (seçim korunur)
+  sel.innerHTML = '<option value="">Herkese</option>' + seated().map(p => `<option value="${esc(p.seat)}">${esc((p.char && p.char.name.trim()) || p.name)}</option>`).join('');
+  sel.value = [...sel.options].some(o => o.value === sv) ? sv : '';
   const list = Array.from(net.players.values());
   $('#party').innerHTML = list.length ? list.map(pcCard).join('')
     : '<p class="empty">Henüz kimse katılmadı. Masa kodunu oyuncularına gönder; katıldıkça kağıtları burada belirecek.</p>';
@@ -5970,7 +6109,8 @@ function koltukAc(el, tag) {
   if (!s || store.net.role !== 'dm' || s.dm || s.me) return;         // oyuncular isimlikten bir şey seçmez
   const h = gecerliHedef() === s.id;
   pop.innerHTML = `<div class="kp-ad">${esc(s.char || s.name)}<small>${esc(s.char ? s.name : '')}</small></div>
-    <div class="kp-btn"><button class="btn sm${h ? '' : ' accent'}" data-act="hedef-yap" data-id="${s.id}"><svg class="ic"><use href="#i-hedef"/></svg>${h ? 'Hedefi kaldır' : 'Hedef yap'}</button></div>`;
+    <div class="kp-btn"><button class="btn sm${h ? '' : ' accent'}" data-act="hedef-yap" data-id="${s.id}"><svg class="ic"><use href="#i-hedef"/></svg>${h ? 'Hedefi kaldır' : 'Hedef yap'}</button></div>
+    <div class="kp-xp"><input type="number" id="kpXp" min="1" max="100000" placeholder="XP" aria-label="Verilecek XP"><button class="btn sm" data-act="xp-ver" data-id="${s.id}">XP ver</button></div>`;
   pop.hidden = false; pop.dataset.id = s.id;
   pop.setAttribute('aria-label', s.char || s.name);
   const m = $('.tv-main').getBoundingClientRect(), r = tag.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
@@ -7811,6 +7951,9 @@ function renderMe() {
     sekCam = `<section class="mc-sek" aria-label="Beceriler"><h3>Beceriler<em>birine bas: zar masaya yuvarlanır · dolu elmas: yetkinsin</em></h3>
       <div class="mc-bc">${sira.map(sk => { const p = int(c.skills[sk.k]);
         return `<button class="mc-b roll${p ? ' p' : ''}${p === 2 ? ' u' : ''}" data-act="roll" data-roll="skill" data-k="${sk.k}" title="${esc(sk.en)}: ${esc(sk.hint)}${p === 2 ? ' (uzmansın)' : p ? ' (yetkinsin)' : ''}"><span>${esc(sk.tr)}<small>${sk.ab.toUpperCase()}</small></span>${sign(skillBonus(sk.k))}</button>`; }).join('')}</div></section>`;
+  } else if (sek === 'hak') {
+    sekCam = `<section class="mc-sek" aria-label="Haklar"><h3>Haklar<em>harcadıkça dokun · dinlenince dolar</em></h3>${calc(c, hakHtml) || '<p class="mc-bos">Sınıfının sayılan bir hakkı yok.</p>'}
+      <div class="mc-dinlen"><button class="btn sm" data-act="kisa-dinlen"><svg class="ic"><use href="#i-flame"/></svg>Kısa dinlenme</button><button class="btn sm" data-act="longrest"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button></div></section>`;
   } else if (sek === 'envanter') {
     const para = [['pp', 'platin'], ['gp', 'altın'], ['ep', 'elektrum'], ['sp', 'gümüş'], ['cp', 'bakır']].filter(([k]) => int(c.coins[k]))
       .map(([k, ad]) => `<span><b>${int(c.coins[k])}</b> ${ad}</span>`).join('');
@@ -7844,6 +7987,7 @@ function renderMe() {
   box.innerHTML = `${rehber && min && !sek ? `<p class="mc-rehber" role="status">${rehber}</p>` : ''}${sekCam}${detay}
     <div class="mc-izgara mc-ust">${atk}
       <button class="btn${sek === 'beceri' ? ' on' : ''}" data-act="me-sek" data-k="beceri" aria-expanded="${sek === 'beceri'}" title="Beceri zarları: kağıda dönmeden at"><svg class="ic"><use href="#i-d20"/></svg>Beceriler</button>
+      ${calc(c, () => hakListe().length) ? `<button class="btn${sek === 'hak' ? ' on' : ''}" data-act="me-sek" data-k="hak" aria-expanded="${sek === 'hak'}" title="Sınıf hakların: Öfke, İkinci soluk… harcadıkça dokun"><svg class="ic"><use href="#i-flame"/></svg>Haklar</button>` : ''}
       <button class="btn${sek === 'envanter' ? ' on' : ''}" data-act="me-sek" data-k="envanter" aria-expanded="${sek === 'envanter'}" title="Envanterin: eşyalar ve paralar"><svg class="ic"><use href="#i-canta"/></svg>Envanter</button>
       <button class="btn" data-act="mode-sheet" title="Karakter kağıdının tamamı"><svg class="ic"><use href="#i-scroll"/></svg>Kağıdım</button>
       <button class="btn icon" data-act="me-min" aria-expanded="${!min}" title="${min ? 'Ayrıntıları aç: kurtarma zarları, can, inisiyatif' : 'Ayrıntıları kapat'}" aria-label="${min ? 'Ayrıntıları aç' : 'Ayrıntıları kapat'}"><svg class="ic"><use href="#i-yukari"/></svg></button></div>
@@ -8506,6 +8650,15 @@ Object.assign(ACTIONS, {
   'tav-yakin': () => tavZoom(TAV.adim),
   'tav-uzak': () => tavZoom(1 / TAV.adim),
   // İlhamı yalnızca DM verir (ya da geri alır). Oyuncunun kağıdında yıldız kendiliğinden yanar.
+  'xp-ver': b => {                                                    // DM: XP ver (isimlikteki menüden tek oyuncuya, DM ekranından herkese ya da birine)
+    if (store.net.role !== 'dm') return;
+    const tek = b.dataset.id ? cleanSeat(b.dataset.id) : '', inp = tek ? $('#kpXp') : $('#xpMiktar'), n = clamp(int(inp && inp.value), 0, 100000);
+    if (!n) { notify('Önce XP miktarını yaz', 'Örnek: 50'); if (inp) inp.focus(); return; }
+    const kime = tek || $('#xpKime').value, ok = seated().filter(p => (!kime || p.seat === kime) && send(p.conn, { t:'xp', miktar: n }));
+    if (!ok.length) { notify('XP gönderilemedi', 'Oyuncu şu an bağlı değil.'); return; }
+    inp.value = ''; koltukKapa();
+    notify(`${n} XP verildi`, ok.map(p => (p.char && p.char.name.trim()) || p.name).join(', '));
+  },
   'give-insp': b => {
     const p = net.players.get(b.dataset.pid); if (!p || !p.char) return;
     const on = !p.char.insp;
