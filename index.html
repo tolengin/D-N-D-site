@@ -5,11 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#17141c">
 <title>Kervansaray — D&amp;D karakter defteri ve masası</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Eczar:wght@500;600;700;800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- NPR taverna (BÖLÜM 11b) için three.js'in adresi. Sürüm sabittir; kütüphane yalnızca masa görünümü açılınca indirilir. -->
-<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }</script>
+<!-- Yazı tipleri sitenin kendi klasöründe (yazitipleri/, OFL lisanslı; 2026-11-10). Dışarıdan (Google Fonts) çekilmez.
+     Değişken yazı tipleri: tek dosya bütün kalınlıkları taşır. latin + latin-ext Türkçe harfleri kapsar. -->
+<link rel="preload" href="yazitipleri/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="yazitipleri/eczar-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face { font-family: 'Eczar'; font-style: normal; font-weight: 500 800; font-display: swap; src: url(yazitipleri/eczar-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Eczar'; font-style: normal; font-weight: 500 800; font-display: swap; src: url(yazitipleri/eczar-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Figtree'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(yazitipleri/figtree-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Figtree'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(yazitipleri/figtree-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+</style>
+<!-- Kütüphaneler (2026-11-10'dan beri sitenin kendi klasöründe: kutuphaneler/, MIT lisansları yanında; dışarıdan çekilmez):
+     three.js 0.170.0 (NPR taverna, BÖLÜM 11b; yalnızca masa görünümü açılınca indirilir), PeerJS 1.5.5 (masa, BÖLÜM 10), cannon-es 0.20.0 (zar fiziği).
+     KUT_CDN: bilgisayardan açılan dosyada (file://) tarayıcı yerel modül dosyalarını açmaz; yalnızca orada eski adresten (jsdelivr) iner.
+     three.js'in adresi (importmap) bu yüzden burada kurulur. -->
+<script>
+const KUT_CDN = location.protocol === 'file:';
+(() => {
+  const k = KUT_CDN ? 'https://cdn.jsdelivr.net/npm/three@0.170.0/' : './kutuphaneler/three/';
+  const im = document.createElement('script'); im.type = 'importmap';
+  im.textContent = JSON.stringify({ imports: { three: k + 'build/three.module.min.js', 'three/addons/': k + 'examples/jsm/' } });
+  document.currentScript.after(im);
+})();
+</script>
 <style>
 /* ═══════════════════════════════════════════════════════════════════
    KERVANSARAY — D&D 2024 karakter defteri ve masası
@@ -1542,7 +1560,7 @@ button.mz-sec:hover{background:var(--lit)}
 .sv-sahne.cik{animation:svGir .5s ease reverse both}
 @keyframes svGir{from{opacity:0;filter:brightness(1.8) blur(8px)}to{opacity:1;filter:none}}
 .tv-wrap.savas-on{--povw:0px}
-.tv-wrap.savas-on :is(.tv-pov,.tv-zoom,#tvAll,#tvGoz,#tvPovTek,#tvCanli){display:none!important}
+.tv-wrap.savas-on :is(.tv-pov,.tv-zoom,#tvAll,#tvPovTek,#tvCanli){display:none!important}
 .tv-wrap.savas-on .tv-scene{pointer-events:none}
 .tv-wrap.savas-on .tv-scene>:not(.tv-center){visibility:hidden}
 .tv-wrap.savas-on .tv-scene::after{display:none}
@@ -1822,7 +1840,7 @@ body.tv-full #tableView{height:100dvh}
   .mc-esya{grid-template-columns:minmax(0,1fr)}
   .tv-ust{display:contents}
   .tv-fs{position:absolute;z-index:9;top:8px;left:8px}
-  .tv-zoom,#tvAll,#tvSahne,#tvGoz{display:none}                        /* telefonda tavernada gezinme ve POV düğmesi yok */
+  .tv-zoom,#tvAll,#tvSahne,#tvPovTek{display:none}                     /* telefonda tavernada gezinme ve POV düğmesi yok */
   .tv-arac{position:absolute;z-index:9;top:8px;right:8px}     /* yalnızca "Canlı" kalır, sağ üstte */
   .tv-stage.tav{cursor:auto;touch-action:auto}
   /* Panel sürekli görünmez; yalnızca kendi zarımı atınca sahnenin sol altında küçük bir kutu olarak açılır (.pop).
@@ -2034,6 +2052,8 @@ body.tv-full #tableView{height:100dvh}
       <div class="duzen-pop" id="duzenPop" role="dialog" aria-label="Düzen" hidden>
         <h3>Düzen</h3>
         <p>Sağdaki camları başlığından sürükleyip istediğin yere taşı, köşesinden büyüt. Yerleri bu tarayıcıda kalır.</p>
+        <!-- Yapışma (2026-11-10, kullanıcının isteği): taşırken kenara, köşeye ya da başka bir cama yaklaşınca yerine oturur (camYapistir) -->
+        <label class="duzen-sec"><input type="checkbox" id="duzenYapis"><span>Camlar kenarlara ve köşelere yapışsın</span><small>Taşırken ekranın kenarına ya da başka bir cama yaklaşınca yerine oturur. O an istemezsen Alt'a basılı tut.</small></label>
         <label class="duzen-sec"><input type="checkbox" id="duzenSolma"><span>Kullanmadığım camlar solsun</span><small>12 sn dokunulmayınca; üstüne gelince ya da yeni bir şey olunca geri gelir</small></label>
         <button class="btn sm" data-act="duzen-sifirla">Varsayılan düzene dön</button>
       </div>
@@ -2056,9 +2076,8 @@ body.tv-full #tableView{height:100dvh}
           <button class="btn sm" id="tvTepe" data-act="tav-tepe" aria-pressed="false" title="Tam tepeden bak: hanı harita gibi gör (bir daha basınca eğik görünüme döner)"><svg class="ic"><use href="#i-tepe"/></svg><span>Tam tepeden</span></button>
           <!-- Canlı: sahne sürekli çizilir, ışıklar titrer. Kapalıyken yalnızca bir şey değişince çizilir (bilgisayarı daha az yorar). -->
           <button class="btn sm" id="tvCanli" data-act="tav-canli" aria-pressed="true" title="Sahne sürekli çizilsin, ışıklar titresin (kapatınca bilgisayar daha az yorulur)"><svg class="ic"><use href="#i-flame"/></svg><span>Canlı</span></button>
-          <!-- POV: soldaki panel (karakterin koltuğundan canlı 3D görünüm) açılır ya da kapanır -->
-          <button class="btn sm" id="tvGoz" data-act="tav-goz" aria-pressed="true" title="Soldaki POV panelini aç ya da kapat: karakterin koltuğundan canlı 3D görünüm"><svg class="ic"><use href="#i-eye"/></svg><span>POV</span></button>
-          <button class="btn sm" id="tvPovTek" data-act="pov-tek" aria-pressed="false" title="Yalnız POV: oyunu yalnızca karakterinin gözünden oyna (bütün ekran)"><svg class="ic"><use href="#i-povtek"/></svg><span>Yalnız POV</span></button>
+          <!-- POV: oyun karakterin koltuğundan, bütün ekran (bir daha basınca masaya döner). 2026-11-10'dan beri tek düğme; yarım açılan yan panel kalktı -->
+          <button class="btn sm" id="tvPovTek" data-act="pov-tek" aria-pressed="false" title="POV: oyunu karakterinin gözünden oyna (bütün ekran; bir daha basınca masaya döner)"><svg class="ic"><use href="#i-povtek"/></svg><span>POV</span></button>
           <!-- Arayüzü gizle: yalnızca han kalır (sürükleyip tekerlekle gezinilir); yine bu düğme ya da Esc geri getirir -->
           <button class="btn sm" id="tvHud" data-act="hud" aria-pressed="false" title="Arayüzü gizle: yalnızca hana bak (geri getirmek için yine bu düğme ya da Esc)"><svg class="ic"><use href="#i-hud"/></svg><span>Arayüzü gizle</span></button>
         </div>
@@ -2586,6 +2605,8 @@ body.tv-full #tableView{height:100dvh}
   <!-- Yalnızca karakter kağıdında görünür (kendi kağıdım ve DM'in izlediği kağıt); masada ve DM ekranında JS gizler (setMode). Kağıdın içinde durur ki kağıt masanın üstünde açılınca da altında görünsün -->
   <footer class="foot" id="foot">
     <p>Hayran yapımı, resmî olmayan ve ücretsiz bir karakter defteridir. Wizards of the Coast ile bir bağlantısı yoktur.</p>
+    <!-- İşleten ve iletişim (5651 md. 3; 2026-11-10, kullanıcının verdiği bilgi). Telif bildirimleri de bu adrese gelir -->
+    <p class="isleten">Siteyi işleten: Tolga Engin · İletişim ve telif bildirimleri: <a href="mailto:tolengin12@gmail.com">tolengin12@gmail.com</a></p>
     <p lang="en">Kervansaray is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</p>
     <p lang="en">This work includes material from the System Reference Document 5.2.1 (“SRD 5.2.1”) by Wizards of the Coast LLC, available at <a href="https://www.dndbeyond.com/srd" target="_blank" rel="noopener">https://www.dndbeyond.com/srd</a>. The SRD 5.2.1 is licensed under the Creative Commons Attribution 4.0 International License, available at <a href="https://creativecommons.org/licenses/by/4.0/legalcode" target="_blank" rel="noopener">https://creativecommons.org/licenses/by/4.0/legalcode</a>.</p>
     <!-- Emeği geçenler: dışarıdan gelen parçaların atıfları (ayrıntı: masa/LISANS.txt, ses/LISANS.txt). Yeni bir parça gelince buraya eklenir -->
@@ -2596,7 +2617,7 @@ body.tv-full #tableView{height:100dvh}
       Öbür 3D karakterler (DM, hancı, garsonlar, sınıflar) aşağıdaki Sketchfab modellerinden yararlanılarak yapıldı: yeniden boyandı, parçalar alındı, eklendi ve çıkarıldı, iskelet ve poz verildi.
       Ses efektleri: <a href="https://freesound.org" target="_blank" rel="noopener">Freesound</a> kullanıcıları, CC0.
       Müzik: “Mead and Moonlight”, sitenin yapımcısı (Suno ile).
-      Yazı tipleri: Eczar, Figtree (Google Fonts, OFL). Kütüphaneler: three.js, PeerJS, cannon-es (MIT).</p>
+      Yazı tipleri: Eczar (Rosetta Type), Figtree (Erik Kennedy), SIL Open Font License 1.1. Kütüphaneler: three.js, PeerJS, cannon-es (MIT; lisansları kutuphaneler/ içinde).</p>
     <!-- Kaynak: "3D karakter referans modelleri/referanslar.txt" (kullanıcı Sketchfab'den topladı, 2026-10-28). Yeni model gelince oraya ve buraya -->
     <details class="emek"><summary>3D karakter modelleri (Sketchfab)</summary>
       <ul>
@@ -4251,7 +4272,7 @@ $('#olustur').addEventListener('keydown', e => { if (OL && e.key === 'Enter' && 
      yalnızca bunu görür; oyuncunun gizli bağlantı kimliği (pid) hiç gitmez.
    Arada bizim bir sunucumuz yoktur; DM'in sekmesi kapanınca masa da kapanır.
    ═══════════════════════════════════════════════════════════════════ */
-const PEER_LIB = ['https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js', 'https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js'];
+const PEER_LIB = ['./kutuphaneler/peerjs/peerjs.min.js'];   // 2026-11-10'dan beri sitenin içinde (önce jsdelivr / unpkg). Sıradakini dener
 const ROOM_PREFIX = 'dortelement1-';
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';     // karışan harfler yok: I, L, O, 0, 1
 const MAX_PLAYERS = 8;
@@ -4435,7 +4456,8 @@ function dmReceive(pid, conn, msg) {
   else if (msg.t === 'piyon' || msg.t === 'hresim-iste') hrDmAl(p, msg);
   else if (msg.t === 'soz') sozDmAl(p, msg);                         // sohbet (BÖLÜM 10e)
   else if (msg.t === 'yaz') yazDmAl(p, msg);
-  else if (msg.t === 'mz-ekle') mzDmEkle(p, msg);                    // müzik: oyuncu link ekledi (BÖLÜM 10f)                         // "yazıyor" (üç nokta)
+  else if (msg.t === 'mz-ekle') mzDmEkle(p, msg);                    // müzik: oyuncu link ekledi / başlattı (BÖLÜM 10f)
+  else if (msg.t === 'mz-is') mzDmIs(p, msg);                        // müzik: oyuncu çal / durdur / sonraki / seç
   else if (msg.t === 'sheet' && msg.char && typeof msg.char === 'object') {
     const portrait = typeof msg.portrait === 'string' ? guvenliPortre(msg.portrait) : (p.char ? p.char.portrait : '');
     const c = normalize(Object.assign({}, msg.char, { portrait }));
@@ -4615,7 +4637,7 @@ function playerReceive(conn, msg) {
   else if (msg.t === 'soz-gecmis') sozGecmisAl(msg);
   else if (msg.t === 'yaz') { const k = cleanSeat(msg.kim); if (k && k !== net.mySeat) yazGoster(k, !!msg.on); }
   else if (msg.t === 'mz') mzAl(msg);                                // müzik (BÖLÜM 10f)
-  else if (msg.t === 'mz-yavas') notify('Şarkın eklenmedi', 'Dakikada en çok 4 şarkı. Biraz sonra yeniden dene.');
+  else if (msg.t === 'mz-yavas') notify(msg.is ? 'Biraz yavaş' : 'Şarkın eklenmedi', msg.is ? 'Müzik düğmelerine çok hızlı bastın. Birkaç saniye sonra yeniden dene.' : 'Dakikada en çok 4 yeni şarkı. Biraz sonra yeniden dene.');
   else if (msg.t === 'soz-yavas') notify('Mesajın gitmedi', 'Çok hızlı yazıyorsun. Birkaç saniye bekleyip yeniden dene.');
   else if (msg.t === 'kick') { stopNet(); notify('DM seni masadan çıkardı'); }
   else if (msg.t === 'full') { stopNet(); notify('Masa dolu', `Bir masaya en fazla ${MAX_PLAYERS} oyuncu katılabilir.`); }
@@ -6307,10 +6329,14 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) sozC
 
 /* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 10f — MÜZİK: YouTube (2026-10-30, kullanıcının isteği)
-   • 2026-11-07: Link sahnedeki panoya yazılır (#saPano, hanın ozan sahnesine iğneli; saPanoYer). DM ya da tek başına "Başlat"la
-     hemen çalar; oyuncunun linki sıraya girer, DM başlatır. Sesi üstteki ses panelinin "Müzik" sürgüsü ayarlar (taverna şarkısıyla
-     aynı sürgü, herkes kendi ekranında). Sağ sütundaki cam yalnızca şarkı seçiliyken görünür: video, ad, çal / sonraki.
-   • Çal / durdur / sonraki / sil yalnızca DM'de. Masaya bağlı değilken (tek başına) sıra senindir, sen yönetirsin.
+   • 2026-11-07: Link sahnedeki panoya yazılır (#saPano, hanın ozan sahnesine iğneli; saPanoYer). "Başlat"la hemen çalar.
+     Sesi üstteki ses panelinin "Müzik" sürgüsü ayarlar (taverna şarkısıyla aynı sürgü, herkes kendi ekranında).
+     Sağ sütundaki cam yalnızca şarkı seçiliyken görünür: video, ad, çal / sonraki.
+   • 2026-11-10 (kullanıcının isteği): masadaki herkes başlatır, durdurur, sonrakine geçer, sıradan seçer. Oyuncunun düğmesi DM'e
+     komut yollar (mz-is; mz-ekle bas:1), DM uygular ve herkese dağıtır: sıra yine tek yerde (DM), saat yine DM'in oynatıcısı.
+     Komut basanın gördüğünü taşır (simdi, cal): iki kişi aynı anda "Sonraki"ye basınca iki şarkı atlanmaz. Camda son işi kimin
+     yaptığı yazar (son). Silmek: DM her şarkıyı, oyuncu yalnızca kendi eklediğini (şarkıda ekleyenin koltuk kimliği, koltuk;
+     DM yine kendisi bakar). Masaya bağlı değilken (tek başına) sıra senindir.
    • DM'in oynatıcısı saattir: DM çalınca, durdurunca ya da şarkı değişince herkese { t:'mz', sira, simdi, cal, pos } gider;
      çalarken 10 sn'de bir yinelenir (geç gelen de aynı yerden başlar). Oyuncunun oynatıcısı 2,5 sn'den çok kaydıysa yerine sarar.
    • YouTube'un kuralı: video görünür olmalı (yalnız sesi çalınamaz). Sahne ekranda olmayabileceği için video sahnede değil, camda durur.
@@ -6326,7 +6352,7 @@ const MZ_ILK = [
   { v: '4WIMyqBG9gs', ad: 'Fantasy Medieval Music for Focus & Calm | The Dwarf’s Long Mountain Journey', kim: 'Kervansaray' },
   { v: 't3B802PIuB0', ad: 'D&D/RPG Combat Music Mix | 1 Hour | Royalty Free | Travis Savoie', kim: 'Kervansaray' },
 ];
-const MZ = { kat: 1.7, oyn: null, hazir: false, kuruluyor: false, apiP: null, v: '', durum: -1, sar: false, yayinT: 0, engel: false, engelT: 0, not: '', sinir: new Map() };
+const MZ = { kat: 1.7, oyn: null, hazir: false, kuruluyor: false, apiP: null, v: '', durum: -1, sar: false, yayinT: 0, engel: false, engelT: 0, not: '', sinir: new Map(), isSinir: new Map() };
 const mzKimlik = () => 'm' + Math.random().toString(36).slice(2, 9);
 // kat: YouTube sesi, taverna şarkısına göre bu kadar yukarıda (varsayılan ana 0,5 × müzik 0,35 → YouTube 30)
 const mzSeviye = () => { const a = sesAyar(); return a.on ? Math.min(100, Math.round(100 * a.ana * a.muzik * MZ.kat)) : 0; };   // 0–100
@@ -6350,24 +6376,31 @@ function mzKonum() { try { return MZ.hazir && MZ.v ? MZ.oyn.getCurrentTime() || 
 function mzDegisti() { save(); mzUygula(); mzCiz(); mzYay(); uyandir($('#tvMuzik')); }
 function mzYay(p) {                                                   // DM: sıra ve çalan herkese (ya da yalnızca gelen oyuncuya)
   if (store.net.role !== 'dm') return;
-  const Y = mzY(), paket = { t:'mz', sira: Y.sira.map(x => ({ id: x.id, v: x.v, ad: x.ad, kim: x.kim, hata: x.hata ? 1 : 0 })), simdi: Y.simdi, cal: !!Y.cal, pos: +mzPos(Y).toFixed(1) };
+  const Y = mzY(), paket = { t:'mz', sira: Y.sira.map(x => ({ id: x.id, v: x.v, ad: x.ad, kim: x.kim, koltuk: x.koltuk || '', hata: x.hata ? 1 : 0 })), simdi: Y.simdi, cal: !!Y.cal, pos: +mzPos(Y).toFixed(1), son: Y.son || '' };
   if (p) { send(p.conn, paket); return; }
   MZ.yayinT = Date.now();
   net.players.forEach(o => send(o.conn, paket));
 }
-function mzCal(id) {
+// kim: işi yapan (camda "Ayla başlattı"); verilmezse (şarkı kendiliğinden bitti, hata verdi) yazı silinir, "… ekledi" görünür
+function mzSon(kim, is) { mzY().son = kim ? short(kim, 30) + ' ' + is : ''; }
+function mzCal(id, kim, is) {
   const Y = mzY();
   if (!Y.sira.some(x => x.id === id)) return;
+  mzSon(kim, is || 'başlattı');
   Object.assign(Y, { simdi: id, cal: true, pos: 0, t: Date.now() }); MZ.sar = true; mzDegisti();
 }
-function mzDurdurDevam() {
+// hedef: true çal, false durdur, verilmezse tersine çevir. Oyuncunun komutu basarken gördüğünü taşır: zaten öyleyse bir şey olmaz.
+function mzDurdurDevam(kim, hedef) {
   const Y = mzY();
-  if (!mzSimdi(Y)) { const ilk = Y.sira.find(x => !x.hata); if (ilk) mzCal(ilk.id); return; }
-  const k = mzKonum(); Y.pos = k != null ? k : mzPos(Y); Y.t = Date.now(); Y.cal = !Y.cal; mzDegisti();
+  if (!mzSimdi(Y)) { if (hedef === false) return; const ilk = Y.sira.find(x => !x.hata); if (ilk) mzCal(ilk.id, kim); return; }
+  const cal = typeof hedef === 'boolean' ? hedef : !Y.cal;
+  if (cal === !!Y.cal) return;
+  const k = mzKonum(); Y.pos = k != null ? k : mzPos(Y); Y.t = Date.now(); Y.cal = cal;
+  mzSon(kim, cal ? 'devam ettirdi' : 'durdurdu'); mzDegisti();
 }
-function mzSonraki() {                                                // sonda başa döner; oynatılamayanları atlar
+function mzSonraki(kim) {                                             // sonda başa döner; oynatılamayanları atlar
   const Y = mzY(), n = Y.sira.length, i = Y.sira.findIndex(x => x.id === Y.simdi);
-  for (let j = 1; j <= n; j++) { const x = Y.sira[(i + j + n) % n]; if (x && !x.hata) { mzCal(x.id); return; } }
+  for (let j = 1; j <= n; j++) { const x = Y.sira[(i + j + n) % n]; if (x && !x.hata) { mzCal(x.id, kim, 'sonrakine geçti'); return; } }
   Y.cal = false; mzDegisti();
 }
 function mzSil(id) {
@@ -6376,10 +6409,10 @@ function mzSil(id) {
   if (Y.simdi === id) Object.assign(Y, { simdi: '', cal: false, pos: 0 });
   mzDegisti();
 }
-function mzEkleYerel(v, kim) {
+function mzEkleYerel(v, kim, koltuk) {                               // koltuk: ekleyen oyuncunun koltuk kimliği (kendi şarkısını silebilsin)
   const Y = mzY();
   if (Y.sira.length >= 50) { notify('Sıra dolu', 'En çok 50 şarkı. Birkaçını sil.'); return null; }
-  const x = { id: mzKimlik(), v, ad: '', kim: short(kim, 30) };
+  const x = { id: mzKimlik(), v, ad: '', kim: short(kim, 30), koltuk: koltuk || '' };
   Y.sira.push(x); mzDegisti();
   // YouTube'a sor: adı ne, başka sitede oynatılabilir mi (oEmbed; sahibi kapattıysa 401, video yoksa 400 / 404)
   fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + v))
@@ -6392,24 +6425,50 @@ function mzEkleYerel(v, kim) {
     });
   return x;
 }
-function mzEkle() {                                                   // sahnedeki link kutusu: DM / tek başına hemen başlatır, oyuncu DM'in sırasına yollar
+function mzEkle() {                                                   // sahnedeki link kutusu: herkes hemen başlatır (oyuncunun linki DM'in sırasına girip çalar)
   const inp = $('#mzLink'), v = mzVid(inp.value);
   if (!v) { notify('Bu bir YouTube linki değil', 'Örnek: https://www.youtube.com/watch?v=… ya da https://youtu.be/…'); inp.focus(); return; }
-  if (mzYonetir()) { const x = mzY().sira.find(o => o.v === v) || mzEkleYerel(v, myName()); if (x) mzCal(x.id); }
-  else if (!send(net.conn, { t:'mz-ekle', v })) { notify('Şarkı eklenemedi', 'Masayla bağlantı yok.'); return; }
+  if (mzYonetir()) { const x = mzY().sira.find(o => o.v === v) || mzEkleYerel(v, myName()); if (x) mzCal(x.id, myName()); }
+  else if (!send(net.conn, { t:'mz-ekle', v, bas: 1 })) { notify('Şarkı eklenemedi', 'Masayla bağlantı yok.'); return; }
   inp.value = '';
 }
-function mzDmEkle(p, msg) {                                           // DM: bir oyuncu link ekledi (dakikada en çok 4)
+function mzDmEkle(p, msg) {                                           // DM: bir oyuncu link ekledi (yeni şarkı dakikada en çok 4); bas: hemen çalsın
   const v = mzVid(msg.v); if (!v) return;
-  const ts = Date.now(), son = (MZ.sinir.get(p.pid) || []).filter(t => ts - t < 60000);
-  if (son.length >= 4) { send(p.conn, { t:'mz-yavas' }); return; }
-  son.push(ts); MZ.sinir.set(p.pid, son);
-  if (mzEkleYerel(v, p.name)) notify(`${p.name} sıraya şarkı ekledi`, 'Sahnedeki panodan başlatabilirsin.');
+  let x = mzY().sira.find(o => o.v === v);                           // sırada zaten varsa yeniden eklenmez, sınıra sayılmaz
+  if (!x) {
+    const ts = Date.now(), son = (MZ.sinir.get(p.pid) || []).filter(t => ts - t < 60000);
+    if (son.length >= 4) { send(p.conn, { t:'mz-yavas' }); return; }
+    son.push(ts); MZ.sinir.set(p.pid, son);
+    x = mzEkleYerel(v, p.name, p.seat);
+  }
+  if (x && msg.bas) mzCal(x.id, p.name);
+}
+// Düğmeler: DM / tek başına kendisi yapar; oyuncu DM'e komut yollar. simdi / cal: basanın o an gördüğü
+function mzIs(is, id) {
+  const Y = mzY();
+  if (mzYonetir()) {
+    if (is === 'cal') mzDurdurDevam(myName());
+    else if (is === 'sonraki') mzSonraki(myName());
+    else if (is === 'sec') mzCal(id, myName());
+    else if (is === 'sil') mzSil(id);
+    return;
+  }
+  if (!send(net.conn, { t:'mz-is', is, id: id || '', simdi: Y.simdi, cal: !!Y.cal })) notify('Müzik değişmedi', 'Masayla bağlantı yok.');
+}
+function mzDmIs(p, msg) {                                             // DM: bir oyuncunun komutu (10 sn'de en çok 8)
+  const ts = Date.now(), son = (MZ.isSinir.get(p.pid) || []).filter(t => ts - t < 10000);
+  if (son.length >= 8) { send(p.conn, { t:'mz-yavas', is: 1 }); return; }
+  son.push(ts); MZ.isSinir.set(p.pid, son);
+  const Y = mzY(), gordu = short(msg.simdi, 12);
+  if (msg.is === 'cal') { if (gordu === (Y.simdi || '')) mzDurdurDevam(p.name, !msg.cal); }   // gördüğü şarkıda: çalıyorsa durdur, duruyorsa çal
+  else if (msg.is === 'sonraki') { if (gordu === Y.simdi) mzSonraki(p.name); }               // biri az önce geçtiyse ikinci kez geçme
+  else if (msg.is === 'sec') { const id = short(msg.id, 12); if (id !== Y.simdi || !Y.cal) mzCal(id, p.name); }
+  else if (msg.is === 'sil') { const x = Y.sira.find(o => o.id === short(msg.id, 12)); if (x && x.koltuk && x.koltuk === p.seat) mzSil(x.id); }   // yalnızca kendi eklediği
 }
 function mzAl(msg) {                                                  // oyuncu: DM'den sıra ve çalan (yalnızca bu alanlar okunur)
   const sira = (Array.isArray(msg.sira) ? msg.sira : []).slice(0, 50).filter(x => x && typeof x === 'object')
-    .map(x => ({ id: short(x.id, 12).replace(/\W/g, ''), v: mzVid(x.v), ad: short(x.ad, 120), kim: short(x.kim, 30), hata: !!x.hata })).filter(x => x.id && x.v);
-  const once = net.muzik, Y = net.muzik = { sira, simdi: short(msg.simdi, 12), cal: !!msg.cal, pos: clamp(num(msg.pos), 0, 86400), t: Date.now() };
+    .map(x => ({ id: short(x.id, 12).replace(/\W/g, ''), v: mzVid(x.v), ad: short(x.ad, 120), kim: short(x.kim, 30), koltuk: cleanSeat(x.koltuk), hata: !!x.hata })).filter(x => x.id && x.v);
+  const once = net.muzik, Y = net.muzik = { sira, simdi: short(msg.simdi, 12), cal: !!msg.cal, pos: clamp(num(msg.pos), 0, 86400), t: Date.now(), son: short(msg.son, 60) };
   if (Y.cal && (!once || !once.cal || once.simdi !== Y.simdi)) uyandir($('#tvMuzik'));   // yeni şarkı: solmuş cam geri gelir
   mzUygula(); mzCiz();
 }
@@ -6509,25 +6568,26 @@ setInterval(() => {
 
 /* Cam */
 function mzCiz() {
-  const Y = mzY(), x = mzSimdi(Y), yon = mzYonetir(), dm = store.net.role === 'dm', cal = !!(x && Y.cal);
+  const Y = mzY(), x = mzSimdi(Y), yon = mzYonetir(), tek = store.net.role !== 'dm' && store.net.role !== 'player', cal = !!(x && Y.cal);
   $('#tvMuzik').hidden = !x;
   $('#mzVideo').hidden = !x || location.protocol === 'file:';
   $('#mzIsaret').hidden = $('#saIsaret').hidden = !cal;
-  $('#mzSimdi').innerHTML = x ? `<b title="${esc(x.ad)}">${esc(x.ad || 'YouTube videosu')}</b><small>${Y.cal ? 'Çalıyor' : 'Durdu'}${x.kim ? ' · ' + esc(x.kim) + ' ekledi' : ''}</small>` : '';
+  const alt = Y.son ? esc(Y.son) : x && x.kim ? esc(x.kim) + ' ekledi' : '';
+  $('#mzSimdi').innerHTML = x ? `<b title="${esc(x.ad)}">${esc(x.ad || 'YouTube videosu')}</b><small>${Y.cal ? 'Çalıyor' : 'Durdu'}${alt ? ' · ' + alt : ''}</small>` : '';
   const cb = $('#mzCalBtn');
-  $('#mzDug').hidden = !yon;
+  $('#mzDug').hidden = false;                                          // 2026-11-10'dan beri herkes çalar / durdurur / geçer
   $('use', cb).setAttribute('href', cal ? '#i-duraklat' : '#i-oynat');
-  cb.title = cal ? (dm ? 'Herkes için durdur' : 'Durdur') : (dm ? 'Herkes için çal' : 'Çal'); cb.setAttribute('aria-label', cb.title);
+  cb.title = cal ? (tek ? 'Durdur' : 'Herkes için durdur') : (tek ? 'Çal' : 'Herkes için çal'); cb.setAttribute('aria-label', cb.title);
   $('#mzAc').hidden = !MZ.engel;
   const n = $('#mzNot'); n.hidden = !MZ.not; n.textContent = MZ.not;
   $('#mzListe').innerHTML = Y.sira.length ? Y.sira.map(o => {
     const ic = `<b>${esc(o.ad || 'YouTube videosu')}</b><small>${o.hata ? 'çalınamıyor' : esc(o.kim)}</small>`;
     return `<li class="${o.id === Y.simdi ? 'simdi' : ''}${o.hata ? ' hata' : ''}">`
-      + (yon ? `<button class="mz-sec" data-act="mz-sec" data-id="${esc(o.id)}" title="Bunu çal">${ic}</button><button class="mz-sil" data-act="mz-sil" data-id="${esc(o.id)}" title="Sıradan çıkar" aria-label="Sıradan çıkar"><svg class="ic"><use href="#i-x"/></svg></button>`
-        : `<span class="mz-sec">${ic}</span><span></span>`) + '</li>';
+      + `<button class="mz-sec" data-act="mz-sec" data-id="${esc(o.id)}" title="Bunu çal">${ic}</button>`
+      + (yon || (o.koltuk && o.koltuk === net.mySeat) ? `<button class="mz-sil" data-act="mz-sil" data-id="${esc(o.id)}" title="Sıradan çıkar" aria-label="Sıradan çıkar"><svg class="ic"><use href="#i-x"/></svg></button>` : '<span></span>') + '</li>';
   }).join('') : `<li><span class="mz-sec"><small>Sıra boş.</small></span><span></span></li>`;
-  $('#mzLink').placeholder = yon ? 'YouTube linki yapıştır' : 'YouTube linki (DM\'in sırasına)';
-  $('#mzBaslat').textContent = yon ? 'Başlat' : 'Ekle';
+  $('#mzLink').placeholder = 'YouTube linki yapıştır';
+  $('#mzBaslat').textContent = 'Başlat';
   saPanoYer();
 }
 /* Sahne panosunun yeri (2026-11-07): tavDraw her karede, renderTable ve mzCiz birer kez çağırır. Sol üstü sahnenin ortasına iğnelidir,
@@ -6551,10 +6611,10 @@ function saPanoYer(sc) {
   el.style.transform = `translate(${Math.round(clamp(px, sol, Math.max(sol, sagSin - w)))}px,${Math.round(clamp(py - h / 2, 8, Math.max(8, A.height - h - 8)))}px)`;
 }
 Object.assign(ACTIONS, {
-  'mz-cal': () => { if (mzYonetir()) mzDurdurDevam(); },
-  'mz-sonraki': () => { if (mzYonetir()) mzSonraki(); },
-  'mz-sec': b => { if (mzYonetir()) mzCal(b.dataset.id); },
-  'mz-sil': b => { if (mzYonetir()) mzSil(b.dataset.id); },
+  'mz-cal': () => mzIs('cal'),
+  'mz-sonraki': () => mzIs('sonraki'),
+  'mz-sec': b => mzIs('sec', b.dataset.id),
+  'mz-sil': b => mzIs('sil', b.dataset.id),                           // DM her şarkıyı, oyuncu kendi eklediğini
   'mz-ac': () => { try { MZ.oyn.playVideo(); } catch (e) { /* yok say */ } MZ.engel = false; MZ.engelT = Date.now(); mzCiz(); },   // tarayıcı ancak bir tıklamayla çaldırır
 });
 $('#mzEkleForm').addEventListener('submit', e => { e.preventDefault(); mzEkle(); });
@@ -7587,6 +7647,24 @@ function camYerlestir() {
   });
   camSinirla();
 }
+/* Yapışma (2026-11-10): taşınan camın önerilen yeri (yüzde) ekranın kenarlarına (8 px pay) ve öbür camların, araç şeridinin,
+   kendi camının kenarlarına CAM_YAPIS pikselden yakınsa oraya çekilir: yan yana (8 px ara), aynı hizada ya da köşede.
+   Yatay ve dikey ayrı bakılır; ikisi birden tutunca cam köşeye oturur. Kapalıysa (store.camYapis false) ya da Alt basılıysa yapışmaz. */
+const CAM_YAPIS = 16, CAM_ARA = 8;
+function camYapistir(el, xp, yp, A) {
+  const W = A.width, H = A.height, r = el.getBoundingClientRect(), w = r.width, h = r.height;
+  const px = xp / 100 * W, py = yp / 100 * H;
+  const xs = [CAM_ARA, W - w - CAM_ARA], ys = [CAM_ARA, H - h - CAM_ARA];   // ekranın kenarları (köşeler bunların birleşimi)
+  const hedefler = [...$$('.cam'), $('.tv-ust'), $('#tvMe'), $('.tv-sag')].filter(t => t && t !== el && !el.contains(t) && !t.contains(el) && t.offsetParent);
+  hedefler.forEach(t => {
+    const q = t.getBoundingClientRect(); if (!q.width || !q.height) return;
+    const L = q.left - A.left, R = q.right - A.left, T = q.top - A.top, B = q.bottom - A.top;
+    if (T - CAM_YAPIS < py + h && B + CAM_YAPIS > py) xs.push(R + CAM_ARA, L - CAM_ARA - w, L, R - w);   // dikeyde yakın: yanına ya da hizasına
+    if (L - CAM_YAPIS < px + w && R + CAM_YAPIS > px) ys.push(B + CAM_ARA, T - CAM_ARA - h, T, B - h);   // yatayda yakın: altına, üstüne ya da hizasına
+  });
+  const en = (v, liste) => { let b = v, m = CAM_YAPIS + 0.01; liste.forEach(c => { const f = Math.abs(c - v); if (f < m) { m = f; b = c; } }); return b; };
+  return [en(px, xs) / W * 100, en(py, ys) / H * 100];
+}
 function camSinirla() {                                               // yüzen cam (pencere küçülünce) tavernanın dışında kalmasın
   const A = $('.tv-wrap').getBoundingClientRect();
   if (!A.width) return;
@@ -7628,7 +7706,9 @@ function camSinirla() {                                               // yüzen 
       camKaydet(d.k, { w: +w.toFixed(2), h: d.h0 ? +h.toFixed(2) : 0 });
     } else {
       const gen = d.el.getBoundingClientRect().width / d.A.width * 100;
-      camKaydet(d.k, { x: +clamp(d.x0 + dx / d.A.width * 100, 0, 100 - gen).toFixed(2), y: +clamp(d.y0 + dy / d.A.height * 100, 0, 100 - 4800 / d.A.height).toFixed(2) });
+      let x = d.x0 + dx / d.A.width * 100, y = d.y0 + dy / d.A.height * 100;
+      if (store.camYapis !== false && !e.altKey) [x, y] = camYapistir(d.el, x, y, d.A);
+      camKaydet(d.k, { x: +clamp(x, 0, 100 - gen).toFixed(2), y: +clamp(y, 0, 100 - 4800 / d.A.height).toFixed(2) });
     }
     camYerlestir();
   });
@@ -7670,6 +7750,7 @@ function duzenAc(ac) {
   pop.hidden = !ac; b.setAttribute('aria-expanded', String(ac));
   if (!ac) return;
   $('#duzenSolma').checked = store.solma !== false;
+  $('#duzenYapis').checked = store.camYapis !== false;
   const w = $('.tv-wrap').getBoundingClientRect(), r = b.getBoundingClientRect();
   pop.style.top = clamp(r.top - w.top - 10, 8, Math.max(8, w.height - pop.offsetHeight - 8)) + 'px';
 }
@@ -7678,6 +7759,7 @@ Object.assign(ACTIONS, {
   'duzen-sifirla': () => { store.cam = {}; save(); camYerlestir(); renderTable(); duzenAc(false); notify('Camlar varsayılan yerinde'); },
 });
 $('#duzenSolma').addEventListener('change', e => { store.solma = e.target.checked; save(); solmaBasla(); });
+$('#duzenYapis').addEventListener('change', e => { store.camYapis = e.target.checked; save(); });
 document.addEventListener('pointerdown', e => { if (!$('#duzenPop').hidden && !e.target.closest('#duzenPop, #tvDuzen')) duzenAc(false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#duzenPop').hidden) duzenAc(false); });
 
@@ -7763,13 +7845,10 @@ Object.assign(ACTIONS, {
   'tav-tepe': () => tavTepe(!tav.tepe),
   'tav-sahne': () => tavSahneGit(),
   'tav-canli': () => { store.tavCanli = !tavCanli(); save(); tavButonlar(); tavKick(); },
-  'tav-goz': () => { store.tavGoz = !tavGozAcik(); if (!store.tavGoz) store.povTek = false; save(); tavButonlar(); povGoster(true); },   // POV panelini aç / kapat
   hud: () => hudGizle(!document.body.classList.contains('hud-yok')),
-  'pov-tek': () => {                                                 // Yalnız POV aç / kapat (açınca POV paneli de açılır, kapatınca eski hâline döner)
-    store.povTek = !store.povTek;
-    if (store.povTek) { store.povOnceGoz = tavGozAcik(); store.tavGoz = true; }
-    else { store.tavGoz = store.povOnceGoz === true; delete store.povOnceGoz; }
-    save(); tavButonlar(); povGoster(!store.povTek);
+  'pov-tek': () => {                                                 // POV aç / kapat: doğrudan bütün ekran karakterin gözünden; bir daha basınca masaya döner
+    store.povTek = !store.povTek; store.tavGoz = store.povTek; delete store.povOnceGoz;
+    save(); tavButonlar(); povGoster(false);
   },
   'tav-yakin': () => tavZoom(TAV.adim),
   'tav-uzak': () => tavZoom(1 / TAV.adim),
@@ -7863,7 +7942,7 @@ const TAV = {
                                                              //   (2026-10-29); nefes: kendi figürümün nefesiyle kamera kaç metre kalkar, baş kaç derece
                                                              //   kalkar (mide bulandırmasın diye çok az; "Canlı"da, hareket azaltma kapalıyken)
   ALPHA: ['M_Yaprak', 'M_Kuru_Ot', 'M_Kalkan_1', 'M_Kalkan_2', 'M_Sancak', 'M_Tabela', 'M_Hali', 'M_Post'],   // saydam yerleri kesilerek çizilir
-  LIB: 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/',   // importmap'tekiyle aynı sürüm (Draco çözücüsü buradan iner)
+  LIB: (KUT_CDN ? 'https://cdn.jsdelivr.net/npm/three@0.170.0/' : './kutuphaneler/three/') + 'examples/jsm/',   // importmap'tekiyle aynı (Draco çözücüsü buradan iner)
   taban: 0,                  // oyun masasındaki koltukların yerden yüksekliği (m); yeni handa masa kürsüde
   pismis: { guc: 1.0, ortam: 0.015, golge: 0.45, kopya: 'pismis' },   // pişmiş ışıklı sahnede: ışığın çarpanı, hiç ışık almayan yere eklenen pay, figür gölgesinin koyuluğu,
                                                                        //   oyun masasındaki sandalye kopyalarının ışığı ('pismis': asıl sandalyeninki, 'canli': toon)
@@ -7911,7 +7990,9 @@ function tavProj(x, y, z) {
 }
 const tavFig = s => (s.dm ? 'blockout-dm' : 'blockout-oyuncu');     // ileride: sınıfa ve görünüme göre karakter
 const tavCanli = () => store.tavCanli !== false;                       // varsayılan: açık
-const tavGozAcik = () => store.tavGoz === true;                   // 2026-10-21'den beri kapalı başlar (masa sıkışmasın)
+// 2026-11-10: yarım açılan yan panel kalktı (kullanıcının isteği: "iki POV düğmesi kötü"). Panel yalnızca POV görünümüyle
+// (store.povTek, bütün sahne) birlikte açılır; eski kayıtlardaki tek başına store.tavGoz artık paneli açmaz.
+const tavGozAcik = () => store.tavGoz === true && !!store.povTek;
 
 // Sahnenin verisi: https:// üzerinde .glb; bilgisayardan açılınca tarayıcı dosya okutmaz, aynı veri .js içinde metin olarak gelir
 // (ad: dosyanın adı, glob: .js'in doldurduğu değişken)
@@ -8836,7 +8917,6 @@ if (window.ResizeObserver) new ResizeObserver(() => {             // pencere boy
 // Düğmeler: Canlı ve POV (seçim tarayıcıda hatırlanır), yakınlaştır / uzaklaştır
 function tavButonlar() {
   $('#tvCanli').setAttribute('aria-pressed', String(tavCanli()));
-  $('#tvGoz').setAttribute('aria-pressed', String(tavGozAcik()));
   $('#tvPovTek').setAttribute('aria-pressed', String(!!store.povTek));
 }
 function tavZoom(k) {
@@ -9282,8 +9362,7 @@ Object.assign(ZAR3, {
 });
 // Fizik kütüphanesi bir kez, arkadan yüklenir (tavStart). İnmezse 2D zarlar kalır.
 function zarFizik() {
-  if (!ZAR3.fizik) ZAR3.fizik = import('https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js')
-    .catch(() => import('https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js'))
+  if (!ZAR3.fizik) ZAR3.fizik = import(KUT_CDN ? 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js' : './kutuphaneler/cannon-es/cannon-es.js')
     .then(C => (ZAR3.C = C), e => { console.warn('Zar fiziği yüklenemedi, 2D zarlar kalıyor:', e); return null; });
   return ZAR3.fizik;
 }

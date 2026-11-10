@@ -52,3 +52,4 @@ masa/han.js
 *.txt
 !masa/LISANS.txt
 !ses/LISANS.txt
+!yazitipleri/OFL-*.txt
