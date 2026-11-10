@@ -607,6 +607,33 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .modal-box{max-width:440px;background:var(--bg)}
 .modal-box p{font-size:15px}
 .modal-act{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+/* Seviye atlama (2026-11-10): geniş, kendi içinde kayan pencere; düğmeler altta yapışık */
+.lv-box{max-width:620px;width:100%;max-height:calc(100dvh - 40px);overflow:auto;display:flex;flex-direction:column;gap:12px}
+.lv-box>h2{margin:0;display:flex;flex-direction:column;gap:2px;font-family:var(--font-display);font-size:24px;line-height:1.15}
+.lv-box>h2 small{font-family:var(--font-ui);font-size:14px;font-weight:600;color:var(--muted)}
+.lv-box .modal-act{position:sticky;bottom:0;margin-top:0;padding-top:10px;background:var(--bg)}
+.lv-sek{border-top:1px solid var(--line);padding-top:12px}
+.lv-sek h3{margin:0 0 8px;font-family:var(--font-display);font-size:18px}
+.lv-not{margin:0 0 8px;color:var(--muted);line-height:1.45}
+.lv-dug{display:flex;gap:8px;flex-wrap:wrap}
+.lv-sonuc,.lv-pb{margin:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.lv-sonuc b{font-family:var(--font-display);font-size:30px;line-height:1;color:var(--accent)}
+.lv-pb b{font-family:var(--font-display);font-size:20px}
+.lv-sonuc small,.lv-pb small,.lv-kay small{color:var(--muted);font-size:13px;margin-left:6px}
+.lv-oz{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:8px}
+.lv-oz li{padding:10px 12px;background:var(--surface);border-left:3px solid var(--accent)}
+.lv-oz li.alt{border-left-color:var(--muted)}
+.lv-oz b{font-family:var(--font-display);font-size:16px}
+.lv-oz i{font-style:normal;font-weight:600;color:var(--muted)}
+.lv-oz li>small{margin-left:8px;font-size:12px;color:var(--muted)}
+.lv-oz p{margin:4px 0 0;line-height:1.45}
+.lv-kay{margin:0 0 8px;padding-left:18px;line-height:1.7}
+.lv-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0;cursor:pointer}
+.lv-r input[type=radio]{width:18px;height:18px;padding:0;margin:0;flex:none;accent-color:var(--accent)}   /* genel alan kuralı (width:100%) seçim düğmesini yaymasın */
+.lv-r>span{flex:0 0 auto;min-width:150px}
+.lv-r select{width:auto;flex:0 1 160px;min-width:0;padding:6px 8px}
+.lv-uyari{margin:6px 0 0;color:var(--bad)}
+.lv-atla{margin-top:4px}
 .foot{margin-top:28px;text-align:center;font-size:12px;color:var(--muted)}
 .foot p{max-width:96ch;margin:0 auto 6px}
 .foot a{color:inherit;overflow-wrap:anywhere}
@@ -2281,6 +2308,9 @@ body.tv-full #tableView{height:100dvh}
           <b data-out="level">1</b>
           <button data-act="lvl" data-d="1" aria-label="Seviyeyi artır"><svg class="ic"><use href="#i-plus"/></svg></button>
         </div>
+        <!-- Seviye atla (2026-11-10, BÖLÜM 8c): can, yeni özellikler, yetenek artışı. −/+ elle düzeltmek için kalır -->
+        <button class="btn sm accent lv-atla" id="lvAtla" data-act="seviye-atla" title="Seviye atla: can zarı, bu seviyede gelen özellikler, yetenek artışı">Seviye atla</button>
+        <button class="btn sm lv-atla" id="lvGeri" data-act="lv-geri" title="Son seviye atlamayı geri al" hidden>Geri al</button>
       </div>
       <div class="stat" data-tam title="Yetkin olduğun zarlara eklenir. Seviyene göre kendiliğinden hesaplanır.">
         <span class="f-l">Proficiency<i>Yetkinlik bonusu</i></span>
@@ -2747,6 +2777,17 @@ body.tv-full #tableView{height:100dvh}
 </aside>
 
 <!-- Onay penceresi -->
+<!-- Seviye atlama penceresi (2026-11-10, BÖLÜM 8c lvCiz) -->
+<div class="modal lv-modal" id="lvModal" hidden>
+  <div class="card modal-box lv-box" role="dialog" aria-modal="true" aria-labelledby="lvBaslik">
+    <h2 id="lvBaslik"></h2>
+    <div id="lvIc"></div>
+    <div class="modal-act">
+      <button class="btn" data-act="lv-kapa">Vazgeç</button>
+      <button class="btn accent" id="lvUygula" data-act="lv-uygula">Seviye atla</button>
+    </div>
+  </div>
+</div>
 <div class="modal" id="modal" hidden>
   <div class="card modal-box" role="dialog" aria-modal="true">
     <p id="modalText"></p>
@@ -2837,6 +2878,472 @@ const BACKGROUNDS = ['Acolyte','Artisan','Charlatan','Criminal','Entertainer','F
 /* Büyü yuvası tabloları: satır = karakter seviyesi, sütun = büyü seviyesi */
 const SLOTS_FULL = [[2],[3],[4,2],[4,3],[4,3,2],[4,3,3],[4,3,3,1],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2,1],[4,3,3,3,2,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
 const SLOTS_HALF = [[2],[2],[3],[3],[4,2],[4,2],[4,3],[4,3],[4,3,2],[4,3,2],[4,3,3],[4,3,3],[4,3,3,1],[4,3,3,1],[4,3,3,2],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2]];
+
+/* ───────── Seviye atlama verisi (2026-11-10, BÖLÜM 8c) ─────────
+   Kaynak: SRD 5.2.1 (Wizards of the Coast, CC-BY-4.0; 2024 kuralları). Açıklamalar kısaltılmış, kendi Türkçe sözlerimizle.
+   Her sınıfın SRD'deki tek alt sınıfı var (alt). SRD dışı alt sınıflar ve özellikler bilerek yok (kullanıcının kararı).
+   oz / altOz: [seviye, İngilizce ad, Türkçe ad, açıklama]. kaynak(l): o seviyedeki havuzlar ve sayılar (önceki seviyeyle
+   karşılaştırılıp değişenler gösterilir). asi: yetenek artışı seviyeleri (19'da herkese Epic Boon). */
+const SABIT_CAN = { d6: 4, d8: 5, d10: 6, d12: 7 };                   // zar atmak yerine alınabilen sabit can (+ CON)
+const ASI_SEVIYE = { Fighter: [4, 6, 8, 12, 14, 16], Rogue: [4, 8, 10, 12, 16] }, ASI_OLAGAN = [4, 8, 12, 16];
+// Büyü sayıları: cantrip (c) ve hazırlanan büyü (p), seviye 1–20
+const BUYU_SAY = {
+  Bard:     { c: [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4], p: [4,5,6,7,9,10,11,12,14,15,16,16,17,17,18,18,19,20,21,22] },
+  Cleric:   { c: [3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5], p: [4,5,6,7,9,10,11,12,14,15,16,16,17,17,18,18,19,20,21,22] },
+  Druid:    { c: [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4], p: [4,5,6,7,9,10,11,12,14,15,16,16,17,17,18,18,19,20,21,22] },
+  Paladin:  { c: null, p: [2,3,4,5,6,6,7,7,9,9,10,10,11,11,12,12,14,14,15,15] },
+  Ranger:   { c: null, p: [2,3,4,5,6,6,7,7,9,9,10,10,11,11,12,12,14,14,15,15] },
+  Sorcerer: { c: [4,4,4,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6], p: [2,4,6,7,9,10,11,12,14,15,16,16,17,17,18,18,19,20,21,22] },
+  Warlock:  { c: [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4], p: [2,3,4,5,6,7,8,9,10,10,11,11,12,12,13,13,14,14,15,15] },
+  Wizard:   { c: [3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5], p: [4,5,6,7,9,10,11,12,14,15,16,16,17,18,19,21,22,23,24,25] },
+};
+const WL_CAGRI = [1,3,3,3,5,5,6,6,7,7,7,8,8,8,9,9,9,10,10,10], WL_YUVA = [1,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,4,4,4,4], WL_YSV = [1,1,2,2,3,3,4,4,5,5,5,5,5,5,5,5,5,5,5,5];
+function lvBuyuSatir(cls, l) {                                        // büyü yapan sınıfın o seviyedeki sayıları
+  const b = BUYU_SAY[cls]; if (!b) return [];
+  const out = [];
+  if (b.c) out.push(`Cantrip: ${b.c[l - 1]}`);
+  out.push(`Hazırlanan büyü: ${b.p[l - 1]}`);
+  if (cls === 'Warlock') out.push(`Antlaşma yuvası: ${WL_YUVA[l - 1]} tane, ${WL_YSV[l - 1]}. seviye`);
+  else { const t = CLASSES[cls].cast === 'half' ? SLOTS_HALF : SLOTS_FULL; out.push(`Büyü yuvaları: ${t[l - 1].map((n, i) => `${i + 1}. sv ${n}`).join(' · ')}`); }
+  return out;
+}
+const OZ_EK_SALDIRI = 'Saldırı eyleminde bir yerine iki kez saldırırsın.';
+const OZ_KACINMA = 'Yarı hasarlık bir DEX kurtarmasında başarırsan hiç hasar almazsın, başaramazsan yarısını alırsın.';
+const SINIF_OZ = {
+  Barbarian: { alt: 'Path of the Berserker',
+    oz: [
+      [1, 'Rage', 'Öfke', 'Ağır zırh giymiyorken bonus eylemle öfkelenirsin. Öfkeliyken ezici, delici ve kesici hasara direncin olur; güçle yaptığın silah ve yumruk isabetlerine öfke hasarı eklenir; güç zarlarında ve güç kurtarmalarında avantajın olur; büyü yapamaz, konsantre olamazsın. Kısa dinlenmede bir hakkın, uzun dinlenmede hepsi geri gelir.'],
+      [1, 'Unarmored Defense', 'Zırhsız savunma', 'Zırh giymiyorken AC\'in 10 + DEX + CON olur; kalkan kullanabilirsin.'],
+      [1, 'Weapon Mastery', 'Silah ustalığı', 'Seçtiğin yakın dövüş silahlarının ustalık özelliğini kullanırsın; uzun dinlenmede birini değiştirebilirsin.'],
+      [2, 'Danger Sense', 'Tehlike sezgisi', 'Incapacitated değilken çeviklik kurtarmalarında avantajın olur.'],
+      [2, 'Reckless Attack', 'Pervasız saldırı', 'Turunun ilk saldırısından önce pervasız olmayı seçersin: o tur güçle yaptığın saldırılar avantajlı olur, ama bir sonraki turuna kadar sana yapılan saldırılar da avantajlıdır.'],
+      [3, 'Primal Knowledge', 'İlkel bilgi', 'Barbarian listesinden bir beceride daha yetkin olursun. Öfkeliyken Acrobatics, Intimidation, Perception, Stealth ve Survival zarlarını güçle atabilirsin.'],
+      [5, 'Extra Attack', 'Ek saldırı', OZ_EK_SALDIRI],
+      [5, 'Fast Movement', 'Hızlı hareket', 'Ağır zırh giymiyorken hızın 10 ft artar.'],
+      [7, 'Feral Instinct', 'Vahşi içgüdü', 'İnisiyatif zarlarında avantajın olur.'],
+      [7, 'Instinctive Pounce', 'İçgüdüsel atılış', 'Öfkeye girdiğin bonus eylemle birlikte hızının yarısı kadar ilerleyebilirsin.'],
+      [9, 'Brutal Strike', 'Acımasız vuruş', 'Pervasız saldırının avantajından vazgeçersen, isabet eden güç saldırın +1d10 hasar ve bir etki verir: Forceful Blow (hedef 15 ft itilir, sen de hızının yarısı kadar peşinden gidebilirsin) ya da Hamstring Blow (hedefin hızı 15 ft düşer).'],
+      [11, 'Relentless Rage', 'Dinmeyen öfke', 'Öfkeliyken canın 0\'a inerse ZD 10 CON kurtarması atarsın; başarırsan canın barbarian seviyenin iki katı olur. Her denemede ZD 5 artar, dinlenince 10\'a döner.'],
+      [13, 'Improved Brutal Strike', 'Gelişmiş acımasız vuruş', 'Acımasız vuruşa iki etki daha: Staggering Blow (hedef bir sonraki kurtarmasında dezavantajlı, fırsat saldırısı yapamaz) ve Sundering Blow (hedefe yapılacak bir sonraki başka saldırıya +5).'],
+      [15, 'Persistent Rage', 'Kalıcı öfke', 'İnisiyatif atınca bütün öfke hakların geri gelir (uzun dinlenmede bir kez). Öfken uzatmaya gerek kalmadan 10 dakika sürer.'],
+      [17, 'Improved Brutal Strike', 'Gelişmiş acımasız vuruş', 'Acımasız vuruşun ek hasarı 2d10 olur, iki farklı etkiyi birlikte kullanırsın.'],
+      [18, 'Indomitable Might', 'Yılmaz güç', 'Güç zarının ya da güç kurtarmanın toplamı güç skorundan düşükse skorunu sonuç olarak kullanırsın.'],
+      [20, 'Primal Champion', 'İlkel şampiyon', 'Güç ve dayanıklılık skorların 4 artar, en çok 25 (seviye atlarken kendiliğinden eklenir).'],
+    ],
+    altOz: [
+      [3, 'Frenzy', 'Çılgınlık', 'Öfkeliyken pervasız saldırı yaptığında, o turdaki ilk güç isabetine öfke hasarın kadar d6 ek hasar eklenir.'],
+      [6, 'Mindless Rage', 'Akılsız öfke', 'Öfkeliyken Charmed ve Frightened olmazsın; öfkeye girince bu etkiler biter.'],
+      [10, 'Retaliation', 'Misilleme', '5 ft içindeki bir yaratık sana hasar verince tepkiyle ona yakın dövüş saldırısı yaparsın.'],
+      [14, 'Intimidating Presence', 'Korkutucu varlık', 'Bonus eylemle 30 ft içinde seçtiğin yaratıklar WIS kurtarması atar (ZD 8 + STR + yetkinlik); başaramayan 1 dakika Frightened olur. Uzun dinlenmede bir kez ya da bir öfke hakkıyla.'],
+    ],
+    kaynak: l => [`Öfke (Rage): ${[2,2,3,3,3,4,4,4,4,4,4,5,5,5,5,5,6,6,6,6][l - 1]} hak`, `Öfke hasarı: +${l >= 16 ? 4 : l >= 9 ? 3 : 2}`, `Silah ustalığı: ${l >= 10 ? 4 : l >= 4 ? 3 : 2} silah`],
+  },
+  Bard: { alt: 'College of Lore',
+    oz: [
+      [1, 'Bardic Inspiration', 'Bard ilhamı', 'Bonus eylemle 60 ft içindeki bir yaratığa ilham zarı verirsin; bir saat içinde bir d20 zarında başarısız olursa zarı atıp ekleyebilir. Hakkın CHA bonusun kadar (en az 1), uzun dinlenmede dolar.'],
+      [1, 'Spellcasting', 'Büyü yapma', 'Bard listesinden büyü hazırlarsın, CHA ile yaparsın; çalgın odağın olabilir.'],
+      [2, 'Expertise', 'Uzmanlık', 'Yetkin olduğun iki becerinde uzman olursun: yetkinlik bonusun iki kez eklenir.'],
+      [2, 'Jack of All Trades', 'Her işin ehli', 'Yetkin olmadığın beceri zarlarına yetkinlik bonusunun yarısını eklersin.'],
+      [5, 'Font of Inspiration', 'İlham pınarı', 'İlham hakların kısa dinlenmede de dolar; bir büyü yuvası harcayıp bir hak geri alabilirsin.'],
+      [7, 'Countercharm', 'Karşı büyü', '30 ft içindeki biri Charmed ya da Frightened olmamak için attığı kurtarmada başarısız olursa, tepkiyle zarı avantajla yeniden attırırsın.'],
+      [9, 'Expertise', 'Uzmanlık', 'İki becerinde daha uzman olursun.'],
+      [10, 'Magical Secrets', 'Büyü sırları', 'Hazırladığın büyüleri Bard, Cleric, Druid ve Wizard listelerinden seçebilirsin.'],
+      [18, 'Superior Inspiration', 'Üstün ilham', 'İnisiyatif atınca ilham hakkın ikiden azsa ikiye çıkar.'],
+      [20, 'Words of Creation', 'Yaratılış sözleri', 'Power Word Heal ve Power Word Kill her zaman hazırdır; ikisini de 10 ft içindeki ikinci bir yaratığa da yöneltebilirsin.'],
+    ],
+    altOz: [
+      [3, 'Bonus Proficiencies', 'Ek yetkinlikler', 'Seçtiğin üç beceride yetkin olursun.'],
+      [3, 'Cutting Words', 'Keskin sözler', '60 ft içindeki bir yaratık hasar zarı atınca ya da bir yetenek zarında veya saldırıda başarınca, tepkiyle ilham zarı harcayıp sonucundan düşersin.'],
+      [6, 'Magical Discoveries', 'Büyü keşifleri', 'Cleric, Druid ya da Wizard listesinden iki büyü seçersin; her zaman hazırdır, Bard büyüsü sayılır.'],
+      [14, 'Peerless Skill', 'Eşsiz beceri', 'Bir yetenek zarında başarısız olunca ilham zarı atıp ekleyebilirsin; yine başarısızsan zar harcanmaz.'],
+    ],
+    kaynak: l => [`İlham zarı: d${l >= 15 ? 12 : l >= 10 ? 10 : l >= 5 ? 8 : 6} (hak: CHA bonusun kadar)`],
+  },
+  Cleric: { alt: 'Life Domain',
+    oz: [
+      [1, 'Spellcasting', 'Büyü yapma', 'Cleric listesinden büyü hazırlarsın, WIS ile yaparsın; kutsal simgen odağındır.'],
+      [1, 'Divine Order', 'İlahi düzen', 'Birini seçersin: Protector (savaş silahları ve ağır zırh) ya da Thaumaturge (bir cantrip daha; Arcana ve Religion zarlarına WIS bonusun eklenir, en az +1).'],
+      [2, 'Channel Divinity', 'İlahi güç', 'Divine Spark (30 ft içindekini 1d8 + WIS iyileştirir ya da ona ışıyan veya çürüten hasar verirsin; zar 7., 13. ve 18. seviyede artar) ya da Turn Undead (30 ft içindeki ölümsüzler WIS kurtarması atar, başaramayan 1 dakika korkar ve uzaklaşır). Kısa dinlenmede bir hak, uzun dinlenmede hepsi geri gelir.'],
+      [5, 'Sear Undead', 'Ölümsüz yakma', 'Turn Undead\'de başarısız olan her ölümsüze WIS bonusun kadar d8 ışıyan hasar verirsin.'],
+      [7, 'Blessed Strikes', 'Kutsanmış vuruşlar', 'Birini seçersin: Divine Strike (turda bir kez silah isabetine +1d8 ışıyan ya da çürüten) ya da Potent Spellcasting (Cleric cantrip hasarına WIS bonusun eklenir).'],
+      [10, 'Divine Intervention', 'İlahi müdahale', 'Eylemle 5. seviyeye kadar bir Cleric büyüsünü yuva harcamadan yaparsın. Uzun dinlenmede bir kez.'],
+      [14, 'Improved Blessed Strikes', 'Gelişmiş kutsanmış vuruşlar', 'Divine Strike 2d8 olur; ya da Potent Spellcasting\'le cantrip hasarı verince bir yaratığa WIS bonusunun iki katı geçici can verirsin.'],
+      [20, 'Greater Divine Intervention', 'Büyük ilahi müdahale', 'İlahi müdahaleyle Wish büyüsünü de yapabilirsin; yaparsan özelliği 2d4 uzun dinlenme boyunca kullanamazsın.'],
+    ],
+    altOz: [
+      [3, 'Disciple of Life', 'Yaşamın müridi', 'Yuvayla yaptığın iyileştirme büyüleri ek olarak 2 + yuvanın seviyesi kadar can verir.'],
+      [3, 'Life Domain Spells', 'Yaşam alanı büyüleri', 'Her zaman hazır: Aid, Bless, Cure Wounds, Lesser Restoration (3); Mass Healing Word, Revivify (5); Aura of Life, Death Ward (7); Greater Restoration, Mass Cure Wounds (9).'],
+      [3, 'Preserve Life', 'Hayatı koru', 'İlahi güç hakkıyla 30 ft içindeki yaratıklar arasında cleric seviyenin 5 katı can paylaştırırsın; kimse en çok canının yarısının üstüne çıkmaz.'],
+      [6, 'Blessed Healer', 'Kutsanmış şifacı', 'Yuvayla başka birini iyileştirince sen de 2 + yuvanın seviyesi kadar can kazanırsın.'],
+      [17, 'Supreme Healing', 'Üstün şifa', 'İyileştirme zarlarının hepsi en yüksek değerden sayılır.'],
+    ],
+    kaynak: l => (l >= 2 ? [`İlahi güç (Channel Divinity): ${l >= 18 ? 4 : l >= 6 ? 3 : 2} hak`, `Divine Spark: ${l >= 18 ? 4 : l >= 13 ? 3 : l >= 7 ? 2 : 1}d8 + WIS`] : []),
+  },
+  Druid: { alt: 'Circle of the Land',
+    oz: [
+      [1, 'Spellcasting', 'Büyü yapma', 'Druid listesinden büyü hazırlarsın, WIS ile yaparsın; druid odağı kullanırsın.'],
+      [1, 'Druidic', 'Druidce', 'Druidlerin gizli dilini bilirsin; Speak with Animals her zaman hazırdır.'],
+      [1, 'Primal Order', 'İlkel düzen', 'Birini seçersin: Magician (bir cantrip daha; Arcana ve Nature zarlarına WIS bonusun eklenir, en az +1) ya da Warden (savaş silahları ve orta zırh).'],
+      [2, 'Wild Shape', 'Vahşi biçim', 'Bonus eylemle bildiğin bir hayvan biçimine girersin; druid seviyenin yarısı kadar saat sürer. Kısa dinlenmede bir hak, uzun dinlenmede hepsi geri gelir.'],
+      [2, 'Wild Companion', 'Vahşi yoldaş', 'Bir büyü yuvası ya da vahşi biçim hakkı harcayıp Find Familiar\'ı malzemesiz yaparsın; tanıdığın peri olur.'],
+      [5, 'Wild Resurgence', 'Vahşi diriliş', 'Vahşi biçim hakkın yoksa turda bir kez büyü yuvası harcayıp bir hak alırsın; ya da bir vahşi biçim hakkı harcayıp 1. seviye yuva alırsın (uzun dinlenmede bir kez).'],
+      [7, 'Elemental Fury', 'Element öfkesi', 'Birini seçersin: Potent Spellcasting (Druid cantrip hasarına WIS bonusun eklenir) ya da Primal Strike (turda bir kez silah ya da hayvan biçimi isabetine +1d8 soğuk, ateş, yıldırım ya da gök gürültüsü).'],
+      [15, 'Improved Elemental Fury', 'Gelişmiş element öfkesi', 'Potent Spellcasting\'de cantrip menzilin 300 ft artar; Primal Strike 2d8 olur.'],
+      [18, 'Beast Spells', 'Hayvan büyüleri', 'Vahşi biçimdeyken de büyü yapabilirsin (pahalı ya da tükenen malzeme gerekmiyorsa).'],
+      [20, 'Archdruid', 'Baş druid', 'İnisiyatif atınca vahşi biçim hakkın yoksa bir tane gelir; uzun dinlenmede bir kez vahşi biçim haklarını büyü yuvasına çevirebilirsin; her 10 yılda bir yaş yaşlanırsın.'],
+    ],
+    altOz: [
+      [3, 'Circle of the Land Spells', 'Toprak çemberi büyüleri', 'Uzun dinlenmede bir toprak türü seçersin (kurak, kutup, ılıman ya da tropik); o türün büyüleri her zaman hazırdır.'],
+      [3, 'Land’s Aid', 'Toprağın yardımı', 'Bir vahşi biçim hakkı harcayıp 60 ft içinde 10 ft yarıçaplı bir yer seçersin: içinde seçtiklerin CON kurtarması atar, 2d6 çürüten hasar alır (başaran yarısını); oradaki bir yaratık 2d6 can kazanır. Zarlar 10. seviyede 3d6, 14.de 4d6.'],
+      [6, 'Natural Recovery', 'Doğal toparlanma', 'Çember büyülerinden birini yuvasız yaparsın (uzun dinlenmede bir kez); kısa dinlenmede toplam seviyesi druid seviyenin yarısını geçmeyen yuvaları geri alırsın (6. seviye ve üstü olmaz; uzun dinlenmede bir kez).'],
+      [10, 'Nature’s Ward', 'Doğanın koruması', 'Poisoned olmazsın; seçtiğin toprak türünün hasarına direncin olur.'],
+      [14, 'Nature’s Sanctuary', 'Doğanın sığınağı', 'Vahşi biçim hakkıyla 120 ft içinde 15 ft küplük hayalet ağaçlar çıkarırsın: sen ve dostların orada yarım siper ve toprak türünün direncini alırsınız. 1 dakika.'],
+    ],
+    kaynak: l => (l >= 2 ? [`Vahşi biçim (Wild Shape): ${l >= 17 ? 4 : l >= 6 ? 3 : 2} hak`] : []),
+  },
+  Fighter: { alt: 'Champion',
+    oz: [
+      [1, 'Fighting Style', 'Dövüş stili', 'Bir dövüş stili hüneri seçersin (ör. Archery, Defense, Great Weapon Fighting). Seviye atlayınca değiştirebilirsin.'],
+      [1, 'Second Wind', 'İkinci soluk', 'Bonus eylemle 1d10 + fighter seviyen kadar can kazanırsın. Kısa dinlenmede bir hak, uzun dinlenmede hepsi geri gelir.'],
+      [1, 'Weapon Mastery', 'Silah ustalığı', 'Seçtiğin silahların ustalık özelliğini kullanırsın; uzun dinlenmede birini değiştirebilirsin.'],
+      [2, 'Action Surge', 'Atılım', 'Turunda bir eylem daha yaparsın (Magic eylemi olamaz). Kısa ya da uzun dinlenmede geri gelir.'],
+      [2, 'Tactical Mind', 'Taktik zekâ', 'Bir yetenek zarında başarısız olunca bir İkinci soluk hakkı harcayıp 1d10 ekleyebilirsin; yine başarısızsan hak harcanmaz.'],
+      [5, 'Extra Attack', 'Ek saldırı', OZ_EK_SALDIRI],
+      [5, 'Tactical Shift', 'Taktik kayma', 'İkinci soluğu kullanınca fırsat saldırısı almadan hızının yarısı kadar ilerlersin.'],
+      [9, 'Indomitable', 'Yılmazlık', 'Başarısız bir kurtarma zarını fighter seviyeni ekleyerek yeniden atarsın; yeni sonucu kullanırsın. Uzun dinlenmede dolar.'],
+      [9, 'Tactical Master', 'Taktik ustası', 'Ustalığını bildiğin bir silahla saldırırken o silahın ustalığı yerine Push, Sap ya da Slow kullanabilirsin.'],
+      [11, 'Two Extra Attacks', 'İki ek saldırı', 'Saldırı eyleminde üç kez saldırırsın.'],
+      [13, 'Indomitable', 'Yılmazlık', 'Yılmazlık hakkın ikiye çıkar.'],
+      [13, 'Studied Attacks', 'İncelenmiş saldırılar', 'Bir saldırın ıskalarsa, bir sonraki turunun sonuna kadar o yaratığa yapacağın ilk saldırı avantajlı olur.'],
+      [17, 'Action Surge', 'Atılım', 'Atılım hakkın ikiye çıkar (turda yine bir kez).'],
+      [17, 'Indomitable', 'Yılmazlık', 'Yılmazlık hakkın üçe çıkar.'],
+      [20, 'Three Extra Attacks', 'Üç ek saldırı', 'Saldırı eyleminde dört kez saldırırsın.'],
+    ],
+    altOz: [
+      [3, 'Improved Critical', 'Gelişmiş kritik', 'Silah ve yumruk saldırılarında 19 ya da 20 kritik vuruştur.'],
+      [3, 'Remarkable Athlete', 'Olağanüstü atlet', 'İnisiyatif ve Athletics zarlarında avantajın olur; kritik vuruştan sonra fırsat saldırısı almadan hızının yarısı kadar ilerleyebilirsin.'],
+      [7, 'Additional Fighting Style', 'Ek dövüş stili', 'Bir dövüş stili hüneri daha seçersin.'],
+      [10, 'Heroic Warrior', 'Kahraman savaşçı', 'Savaşta turunun başında Heroic Inspiration\'ın yoksa kazanırsın.'],
+      [15, 'Superior Critical', 'Üstün kritik', 'Kritik vuruş aralığın 18–20 olur.'],
+      [18, 'Survivor', 'Hayatta kalan', 'Ölüm zarlarında avantajın olur, 18–20 doğal 20 sayılır. Canın yarısının altındayken (canın 0 değilse) her turunun başında 5 + CON bonusu kadar can kazanırsın.'],
+    ],
+    kaynak: l => [`İkinci soluk: ${l >= 10 ? 4 : l >= 4 ? 3 : 2} hak`, `Silah ustalığı: ${l >= 16 ? 6 : l >= 10 ? 5 : l >= 4 ? 4 : 3} silah`, `Saldırı sayısı: ${l >= 20 ? 4 : l >= 11 ? 3 : l >= 5 ? 2 : 1}`]
+      .concat(l >= 2 ? [`Atılım: ${l >= 17 ? 2 : 1} hak`] : [], l >= 9 ? [`Yılmazlık: ${l >= 17 ? 3 : l >= 13 ? 2 : 1} hak`] : []),
+  },
+  Monk: { alt: 'Warrior of the Open Hand',
+    oz: [
+      [1, 'Martial Arts', 'Dövüş sanatları', 'Silahsızken ya da Monk silahıyla: bonus eylemle bir yumruk / tekme atarsın, silahsız vuruşun hasarı dövüş sanatları zarıdır, saldırı ve hasarda STR yerine DEX kullanabilirsin.'],
+      [1, 'Unarmored Defense', 'Zırhsız savunma', 'Zırh ve kalkan yokken AC\'in 10 + DEX + WIS olur.'],
+      [2, 'Monk’s Focus', 'Odak', 'Monk seviyen kadar odak puanın olur (kısa ya da uzun dinlenmede dolar). Flurry of Blows (1 puan: bonus eylemle iki yumruk), Patient Defense (Disengage bedava; 1 puanla Disengage + Dodge), Step of the Wind (Dash bedava; 1 puanla Disengage + Dash, zıplaman iki kat).'],
+      [2, 'Unarmored Movement', 'Zırhsız hareket', 'Zırh ve kalkan yokken hızın artar.'],
+      [2, 'Uncanny Metabolism', 'Olağanüstü metabolizma', 'İnisiyatif atınca bütün odak puanların geri gelir, dövüş sanatları zarı + monk seviyen kadar can kazanırsın. Uzun dinlenmede bir kez.'],
+      [3, 'Deflect Attacks', 'Saldırı savuşturma', 'Ezici, delici ya da kesici hasarlı bir saldırı isabet edince tepkiyle hasarı 1d10 + DEX + monk seviyen kadar azaltırsın; 0\'a inerse 1 odak puanıyla saldırıyı başkasına yöneltebilirsin.'],
+      [4, 'Slow Fall', 'Yavaş düşüş', 'Düşerken tepkiyle düşme hasarını monk seviyenin 5 katı kadar azaltırsın.'],
+      [5, 'Extra Attack', 'Ek saldırı', OZ_EK_SALDIRI],
+      [5, 'Stunning Strike', 'Sersemletici vuruş', 'Turda bir kez, isabetten sonra 1 odak puanı harcarsın: hedef CON kurtarması atar; başaramazsa bir sonraki turunun başına kadar Stunned olur, başarırsa hızı yarıya iner ve ona yapılan bir sonraki saldırı avantajlıdır.'],
+      [6, 'Empowered Strikes', 'Güçlü vuruşlar', 'Silahsız vuruşların istersen güç (force) hasarı verir.'],
+      [7, 'Evasion', 'Kaçınma', OZ_KACINMA],
+      [9, 'Acrobatic Movement', 'Akrobatik hareket', 'Zırhsızken turunda dik yüzeylerde ve sıvıların üstünde düşmeden ilerlersin.'],
+      [10, 'Heightened Focus', 'Yüksek odak', 'Flurry of Blows üç yumruk olur; Patient Defense iki dövüş sanatları zarı kadar geçici can verir; Step of the Wind\'le yanındaki bir yaratığı da taşırsın.'],
+      [10, 'Self-Restoration', 'Kendini onarma', 'Her turunun sonunda Charmed, Frightened ya da Poisoned durumlarından birini kaldırırsın; yemeksiz ve susuz kalmaktan bitkinlik almazsın.'],
+      [13, 'Deflect Energy', 'Enerji savuşturma', 'Saldırı savuşturma her hasar türünde çalışır.'],
+      [14, 'Disciplined Survivor', 'Disiplinli hayatta kalan', 'Bütün kurtarma zarlarında yetkin olursun; başarısız bir kurtarmayı 1 odak puanıyla yeniden atabilirsin.'],
+      [15, 'Perfect Focus', 'Kusursuz odak', 'İnisiyatif atınca (Olağanüstü metabolizmayı kullanmadıysan) odak puanın 3 ya da daha azsa 4\'e çıkar.'],
+      [18, 'Superior Defense', 'Üstün savunma', 'Turunun başında 3 odak puanı harcayıp 1 dakika boyunca güç (force) dışındaki bütün hasarlara direnç kazanırsın.'],
+      [20, 'Body and Mind', 'Beden ve zihin', 'Çeviklik ve bilgelik skorların 4 artar, en çok 25 (seviye atlarken kendiliğinden eklenir).'],
+    ],
+    altOz: [
+      [3, 'Open Hand Technique', 'Açık el tekniği', 'Flurry of Blows isabetinde birini seçersin: Addle (bir sonraki turunun başına kadar tepki yapamaz), Push (STR kurtarması ya da 15 ft itilir), Topple (DEX kurtarması ya da yere düşer).'],
+      [6, 'Wholeness of Body', 'Bedenin bütünlüğü', 'Bonus eylemle dövüş sanatları zarı + WIS bonusu kadar can kazanırsın. WIS bonusun kadar hak (en az 1), uzun dinlenmede dolar.'],
+      [11, 'Fleet Step', 'Çevik adım', 'Step of the Wind dışında bir bonus eylem yapınca hemen ardından Step of the Wind\'i de kullanabilirsin.'],
+      [17, 'Quivering Palm', 'Titreyen avuç', 'Silahsız vuruş isabetinde 4 odak puanıyla titreşim başlatırsın (monk seviyen kadar gün sürer); sonra eylemle bitirirsin: hedef CON kurtarması atar, başaramazsa 10d12 güç hasarı, başarırsa yarısı.'],
+    ],
+    kaynak: l => [`Dövüş sanatları zarı: 1d${l >= 17 ? 12 : l >= 11 ? 10 : l >= 5 ? 8 : 6}`].concat(l >= 2 ? [`Odak puanı: ${l}`, `Zırhsız hareket: +${l >= 18 ? 30 : l >= 14 ? 25 : l >= 10 ? 20 : l >= 6 ? 15 : 10} ft`] : []),
+  },
+  Paladin: { alt: 'Oath of Devotion',
+    oz: [
+      [1, 'Lay On Hands', 'El koyma', 'Paladin seviyenin 5 katı can havuzun olur (uzun dinlenmede dolar). Bonus eylemle dokunup havuzdan dilediğin kadar can verirsin; 5 puanla Poisoned durumunu da kaldırırsın.'],
+      [1, 'Spellcasting', 'Büyü yapma', 'Paladin listesinden büyü hazırlarsın, CHA ile yaparsın; kutsal simgen odağındır.'],
+      [1, 'Weapon Mastery', 'Silah ustalığı', 'İki silahın ustalık özelliğini kullanırsın; uzun dinlenmede değiştirebilirsin.'],
+      [2, 'Fighting Style', 'Dövüş stili', 'Bir dövüş stili hüneri seçersin ya da Blessed Warrior: Cleric listesinden iki cantrip (CHA ile).'],
+      [2, 'Paladin’s Smite', 'Paladin vuruşu', 'Divine Smite her zaman hazırdır; uzun dinlenmede bir kez yuva harcamadan yaparsın.'],
+      [3, 'Channel Divinity', 'İlahi güç', 'Divine Sense: bonus eylemle 10 dakika boyunca 60 ft içindeki göksel, iblis ve ölümsüzlerin yerini bilirsin. Kısa dinlenmede bir hak, uzun dinlenmede hepsi geri gelir.'],
+      [5, 'Extra Attack', 'Ek saldırı', OZ_EK_SALDIRI],
+      [5, 'Faithful Steed', 'Sadık binek', 'Find Steed her zaman hazırdır; uzun dinlenmede bir kez yuva harcamadan yaparsın.'],
+      [6, 'Aura of Protection', 'Koruma aurası', '10 ft içindeki sen ve dostların kurtarma zarlarına CHA bonusunu (en az +1) ekler. Incapacitated olunca söner.'],
+      [9, 'Abjure Foes', 'Düşmanları defet', 'İlahi güç hakkıyla 60 ft içinde CHA bonusun kadar (en az 1) yaratık WIS kurtarması atar; başaramayan 1 dakika (ya da hasar alana kadar) Frightened olur ve turunda yalnızca hareket, eylem ya da bonus eylemden birini yapar.'],
+      [10, 'Aura of Courage', 'Cesaret aurası', 'Auranın içindekiler Frightened olmaz.'],
+      [11, 'Radiant Strikes', 'Işıyan vuruşlar', 'Yakın dövüş silahı ya da yumruk isabetlerine +1d8 ışıyan hasar eklenir.'],
+      [14, 'Restoring Touch', 'Onaran dokunuş', 'El koymayla Blinded, Charmed, Deafened, Frightened, Paralyzed ya da Stunned durumlarını da kaldırırsın (her biri 5 puan).'],
+      [18, 'Aura Expansion', 'Aura genişlemesi', 'Auran 30 ft olur.'],
+    ],
+    altOz: [
+      [3, 'Oath of Devotion Spells', 'Bağlılık yemini büyüleri', 'Her zaman hazır: Protection from Evil and Good, Shield of Faith (3); Aid, Zone of Truth (5); Beacon of Hope, Dispel Magic (9); Freedom of Movement, Guardian of Faith (13); Commune, Flame Strike (17).'],
+      [3, 'Sacred Weapon', 'Kutsal silah', 'Saldırı eyleminde ilahi güç hakkı harcarsın: 10 dakika boyunca silah saldırılarına CHA bonusun eklenir (en az +1), silahın ışık verir, istersen ışıyan hasar verir.'],
+      [7, 'Aura of Devotion', 'Bağlılık aurası', 'Auranın içindekiler Charmed olmaz.'],
+      [15, 'Smite of Protection', 'Koruyan vuruş', 'Divine Smite yapınca bir sonraki turunun başına kadar auranın içindekiler yarım siper alır.'],
+      [20, 'Holy Nimbus', 'Kutsal hale', 'Bonus eylemle 10 dakika auran parlak ışık saçar: iblis ve ölümsüzlere karşı kurtarmalarda avantajın olur, auranda turuna başlayan düşmanlar CHA + yetkinlik kadar ışıyan hasar alır. Uzun dinlenmede bir kez ya da 5. seviye yuvayla.'],
+    ],
+    kaynak: l => [`El koyma havuzu: ${5 * l} can`].concat(l >= 3 ? [`İlahi güç: ${l >= 11 ? 3 : 2} hak`] : [], l >= 6 ? [`Aura: ${l >= 18 ? 30 : 10} ft`] : []),
+  },
+  Ranger: { alt: 'Hunter',
+    oz: [
+      [1, 'Spellcasting', 'Büyü yapma', 'Ranger listesinden büyü hazırlarsın, WIS ile yaparsın.'],
+      [1, 'Favored Enemy', 'Gözde düşman', 'Hunter\'s Mark her zaman hazırdır; tablodaki hak kadar yuva harcamadan yaparsın (uzun dinlenmede dolar).'],
+      [1, 'Weapon Mastery', 'Silah ustalığı', 'İki silahın ustalık özelliğini kullanırsın.'],
+      [2, 'Deft Explorer', 'Usta kâşif', 'Yetkin olduğun bir becerinde uzman olursun; iki dil öğrenirsin.'],
+      [2, 'Fighting Style', 'Dövüş stili', 'Bir dövüş stili hüneri seçersin ya da Druidic Warrior: Druid listesinden iki cantrip (WIS ile).'],
+      [5, 'Extra Attack', 'Ek saldırı', OZ_EK_SALDIRI],
+      [6, 'Roving', 'Gezgin', 'Ağır zırh giymiyorken hızın 10 ft artar; hızın kadar tırmanma ve yüzme hızın olur.'],
+      [9, 'Expertise', 'Uzmanlık', 'Yetkin olduğun iki becerinde uzman olursun.'],
+      [10, 'Tireless', 'Yorulmaz', 'Eylemle 1d8 + WIS bonusu kadar geçici can kazanırsın (WIS bonusu kadar hak, uzun dinlenmede dolar). Kısa dinlenme bitkinliğini 1 azaltır.'],
+      [13, 'Relentless Hunter', 'Amansız avcı', 'Hasar almak Hunter\'s Mark konsantrasyonunu bozmaz.'],
+      [14, 'Nature’s Veil', 'Doğanın örtüsü', 'Bonus eylemle bir sonraki turunun sonuna kadar görünmez olursun. WIS bonusu kadar hak, uzun dinlenmede dolar.'],
+      [17, 'Precise Hunter', 'Keskin avcı', 'Hunter\'s Mark\'lı hedefe saldırıların avantajlıdır.'],
+      [18, 'Feral Senses', 'Vahşi duyular', '30 ft kör görüşün (Blindsight) olur.'],
+      [20, 'Foe Slayer', 'Düşman avcısı', 'Hunter\'s Mark\'ın hasar zarı d10 olur.'],
+    ],
+    altOz: [
+      [3, 'Hunter’s Lore', 'Avcı bilgisi', 'Hunter\'s Mark\'lı yaratığın bağışıklıklarını, dirençlerini ve zayıflıklarını bilirsin.'],
+      [3, 'Hunter’s Prey', 'Avcının avı', 'Birini seçersin (dinlenince değiştirebilirsin): Colossus Slayer (canı eksik hedefe turda bir kez +1d8) ya da Horde Breaker (turda bir kez, hedefin 5 ft yakınındaki başka bir yaratığa da aynı silahla saldırırsın).'],
+      [7, 'Defensive Tactics', 'Savunma taktikleri', 'Birini seçersin: Escape the Horde (sana fırsat saldırıları dezavantajlı) ya da Multiattack Defense (bir yaratık sana isabet ettirince o turdaki öbür saldırıları dezavantajlı).'],
+      [11, 'Superior Hunter’s Prey', 'Üstün avcının avı', 'Turda bir kez Hunter\'s Mark\'lı hedefe hasar verince, işaretin ek hasarını 30 ft içindeki başka bir yaratığa da verirsin.'],
+      [15, 'Superior Hunter’s Defense', 'Üstün avcı savunması', 'Hasar alınca tepkiyle o hasar türüne turun sonuna kadar direnç kazanırsın.'],
+    ],
+    kaynak: l => [`Gözde düşman: ${[2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6][l - 1]} kez yuvasız Hunter's Mark`],
+  },
+  Rogue: { alt: 'Thief',
+    oz: [
+      [1, 'Expertise', 'Uzmanlık', 'Yetkin olduğun iki becerinde uzman olursun: yetkinlik bonusun iki kez eklenir.'],
+      [1, 'Sneak Attack', 'Sinsi saldırı', 'Turda bir kez, avantajlıyken ya da hedefin 5 ft yakınında bir dostun varken Finesse ya da menzilli silahla isabet edince sinsi saldırı zarı kadar ek hasar verirsin.'],
+      [1, 'Thieves’ Cant', 'Hırsız dili', 'Hırsızların gizli dilini ve bir dil daha bilirsin.'],
+      [1, 'Weapon Mastery', 'Silah ustalığı', 'İki silahın ustalık özelliğini kullanırsın.'],
+      [2, 'Cunning Action', 'Kurnaz hamle', 'Bonus eylemle Dash, Disengage ya da Hide yaparsın.'],
+      [3, 'Steady Aim', 'Sabit nişan', 'Bu tur hareket etmediysen bonus eylemle bir sonraki saldırına avantaj alırsın; hızın tur sonuna kadar 0 olur.'],
+      [5, 'Cunning Strike', 'Kurnaz vuruş', 'Sinsi saldırı zarlarından vazgeçip etki eklersin: Poison (1d6: CON kurtarması ya da Poisoned), Trip (1d6: DEX kurtarması ya da yere düşer), Withdraw (1d6: fırsat saldırısı almadan hızının yarısı kadar çekilirsin).'],
+      [5, 'Uncanny Dodge', 'Olağanüstü kaçış', 'Gördüğün bir saldırı isabet edince tepkiyle hasarı yarıya indirirsin.'],
+      [6, 'Expertise', 'Uzmanlık', 'İki becerinde daha uzman olursun.'],
+      [7, 'Evasion', 'Kaçınma', OZ_KACINMA],
+      [7, 'Reliable Talent', 'Güvenilir yetenek', 'Yetkin olduğun yetenek zarlarında d20\'de 9 ya da altı gelirse 10 sayılır.'],
+      [11, 'Improved Cunning Strike', 'Gelişmiş kurnaz vuruş', 'Bir sinsi saldırıda iki kurnaz vuruş etkisi kullanabilirsin.'],
+      [14, 'Devious Strikes', 'Hain vuruşlar', 'Yeni etkiler: Daze (2d6: CON kurtarması ya da bir sonraki turunda yalnızca bir hamle), Knock Out (6d6: CON kurtarması ya da 1 dakika Unconscious), Obscure (3d6: DEX kurtarması ya da bir sonraki turunun sonuna kadar Blinded).'],
+      [15, 'Slippery Mind', 'Kaygan zihin', 'Bilgelik ve karizma kurtarmalarında yetkin olursun.'],
+      [18, 'Elusive', 'Yakalanmaz', 'Incapacitated değilken sana yapılan saldırılar avantajlı olamaz.'],
+      [20, 'Stroke of Luck', 'Şans vuruşu', 'Başarısız bir d20 zarını 20 sayarsın. Kısa ya da uzun dinlenmede geri gelir.'],
+    ],
+    altOz: [
+      [3, 'Fast Hands', 'Çevik eller', 'Kurnaz hamleyle Sleight of Hand zarı atar, hırsız aletleriyle kilit ya da tuzak açar ya da bir eşya kullanırsın.'],
+      [3, 'Second-Story Work', 'Çatı işi', 'Hızın kadar tırmanma hızın olur; zıplama mesafeni DEX ile belirlersin.'],
+      [9, 'Supreme Sneak', 'Üstün sinsilik', 'Yeni kurnaz vuruş: Stealth Attack (1d6: Hide ile görünmezken saldırınca, turu dörtte üç ya da tam siperin arkasında bitirirsen görünmezliğin bozulmaz).'],
+      [13, 'Use Magic Device', 'Büyülü eşya kullanma', 'Dört eşyaya bağlanabilirsin; yük harcayan eşyalarda d6\'da 6 gelirse yük harcanmaz; büyü tomarlarını kullanabilirsin (gerekirse INT zarıyla).'],
+      [17, 'Thief’s Reflexes', 'Hırsız refleksi', 'Savaşın ilk turunda iki tur oynarsın: ikincisi inisiyatifinin 10 eksiğinde.'],
+    ],
+    kaynak: l => [`Sinsi saldırı: ${Math.ceil(l / 2)}d6`],
+  },
+  Sorcerer: { alt: 'Draconic Sorcery',
+    oz: [
+      [1, 'Spellcasting', 'Büyü yapma', 'Sorcerer listesinden büyü hazırlarsın, CHA ile yaparsın.'],
+      [1, 'Innate Sorcery', 'Doğuştan büyü', 'Bonus eylemle 1 dakika boyunca büyü zorluk derecen 1 artar, Sorcerer büyü saldırıların avantajlı olur. İki hak, uzun dinlenmede dolar.'],
+      [2, 'Font of Magic', 'Büyü pınarı', 'Sorcerer seviyen kadar büyü puanın olur (uzun dinlenmede dolar); puanları yuvaya, yuvaları puana çevirebilirsin.'],
+      [2, 'Metamagic', 'Metabüyü', 'İki metabüyü seçersin (ör. Quickened, Twinned); büyü puanı harcayıp büyülerini değiştirirsin.'],
+      [5, 'Sorcerous Restoration', 'Büyü tazelenmesi', 'Kısa dinlenmede sorcerer seviyenin yarısı kadar büyü puanı geri alırsın. Uzun dinlenmede bir kez.'],
+      [7, 'Sorcery Incarnate', 'Bedenleşmiş büyü', 'Doğuştan büyü hakkın kalmadıysa 2 büyü puanıyla açarsın; açıkken bir büyüye iki metabüyü uygulayabilirsin.'],
+      [10, 'Metamagic', 'Metabüyü', 'İki metabüyü daha seçersin.'],
+      [17, 'Metamagic', 'Metabüyü', 'İki metabüyü daha seçersin.'],
+      [20, 'Arcane Apotheosis', 'Büyünün doruğu', 'Doğuştan büyü açıkken turda bir metabüyüyü büyü puanı harcamadan kullanırsın.'],
+    ],
+    altOz: [
+      [3, 'Draconic Resilience', 'Ejder dayanıklılığı', 'En çok canın 3 artar, sonraki her sorcerer seviyesinde 1 daha (seviye atlarken kendiliğinden eklenir); zırhsızken AC\'in 10 + DEX + CHA olur.'],
+      [3, 'Draconic Spells', 'Ejder büyüleri', 'Her zaman hazır: Alter Self, Chromatic Orb, Command, Dragon\'s Breath (3); Fear, Fly (5); Arcane Eye, Charm Monster (7); Legend Lore, Summon Dragon (9).'],
+      [6, 'Elemental Affinity', 'Element yakınlığı', 'Bir hasar türü seçersin (asit, soğuk, ateş, yıldırım ya da zehir): ona direncin olur, o türde hasar veren büyülerine CHA bonusunu eklersin.'],
+      [14, 'Dragon Wings', 'Ejder kanatları', 'Bonus eylemle 1 saat boyunca 60 ft uçma hızın olur. Uzun dinlenmede bir kez ya da 3 büyü puanıyla.'],
+      [18, 'Dragon Companion', 'Ejder yoldaşı', 'Summon Dragon\'ı malzemesiz yaparsın; uzun dinlenmede bir kez yuvasız yaparsın; istersen konsantrasyonsuz, 1 dakika sürer.'],
+    ],
+    kaynak: l => ['Doğuştan büyü: 2 hak'].concat(l >= 2 ? [`Büyü puanı: ${l}`, `Metabüyü: ${l >= 17 ? 6 : l >= 10 ? 4 : 2}`] : []),
+  },
+  Warlock: { alt: 'Fiend Patron',
+    oz: [
+      [1, 'Eldritch Invocations', 'Ürkünç çağrılar', 'Tablodaki sayı kadar çağrı seçersin (ör. Agonizing Blast, Armor of Shadows); seviye atlayınca birini değiştirebilirsin.'],
+      [1, 'Pact Magic', 'Antlaşma büyüsü', 'Warlock listesinden büyü hazırlarsın, CHA ile yaparsın. Yuvalarının hepsi aynı seviyededir ve kısa dinlenmede de dolar.'],
+      [2, 'Magical Cunning', 'Büyü kurnazlığı', '1 dakikalık bir ayinle harcanmış antlaşma yuvalarının yarısını (yukarı yuvarlanır) geri alırsın. Uzun dinlenmede bir kez.'],
+      [9, 'Contact Patron', 'Hamiyle konuşma', 'Contact Other Plane her zaman hazırdır; uzun dinlenmede bir kez yuvasız yaparsın, kurtarmasını kendiliğinden geçersin.'],
+      [11, 'Mystic Arcanum', 'Gizemli sır', 'Warlock listesinden bir 6. seviye büyü seçersin; uzun dinlenmede bir kez yuvasız yaparsın.'],
+      [13, 'Mystic Arcanum', 'Gizemli sır', 'Bir 7. seviye büyü seçersin; uzun dinlenmede bir kez yuvasız.'],
+      [15, 'Mystic Arcanum', 'Gizemli sır', 'Bir 8. seviye büyü seçersin; uzun dinlenmede bir kez yuvasız.'],
+      [17, 'Mystic Arcanum', 'Gizemli sır', 'Bir 9. seviye büyü seçersin; uzun dinlenmede bir kez yuvasız.'],
+      [20, 'Eldritch Master', 'Ürkünç usta', 'Büyü kurnazlığı bütün antlaşma yuvalarını geri getirir.'],
+    ],
+    altOz: [
+      [3, 'Dark One’s Blessing', 'Karanlığın lütfu', 'Bir düşmanın canı 0\'a inince (10 ft içinde başkası indirse de) CHA bonusu + warlock seviyen kadar geçici can kazanırsın (en az 1).'],
+      [3, 'Fiend Spells', 'İblis büyüleri', 'Her zaman hazır: Burning Hands, Command, Scorching Ray, Suggestion (3); Fireball, Stinking Cloud (5); Fire Shield, Wall of Fire (7); Geas, Insect Plague (9).'],
+      [6, 'Dark One’s Own Luck', 'Karanlığın şansı', 'Bir yetenek zarına ya da kurtarmaya d10 eklersin (zarı gördükten sonra, sonuç belli olmadan). CHA bonusu kadar hak (en az 1), uzun dinlenmede dolar.'],
+      [10, 'Fiendish Resilience', 'İblis direnci', 'Kısa ya da uzun dinlenmede güç (force) dışında bir hasar türü seçersin; ona direncin olur.'],
+      [14, 'Hurl Through Hell', 'Cehenneme fırlat', 'Turda bir kez saldırı isabetinde hedef CHA kurtarması atar; başaramazsa 8d10 psişik hasar alır (iblis değilse) ve bir sonraki turunun sonuna kadar Incapacitated olur. Uzun dinlenmede bir kez ya da antlaşma yuvasıyla.'],
+    ],
+    kaynak: l => [`Ürkünç çağrı: ${WL_CAGRI[l - 1]}`],
+  },
+  Wizard: { alt: 'Evoker',
+    oz: [
+      [1, 'Spellcasting', 'Büyü yapma', 'Büyü kitabından büyü hazırlarsın, INT ile yaparsın. Her seviyede kitabına iki Wizard büyüsü eklersin.'],
+      [1, 'Ritual Adept', 'Ayin ustası', 'Kitabındaki ritüel büyüleri hazırlamadan ritüel olarak yapabilirsin.'],
+      [1, 'Arcane Recovery', 'Büyü toparlanması', 'Kısa dinlenmede toplam seviyesi wizard seviyenin yarısını (yukarı yuvarlanır) geçmeyen yuvaları geri alırsın (6. seviye ve üstü olmaz). Uzun dinlenmede bir kez.'],
+      [2, 'Scholar', 'Bilgin', 'Arcana, History, Investigation, Medicine, Nature ya da Religion\'dan yetkin olduğun birinde uzman olursun.'],
+      [5, 'Memorize Spell', 'Büyü ezberleme', 'Kısa dinlenmede hazırladığın bir büyüyü kitabındaki başka biriyle değiştirebilirsin.'],
+      [18, 'Spell Mastery', 'Büyü ustalığı', 'Kitabından bir 1. ve bir 2. seviye büyü seçersin; onları en düşük seviyede yuva harcamadan istediğin kadar yaparsın.'],
+      [20, 'Signature Spells', 'İmza büyüleri', 'İki 3. seviye büyü her zaman hazırdır; her birini kısa ya da uzun dinlenmede bir kez yuvasız yaparsın.'],
+    ],
+    altOz: [
+      [3, 'Evocation Savant', 'Çağrı bilgini', 'Kitabına bedavaya iki Evocation büyüsü eklersin; her yeni yuva seviyesinde bir tane daha.'],
+      [3, 'Potent Cantrip', 'Güçlü cantrip', 'Hasar veren cantripin ıskalarsa ya da hedef kurtarmayı geçerse yine hasarın yarısını verirsin (başka etki olmadan).'],
+      [6, 'Sculpt Spells', 'Büyü yontma', 'Bir Evocation büyüsünden 1 + büyünün seviyesi kadar yaratığı korursun: kurtarmayı kendiliğinden geçerler, yarı hasar yerine hiç hasar almazlar.'],
+      [10, 'Empowered Evocation', 'Güçlü çağrı', 'Wizard Evocation büyülerinin bir hasar zarına INT bonusunu eklersin.'],
+      [14, 'Overchannel', 'Aşırı yükleme', '1–5. seviye bir Wizard büyüsünün hasarını en yüksek değerden sayarsın. Uzun dinlenmeden önce yeniden kullanırsan yuva seviyesi başına 2d12 çürüten hasar alırsın (direnç işlemez), her seferinde artar.'],
+    ],
+    kaynak: () => [],
+  },
+};
+// Bütün sınıflarda ortak
+const OZ_ASI = ['Ability Score Improvement', 'Yetenek artışı', 'Bir yeteneğine +2 ya da iki yeteneğine +1 (en çok 20). İstersen bunun yerine bir hüner (feat) seçip Özellikler\'e yazarsın.'];
+const OZ_BOON = ['Epic Boon', 'Destansı nimet', 'Bir Epic Boon hüneri ya da başka bir hüner seçersin; seçtiğini Özellikler\'e yaz.'];
+
+/* ───────── Seviye atlama penceresi (2026-11-10, kullanıcının isteği; DM onayı yok: DM masada zaten görür) ─────────
+   Kağıttaki "Seviye atla": can (zar ya da sabit + CON, en az 1; zar masaya yuvarlanır, DM görür), yetkinlik bonusu,
+   o seviyede gelen sınıf ve alt sınıf özellikleri (SINIF_OZ; Özellikler'e yazılır), havuzlardaki değişiklikler, yetenek artışı
+   (+2 / +1 +1 / hüner), 19'da Epic Boon. 3. seviyede alt sınıf boşsa SRD'deki alt sınıf yazılır. Sorcerer'ın ejder dayanıklılığı
+   ve 20. seviyede Barbarian / Monk'un +4'leri kendiliğinden. Atılan can zarı pencere kapansa da o seviye için saklanır (LV.kayit:
+   yeniden atılıp beğenilen seçilemesin). "Geri al": son seviye atlamadan önceki kağıt (yalnızca bu oturumda). */
+const LV = { l: 0, can: null, ayrinti: '', asi: { tur: 'iki', a: 'str', a1: 'str', b1: 'dex' }, kayit: null, geri: null };
+function lvBilgi(l) {
+  const cl = findClass(), ad = cl ? cl.name : '', v = SINIF_OZ[ad] || null;
+  const altAd = v ? v.alt : '', benim = deger(C.subclass);
+  const altBaska = !!benim && !!altAd && benim.toLowerCase() !== altAd.toLowerCase();   // SRD'de olmayan bir alt sınıf yazılmış
+  const oz = v ? v.oz.filter(o => o[0] === l) : [];
+  const altHepsi = v ? v.altOz.filter(o => o[0] === l) : [];
+  const alt = altBaska ? [] : altHepsi;
+  const asi = !!cl && (ASI_SEVIYE[ad] || ASI_OLAGAN).includes(l);
+  const altSec = !!v && l === 3 && !benim;
+  const ejder = ad === 'Sorcerer' && !altBaska && l >= 3 ? (l === 3 ? 3 : 1) : 0;
+  let kay = [];
+  if (v) {                                                             // havuzlar: bu seviyede değişen satırlar (önceki değeriyle)
+    const satir = k => v.kaynak(k).concat(lvBuyuSatir(ad, k)), simdi = satir(l), once = l > 1 ? satir(l - 1) : [];
+    const bas = s => s.split(':')[0];
+    kay = simdi.filter(s => !once.includes(s)).map(s => { const o = once.find(x => bas(x) === bas(s)); return { s, once: o ? o.slice(bas(o).length + 1).trim() : '' }; });
+  }
+  return { cl, ad, v, altAd, altBaska, oz, alt, altVarmi: altHepsi.length > 0, asi, altSec, ejder, kay };
+}
+function lvHd() { const cl = findClass(); return cl ? cl.hd : C.hitDie; }
+function lvAc() {
+  if (mode === 'peek') return;
+  if (int(C.level) >= 20) { notify('Zaten 20. seviyedesin', 'Daha yukarısı yok.'); return; }
+  LV.l = int(C.level) + 1;
+  const k = LV.kayit && LV.kayit.id === C.id && LV.kayit.l === LV.l ? LV.kayit : null;   // bu seviye için zaten atılmış can
+  LV.can = k ? k.can : null; LV.ayrinti = k ? k.ayrinti : '';
+  const enAz = ABIL.map(a => a.k).filter(x => int(C.abilities[x]) < 20);
+  LV.asi = { tur: 'iki', a: enAz[0] || 'str', a1: enAz[0] || 'str', b1: enAz[1] || 'dex' };
+  $('#lvModal').hidden = false; lvCiz();
+  const ilk = $('#lvIc button'); if (ilk) ilk.focus();
+}
+function lvKapa() { $('#lvModal').hidden = true; }
+function lvCan(zar) {
+  if (LV.can !== null) return;
+  const hd = lvHd(), con = mod('con'), b = lvBilgi(LV.l);
+  let t;
+  if (zar) { t = rollExpr('1' + hd, `Seviye atlama: can zarı (${LV.l}. seviye)`, { hedefsiz: true }); if (t === null) return; }
+  else t = SABIT_CAN[hd] || 5;
+  LV.can = Math.max(1, t + con) + b.ejder;
+  LV.ayrinti = `${zar ? 'zar' : 'sabit'} ${t} ${con < 0 ? '−' : '+'} ${Math.abs(con)} CON${b.ejder ? ` + ${b.ejder} ejder dayanıklılığı` : ''}`;
+  LV.kayit = { id: C.id, l: LV.l, can: LV.can, ayrinti: LV.ayrinti };
+  lvCiz();
+}
+function lvAsiHtml() {
+  const sec = ABIL.map(a => `<option value="${a.k}">${a.k.toUpperCase()} · ${esc(a.tr)} (${int(C.abilities[a.k])})</option>`).join('');
+  return `<section class="lv-sek lv-asi"><h3>Yetenek artışı</h3>
+    <label class="lv-r"><input type="radio" name="lvAsi" value="iki"><span>+2 bir yeteneğe</span><select data-lv="a" aria-label="+2 alacak yetenek">${sec}</select></label>
+    <label class="lv-r"><input type="radio" name="lvAsi" value="bir"><span>+1 iki yeteneğe</span><select data-lv="a1" aria-label="+1 alacak ilk yetenek">${sec}</select><select data-lv="b1" aria-label="+1 alacak ikinci yetenek">${sec}</select></label>
+    <label class="lv-r"><input type="radio" name="lvAsi" value="huner"><span>Bunun yerine bir hüner (feat) seçeceğim</span></label>
+    <p class="lv-uyari" id="lvAsiUyari" hidden></p></section>`;
+}
+function lvCiz() {
+  const l = LV.l, b = lvBilgi(l), hd = lvHd(), con = mod('con');
+  $('#lvBaslik').innerHTML = `${l}. seviyeye çıkıyorsun<small>${esc([deger(C.name), b.ad].filter(Boolean).join(' · '))}</small>`;
+  const h = [];
+  h.push(`<section class="lv-sek"><h3>Can</h3><p class="lv-not">Can zarın ${hd}. Ya zarı at ya da sabit değeri al; ikisine de CON bonusun (${sign(con)}) eklenir, sonuç en az 1.${b.ejder ? ` Ejder dayanıklılığından +${b.ejder}.` : ''} Zar masaya yuvarlanır, DM de görür.</p>
+    ${LV.can === null ? `<div class="lv-dug"><button class="btn accent" data-act="lv-zar">${hd} at</button><button class="btn" data-act="lv-sabit">Sabit al: ${SABIT_CAN[hd] || 5}</button></div>`
+      : `<p class="lv-sonuc"><b>+${LV.can}</b> en çok can<small>${esc(LV.ayrinti)}</small></p>`}</section>`);
+  const pb0 = 2 + Math.floor((l - 2) / 4), pb1 = 2 + Math.floor((l - 1) / 4);
+  if (pb1 !== pb0) h.push(`<p class="lv-pb">Yetkinlik bonusu: <b>+${pb1}</b><small>önce +${pb0}</small></p>`);
+  const liste = [];
+  if (b.altSec) liste.push({ o: [l, b.altAd, 'Alt sınıf', `Bu seviyede alt sınıfını seçersin. Bu sitede ${b.ad} için ${b.altAd} var (SRD'deki tek alt sınıf); kağıdına yazılır, özellikleri aşağıda.`] });
+  b.oz.forEach(o => liste.push({ o }));
+  b.alt.forEach(o => liste.push({ o, alt: true }));
+  if (b.altBaska && b.altVarmi) liste.push({ o: [l, 'Subclass feature', 'Alt sınıf özelliği', `Alt sınıfın (${deger(C.subclass)}) bu sitede yok: bu seviyedeki özelliğini Özellikler'e kendin yaz.`] });
+  if (b.asi) liste.push({ o: [l, ...OZ_ASI] });
+  if (l === 19 && b.cl) liste.push({ o: [l, ...OZ_BOON] });
+  h.push(`<section class="lv-sek"><h3>Bu seviyede kazandıkların</h3>${!b.cl ? '<p class="lv-not">Sınıfını kağıda yazınca (ör. Fighter) o sınıfın bu seviyede kazandıkları da burada görünür.</p>' : ''}${liste.length
+    ? `<ul class="lv-oz">${liste.map(x => `<li${x.alt ? ' class="alt"' : ''}><b>${esc(x.o[1])}</b> <i>${esc(x.o[2])}</i>${x.alt ? `<small>${esc(b.altAd)}</small>` : ''}<p>${esc(x.o[3])}</p></li>`).join('')}</ul>`
+    : b.cl ? '<p class="lv-not">Bu seviyede yeni bir sınıf özelliği yok; can ve sayılar artar.</p>' : ''}${liste.length ? '<p class="lv-not">Bunlar kağıdındaki Özellikler sekmesine yazılır.</p>' : ''}</section>`);
+  if (b.asi) h.push(lvAsiHtml());
+  if (b.kay.length) h.push(`<section class="lv-sek"><h3>Havuzlar ve sayılar</h3><ul class="lv-kay">${b.kay.map(k => `<li>${esc(k.s)}${k.once ? `<small>önce: ${esc(k.once)}</small>` : ''}</li>`).join('')}</ul>${BUYU_SAY[b.ad] ? '<p class="lv-not">Yeni büyülerini kağıttaki Büyüler bölümünden seç.</p>' : ''}</section>`);
+  $('#lvIc').innerHTML = h.join('');
+  if (b.asi) {
+    $$('#lvIc [name="lvAsi"]').forEach(r => { r.checked = r.value === LV.asi.tur; });
+    ['a', 'a1', 'b1'].forEach(k => { $(`#lvIc [data-lv="${k}"]`).value = LV.asi[k]; });
+  }
+  lvGecerli();
+}
+// Yetenek artışı uygun mu (20'yi geçmez, iki farklı yetenek)? Uygunsa yapılacak değişiklik, değilse uyarı
+function lvAsiHesap() {
+  const a = LV.asi, ab = k => int(C.abilities[k]), ad = k => k.toUpperCase();
+  if (a.tur === 'huner') return { ok: true, deg: {}, metin: 'Bunun yerine bir hüner seçildi (Özellikler\'e yaz).' };
+  if (a.tur === 'iki') return ab(a.a) + 2 > 20 ? { ok: false, uyari: `${ad(a.a)} ${ab(a.a)}: +2 ile 20'yi geçer. Başka bir yetenek seç ya da +1 +1 yap.` }
+    : { ok: true, deg: { [a.a]: 2 }, metin: `${ad(a.a)} +2 (${ab(a.a)} → ${ab(a.a) + 2})` };
+  if (a.a1 === a.b1) return { ok: false, uyari: 'İki farklı yetenek seç.' };
+  const fazla = [a.a1, a.b1].find(k => ab(k) + 1 > 20);
+  return fazla ? { ok: false, uyari: `${ad(fazla)} zaten 20.` } : { ok: true, deg: { [a.a1]: 1, [a.b1]: 1 }, metin: `${ad(a.a1)} +1, ${ad(a.b1)} +1` };
+}
+function lvGecerli() {
+  const b = lvBilgi(LV.l), asi = b.asi ? lvAsiHesap() : { ok: true }, u = $('#lvAsiUyari');
+  if (u) { u.hidden = asi.ok; u.textContent = asi.uyari || ''; }
+  const ok = LV.can !== null && asi.ok, btn = $('#lvUygula');
+  btn.disabled = !ok;
+  btn.title = LV.can === null ? 'Önce canını belirle: zar at ya da sabit al' : asi.ok ? '' : asi.uyari;
+  return ok;
+}
+function lvUygula() {
+  if (!lvGecerli()) return;
+  const l = LV.l, b = lvBilgi(l), can = LV.can, asi = b.asi ? lvAsiHesap() : null;
+  LV.geri = { id: C.id, json: JSON.stringify(C), l };
+  C.level = l; if (b.cl) C.hitDie = b.cl.hd;
+  C.hp.max = int(C.hp.max) + can; C.hp.cur = int(C.hp.cur) + can;
+  if (asi) Object.entries(asi.deg).forEach(([k, n]) => { C.abilities[k] = Math.min(20, int(C.abilities[k]) + n); });
+  if (l === 20 && (b.ad === 'Barbarian' || b.ad === 'Monk')) (b.ad === 'Barbarian' ? ['str', 'con'] : ['dex', 'wis']).forEach(k => { C.abilities[k] = Math.min(25, int(C.abilities[k]) + 4); });
+  if (b.v && l >= 3 && !deger(C.subclass)) C.subclass = b.altAd;
+  const ekle = (en, tr, acik) => {                                     // aynı özellik daha önce geldiyse altına yeni satır
+    const ad = `${en} (${tr})`, satir = `${b.ad ? b.ad + ' ' : ''}${l}. seviye: ${acik}`, f = C.feats.find(x => x.name === ad);
+    if (f) f.desc = (f.desc ? f.desc + '\n' : '') + satir; else C.feats.push({ name: ad, desc: satir });
+  };
+  b.oz.concat(b.alt).forEach(o => ekle(o[1], o[2], o[3]));
+  if (asi) ekle(OZ_ASI[0], OZ_ASI[1], asi.metin);
+  if (l === 19 && b.cl) ekle(...OZ_BOON);
+  LV.kayit = null; lvKapa();
+  showChar(); changed(); renderChars();
+  notify(`${l}. seviyeye çıktın!`, `+${can} en çok can.${b.oz.length + b.alt.length ? ' Yeni özelliklerin Özellikler sekmesinde.' : ''}`);
+}
+function lvGeriAl() {
+  const g = LV.geri;
+  if (!g || g.id !== C.id || mode === 'peek') return;
+  const eski = JSON.parse(g.json);
+  Object.keys(C).forEach(k => { delete C[k]; }); Object.assign(C, eski);
+  LV.geri = null;
+  showChar(); changed(); renderChars();
+  notify(`${g.l}. seviyeye çıkış geri alındı`, 'Kağıdın seviye atlamadan önceki hâline döndü.');
+}
+function lvDugmeler() {                                               // refresh her çalıştığında
+  const a = $('#lvAtla'), g = $('#lvGeri'), ro = mode === 'peek';
+  if (!a) return;
+  a.hidden = ro || int(C.level) >= 20;
+  g.hidden = ro || !LV.geri || LV.geri.id !== C.id;
+}
 
 const ALIGN = [
   { k:'Lawful Good',     tr:'Düzenli iyi',     d:'Kurallara ve sözüne bağlı kalarak iyilik yapar.' },
@@ -3160,7 +3667,7 @@ function rollExpr(expr, label, opt = {}) {
       detail += `${op}${n}d${t.s} (${r.join(', ')})`;
     } else { total += t.neg ? -t.k : t.k; detail += op + t.k; }
   });
-  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : '', dice, hasar: !!opt.hasar });
+  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : '', dice, hasar: !!opt.hasar, hedefsiz: !!opt.hedefsiz });
   return total;
 }
 
@@ -3384,7 +3891,7 @@ function refresh() {
   kd.setAttribute('aria-expanded', String(duzen));
   kd.title = duzen ? 'Alanları kapat' : 'Türünü, sınıfını ya da geçmişini değiştir';
   $('#kuAd').innerHTML = `${esc(C.name.trim() || 'Adsız karakter')}${who ? `<small>${esc(C.level + '. seviye ' + who)}</small>` : ''}`;   // kağıdın üst şeridi
-  out('level', C.level);
+  out('level', C.level); lvDugmeler();
   out('pb', sign(P));
   const ib = $('#inspBtn'); ib.setAttribute('aria-pressed', String(!!C.insp));
 
@@ -3699,6 +4206,15 @@ function sampleChar() {
    Sayfadaki her düğmenin bir data-act adı var; ne yapacağı burada yazılı.
    ═══════════════════════════════════════════════════════════════════ */
 function changed() { refresh(); save(); }
+// Seviye atlama penceresi: yetenek artışı seçimi, Esc ve arkaya basınca kapanır
+$('#lvIc').addEventListener('change', e => {
+  const t = e.target;
+  if (t.name === 'lvAsi') LV.asi.tur = t.value;
+  else if (t.dataset.lv) { LV.asi[t.dataset.lv] = t.value; const r = t.closest('.lv-r'), rd = r && $('input[type=radio]', r); if (rd) { rd.checked = true; LV.asi.tur = rd.value; } }
+  lvGecerli();
+});
+$('#lvModal').addEventListener('click', e => { if (e.target.id === 'lvModal') lvKapa(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#lvModal').hidden) { e.stopPropagation(); lvKapa(); } }, true);
 function rowOf(el) { const row = el.closest('.li'); return row ? { list: row.dataset.list, i: int(row.dataset.i), row } : null; }
 function setTab(tab) {
   if (!$(`.panel[data-panel="${tab}"]`)) tab = 'actions';
@@ -3726,6 +4242,12 @@ const ACTIONS = {
   sample: () => { store.welcomed = true; $('#welcome').hidden = true; adopt(sampleChar()); openDrawer(false); toTop(); },
 
   lvl: b => { C.level = clamp(C.level + int(b.dataset.d), 1, 20); C.hdUsed = clamp(C.hdUsed, 0, C.level); changed(); renderChars(); },
+  'seviye-atla': () => lvAc(),                                       // BÖLÜM 8c
+  'lv-kapa': () => lvKapa(),
+  'lv-zar': () => lvCan(true),
+  'lv-sabit': () => lvCan(false),
+  'lv-uygula': () => lvUygula(),
+  'lv-geri': () => lvGeriAl(),
   insp: () => {
     if (store.net.role === 'player') {        // masadayken ilhamı yalnızca DM verir; oyuncu elindekini harcayabilir
       if (!C.insp) { notify('İlhamı yalnızca DM verebilir', 'DM verdiğinde yıldız kendiliğinden yanar.'); return; }
@@ -5112,7 +5634,7 @@ const atanNpc = () => (store.net.role === 'dm' ? npcler().find(n => n.id === sto
 
 // Kendi atışım (showRoll'dan): kimin adına, kime, hasar mı? Zarın adı buna göre yazılır.
 function zarHedefle(r) {
-  if (r.sistem || r.ini) return;                                    // düşmanların inisiyatifi, inisiyatif zarı: hedefsiz
+  if (r.sistem || r.ini || r.hedefsiz) return;                      // düşmanların inisiyatifi, inisiyatif zarı, seviye atlama can zarı: hedefsiz
   const h = gecerliHedef(), a = atanNpc();
   if (a) { r.kim = a.ad || 'Düşman'; r.npc = a.id; }                 // tahtada, bildirimde ve oyuncularda düşmanın adı yazar; zar onun kartından çıkar (10c)
   r.hasar = !!h && !!(r.hasar || (SAVAS.hasarSecili && !r.d20));
@@ -7896,7 +8418,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#duzen
 
 // Esc: açık çekmece, pencere ya da zar tepsisi yoksa kağıdı kapatır (onları kapatan Esc'den önce bakılır)
 document.addEventListener('keydown', e => {
-  if (e.key !== 'Escape' || !kagitUstte || !$('#modal').hidden || $('.drawer.open') || $('#tray').classList.contains('open')) return;
+  if (e.key !== 'Escape' || !kagitUstte || !$('#modal').hidden || !$('#lvModal').hidden || $('.drawer.open') || $('#tray').classList.contains('open')) return;
   kagitKapa();
 }, true);
 
