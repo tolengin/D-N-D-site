@@ -1017,6 +1017,23 @@ body.olusturuyor .kagit-ust :is(.gorunum,.ku-ad){visibility:hidden}
 .ol-bonus label{display:inline-flex;align-items:center;gap:6px}
 .ol-bonus select{width:auto;padding:5px 8px}
 .ol-uyari{color:var(--bad);font-weight:600}
+/* Ekipman adımı (2026-11-10): A / B paket kartları, "?" seçimleri, kese ve alışveriş */
+.ol-paketler{margin:6px 0 18px}
+.ol-paket b{padding-right:0}
+.ol-pk{display:flex;flex-direction:column;gap:4px;font-size:13.5px;line-height:1.3}
+.ol-pk-e{display:flex;align-items:center;gap:8px}
+.ol-pk-e .esya-ic{width:22px;height:22px}
+.ol-pk-e em{font-style:normal;font-weight:800;color:var(--accent)}
+.ol-pk-e i{font-style:normal;color:var(--muted)}
+.ol-secim{display:flex;flex-wrap:wrap;gap:10px 18px;margin:-4px 0 18px;font-weight:700;font-size:13.5px}
+.ol-secim label{display:inline-flex;align-items:center;gap:8px}
+.ol-secim select{width:auto;padding:5px 8px}
+.ol-alis{display:grid;gap:10px;justify-items:start;padding-top:16px;border-top:1px solid var(--line)}
+.ol-alinan{display:flex;flex-wrap:wrap;gap:6px}
+.ol-alinan>span{display:inline-flex;align-items:center;gap:6px;padding:2px 2px 2px 8px;border:1px solid var(--line);background:var(--field);font-size:13.5px}
+.ol-alinan .esya-ic{width:20px;height:20px}
+.ol-alinan small{color:var(--muted)}
+.kat-yok{font-size:12px;color:var(--muted)}
 .ol-bec{display:grid;gap:8px;margin-top:18px}
 .ol-bec .chip:hover{border-color:var(--accent)}
 .ol-bec .chip[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 18%,var(--field));border-color:var(--accent);color:var(--text)}
@@ -5333,12 +5350,38 @@ const OL_HAZIR = {
   Wizard:  { sinif:'Wizard',  gecmis:'Sage',    tur:'Elf',   iki:'int', bir:'con', beceri:['investigation','insight'] },
   Paladin: { sinif:'Paladin', gecmis:'Soldier', tur:'Human', iki:'str', bir:'con', beceri:['insight','persuasion'], ekBeceri:['perception'] },
 };
-const OL_SILAH_LB = { Greatsword:6, Javelin:2, Quarterstaff:4, Dagger:1, Longsword:3, Shortsword:2, Shortbow:2, Longbow:2, Greataxe:7, Handaxe:2, Mace:4, Sickle:2, Spear:3 };
-const OL_ADET = { Javelin:6, Handaxe:4, Dagger:2 };
-const OL_CANTA = {   // başlangıç çantası (ad, lb)
-  Fighter:[["Dungeoneer's Pack", 55]], Barbarian:[["Explorer's Pack", 55]], Monk:[["Explorer's Pack", 55]], Ranger:[["Explorer's Pack", 55]], Druid:[["Explorer's Pack", 55]],
-  Rogue:[["Burglar's Pack", 42]], Bard:[["Entertainer's Pack", 58]], Cleric:[["Priest's Pack", 29], ['Holy Symbol', 1]], Paladin:[["Priest's Pack", 29], ['Holy Symbol', 1]],
-  Sorcerer:[["Dungeoneer's Pack", 55], ['Arcane Focus (crystal)', 1]], Warlock:[["Scholar's Pack", 22], ['Arcane Focus (orb)', 3]], Wizard:[["Scholar's Pack", 22], ['Spellbook', 3]],
+// Başlangıç ekipmanı (2026-11-10, kullanıcının isteği; SRD 5.2.1): sınıfın ve geçmişin seçenekleri. Seçenek { esya: [[ad, adet, not]], gp };
+// son seçenek yalnızca altın. "?calgi" gibi adlar oyuncunun seçtiği eşyadır (EKIP_SEC). SRD'de paketi olmayan geçmişler yalnızca 50 gp verir
+// (2024 kuralında her geçmişin B seçeneği). Altınla oyuncu oluşturmanın içinde katalogdan alır (olAlisAc).
+const SINIF_EKIP = {
+  Barbarian: [{ esya: [['Greataxe', 1], ['Handaxe', 4], ["Explorer's Pack", 1]], gp: 15 }, { gp: 75 }],
+  Bard:      [{ esya: [['Leather Armor', 1], ['Dagger', 2], ['?calgi', 1], ["Entertainer's Pack", 1]], gp: 19 }, { gp: 90 }],
+  Cleric:    [{ esya: [['Chain Shirt', 1], ['Shield', 1], ['Mace', 1], ['?kutsal', 1], ["Priest's Pack", 1]], gp: 7 }, { gp: 110 }],
+  Druid:     [{ esya: [['Leather Armor', 1], ['Shield', 1], ['Sickle', 1], ['Druidic Focus (wooden staff)', 1], ["Explorer's Pack", 1], ['Herbalism Kit', 1]], gp: 9 }, { gp: 50 }],
+  Fighter:   [{ esya: [['Chain Mail', 1], ['Greatsword', 1], ['Flail', 1], ['Javelin', 8], ["Dungeoneer's Pack", 1]], gp: 4 },
+              { esya: [['Studded Leather Armor', 1], ['Scimitar', 1], ['Shortsword', 1], ['Longbow', 1], ['Arrows', 1], ['Quiver', 1], ["Dungeoneer's Pack", 1]], gp: 11 }, { gp: 155 }],
+  Monk:      [{ esya: [['Spear', 1], ['Dagger', 5], ['?kesis', 1], ["Explorer's Pack", 1]], gp: 11 }, { gp: 50 }],
+  Paladin:   [{ esya: [['Chain Mail', 1], ['Shield', 1], ['Longsword', 1], ['Javelin', 6], ['?kutsal', 1], ["Priest's Pack", 1]], gp: 9 }, { gp: 150 }],
+  Ranger:    [{ esya: [['Studded Leather Armor', 1], ['Scimitar', 1], ['Shortsword', 1], ['Longbow', 1], ['Arrows', 1], ['Quiver', 1], ['Druidic Focus (sprig of mistletoe)', 1], ["Explorer's Pack", 1]], gp: 7 }, { gp: 150 }],
+  Rogue:     [{ esya: [['Leather Armor', 1], ['Dagger', 2], ['Shortsword', 1], ['Shortbow', 1], ['Arrows', 1], ['Quiver', 1], ["Thieves' Tools", 1], ["Burglar's Pack", 1]], gp: 8 }, { gp: 100 }],
+  Sorcerer:  [{ esya: [['Spear', 1], ['Dagger', 2], ['Arcane Focus (crystal)', 1], ["Dungeoneer's Pack", 1]], gp: 28 }, { gp: 50 }],
+  Warlock:   [{ esya: [['Leather Armor', 1], ['Sickle', 1], ['Dagger', 2], ['Arcane Focus (orb)', 1], ['Book', 1, 'occult lore'], ["Scholar's Pack", 1]], gp: 15 }, { gp: 100 }],
+  Wizard:    [{ esya: [['Dagger', 2], ['Arcane Focus (staff)', 1], ['Robe', 1], ['Spellbook', 1], ["Scholar's Pack", 1]], gp: 5 }, { gp: 55 }],
+};
+const GECMIS_EKIP = {
+  Acolyte:  [{ esya: [["Calligrapher's Supplies", 1], ['Book', 1, 'prayers'], ['?kutsal', 1], ['Parchment', 10], ['Robe', 1]], gp: 8 }, { gp: 50 }],
+  Criminal: [{ esya: [['Dagger', 2], ["Thieves' Tools", 1], ['Crowbar', 1], ['Pouch', 2], ["Clothes, Traveler's", 1]], gp: 16 }, { gp: 50 }],
+  Sage:     [{ esya: [['Quarterstaff', 1], ["Calligrapher's Supplies", 1], ['Book', 1, 'history'], ['Parchment', 8], ['Robe', 1]], gp: 8 }, { gp: 50 }],
+  Soldier:  [{ esya: [['Spear', 1], ['Shortbow', 1], ['Arrows', 1], ['?oyun', 1], ["Healer's Kit", 1], ['Quiver', 1], ["Clothes, Traveler's", 1]], gp: 14 }, { gp: 50 }],
+};
+const CALGILAR = ['Lute', 'Lyre', 'Flute', 'Drum', 'Horn', 'Pan Flute', 'Shawm', 'Viol', 'Dulcimer', 'Bagpipes'];
+const ZANAAT = ["Alchemist's Supplies", "Brewer's Supplies", "Calligrapher's Supplies", "Carpenter's Tools", "Cartographer's Tools", "Cobbler's Tools", "Cook's Utensils", "Glassblower's Tools",
+  "Jeweler's Tools", "Leatherworker's Tools", "Mason's Tools", "Painter's Supplies", "Potter's Tools", "Smith's Tools", "Tinker's Tools", "Weaver's Tools", "Woodcarver's Tools"];
+const EKIP_SEC = {   // paketteki "?ad" yerine oyuncunun seçtiği: [başlık, seçenekler]
+  calgi:  ['Çalgın', CALGILAR],
+  kesis:  ['Aletin ya da çalgın (yetkinliğin de olur)', CALGILAR.concat(ZANAAT)],
+  kutsal: ['Kutsal simgen', ['Holy Symbol (amulet)', 'Holy Symbol (emblem)', 'Holy Symbol (reliquary)']],
+  oyun:   ['Oyun takımın', ['Dice Set', 'Playing Card Set', 'Dragonchess Set', 'Three-Dragon Ante Set']],
 };
 // Hazır portreler (yol haritası 15; masa/karakter/, araclar/karakter_hazirla.py). tur ve look: portredeki kişinin türü ve figürü
 const OL_PORTRE = {
@@ -5352,13 +5395,38 @@ const portreYol = k => `masa/karakter/${k}.webp`;
 const DM_PORTRE = ['dm-erkek', 'dm-kadin'];
 const dmPortre = () => { const k = store.net.role === 'dm' ? store.net.dmPortre : net.dmPortre; return DM_PORTRE.includes(k) ? portreYol(k) : ''; };
 const OL_ONERI = { sinif:['Fighter','Wizard','Paladin','Rogue'], tur:['Human','Elf','Dwarf','Halfling'] };
-const OL_ADIM = ['Sınıf', 'Geçmiş', 'Tür', 'Yetenekler', 'Ekipman ve ad'];
+// Ekipman adımı (5): seçilen paketlerin eşyaları, bütçe, alışveriş
+const ekipSinif = () => SINIF_EKIP[OL.sinif] || [{ gp: 0 }];
+const ekipGecmis = () => GECMIS_EKIP[OL.gecmis] || [{ gp: 50 }];
+const ekipSecim = k => (OL.ekip.sec[k] && EKIP_SEC[k][1].includes(OL.ekip.sec[k])) ? OL.ekip.sec[k] : EKIP_SEC[k][1][0];
+const ekipAd = a => a[0] === '?' ? ekipSecim(a.slice(1)) : a;
+const ekipSecenek = () => [ekipSinif()[OL.ekip.sinif] || {}, ekipGecmis()[OL.ekip.gecmis] || {}];
+const olEkipListe = () => ekipSecenek().flatMap(o => (o.esya || []).map(([a, n, not]) => [ekipAd(a), n, not])).concat(OL.ekip.alinan.map(k => [k, 1]));
+const olButce = () => 100 * ekipSecenek().reduce((s, o) => s + (o.gp || 0), 0);
+const olHarcanan = () => OL.ekip.alinan.reduce((s, k) => s + (ESYA[k].cp || 0), 0);
+const olKalan = () => olButce() - olHarcanan();
+function paraYaz(cp) {                                                 // 2345 → "23 gp 4 sp 5 cp"
+  const g = Math.floor(cp / 100), s = Math.floor(cp % 100 / 10), c = cp % 10;
+  return [g && `${g.toLocaleString('tr-TR')} gp`, s && `${s} sp`, c && `${c} cp`].filter(Boolean).join(' ') || '0 gp';
+}
+function olAlisAc() {                                                  // altınla alışveriş: katalog penceresi "olustur" kipinde
+  const altin = ekipSecenek().every(o => !o.esya);
+  katAc('olustur', altin ? 'silah' : KAT.sek, {
+    baslik: ['Başlangıç alışverişi', 'Kurallardaki fiyatlarla. Aldığın her şey karakterine gider: silah saldırılarına, zırh AC\'ine işlenir. Kalan para kesende kalır.'],
+    sag: e => e.cp === null ? '<span class="kat-yok">satılmaz</span>'
+      : `<button class="btn sm" data-act="kat-ekle" data-k="${esc(e.k)}"${e.cp > olKalan() ? ' disabled title="Paran yetmiyor"' : ''}><svg class="ic"><use href="#i-plus"/></svg>Al</button>`,
+    ekle: k => { const e = ESYA[k]; if (!e || e.cp === null || e.cp > olKalan()) return; OL.ekip.alinan.push(k); katCiz(); olCiz(); },
+    altYazi: () => `Kalan paran: <b>${paraYaz(olKalan())}</b>${OL.ekip.alinan.length ? ` · ${OL.ekip.alinan.length} eşya aldın` : ''}`,
+  });
+}
+const OL_ADIM = ['Sınıf', 'Geçmiş', 'Tür', 'Yetenekler', 'Ekipman', 'Ad'];
 const DIZI = [15, 14, 13, 12, 10, 8];
 const md = v => Math.floor((v - 10) / 2);
 
 let OL = null;   // açık oluşturmanın seçimleri
 function olAc() {
-  OL = { adim:0, sinif:'', gecmis:'', tur:'', dizi:null, iki:'', bir:'', ucBir:false, beceri:[], ekBeceri:[], ad:'', look:'', portre:'', hepsi:false };
+  OL = { adim:0, sinif:'', gecmis:'', tur:'', dizi:null, iki:'', bir:'', ucBir:false, beceri:[], ekBeceri:[], ad:'', look:'', portre:'', hepsi:false,
+        ekip:{ sinif:0, gecmis:0, sec:{}, alinan:[] } };   // ekip: seçilen paketler (0 = A), "?" seçimleri, altınla alınanlar
   document.body.classList.add('olusturuyor');
   $('#olustur').hidden = false; $('#welcome').hidden = true;
   olCiz(); olUst();
@@ -5368,6 +5436,7 @@ function olKapa() { OL = null; document.body.classList.remove('olusturuyor'); $(
 function olSinifSec(k) {                                               // sınıf değişince ona bağlı seçimler sıfırlanır
   if (OL.sinif === k) return;
   OL.sinif = k; OL.dizi = Object.assign({}, OL_SINIF[k].dizi); OL.beceri = []; olBonusOner();
+  OL.ekip.sinif = 0; OL.ekip.alinan = [];
 }
 function olBonusOner() {                                               // geçmişin üç yeteneğinden en yüksek ikisine +2 / +1
   const g = OL_GECMIS[OL.gecmis]; if (!g || !OL.dizi) { OL.iki = OL.bir = ''; return; }
@@ -5392,7 +5461,7 @@ function olHazirMi(a = OL.adim) {                                      // "Devam
 function olHazir(k) {                                                  // hazır karakteri seç: doğrudan 5. adıma
   const h = OL_HAZIR[k];
   olSinifSec(h.sinif); OL.gecmis = h.gecmis; OL.tur = h.tur; OL.iki = h.iki; OL.bir = h.bir;
-  OL.beceri = h.beceri.slice(); OL.ekBeceri = (h.ekBeceri || []).slice(); OL.hazir = k; OL.adim = 5;
+  OL.beceri = h.beceri.slice(); OL.ekBeceri = (h.ekBeceri || []).slice(); OL.hazir = k; OL.adim = 6;
   olPortre((OL_PORTRE[k] || []).find(p => p.tur === h.tur));
   olCiz();
 }
@@ -5427,11 +5496,11 @@ function olCiz() {
   $('#olAdimlar').hidden = a === 0;
   let h = '';
   if (a === 0) {
-    h = `<p class="ol-giris">D&amp;D'yi hiç bilmiyorsan hazır bir karakterle başla: yalnızca adını yazarsın, gerisi hazır. Kendin seçmek istersen beş adımda kurarız; her adımda ne seçtiğin kağıda kendiliğinden işlenir.</p>
+    h = `<p class="ol-giris">D&amp;D'yi hiç bilmiyorsan hazır bir karakterle başla: yalnızca adını yazarsın, gerisi hazır. Kendin seçmek istersen altı adımda kurarız; her adımda ne seçtiğin kağıda kendiliğinden işlenir.</p>
       <div class="ol-kartlar">
         ${olKart('ol-hazir', 'Wizard', 'Wizard', 'Hazır büyücü', 'Bilge bir büyücü. Ateş oku, sihirli füze, uyku büyüsü. Uzaktan savaşır.', 'Kolay: büyüye bas, zarı site atar', false, 'Hazır', portreYol('buyucu-2'))}
         ${olKart('ol-hazir', 'Paladin', 'Paladin', 'Hazır paladin', 'Yeminli bir asker. Zincir zırh, kalkan, uzun kılıç; dokunarak iyileştirir.', 'Kolay: önde durur, vurur, korur', false, 'Hazır', portreYol('paladin-1'))}
-        ${olKart('ol-kendim', '', 'Kendim oluşturayım', 'Sınıfını ve geçmişini sen seç', 'Sınıf, geçmiş, tür, yetenekler ve ekipman: beş kısa adım.', '5 adım, yaklaşık 5 dakika', false, '', 'cam')}
+        ${olKart('ol-kendim', '', 'Kendim oluşturayım', 'Sınıfını ve geçmişini sen seç', 'Sınıf, geçmiş, tür, yetenekler, ekipman ve ad: altı kısa adım.', '6 adım, yaklaşık 6 dakika', false, '', 'cam')}
       </div>
       <button class="btn sm ol-bos" data-act="ol-bos">Boş kağıtla başla (oyunu biliyorum)</button>`;
   } else if (a === 1) {
@@ -5472,6 +5541,29 @@ function olCiz() {
         <p class="ol-ipucu">Geçmişinden gelen: ${[...ver].map(k => SKILL[k].en).join(', ')}. Becerilerde yetkinsen zar atarken yetkinlik bonusun (+2) eklenir.</p>
       </div>`;
   } else if (a === 5) {
+    const kart = (t, liste, i) => { const o = liste[i];
+      const es = (o.esya || []).map(([x, n, not]) => { const e = ESYA[ekipAd(x)];
+        return `<span class="ol-pk-e">${ESYA_IC(e)}<span>${n > 1 ? `<em>${n}×</em> ` : ''}${esc(e.k)}${not ? ` <i>(${esc(not)})</i>` : esyaAdet(e) > 1 ? ` <i>(${esyaAdet(e)})</i>` : ''}</span></span>`; }).join('');
+      return `<button class="ol-kart ol-paket" data-act="ol-ekip" data-t="${t}" data-i="${i}" aria-pressed="${OL.ekip[t] === i}">
+        <b>${o.esya ? `${'ABC'[i]} paketi<i>Hazır ekipman + ${o.gp} gp</i>` : `Yalnızca altın<i>${o.gp} gp ile kendin seçersin</i>`}</b>
+        ${es ? `<span class="ol-pk">${es}</span>` : '<span class="ol-d">Silahını, zırhını ve eşyalarını bu parayla aşağıdaki alışverişten kendin alırsın.</span>'}</button>`; };
+    const sl = ekipSinif(), gl = ekipGecmis(), al = OL.ekip.alinan;
+    const sec = [...new Set(ekipSecenek().flatMap(o => (o.esya || []).map(x => x[0]).filter(x => x[0] === '?').map(x => x.slice(1))))];
+    const altin = ekipSecenek().every(o => !o.esya);
+    h = `<h3 class="ol-soru">Başlangıç ekipmanın</h3>
+      <p class="ol-ipucu">Sınıfın ve geçmişin sana ya hazır bir paket ya da altın verir. Altını seçersen silahını ve zırhını kendin alırsın. Paketteki silahlar saldırılarına, zırh AC'ine kendiliğinden işlenir; paketler (ör. Explorer's Pack) çantanda tek tek eşyalara açılır.</p>
+      <span class="f-l">Sınıfından<i>${OL.sinif} · ${esc(OL_SINIF[OL.sinif].tr)}</i></span>
+      <div class="ol-kartlar ol-paketler">${sl.map((_, i) => kart('sinif', sl, i)).join('')}</div>
+      <span class="f-l">Geçmişinden<i>${OL.gecmis} · ${esc(OL_GECMIS[OL.gecmis].tr)}${GECMIS_EKIP[OL.gecmis] ? '' : ': bu geçmişin hazır paketi kurallarda (SRD) yok, 50 gp alırsın'}</i></span>
+      <div class="ol-kartlar ol-paketler">${gl.map((_, i) => kart('gecmis', gl, i)).join('')}</div>
+      ${sec.length ? `<div class="ol-secim">${sec.map(k => `<label>${EKIP_SEC[k][0]} <select data-ol="esec" data-k="${k}">${EKIP_SEC[k][1].map(x => `<option value="${esc(x)}"${x === ekipSecim(k) ? ' selected' : ''}>${esc(x)} · ${esc(ESYA[x].tr)}</option>`).join('')}</select></label>`).join('')}</div>` : ''}
+      <div class="ol-alis">
+        <span class="f-l">Kesen<i>${paraYaz(olKalan())}${al.length ? ` kaldı · ${paraYaz(olHarcanan())} harcadın` : ''}</i></span>
+        ${al.length ? `<div class="ol-alinan">${al.map((k, i) => `<span>${ESYA_IC(ESYA[k])}${esc(k)} <small>${fiyatYaz(ESYA[k].cp)}</small><button class="icon-btn" data-act="ol-alis-sil" data-i="${i}" title="Geri ver (parası geri gelir)" aria-label="${esc(k)}: geri ver"><svg class="ic"><use href="#i-x"/></svg></button></span>`).join('')}</div>` : ''}
+        <button class="btn${altin && !al.length ? ' accent' : ''}" data-act="ol-alis"><svg class="ic"><use href="#i-canta"/></svg>${al.length ? 'Alışverişe devam et' : altin ? 'Silahını ve zırhını al' : 'Kalan parayla bir şey al'}</button>
+        ${altin && !al.some(k => ESYA[k].silah) ? '<p class="ol-ipucu" style="margin:0">Henüz silahın yok. Silahsız da başlayabilirsin (yumruk / tekme her karakterde var) ama bir silah alman iyi olur.</p>' : ''}
+      </div>`;
+  } else if (a === 6) {
     const c = olKur(), s = OL_SINIF[OL.sinif];
     h = `<h3 class="ol-soru">${OL.hazir ? 'Hazır karakterin' : 'Neredeyse hazır'}: adını koy</h3>
       <div class="ol-son">
@@ -5491,7 +5583,8 @@ function olCiz() {
           <div><dt>Zırh sınıfı (AC)</dt><dd>${c.ac}${c.shield ? ' <i>kalkanla</i>' : ''}</dd></div>
           <div><dt>Hız</dt><dd>${c.speed} ft</dd></div>
           <div><dt>Saldırılar</dt><dd>${c.attacks.map(x => `${esc(x.name)} <i>${esc(x.dmg)}</i>`).join('<br>')}</dd></div>
-          <div><dt>Ekipman</dt><dd>${c.items.map(x => esc(x.name)).join(', ')}</dd></div>
+          <div><dt>Ekipman</dt><dd>${c.items.map(x => esc((x.qty > 1 ? x.qty + ' ' : '') + x.name)).join(', ')}</dd></div>
+          <div><dt>Kese</dt><dd>${paraYaz(olKalan())}</dd></div>
           ${c.spells.length ? `<div><dt>Büyüler</dt><dd>${c.spells.map(x => esc(x.name)).join(', ')}</dd></div>` : ''}
         </dl>
       </div>`;
@@ -5500,7 +5593,7 @@ function olCiz() {
   $('#olGeri').hidden = a === 0;
   $('#olIleri').hidden = a === 0;
   $('#olIleri').disabled = !olHazirMi();
-  $('#olIleri').innerHTML = a === 5 ? '<svg class="ic"><use href="#i-check"/></svg>Karakteri oluştur' : 'Devam';
+  $('#olIleri').innerHTML = a === 6 ? '<svg class="ic"><use href="#i-check"/></svg>Karakteri oluştur' : 'Devam';
 }
 // Seçimlerden kağıt kur (5. adımdaki özet de bunu gösterir)
 function olKur() {
@@ -5516,15 +5609,16 @@ function olKur() {
   c.hp.max = c.hp.cur = Math.max(1, int(cl.hd.slice(1)) + m.con + (t.canEk || 0) + (huner === 'Tough' ? 2 : 0));
   c.initBonus = huner === 'Alert' ? 2 : 0;
   c.speed = t.hiz; c.size = t.boy;
-  const z = OL_ZIRH[s.zirh];
-  c.armorType = z.tur; c.shield = s.kalkan; c.ac = z.ac(m) + (s.kalkan ? 2 : 0);
+  const z = OL_ZIRH[s.zirh];   // yalnızca zırhsız savunmanın notu için; AC ekipmandan (zirhUygula)
   if (cl.sp) { c.spellAbility = cl.sp; slotsFor(cl, 1).forEach((n, i) => { c.slots[i].t = n; }); }
-  c.attacks = s.silah.map(([name, ab, zar, tur, note]) => ({ name, ab, prof: true, bonus: 0, dmg: `${zar}${m[ab] ? (m[ab] > 0 ? '+' : '') + m[ab] : ''} ${tur}`, note }));
-  const pk = OL_CANTA[OL.sinif] || OL_CANTA.Fighter;
-  c.items = [...(z.ad ? [{ qty:1, name:z.ad, wt:z.wt, eq:true }] : []), ...(s.kalkan ? [{ qty:1, name:'Shield', wt:6, eq:true }] : []),
-    ...s.silah.filter(w => OL_SILAH_LB[w[0]]).map(w => ({ qty: OL_ADET[w[0]] || 1, name: w[0], wt: OL_SILAH_LB[w[0]], eq: true })),
-    ...pk.map(([name, wt]) => ({ qty:1, name, wt, eq:false })), { qty:1, name:g.alet, wt:5, eq:false }];
-  c.coins.gp = 10;
+  if (OL.sinif === 'Monk') c.profs.tools = [g.alet, ekipSecim('kesis')].join(', ');
+  olEkipListe().forEach(([k, n, not]) => {                             // paketler ve alınanlar: silah saldırıya, zırh AC'ye (esyaKoy)
+    esyaKoy(c, k, n, not);
+  });
+  c.attacks.push(...s.silah.filter(([ad]) => !ESYA[ad] && ad !== 'Unarmed Strike')   // büyü saldırıları (Fire Bolt); yumruk ayrı satırda
+    .map(([name, ab, zar, tur, note]) => ({ name, ab, prof: true, bonus: 0, dmg: `${zar}${m[ab] ? (m[ab] > 0 ? '+' : '') + m[ab] : ''} ${tur}`, note })));
+  zirhUygula(c);
+  const kalan = Math.max(0, olKalan()); c.coins.gp = Math.floor(kalan / 100); c.coins.sp = Math.floor(kalan % 100 / 10); c.coins.cp = kalan % 10;
   c.spells = (OL_BUYU[OL.sinif] || []).map(x => Object.assign({ c:false, r:false, m:false, prep:true }, x));
   c.features = s.ozellik + (z.not ? '\n' + z.not : '');
   c.traits = t.ozellik;
@@ -5546,16 +5640,22 @@ Object.assign(ACTIONS, {
   'ol-kendim': () => { OL.adim = 1; OL.hepsi = false; olCiz(); },
   'ol-hepsi': () => { OL.hepsi = true; olCiz(); },
   'ol-git': b => { OL.adim = int(b.dataset.a); OL.hepsi = false; olCiz(); },
-  'ol-geri': () => { OL.adim = OL.hazir && OL.adim === 5 ? 0 : OL.adim - 1; if (!OL.adim) OL.hazir = ''; OL.hepsi = false; olCiz(); olUst(); },
-  'ol-ileri': () => { if (!olHazirMi()) return; if (OL.adim === 5) { olBitir(); return; } OL.adim++; OL.hepsi = false; olCiz(); olUst(); },
+  'ol-geri': () => { OL.adim = OL.hazir && OL.adim === 6 ? 0 : OL.adim - 1; if (!OL.adim) OL.hazir = ''; OL.hepsi = false; olCiz(); olUst(); },
+  'ol-ileri': () => { if (!olHazirMi()) return; if (OL.adim === 6) { olBitir(); return; } OL.adim++; OL.hepsi = false; olCiz(); olUst(); },
   'ol-sinif': b => { olSinifSec(b.dataset.k); olCiz(); },
-  'ol-gecmis': b => { OL.gecmis = b.dataset.k; olBonusOner(); const v = olVerilen(); OL.beceri = OL.beceri.filter(k => !v.has(k)); OL.ekBeceri = OL.ekBeceri.filter(k => !v.has(k)); olCiz(); },
+  'ol-gecmis': b => { if (OL.gecmis !== b.dataset.k) { OL.ekip.gecmis = 0; OL.ekip.alinan = []; } OL.gecmis = b.dataset.k; olBonusOner(); const v = olVerilen(); OL.beceri = OL.beceri.filter(k => !v.has(k)); OL.ekBeceri = OL.ekBeceri.filter(k => !v.has(k)); olCiz(); },
   'ol-tur': b => { OL.tur = b.dataset.k; const v = olVerilen(); OL.beceri = OL.beceri.filter(k => !v.has(k)); OL.ekBeceri = olEkSayi() ? OL.ekBeceri.filter(k => !v.has(k)) : []; olCiz(); },
   'ol-beceri': b => { const k = b.dataset.k, i = OL.beceri.indexOf(k), n = OL_SINIF[OL.sinif].beceri[0];
     if (i >= 0) OL.beceri.splice(i, 1); else if (OL.beceri.length < n) { OL.beceri.push(k); OL.ekBeceri = OL.ekBeceri.filter(x => x !== k); }
     else { notify(`En çok ${n} beceri seçebilirsin`, 'Önce seçili birini kaldır.'); return; } olCiz(); },
   'ol-ekbeceri': b => { const k = b.dataset.k; OL.ekBeceri = OL.ekBeceri[0] === k ? [] : [k]; olCiz(); },
   'ol-look': b => { OL.look = b.dataset.v; olCiz(); },
+  'ol-ekip': b => { const t = b.dataset.t, i = int(b.dataset.i); if (OL.ekip[t] === i) return;
+    OL.ekip[t] = i;
+    if (olKalan() < 0) { OL.ekip.alinan = []; notify('Alışverişin geri alındı', 'Bu seçenekle paran aldıklarına yetmiyordu.'); }
+    olCiz(); },
+  'ol-alis': () => olAlisAc(),
+  'ol-alis-sil': b => { OL.ekip.alinan.splice(int(b.dataset.i), 1); olCiz(); },
   'ol-portre': b => { olPortre((OL_PORTRE[OL.sinif] || []).find(p => p.k === b.dataset.k)); olCiz(); },
 });
 /* ═══════════════════════════════════════════════════════════════════
@@ -5612,16 +5712,17 @@ function silahSatiri(c, e) {                                           // katalo
   return { name: e.k, ab, prof: silahYetkin(c, e), bonus: 0, dmg: `${s.zar}${m ? (m > 0 ? '+' : '') + m : ''} ${HASAR_TR[s.h][0]}`, note: not, k: e.k };
 }
 // Bir katalog eşyasını karakterin çantasına koyar: paket içindekilere açılır, silah saldırı satırı da kurar, zırh boştaysa giyilir.
-function esyaKoy(c, k, adet = 1) {
+function esyaKoy(c, k, adet = 1, not = '') {                         // not: "Book (prayers)" gibi ayrı satır
   const e = ESYA[k]; if (!e) return [];
   if (e.kat === 'paket') return PAKET[k].flatMap(([a, n]) => esyaKoy(c, a, n * adet));
-  const n = esyaAdet(e) * adet, eski = c.items.find(x => x.k === k && !e.zirh);
+  const n = esyaAdet(e) * adet, eski = !not && c.items.find(x => x.k === k && x.name === k && !e.zirh);
   if (eski) eski.qty = int(eski.qty) + n;                              // aynı eşya (hançer, ok, meşale…) tek satırda toplanır
   else {
     const giy = (e.silah && !c.attacks.some(a => a.k === k)) || (e.zirh && !zirhDurum(c)[e.alt === 'kalkan' ? 'kalkan' : 'govde']);
-    c.items.push({ qty: n, name: k, wt: Math.round(e.lb / esyaAdet(e) * 1000) / 1000, eq: !!giy, k });
+    c.items.push({ qty: n, name: not ? `${k} (${not})` : k, wt: Math.round(e.lb / esyaAdet(e) * 1000) / 1000, eq: !!giy, k });
   }
   if (e.silah && !c.attacks.some(a => a.k === k)) c.attacks.push(silahSatiri(c, e));
+  if (/staff\)$/.test(k) && !c.attacks.some(a => a.k === 'Quarterstaff')) c.attacks.push(silahSatiri(c, ESYA.Quarterstaff));   // asa biçimli odak: asa gibi de vurulur
   if (e.zirh) zirhUygula(c);
   return [e];
 }
@@ -5656,8 +5757,8 @@ function acNotu() {                                                    // AC'nin
 
 // ── Pencere ──
 const KAT = { mod: 'kagit', sek: 'silah', ara: '' };
-function katAc(mod, sek) {
-  KAT.mod = mod; KAT.sek = sek || KAT.sek; KAT.ara = '';
+function katAc(mod, sek, ayar = {}) {                                 // ayar: baslik, sag, ekle, altYazi, liste, fiyat, bos, kapaninca (kipe göre)
+  Object.assign(KAT, { mod, sek: sek || KAT.sek, ara: '', baslik: null, sag: null, ekle: null, altYazi: null, liste: null, fiyat: null, bos: null, kapaninca: null }, ayar);
   $('#katAra').value = ''; $('#katModal').hidden = false; katCiz();
   setTimeout(() => $('#katAra').focus(), 30);
 }
@@ -5711,6 +5812,7 @@ $('#olustur').addEventListener('change', e => {
     if (diger) OL.dizi[diger] = eski; OL.dizi[k] = v; }
   else if (n === 'iki' || n === 'bir') OL[n] = el.value;
   else if (n === 'uc') OL.ucBir = el.checked;
+  else if (n === 'esec') OL.ekip.sec[el.dataset.k] = el.value;
   if (n !== 'ad') olCiz();
 });
 $('#olustur').addEventListener('input', e => { if (OL && e.target.dataset.ol === 'ad') { OL.ad = e.target.value; } });
