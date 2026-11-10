@@ -656,6 +656,31 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 body.peek #haklar{pointer-events:none}
 body.peek #sheet [data-act="kisa-dinlen"]{display:none}
 .mc-dinlen{display:flex;gap:var(--lw);margin-top:var(--lw)}
+/* Sınıf özellikleri paneli (2026-11-10): Özellikler sekmesinin başında. Seviye kare rozet; gelecekler soluk, katlı bölümde */
+.sinif-oz{margin-bottom:18px}
+.so-bas h3{margin:0 0 6px;font-family:var(--font-display);font-size:20px}
+.so-bas h3 em{display:block;font-family:var(--font-ui);font-style:normal;font-size:13px;font-weight:500;color:var(--muted)}
+.so-terim{margin:0 0 10px}
+.so-terim summary,.so-gelecek>summary{cursor:pointer;font-weight:700;color:var(--muted);padding:6px 0}
+.so-terim dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;margin:4px 0 0;padding:10px 12px;background:var(--surface)}
+.so-terim dt{font-weight:700}
+.so-terim dd{margin:0;color:var(--muted)}
+.so-liste{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.so{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;padding:10px 12px;background:var(--surface);border-left:3px solid var(--accent)}
+.so.alt{border-left-color:var(--muted)}
+.so.gelecek{opacity:.62;border-left-color:var(--line)}
+.so-sv{display:grid;place-items:center;width:30px;height:30px;background:var(--lead);font-family:var(--font-display);font-weight:700}
+.so b{font-family:var(--font-display);font-size:16px}
+.so i{font-style:normal;font-weight:600;color:var(--muted);font-size:13px}
+.so small{margin-left:8px;font-size:12px;color:var(--muted)}
+.so .so-gel{color:var(--text)}
+.so p{margin:4px 0 0;line-height:1.5}
+.so .so-not{font-size:13px;color:var(--muted)}
+.so-sec{display:grid;gap:6px;margin-top:8px}
+.so-sec-i{display:grid;gap:3px}
+.so-sec-i select{max-width:360px;padding:6px 8px}
+.so-sec-i small{margin:0;font-size:13px;color:var(--text);opacity:.85}
+.so-gelecek{margin-top:10px}
 .mc-dinlen .btn{flex:1;border:0}
 .xp-ver{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
 .xp-ver input{width:110px}
@@ -2613,9 +2638,11 @@ body.tv-full #tableView{height:100dvh}
 
         <!-- Özellikler -->
         <div class="panel" data-panel="features">
+          <!-- Sınıf özellikleri (2026-11-10, sinifOzCiz): alınanlar, seçmeliler, sonraki seviyelerde gelecekler -->
+          <section class="sinif-oz" id="sinifOz"></section>
           <div class="grid2">
-            <label class="f"><span class="f-l">Class features<i>Sınıf özellikleri</i></span>
-              <textarea data-bind="features" style="min-height:200px" placeholder="Sınıfının sana verdiği güçler. Örnek: Second Wind, Action Surge…"></textarea></label>
+            <label class="f"><span class="f-l">Class notes<i>Kendi notların</i></span>
+              <textarea data-bind="features" style="min-height:200px" placeholder="Yukarıdaki listede olmayanları ya da kendi notlarını buraya yaz."></textarea></label>
             <label class="f"><span class="f-l">Species traits<i>Tür özellikleri</i></span>
               <textarea data-bind="traits" style="min-height:200px" placeholder="Türünden gelen özellikler. Örnek: Darkvision 60 ft…"></textarea></label>
           </div>
@@ -3038,29 +3065,29 @@ const SINIF_OZ = {
   },
   Fighter: { alt: 'Champion',
     oz: [
-      [1, 'Fighting Style', 'Dövüş stili', 'Bir dövüş stili hüneri seçersin (ör. Archery, Defense, Great Weapon Fighting). Seviye atlayınca değiştirebilirsin.'],
-      [1, 'Second Wind', 'İkinci soluk', 'Bonus eylemle 1d10 + fighter seviyen kadar can kazanırsın. Kısa dinlenmede bir hak, uzun dinlenmede hepsi geri gelir.'],
-      [1, 'Weapon Mastery', 'Silah ustalığı', 'Seçtiğin silahların ustalık özelliğini kullanırsın; uzun dinlenmede birini değiştirebilirsin.'],
-      [2, 'Action Surge', 'Atılım', 'Turunda bir eylem daha yaparsın (Magic eylemi olamaz). Kısa ya da uzun dinlenmede geri gelir.'],
-      [2, 'Tactical Mind', 'Taktik zekâ', 'Bir yetenek zarında başarısız olunca bir İkinci soluk hakkı harcayıp 1d10 ekleyebilirsin; yine başarısızsan hak harcanmaz.'],
-      [5, 'Extra Attack', 'Ek saldırı', OZ_EK_SALDIRI],
-      [5, 'Tactical Shift', 'Taktik kayma', 'İkinci soluğu kullanınca fırsat saldırısı almadan hızının yarısı kadar ilerlersin.'],
-      [9, 'Indomitable', 'Yılmazlık', 'Başarısız bir kurtarma zarını fighter seviyeni ekleyerek yeniden atarsın; yeni sonucu kullanırsın. Uzun dinlenmede dolar.'],
-      [9, 'Tactical Master', 'Taktik ustası', 'Ustalığını bildiğin bir silahla saldırırken o silahın ustalığı yerine Push, Sap ya da Slow kullanabilirsin.'],
-      [11, 'Two Extra Attacks', 'İki ek saldırı', 'Saldırı eyleminde üç kez saldırırsın.'],
+      [1, 'Fighting Style', 'Dövüş stili', 'Bir savaş tarzı seçersin; o tarzda daha iyi olursun. Aşağıdaki listeden seç (seviye atlayınca değiştirebilirsin).'],
+      [1, 'Second Wind', 'İkinci soluk', 'Savaşın ortasında nefeslenip toparlanırsın: bonus eylemle 1d10 + fighter seviyen kadar can kazanırsın. Kaç hakkın kaldığı Haklar\'da yazar; kısa dinlenmede 1 hak, uzun dinlenmede hepsi geri gelir.'],
+      [1, 'Weapon Mastery', 'Silah ustalığı', 'Bazı silahları ustalıkla kullanırsın: o silahla vurunca silahın özel etkisi de çalışır (ör. yere düşürmek, yavaşlatmak). Hangi silahlar olduğunu aşağıdan seç; uzun dinlenmeden sonra birini değiştirebilirsin.'],
+      [2, 'Action Surge', 'Atılım', 'Bir anlığına kendini zorlarsın: o tur bir eylem daha yaparsın (ör. iki kez Saldırı eylemi). Büyü yapmak için kullanılamaz. Kısa ya da uzun dinlenmede geri gelir.'],
+      [2, 'Tactical Mind', 'Taktik zekâ', 'Bir yetenek zarında (kapı kırmak, tırmanmak gibi) başarısız olursan bir İkinci soluk hakkı harcayıp zarına 1d10 ekleyebilirsin. Yine başaramazsan hakkın gitmez.'],
+      [5, 'Extra Attack', 'Ek saldırı', 'Saldırı eylemini seçtiğinde bir yerine iki kez vurursun.'],
+      [5, 'Tactical Shift', 'Taktik kayma', 'İkinci soluğu kullandığında, düşmanlar fırsat saldırısı yapamadan hızının yarısı kadar yer değiştirebilirsin.'],
+      [9, 'Indomitable', 'Yılmazlık', 'Bir kurtarma zarında başarısız olursan zarı yeniden atar, fighter seviyeni eklersin; ikinci sonuç geçerli olur. Uzun dinlenmede dolar.'],
+      [9, 'Tactical Master', 'Taktik ustası', 'Ustalığını bildiğin bir silahla vururken, silahın kendi etkisi yerine İtme (Push), Zayıflatma (Sap) ya da Yavaşlatma (Slow) etkisini seçebilirsin.'],
+      [11, 'Two Extra Attacks', 'İki ek saldırı', 'Saldırı eyleminde üç kez vurursun.'],
       [13, 'Indomitable', 'Yılmazlık', 'Yılmazlık hakkın ikiye çıkar.'],
-      [13, 'Studied Attacks', 'İncelenmiş saldırılar', 'Bir saldırın ıskalarsa, bir sonraki turunun sonuna kadar o yaratığa yapacağın ilk saldırı avantajlı olur.'],
-      [17, 'Action Surge', 'Atılım', 'Atılım hakkın ikiye çıkar (turda yine bir kez).'],
+      [13, 'Studied Attacks', 'İncelenmiş saldırılar', 'Bir düşmanı ıskalarsan onun zayıf yerini görürsün: bir sonraki turunun sonuna kadar ona yapacağın ilk saldırı avantajlı olur (iki d20 atıp yükseğini alırsın).'],
+      [17, 'Action Surge', 'Atılım', 'Atılım hakkın ikiye çıkar (ama turda yine bir kez kullanılır).'],
       [17, 'Indomitable', 'Yılmazlık', 'Yılmazlık hakkın üçe çıkar.'],
-      [20, 'Three Extra Attacks', 'Üç ek saldırı', 'Saldırı eyleminde dört kez saldırırsın.'],
+      [20, 'Three Extra Attacks', 'Üç ek saldırı', 'Saldırı eyleminde dört kez vurursun.'],
     ],
     altOz: [
-      [3, 'Improved Critical', 'Gelişmiş kritik', 'Silah ve yumruk saldırılarında 19 ya da 20 kritik vuruştur.'],
-      [3, 'Remarkable Athlete', 'Olağanüstü atlet', 'İnisiyatif ve Athletics zarlarında avantajın olur; kritik vuruştan sonra fırsat saldırısı almadan hızının yarısı kadar ilerleyebilirsin.'],
-      [7, 'Additional Fighting Style', 'Ek dövüş stili', 'Bir dövüş stili hüneri daha seçersin.'],
-      [10, 'Heroic Warrior', 'Kahraman savaşçı', 'Savaşta turunun başında Heroic Inspiration\'ın yoksa kazanırsın.'],
-      [15, 'Superior Critical', 'Üstün kritik', 'Kritik vuruş aralığın 18–20 olur.'],
-      [18, 'Survivor', 'Hayatta kalan', 'Ölüm zarlarında avantajın olur, 18–20 doğal 20 sayılır. Canın yarısının altındayken (canın 0 değilse) her turunun başında 5 + CON bonusu kadar can kazanırsın.'],
+      [3, 'Improved Critical', 'Gelişmiş kritik', 'Kritik vuruşun daha sık gelir: silah ya da yumrukla saldırırken d20\'de 19 ya da 20 gelirse kritik olur (hasar zarları iki kez atılır).'],
+      [3, 'Remarkable Athlete', 'Olağanüstü atlet', 'İnisiyatifte ve Athletics (tırmanma, zıplama, yüzme, itişme) zarlarında avantajın olur. Kritik vurduktan sonra fırsat saldırısı yemeden hızının yarısı kadar ilerleyebilirsin.'],
+      [7, 'Additional Fighting Style', 'Ek dövüş stili', 'Bir savaş tarzı daha seçersin (aşağıdan).'],
+      [10, 'Heroic Warrior', 'Kahraman savaşçı', 'Savaşta her turunun başında, elinde yoksa kahramanlık ilhamı (Heroic Inspiration) kazanırsın: bir zarı yeniden atma hakkı.'],
+      [15, 'Superior Critical', 'Üstün kritik', 'd20\'de 18, 19 ya da 20 gelirse kritik vuruş olur.'],
+      [18, 'Survivor', 'Hayatta kalan', 'Ölüm zarlarında avantajın olur; 18–20 gelirse doğal 20 sayılır. Canın yarısının altındaysa (ama 0 değilse) her turunun başında 5 + CON bonusu kadar can kazanırsın.'],
     ],
     kaynak: l => [`İkinci soluk: ${l >= 10 ? 4 : l >= 4 ? 3 : 2} hak`, `Silah ustalığı: ${l >= 16 ? 6 : l >= 10 ? 5 : l >= 4 ? 4 : 3} silah`, `Saldırı sayısı: ${l >= 20 ? 4 : l >= 11 ? 3 : l >= 5 ? 2 : 1}`]
       .concat(l >= 2 ? [`Atılım: ${l >= 17 ? 2 : 1} hak`] : [], l >= 9 ? [`Yılmazlık: ${l >= 17 ? 3 : l >= 13 ? 2 : 1} hak`] : []),
@@ -3316,8 +3343,8 @@ function lvCiz() {
   if (b.asi) liste.push({ o: [l, ...OZ_ASI] });
   if (l === 19 && b.cl) liste.push({ o: [l, ...OZ_BOON] });
   h.push(`<section class="lv-sek"><h3>Bu seviyede kazandıkların</h3>${!b.cl ? '<p class="lv-not">Sınıfını kağıda yazınca (ör. Fighter) o sınıfın bu seviyede kazandıkları da burada görünür.</p>' : ''}${liste.length
-    ? `<ul class="lv-oz">${liste.map(x => `<li${x.alt ? ' class="alt"' : ''}><b>${esc(x.o[1])}</b> <i>${esc(x.o[2])}</i>${x.alt ? `<small>${esc(b.altAd)}</small>` : ''}<p>${esc(x.o[3])}</p></li>`).join('')}</ul>`
-    : b.cl ? '<p class="lv-not">Bu seviyede yeni bir sınıf özelliği yok; can ve sayılar artar.</p>' : ''}${liste.length ? '<p class="lv-not">Bunlar kağıdındaki Özellikler sekmesine yazılır.</p>' : ''}</section>`);
+    ? `<ul class="lv-oz">${liste.map(x => `<li${x.alt ? ' class="alt"' : ''}><b>${esc(x.o[1])}</b> <i>${esc(x.o[2])}</i>${x.alt ? `<small>${esc(b.altAd)}</small>` : ''}${OZ_SECIM[x.o[1]] ? '<small>seçim: Özellikler\'de</small>' : ''}<p>${esc(x.o[3])}</p></li>`).join('')}</ul>`
+    : b.cl ? '<p class="lv-not">Bu seviyede yeni bir sınıf özelliği yok; can ve sayılar artar.</p>' : ''}${liste.length ? '<p class="lv-not">Bunlar kağıdındaki Özellikler sekmesinde, sınıf özelliklerinin arasında görünür; seçmeli olanları (ör. dövüş stili, silahlar) orada seçersin.</p>' : ''}</section>`);
   if (b.asi) h.push(lvAsiHtml());
   if (b.kay.length) h.push(`<section class="lv-sek"><h3>Havuzlar ve sayılar</h3><ul class="lv-kay">${b.kay.map(k => `<li>${esc(k.s)}${k.once ? `<small>önce: ${esc(k.once)}</small>` : ''}</li>`).join('')}</ul>${BUYU_SAY[b.ad] ? '<p class="lv-not">Yeni büyülerini kağıttaki Büyüler bölümünden seç.</p>' : ''}</section>`);
   $('#lvIc').innerHTML = h.join('');
@@ -3358,12 +3385,11 @@ function lvUygula() {
     const ad = `${en} (${tr})`, satir = `${b.ad ? b.ad + ' ' : ''}${l}. seviye: ${acik}`, f = C.feats.find(x => x.name === ad);
     if (f) f.desc = (f.desc ? f.desc + '\n' : '') + satir; else C.feats.push({ name: ad, desc: satir });
   };
-  b.oz.concat(b.alt).forEach(o => ekle(o[1], o[2], o[3]));
   if (asi) ekle(OZ_ASI[0], OZ_ASI[1], asi.metin);
   if (l === 19 && b.cl) ekle(...OZ_BOON);
   LV.kayit = null; lvKapa();
   showChar(); changed(); renderChars();
-  notify(`${l}. seviyeye çıktın!`, `+${can} en çok can.${b.oz.length + b.alt.length ? ' Yeni özelliklerin Özellikler sekmesinde.' : ''}`);
+  notify(`${l}. seviyeye çıktın!`, `+${can} en çok can.${b.oz.length + b.alt.length ? ' Yeni özelliklerin Özellikler sekmesinde, sınıf özelliklerinin arasında.' : ''}`);
 }
 function lvGeriAl() {
   const g = LV.geri;
@@ -3384,7 +3410,7 @@ function lvDugmeler() {                                               // refresh
   a.title = d.hazir ? 'XP doldu: seviye atla' : `${d.ust - d.xp} XP daha gerekiyor (XP'yi DM verir)`;
   $('#xpCubuk span').style.width = (d.pct * 100).toFixed(1) + '%';
   $('#xpYazi').textContent = d.l >= 20 ? `${d.xp} XP · en yüksek seviye` : d.hazir ? `${d.xp} XP · seviye atlayabilirsin` : `${d.xp} / ${d.ust} XP`;
-  hakCiz();
+  hakCiz(); sinifOzCiz();
 }
 
 /* ───────── Hak sayacı ve XP (2026-11-10, kullanıcının isteği) ─────────
@@ -3458,6 +3484,120 @@ function kisaDinlen() {
   notify('Kısa dinlenme', (yen.length ? `Yenilenen: ${yen.join(', ')}.` : 'Kısa dinlenmede yenilenen bir hakkın yoktu.') + (zar ? ' Bir can zarı harcandı.' : int(C.hp.cur) >= int(C.hp.max) ? ' Canın dolu, can zarı harcanmadı.' : ' Can zarın kalmadı.'));
 }
 // XP çubuğu ve "Seviye atla" (refresh'ten, lvDugmeler)
+/* ───────── Sınıf özellikleri paneli (2026-11-10, kullanıcının isteği) ─────────
+   Kağıdın Özellikler sekmesinin başında: sınıfın bütün özellikleri (SINIF_OZ). Alınanlar açık, sonrakiler "N. seviyede gelecek"
+   başlığı altında katlı. Seçmeli olanlarda liste (OZ_SECIM → SECENEK); seçim C.secim['Ad@seviye'] = [değer, …]. Üstte Terimler. */
+const USTALIK = {
+  Cleave: ['Yarma', 'Vurunca, ilk hedefin 5 ft yakınındaki başka bir düşmana aynı silahla bir kez daha saldırırsın (turda bir kez; bu vuruşun hasarına yetenek bonusu eklenmez).'],
+  Graze: ['Sıyırma', 'Iskalasan bile hedefe yetenek bonusun kadar hasar verirsin.'],
+  Nick: ['Çentik', 'İkinci hafif silahla yaptığın ek saldırıyı bonus eylem harcamadan, Saldırı eyleminin içinde yaparsın (turda bir kez).'],
+  Push: ['İtme', 'Vurunca hedefi (en çok Large boyda) 10 ft geri itersin.'],
+  Sap: ['Zayıflatma', 'Vurunca hedef, senin bir sonraki turuna kadar yapacağı ilk saldırıda dezavantajlı olur.'],
+  Slow: ['Yavaşlatma', 'Vurup hasar verince hedefin hızı senin bir sonraki turuna kadar 10 ft düşer.'],
+  Topple: ['Devirme', 'Vurunca hedef CON kurtarması atar (ZD 8 + saldırdığın yetenek + yetkinlik); başaramazsa yere düşer.'],
+  Vex: ['Rahatsız etme', 'Vurup hasar verince, bir sonraki turunun sonuna kadar o hedefe yapacağın ilk saldırı avantajlı olur.'],
+};
+const SILAHLAR = [   // [İngilizce, Türkçe, ustalık] SRD 5.2.1
+  ['Club', 'Sopa', 'Slow'], ['Dagger', 'Hançer', 'Nick'], ['Greatclub', 'Büyük sopa', 'Push'], ['Handaxe', 'El baltası', 'Vex'], ['Javelin', 'Cirit', 'Slow'],
+  ['Light Hammer', 'Hafif çekiç', 'Nick'], ['Mace', 'Topuz', 'Sap'], ['Quarterstaff', 'Asa', 'Topple'], ['Sickle', 'Orak', 'Nick'], ['Spear', 'Mızrak', 'Sap'],
+  ['Dart', 'Dart', 'Vex'], ['Light Crossbow', 'Hafif arbalet', 'Slow'], ['Shortbow', 'Kısa yay', 'Vex'], ['Sling', 'Sapan', 'Slow'],
+  ['Battleaxe', 'Savaş baltası', 'Topple'], ['Flail', 'Döven', 'Sap'], ['Glaive', 'Glaive (kargı bıçağı)', 'Graze'], ['Greataxe', 'Büyük balta', 'Cleave'], ['Greatsword', 'Büyük kılıç', 'Graze'],
+  ['Halberd', 'Teber', 'Cleave'], ['Lance', 'Kargı', 'Topple'], ['Longsword', 'Uzun kılıç', 'Sap'], ['Maul', 'Gürz', 'Topple'], ['Morningstar', 'Çivili topuz', 'Sap'],
+  ['Pike', 'Uzun mızrak', 'Push'], ['Rapier', 'Meç', 'Vex'], ['Scimitar', 'Pala', 'Nick'], ['Shortsword', 'Kısa kılıç', 'Vex'], ['Trident', 'Üç dişli mızrak', 'Topple'],
+  ['Warhammer', 'Savaş çekici', 'Push'], ['War Pick', 'Savaş kazması', 'Sap'], ['Whip', 'Kamçı', 'Slow'],
+  ['Blowgun', 'Üfleç', 'Vex'], ['Hand Crossbow', 'El arbaleti', 'Vex'], ['Heavy Crossbow', 'Ağır arbalet', 'Push'], ['Longbow', 'Uzun yay', 'Slow'], ['Musket', 'Tüfek', 'Slow'], ['Pistol', 'Tabanca', 'Vex'],
+];
+const STIL = [
+  ['Archery', 'Okçuluk', 'Menzilli silahla (yay, arbalet) vuruş zarına +2.'],
+  ['Defense', 'Savunma', 'Zırh giyerken AC\'ine +1.'],
+  ['Great Weapon Fighting', 'Büyük silah dövüşü', 'İki elle tuttuğun yakın dövüş silahının hasar zarında 1 ya da 2 gelirse 3 sayılır.'],
+  ['Two-Weapon Fighting', 'İki silahla dövüş', 'İki hafif silahla dövüşürken ikinci silahın ek saldırısına da yetenek bonusunu eklersin.'],
+];
+const SECENEK = {
+  stil: STIL,
+  stilPal: STIL.concat([['Blessed Warrior', 'Kutsanmış savaşçı', 'Cleric listesinden iki cantrip öğrenirsin (CHA ile yaparsın).']]),
+  stilRan: STIL.concat([['Druidic Warrior', 'Druid savaşçısı', 'Druid listesinden iki cantrip öğrenirsin (WIS ile yaparsın).']]),
+  silah: SILAHLAR.map(([en, tr, u]) => [en, `${tr} · ${USTALIK[u][0]} (${u})`, `${tr}: ${USTALIK[u][0]}. ${USTALIK[u][1]}`]),
+  tanri: [['Protector', 'Koruyucu', 'Savaş silahları (martial) ve ağır zırh kullanabilirsin.'], ['Thaumaturge', 'Mucizeci', 'Bir cantrip daha öğrenirsin; Arcana ve Religion zarlarına WIS bonusun eklenir (en az +1).']],
+  ilkel: [['Magician', 'Sihirbaz', 'Bir cantrip daha öğrenirsin; Arcana ve Nature zarlarına WIS bonusun eklenir (en az +1).'], ['Warden', 'Bekçi', 'Savaş silahları (martial) ve orta zırh kullanabilirsin.']],
+  kutsal: [['Divine Strike', 'İlahi vuruş', 'Turda bir kez silahla vurunca +1d8 ışıyan ya da çürüten hasar (14. seviyede 2d8).'], ['Potent Spellcasting', 'Güçlü büyü', 'Cleric cantriplerinin hasarına WIS bonusun eklenir.']],
+  element: [['Potent Spellcasting', 'Güçlü büyü', 'Druid cantriplerinin hasarına WIS bonusun eklenir.'], ['Primal Strike', 'İlkel vuruş', 'Turda bir kez silahla ya da hayvan biçimindeyken vurunca +1d8 soğuk, ateş, yıldırım ya da gök gürültüsü hasarı (15. seviyede 2d8).']],
+  av: [['Colossus Slayer', 'Dev avcısı', 'Canı eksik bir düşmana vurunca turda bir kez +1d8 hasar.'], ['Horde Breaker', 'Sürü kıran', 'Turda bir kez, saldırdığın düşmanın 5 ft yakınındaki başka bir düşmana da aynı silahla saldırırsın.']],
+  savunma: [['Escape the Horde', 'Sürüden kaçış', 'Sana yapılan fırsat saldırıları dezavantajlı.'], ['Multiattack Defense', 'Çoklu saldırı savunması', 'Bir yaratık sana vurunca, o turdaki öbür saldırıları sana karşı dezavantajlı.']],
+  tur: [['Acid', 'Asit', 'Asit hasarına direncin olur, asit büyülerinin hasarına CHA bonusun eklenir.'], ['Cold', 'Soğuk', 'Soğuk hasarına direncin olur, soğuk büyülerinin hasarına CHA bonusun eklenir.'], ['Fire', 'Ateş', 'Ateş hasarına direncin olur, ateş büyülerinin hasarına CHA bonusun eklenir.'], ['Lightning', 'Yıldırım', 'Yıldırım hasarına direncin olur, yıldırım büyülerinin hasarına CHA bonusun eklenir.'], ['Poison', 'Zehir', 'Zehir hasarına direncin olur, zehir büyülerinin hasarına CHA bonusun eklenir.']],
+  meta: [
+    ['Careful Spell', 'Dikkatli büyü (1 puan)', 'Kurtarma zarı isteyen büyünde CHA bonusun kadar yaratık kurtarmayı kendiliğinden geçer; yarı hasar alacaklarsa hiç almazlar.'],
+    ['Distant Spell', 'Uzak büyü (1 puan)', 'Büyünün menzili iki katına çıkar; dokunma büyüsü 30 ft olur.'],
+    ['Empowered Spell', 'Güçlendirilmiş büyü (1 puan)', 'Hasar zarlarından CHA bonusun kadarını yeniden atarsın.'],
+    ['Extended Spell', 'Uzatılmış büyü (1 puan)', 'Büyünün süresi iki katına çıkar (en çok 24 saat); konsantrasyon zarlarında avantajın olur.'],
+    ['Heightened Spell', 'Yükseltilmiş büyü (2 puan)', 'Bir hedef büyünün kurtarma zarında dezavantajlı olur.'],
+    ['Quickened Spell', 'Hızlandırılmış büyü (2 puan)', 'Eylem süren bir büyüyü bonus eylemle yaparsın (o tur 1. seviye ve üstü başka büyü yapamazsın).'],
+    ['Seeking Spell', 'Arayan büyü (1 puan)', 'Büyü saldırın ıskalarsa zarı yeniden atarsın.'],
+    ['Subtle Spell', 'Gizli büyü (1 puan)', 'Büyüyü söz ve el hareketi olmadan yaparsın; kimse büyü yaptığını anlamaz.'],
+    ['Transmuted Spell', 'Dönüştürülmüş büyü (1 puan)', 'Büyünün hasar türünü asit, soğuk, ateş, yıldırım, zehir ya da gök gürültüsüne çevirirsin.'],
+    ['Twinned Spell', 'İkiz büyü (1 puan)', 'Yüksek yuvayla fazladan hedef alabilen bir büyünün etkili seviyesini 1 artırırsın: bir hedef daha.'],
+  ],
+};
+const OZ_SECIM = {                                                     // özellik adı → hangi listeden kaç seçim (sınıf, şimdiki seviye)
+  'Fighting Style': cls => ({ set: cls === 'Paladin' ? 'stilPal' : cls === 'Ranger' ? 'stilRan' : 'stil', n: 1 }),
+  'Additional Fighting Style': () => ({ set: 'stil', n: 1 }),
+  'Weapon Mastery': (cls, l) => ({ set: 'silah', n: cls === 'Fighter' ? (l >= 16 ? 6 : l >= 10 ? 5 : l >= 4 ? 4 : 3) : cls === 'Barbarian' ? (l >= 10 ? 4 : l >= 4 ? 3 : 2) : 2 }),
+  'Divine Order': () => ({ set: 'tanri', n: 1 }), 'Primal Order': () => ({ set: 'ilkel', n: 1 }),
+  'Blessed Strikes': () => ({ set: 'kutsal', n: 1 }), 'Elemental Fury': () => ({ set: 'element', n: 1 }),
+  'Hunter’s Prey': () => ({ set: 'av', n: 1 }), 'Defensive Tactics': () => ({ set: 'savunma', n: 1 }),
+  'Elemental Affinity': () => ({ set: 'tur', n: 1 }), 'Metamagic': () => ({ set: 'meta', n: 2 }),
+};
+// Seçim yerine kağıtta yapılacak bir şey isteyenler: açıklamanın altına not
+const OZ_NOT = {
+  'Expertise': 'Kağıttaki Beceriler\'de o becerinin elmasına basıp "uzman" yap.',
+  'Primal Knowledge': 'Yeni beceriyi kağıttaki Beceriler\'de işaretle.',
+  'Bonus Proficiencies': 'Üç beceriyi kağıttaki Beceriler\'de işaretle.',
+  'Eldritch Invocations': 'Seçtiğin çağrıları aşağıdaki kendi notlarına yaz.',
+  'Ability Score Improvement': 'Seviye atlarken penceresinde seçersin.',
+};
+const TERIMLER = [
+  ['Eylem (action)', 'Turunda yaptığın asıl iş: saldırmak, büyü yapmak, koşmak (Dash), saklanmak (Hide).'],
+  ['Bonus eylem', 'Bazı özelliklerin verdiği küçük ek hamle; turda yalnızca bir tane.'],
+  ['Tepki (reaction)', 'Başkasının turunda bir şeye karşılık verdiğin hamle; bir sonraki turuna kadar bir tane.'],
+  ['Avantaj / dezavantaj', 'İki d20 atarsın: avantajda yükseğini, dezavantajda düşüğünü alırsın.'],
+  ['Kurtarma zarı', 'Bir tehlikeden kurtulmak için attığın zar (ör. CON kurtarması). ZD\'yi tutturursan başarırsın.'],
+  ['ZD (zorluk derecesi)', 'Zarında tutturman gereken sayı.'],
+  ['Kritik vuruş', 'd20\'de 20 gelince: hasar zarları iki kez atılır.'],
+  ['Kısa / uzun dinlenme', 'Kısa: en az 1 saatlik mola. Uzun: 8 saatlik uyku ve dinlenme.'],
+  ['Fırsat saldırısı', 'Yanından uzaklaşan düşmana tepkinle yaptığın tek saldırı.'],
+];
+function sinifOzSatir(x, cls, l, gelecek) {
+  const [lv, en, tr, acik] = x.o, s = !gelecek && OZ_SECIM[en] ? OZ_SECIM[en](cls, l) : null, key = `${en}@${lv}`;
+  let sec = '';
+  if (s) {
+    const liste = SECENEK[s.set], secili = (C.secim && C.secim[key]) || [];
+    sec = `<div class="so-sec">${Array.from({ length: s.n }, (_, i) => {
+      const v = secili[i] || '', o = liste.find(z => z[0] === v);
+      return `<label class="so-sec-i"><select data-secim="${esc(key)}" data-i="${i}" aria-label="${esc(tr)}: ${i + 1}. seçim"><option value="">Seç…</option>${liste.map(z => `<option value="${esc(z[0])}"${z[0] === v ? ' selected' : ''}>${esc(z[1])}</option>`).join('')}</select>${o ? `<small>${esc(o[2])}</small>` : ''}</label>`;
+    }).join('')}</div>`;
+  }
+  const not = !gelecek && OZ_NOT[en] ? `<p class="so-not">${esc(OZ_NOT[en])}</p>` : '';
+  return `<li class="so${x.alt ? ' alt' : ''}${gelecek ? ' gelecek' : ''}"><span class="so-sv" title="${lv}. seviye">${lv}</span><div><b>${esc(tr)}</b> <i>${esc(en)}</i>${x.alt ? `<small class="so-alt">${esc(x.altAd)}</small>` : ''}${gelecek ? `<small class="so-gel">${lv}. seviyede gelecek</small>` : ''}<p>${esc(acik)}</p>${not}${sec}</div></li>`;
+}
+function sinifOzCiz() {                                               // refresh'ten (lvDugmeler)
+  const el = $('#sinifOz'); if (!el) return;
+  if (el.contains(document.activeElement) && document.activeElement.tagName === 'SELECT') return;   // seçerken yeniden çizme
+  const cl = findClass(), v = cl && SINIF_OZ[cl.name];
+  if (!v) { el.innerHTML = '<p class="hint">Sınıfını kağıdın başına yazınca (ör. Fighter) o sınıfın bütün özellikleri burada görünür: aldıkların ve sonraki seviyelerde gelecekler.</p>'; return; }
+  const l = int(C.level), benim = deger(C.subclass), altBaska = !!benim && benim.toLowerCase() !== v.alt.toLowerCase();
+  const asi = ASI_SEVIYE[cl.name] || ASI_OLAGAN;
+  const tum = v.oz.map(o => ({ o }))
+    .concat(altBaska ? [] : v.altOz.map(o => ({ o, alt: true, altAd: v.alt })))
+    .concat(asi.map(s => ({ o: [s, ...OZ_ASI] })), [{ o: [19, ...OZ_BOON] }])
+    .concat(altBaska ? [] : [{ o: [3, v.alt, 'Alt sınıf', `${cl.name}'ın bu sitedeki alt sınıfı (SRD'deki tek alt sınıf). Özellikleri listede gri şeritle gösterilir.`] }])
+    .map((x, i) => Object.assign(x, { i })).sort((a, b) => a.o[0] - b.o[0] || a.i - b.i);
+  const gelen = tum.filter(x => x.o[0] <= l), gelecek = tum.filter(x => x.o[0] > l);
+  const acik = el.querySelector('details.so-gelecek'), gelAcik = acik ? acik.open : false, tAcik = !!(el.querySelector('details.so-terim') || {}).open;
+  el.innerHTML = `<div class="so-bas"><h3>${esc(cl.name)} features<em>Sınıf özelliklerin · ${l}. seviye${altBaska ? ` · alt sınıfın (${esc(benim)}) bu sitede yok, özelliklerini aşağıya kendin yaz` : ` · ${esc(v.alt)}`}</em></h3>
+      <details class="so-terim"${tAcik ? ' open' : ''}><summary>Terimler</summary><dl>${TERIMLER.map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl></details></div>
+    <ol class="so-liste">${gelen.map(x => sinifOzSatir(x, cl.name, l, false)).join('')}</ol>
+    ${gelecek.length ? `<details class="so-gelecek"${gelAcik ? ' open' : ''}><summary>Sonraki seviyelerde gelecekler (${gelecek.length})</summary><ol class="so-liste">${gelecek.map(x => sinifOzSatir(x, cl.name, l, true)).join('')}</ol></details>` : ''}`;
+}
 function xpDurum(c = C) {
   const l = int(c.level), alt = XP_ESIK[l - 1] || 0, ust = XP_ESIK[l], xp = Math.max(int(c.xp), alt);
   return { l, xp, alt, ust, hazir: l < 20 && xp >= ust, pct: ust ? clamp((xp - alt) / (ust - alt), 0, 1) : 1 };
@@ -3506,7 +3646,7 @@ function blankChar() {
     saves:{ str:0, dex:0, con:0, int:0, wis:0, cha:0 },
     skills: Object.fromEntries(SKILLS.map(s => [s.k, 0])),          // 0 yok, 1 yetkin, 2 uzman
     ac:10, armorType:'', shield:false, initBonus:0, speed:30,
-    hp:{ cur:10, max:10, temp:0 }, hitDie:'d8', hdUsed:0, ds:{ s:0, f:0 }, hak:{},
+    hp:{ cur:10, max:10, temp:0 }, hitDie:'d8', hdUsed:0, ds:{ s:0, f:0 }, hak:{}, secim:{},
     conds:[], exh:0,
     spellAbility:'', slots: Array.from({ length:9 }, () => ({ t:0, u:0 })),   // t toplam, u harcanan
     attacks:[], spells:[], items:[], feats:[],
@@ -3545,6 +3685,7 @@ function normalize(c) {
   c.level = clamp(int(c.level) || 1, 1, 20);
   c.xp = Math.max(int(c.xp), XP_ESIK[c.level - 1]);                     // XP en az seviyenin alt sınırı (XP'siz eski kayıtlar)
   if (!c.hak || typeof c.hak !== 'object' || Array.isArray(c.hak)) c.hak = {};
+  if (!c.secim || typeof c.secim !== 'object' || Array.isArray(c.secim)) c.secim = {};
   c.slots = Array.from({ length:9 }, (_, i) => { const s = c.slots[i] || {}; const t = clamp(int(s.t), 0, 9); return { t, u: clamp(int(s.u), 0, t) }; });
   c.attune = [0, 1, 2].map(i => String(c.attune[i] ?? ''));
   for (const list in NEW_ROW) c[list] = c[list].filter(r => r && typeof r === 'object').map(r => Object.assign(NEW_ROW[list](), r));
@@ -4326,7 +4467,12 @@ function sampleChar() {
    Sayfadaki her düğmenin bir data-act adı var; ne yapacağı burada yazılı.
    ═══════════════════════════════════════════════════════════════════ */
 function changed() { refresh(); save(); }
-document.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.hak; if (k) hakAyarla(k, e.target.value); });   // hak sayacına elle yazılan kalan
+document.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.hak; if (k) hakAyarla(k, e.target.value); });
+document.addEventListener('change', e => {                           // sınıf özelliği seçimi (Fighting Style, Weapon Mastery…)
+  const key = e.target.dataset && e.target.dataset.secim; if (!key || mode === 'peek') return;
+  const arr = ((C.secim || {})[key] || []).slice(); arr[int(e.target.dataset.i)] = short(e.target.value, 40);
+  C.secim = Object.assign({}, C.secim, { [key]: arr }); e.target.blur(); changed();
+});   // hak sayacına elle yazılan kalan
 // Seviye atlama penceresi: yetenek artışı seçimi, Esc ve arkaya basınca kapanır
 $('#lvIc').addEventListener('change', e => {
   const t = e.target;
