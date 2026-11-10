@@ -1034,6 +1034,20 @@ body.olusturuyor .kagit-ust :is(.gorunum,.ku-ad){visibility:hidden}
 .ol-alinan .esya-ic{width:20px;height:20px}
 .ol-alinan small{color:var(--muted)}
 .kat-yok{font-size:12px;color:var(--muted)}
+.kat-sag{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+/* Pazar (2026-11-10, BÖLÜM 10g): DM'in satırında satışta / fiyat / adet; altta pazarın adı ve aç-kapa */
+.pz-dm{display:flex;align-items:center;gap:8px}
+.pz-sat{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;cursor:pointer}
+.pz-say{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.pz-say input{width:70px;padding:5px 6px;text-align:right}
+.pz-say input[data-pz="stok"]{width:52px}
+.pz-say input:disabled{opacity:.45}
+.pz-ad{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--text)}
+.pz-ad input{width:150px;padding:5px 8px}
+.kat-box .modal-act{flex-wrap:wrap}
+#katAlt{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+#tvPazar.pz-acik .ic{color:var(--good)}
+@media (max-width:560px){.pz-dm{flex-wrap:wrap;justify-content:flex-end}}
 .ol-bec{display:grid;gap:8px;margin-top:18px}
 .ol-bec .chip:hover{border-color:var(--accent)}
 .ol-bec .chip[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 18%,var(--field));border-color:var(--accent);color:var(--text)}
@@ -2349,6 +2363,8 @@ body.tv-full #tableView{height:100dvh}
         <button class="btn sm" id="tvKagit" data-act="mode-sheet" title="Karakter kağıdını aç"><svg class="ic"><use href="#i-scroll"/></svg><span>Kağıdım</span></button>
         <!-- Harita (BÖLÜM 10d): DM yükler, herkes görür; oyuncuda DM bir harita paylaşınca görünür -->
         <button class="btn sm" id="tvHarita" data-act="hr-ac" aria-pressed="false" hidden><svg class="ic"><use href="#i-konum"/></svg><span>Harita</span></button>
+        <!-- Pazar (2026-11-10, BÖLÜM 10g): DM'de hep (pazarı kurar), oyuncuda DM pazarı açınca görünür -->
+        <button class="btn sm" id="tvPazar" data-act="pazar" aria-pressed="false" hidden><svg class="ic"><use href="#e-kese"/></svg><span>Pazar</span></button>
         <!-- Düzen (2026-10-30): camları varsayılan yerine al, kullanılmayan camlar solsun (camlar her zaman başlığından taşınır) -->
         <button class="btn sm" id="tvDuzen" data-act="duzen" aria-expanded="false" aria-controls="duzenPop" title="Düzen: camları taşı ve büyüt, varsayılana dön, solma"><svg class="ic"><use href="#i-duzen"/></svg><span>Düzen</span></button>
         <!-- NPR taverna yüklenince görünür: bütün tavernaya bakmak / masaya dönmek -->
@@ -5758,16 +5774,17 @@ function acNotu() {                                                    // AC'nin
 // ── Pencere ──
 const KAT = { mod: 'kagit', sek: 'silah', ara: '' };
 function katAc(mod, sek, ayar = {}) {                                 // ayar: baslik, sag, ekle, altYazi, liste, fiyat, bos, kapaninca (kipe göre)
-  Object.assign(KAT, { mod, sek: sek || KAT.sek, ara: '', baslik: null, sag: null, ekle: null, altYazi: null, liste: null, fiyat: null, bos: null, kapaninca: null }, ayar);
+  Object.assign(KAT, { mod, sek: sek || KAT.sek, ara: '', baslik: null, sag: null, ekle: null, altYazi: null, liste: null, fiyat: null, bos: null, kapaninca: null, ozelSek: null, degis: null }, ayar);
   $('#katAra').value = ''; $('#katModal').hidden = false; katCiz();
   setTimeout(() => $('#katAra').focus(), 30);
 }
-function katKapa() { $('#katModal').hidden = true; if (KAT.kapaninca) { const f = KAT.kapaninca; KAT.kapaninca = null; f(); } }
+function katKapa() { $('#katModal').hidden = true; if (KAT.kapaninca) { const f = KAT.kapaninca; KAT.kapaninca = null; f(); } pzDugme(); }
 const katBaslik = {
   kagit: ['Katalogdan ekle', 'Seçtiğin eşya çantana girer, parası düşülmez. Silah saldırılarına, zırh AC\'ine kendiliğinden işlenir.'],
 };
 function katListe() {                                                  // görünen eşyalar (sekme + arama); pazar kendi listesini verir
   const ara = KAT.ara.trim().toLocaleLowerCase('tr');
+  if (!ara && KAT.ozelSek && KAT.sek === KAT.ozelSek.k) return KAT.ozelSek.liste();
   const hepsi = KAT.liste ? KAT.liste() : Object.values(ESYA);
   return hepsi.filter(e => ara ? (e.k + ' ' + e.tr).toLocaleLowerCase('tr').includes(ara) : e.kat === KAT.sek);
 }
@@ -5775,13 +5792,14 @@ function katSatir(e) {
   const sag = KAT.sag ? KAT.sag(e) : `<button class="btn sm" data-act="kat-ekle" data-k="${esc(e.k)}"><svg class="ic"><use href="#i-plus"/></svg>Ekle</button>`;
   return `<div class="kat-satir" data-k="${esc(e.k)}">${ESYA_IC(e)}
     <div class="kat-ad" title="${esc(esyaIpucu(e))}"><b>${esc(e.k)}</b> <i>${esc(e.tr)}</i>${esyaOzet(e) ? `<small>${esc(esyaOzet(e))}</small>` : ''}</div>
-    <span class="kat-fiyat">${KAT.fiyat ? KAT.fiyat(e) : fiyatYaz(e.cp)}</span><span class="kat-lb">${lbYaz(e.lb)}</span>${sag}</div>`;
+    <span class="kat-fiyat">${KAT.fiyat ? KAT.fiyat(e) : fiyatYaz(e.cp)}</span><span class="kat-lb">${lbYaz(e.lb)}</span><span class="kat-sag">${sag}</span></div>`;
 }
 function katCiz() {
   const [bas, alt] = (KAT.baslik || katBaslik[KAT.mod] || katBaslik.kagit);
   $('#katBaslik').innerHTML = `${esc(bas)}<small>${esc(alt)}</small>`;
-  const var_ = KAT.liste ? new Set(KAT.liste().map(e => e.kat)) : null;
-  $('#katSek').innerHTML = ESYA_KAT.filter(([k]) => !var_ || var_.has(k)).map(([k, en, t]) => `<button class="kat-sekme" role="tab" data-act="kat-sek" data-k="${k}" aria-selected="${!KAT.ara && KAT.sek === k}">${ESYA_IC({ ic: { silah: 'uzunkilic', zirh: 'kalkan', macera: 'sirtcanta', cephane: 'ok', odak: 'kristal', paket: 'paket', alet: 'alet', yiyecek: 'kupa', binek: 'at' }[k] })}<span>${t}</span></button>`).join('');
+  const var_ = KAT.liste ? new Set(KAT.liste().map(e => e.kat)) : null, oz = KAT.ozelSek;
+  if (var_ && var_.size && !var_.has(KAT.sek)) KAT.sek = ESYA_KAT.find(([k]) => var_.has(k))[0];   // pazarda olmayan türün sekmesi açık kalmasın
+  $('#katSek').innerHTML = (oz ? `<button class="kat-sekme" role="tab" data-act="kat-sek" data-k="${oz.k}" aria-selected="${!KAT.ara && KAT.sek === oz.k}">${ESYA_IC({ ic: oz.ic })}<span>${oz.ad} (${oz.liste().length})</span></button>` : '') + ESYA_KAT.filter(([k]) => !var_ || var_.has(k)).map(([k, en, t]) => `<button class="kat-sekme" role="tab" data-act="kat-sek" data-k="${k}" aria-selected="${!KAT.ara && KAT.sek === k}">${ESYA_IC({ ic: { silah: 'uzunkilic', zirh: 'kalkan', macera: 'sirtcanta', cephane: 'ok', odak: 'kristal', paket: 'paket', alet: 'alet', yiyecek: 'kupa', binek: 'at' }[k] })}<span>${t}</span></button>`).join('');
   const l = katListe();
   let h = '', son = null;
   l.forEach(e => { const g = KAT.ara ? '' : e.alt && ESYA_ALT[e.alt]; if (g && g !== son) { h += `<h3 class="kat-grup">${g}</h3>`; son = g; } h += katSatir(e); });
@@ -5803,8 +5821,146 @@ Object.assign(ACTIONS, {
   'kat-ekle': b => { if (KAT.ekle) KAT.ekle(b.dataset.k, b); else katEkle(b.dataset.k); },
 });
 $('#katAra').addEventListener('input', e => { KAT.ara = e.target.value; katCiz(); });
+$('#katModal').addEventListener('change', e => { if (e.target.dataset.pz && KAT.degis) KAT.degis(e.target); });   // pazar: satışta, fiyat, adet, ad
 $('#katModal').addEventListener('click', e => { if (e.target.id === 'katModal') katKapa(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#katModal').hidden) { e.stopPropagation(); katKapa(); } }, true);
+/* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 10g — Pazar (2026-11-10, kullanıcının isteği: "DM'in açtığı pazar: eşya seç, tikle satışa koy, fiyat gir")
+   DM katalogdan (ESYA, BÖLÜM 1) eşyaları satışa koyar; fiyat kurallardaki fiyatla gelir, değiştirilebilir; adet boşsa sınırsız.
+   store.pazar = { acik, ad, esya: { [ad]: { cp, stok } } } yalnızca DM'in tarayıcısında. Oyunculara açık pazarın listesi gider
+   ({t:'pazar'}). Oyuncu "Satın al"a basınca DM'e {t:'pazar-al', k, n, cp}; DM satışta mı, fiyat aynı mı, stok ve para yetiyor mu bakar,
+   {t:'pazar-ok'} ya da {t:'pazar-red'} yollar. Oyuncu kesesinden öder (paraOde: bozuk para hesabı) ve eşya çantasına girer (esyaKoy).
+   Pencere katalog penceresidir (BÖLÜM 8c): DM'de 'pazar-dm', oyuncuda 'pazar' kipi.
+   ═══════════════════════════════════════════════════════════════════ */
+const PZ = { bekle: '', zt: 0 };
+const PZ_SINIR = 300;                                                  // pazarda en çok bu kadar çeşit
+const PARA_DEGER = { cp: 1, sp: 10, ep: 50, gp: 100, pp: 1000 };
+const paraToplam = c => Object.entries(PARA_DEGER).reduce((s, [k, v]) => s + Math.max(0, int(c.coins[k])) * v, 0);
+function paraOde(c, cost) {                                            // kesesinden öder; büyük parayı bozar, üstünü verir
+  if (cost <= 0) return true;
+  if (paraToplam(c) < cost) return false;
+  let kalan = cost;
+  for (const k of ['cp', 'sp', 'ep', 'gp', 'pp']) { const n = Math.min(Math.max(0, int(c.coins[k])), Math.floor(kalan / PARA_DEGER[k])); c.coins[k] = int(c.coins[k]) - n; kalan -= n * PARA_DEGER[k]; }
+  if (kalan > 0) for (const k of ['sp', 'ep', 'gp', 'pp']) if (int(c.coins[k]) > 0 && PARA_DEGER[k] >= kalan) {
+    c.coins[k] = int(c.coins[k]) - 1;
+    let ust = PARA_DEGER[k] - kalan;
+    for (const u of ['gp', 'sp', 'cp']) { const m = Math.floor(ust / PARA_DEGER[u]); c.coins[u] = int(c.coins[u]) + m; ust -= m * PARA_DEGER[u]; }
+    kalan = 0; break;
+  }
+  return kalan === 0;
+}
+const pzDm = () => store.net.role === 'dm';
+function pzY() { if (!store.pazar || typeof store.pazar !== 'object' || !store.pazar.esya) store.pazar = { acik: false, ad: 'Pazar', esya: {} }; return store.pazar; }
+const pzSatista = () => Object.values(ESYA).filter(e => pzY().esya[e.k]);   // katalog sırasıyla
+function pzPaket() {
+  const P = pzY();
+  return { t: 'pazar', acik: !!P.acik, ad: short(P.ad, 40), esya: P.acik ? Object.entries(P.esya).filter(([k]) => ESYA[k]).slice(0, PZ_SINIR).map(([k, x]) => [k, x.cp, x.stok]) : [] };
+}
+function pzYay(p) { if (!pzDm()) return; const m = pzPaket(); if (p) send(p.conn, m); else net.players.forEach(o => send(o.conn, m)); }
+const pzKayit = k => (net.pazar && net.pazar.esya || []).find(x => x[0] === k);
+function pzDugme() {                                                   // araç şeridindeki "Pazar": DM'de hep, oyuncuda pazar açıkken
+  const b = $('#tvPazar'); if (!b) return;
+  const acik = pzDm() ? !!pzY().acik : !!(store.net.role === 'player' && net.pazar && net.pazar.acik);
+  b.hidden = !(pzDm() || acik);
+  b.classList.toggle('pz-acik', acik);
+  b.title = pzDm() ? (acik ? 'Pazar açık: satıştakileri değiştir ya da pazarı kapat' : 'Pazar kur: satılacak eşyaları seç, fiyatlarını yaz, pazarı aç') : `${(net.pazar && net.pazar.ad) || 'Pazar'}: DM'in sattığı eşyalar`;
+  b.setAttribute('aria-pressed', String(!$('#katModal').hidden && KAT.mod.startsWith('pazar')));
+}
+const pzYenile = () => { if (!$('#katModal').hidden && KAT.mod.startsWith('pazar')) katCiz(); };
+
+// ── DM ──
+function pzDmAc() {
+  katAc('pazar-dm', Object.keys(pzY().esya).length ? 'satista' : 'silah', {
+    baslik: ['Pazar', 'Satacağın eşyayı tikle; fiyatı kurallardaki fiyatla gelir, istersen değiştir (gp). Adet boşsa sınırsız. "Pazarı aç"a basınca oyuncular görür.'],
+    ozelSek: { k: 'satista', ad: 'Satışta', ic: 'kese', liste: pzSatista },
+    fiyat: () => '',                                                   // fiyat satırdaki kutuda
+    sag: e => { const x = pzY().esya[e.k], k = esc(e.k), kap = x ? '' : ' disabled';
+      return `<span class="pz-dm"><label class="pz-sat" title="Satışa koy"><input type="checkbox" data-pz="sat" data-k="${k}"${x ? ' checked' : ''}><span>Satışta</span></label>
+        <label class="pz-say" title="Fiyat (altın)"><input type="number" data-pz="fiyat" data-k="${k}" min="0" step="any" value="${x ? x.cp / 100 : e.cp === null ? '' : e.cp / 100}" aria-label="${k}: fiyat (gp)"${kap}><small>gp</small></label>
+        <label class="pz-say" title="Kaç tane var (boş: sınırsız)"><input type="number" data-pz="stok" data-k="${k}" min="0" placeholder="∞" value="${x && x.stok !== null ? x.stok : ''}" aria-label="${k}: adet (boş: sınırsız)"${kap}><small>adet</small></label></span>`; },
+    altYazi: () => { const P = pzY(), n = Object.keys(P.esya).length;
+      return `<label class="pz-ad">Adı <input data-pz="ad" value="${esc(P.ad)}" maxlength="40" aria-label="Pazarın adı"></label><span>${n} eşya satışta${P.acik ? ' · <b>açık</b>' : ''}</span>
+        <button class="btn sm${P.acik ? '' : ' accent'}" data-act="pz-acik"${!P.acik && !n ? ' disabled title="Önce satışa bir eşya koy"' : ''}>${P.acik ? 'Pazarı kapat' : 'Pazarı aç'}</button>`; },
+    degis: el => {
+      const P = pzY(), k = el.dataset.k, f = el.dataset.pz;
+      if (f === 'ad') P.ad = short(el.value.trim(), 40) || 'Pazar';
+      else if (f === 'sat') { if (el.checked) { if (Object.keys(P.esya).length >= PZ_SINIR) { el.checked = false; notify('Pazar dolu', `En çok ${PZ_SINIR} çeşit.`); return; } P.esya[k] = { cp: ESYA[k].cp === null ? 0 : ESYA[k].cp, stok: null }; } else delete P.esya[k]; }
+      else if (P.esya[k]) { if (f === 'fiyat') P.esya[k].cp = clamp(Math.round(num(el.value) * 100), 0, 10000000); else P.esya[k].stok = el.value === '' ? null : clamp(int(el.value), 0, 9999); }
+      save(); if (P.acik) pzYay();
+      if (f === 'sat') katCiz(); else $('#katAlt').innerHTML = KAT.altYazi();   // yazarken satırlar yeniden çizilmesin
+    },
+  });
+  pzDugme();
+}
+function pzDmAl(p, msg) {                                              // oyuncu satın almak istiyor
+  const now = Date.now(); if (now - (p.pzT || 0) < 250) return; p.pzT = now;
+  const P = pzY(), k = String(msg.k || ''), n = clamp(int(msg.n) || 1, 1, 20), x = P.esya[k], e = ESYA[k];
+  const red = neden => send(p.conn, { t: 'pazar-red', k: short(k, 60), neden });
+  if (!P.acik) return red('Pazar kapandı.');
+  if (!x || !e) return red('Bu eşya artık satışta değil.');
+  if (int(msg.cp) !== x.cp) { pzYay(p); return red(`Fiyatı değişti: artık ${fiyatYaz(x.cp)}.`); }
+  if (x.stok !== null && x.stok < n) return red(x.stok ? `Yalnızca ${x.stok} tane kaldı.` : 'Tükendi.');
+  if (p.char && paraToplam(p.char) < x.cp * n) return red('Kesendeki para yetmiyor.');
+  if (x.stok !== null) x.stok -= n;
+  send(p.conn, { t: 'pazar-ok', k, n, cp: x.cp });
+  save(); if (x.stok !== null) pzYay(); pzYenile();
+  notify(`${(p.char && p.char.name.trim()) || p.name} ${e.k} aldı`, `${n > 1 ? n + ' tane · ' : ''}${fiyatYaz(x.cp * n)}${x.stok !== null ? ` · ${x.stok} kaldı` : ''}`);
+}
+
+// ── Oyuncu ──
+function pzAl(msg) {                                                   // DM'in pazarı geldi (açıldı, değişti ya da kapandı)
+  const esya = (Array.isArray(msg.esya) ? msg.esya : []).slice(0, PZ_SINIR).filter(x => Array.isArray(x) && ESYA[x[0]])
+    .map(([k, cp, stok]) => [k, clamp(int(cp), 0, 10000000), stok === null || stok === undefined ? null : clamp(int(stok), 0, 9999)]);
+  const once = !!(net.pazar && net.pazar.acik);
+  net.pazar = { acik: !!msg.acik, ad: short(msg.ad, 40) || 'Pazar', esya };
+  if (net.pazar.acik && !once) notify(`${net.pazar.ad} açıldı`, 'DM satışa eşya koydu. Araç şeridindeki "Pazar"dan bak.');
+  if (!net.pazar.acik && once) { if (!$('#katModal').hidden && KAT.mod === 'pazar') katKapa(); notify(`${net.pazar.ad} kapandı`); }
+  pzDugme(); pzYenile();
+}
+function pzOyuncuAc() {
+  if (!net.pazar || !net.pazar.acik) return;
+  const ilk = net.pazar.esya[0];
+  katAc('pazar', ilk ? ESYA[ilk[0]].kat : 'silah', {
+    baslik: [net.pazar.ad, `${net.dmName || 'DM'} bunları satıyor. Aldığın eşya çantana girer, parası kesenden düşer. Silah saldırılarına, zırh AC'ine işlenir.`],
+    liste: () => { const v = new Set((net.pazar && net.pazar.esya || []).map(x => x[0])); return Object.values(ESYA).filter(e => v.has(e.k)); },
+    fiyat: e => fiyatYaz((pzKayit(e.k) || [0, 0])[1]),
+    sag: e => { const r = pzKayit(e.k); if (!r) return ''; const [, cp, stok] = r, yeter = paraToplam(ownChar()) >= cp, bekle = PZ.bekle === e.k;
+      return `${stok !== null ? `<span class="kat-yok">${stok ? stok + ' tane' : 'tükendi'}</span>` : ''}<button class="btn sm${yeter && stok !== 0 ? ' accent' : ''}" data-act="kat-ekle" data-k="${esc(e.k)}"${!yeter || stok === 0 || PZ.bekle ? ' disabled' : ''}${!yeter ? ' title="Kesendeki para yetmiyor"' : ''}>${bekle ? 'Bekle…' : '<svg class="ic"><use href="#e-kese"/></svg>Satın al'}</button>`; },
+    ekle: k => pzSatinAl(k),
+    altYazi: () => `Kesen: <b>${paraYaz(paraToplam(ownChar()))}</b>`,
+    bos: 'Pazarda şu an eşya yok.',
+  });
+  pzDugme();
+}
+function pzSatinAl(k) {
+  const r = pzKayit(k); if (!r || PZ.bekle) return;
+  if (paraToplam(ownChar()) < r[1]) { notify('Paran yetmiyor', `${k}: ${fiyatYaz(r[1])}. Kesende ${paraYaz(paraToplam(ownChar()))} var.`); return; }
+  if (!send(net.conn, { t: 'pazar-al', k, n: 1, cp: r[1] })) { notify('DM\'e ulaşılamadı', 'Bağlantın kopmuş olabilir.'); return; }
+  PZ.bekle = k; katCiz();
+  clearTimeout(PZ.zt); PZ.zt = setTimeout(() => { PZ.bekle = ''; pzYenile(); }, 6000);
+}
+function pzOk(msg) {                                                   // DM onayladı: öde, çantaya koy
+  const k = String(msg.k || ''), e = ESYA[k]; PZ.bekle = ''; clearTimeout(PZ.zt);
+  if (!e) return;
+  const n = clamp(int(msg.n) || 1, 1, 20), cp = clamp(int(msg.cp), 0, 10000000) * n, own = ownChar();
+  if (!paraOde(own, cp)) { notify('Paran yetmedi', `${e.k}: ${fiyatYaz(cp)}.`); pzYenile(); return; }
+  esyaKoy(own, k, n);
+  if (C === own) { renderLists(); ['coins.cp', 'coins.sp', 'coins.ep', 'coins.gp', 'coins.pp', 'ac', 'armorType', 'shield'].forEach(setInput); }
+  changed();
+  if (mode === 'table') renderMe();
+  ses('kupa');
+  notify(`${e.k} çantanda`, `${fiyatYaz(cp)} ödedin · kesende ${paraYaz(paraToplam(own))} kaldı.${e.silah ? ' Saldırılarına da eklendi.' : ''}`);
+  pzYenile();
+}
+function pzRed(msg) { PZ.bekle = ''; clearTimeout(PZ.zt); notify('Satın alınamadı', short(msg.neden, 80)); pzYenile(); }
+
+Object.assign(ACTIONS, {
+  'pazar': () => { if (!$('#katModal').hidden && KAT.mod.startsWith('pazar')) { katKapa(); return; } if (pzDm()) pzDmAc(); else pzOyuncuAc(); },
+  'pz-acik': () => {
+    const P = pzY(); P.acik = !P.acik; save(); pzYay(); katCiz(); pzDugme();
+    notify(P.acik ? `${P.ad} açıldı` : `${P.ad} kapandı`, P.acik ? `${Object.keys(P.esya).length} eşya satışta; oyuncuların araç şeridinde "Pazar" belirdi.` : 'Oyuncular artık pazarı görmüyor.');
+  },
+});
 // Yetenek skoru seçimi (yer değiştirme), geçmiş artışı ve ad
 $('#olustur').addEventListener('change', e => {
   const el = e.target, n = el.dataset.ol; if (!OL || !n) return;
@@ -5924,6 +6080,7 @@ function stopNet(clearRole = true) {
   HR.resim.clear(); HR.parca.clear(); net.harita = null; HR.goster = ''; HR.menu = ''; HR.yeni = null;   // harita (BÖLÜM 10d); DM'inki kalıcı depoda durur
   sozSifirla();                                                      // sohbet (BÖLÜM 10e): hiçbir yere kaydedilmez
   net.muzik = null;                                                  // müzik (BÖLÜM 10f): oyuncunun DM'den aldığı sıra
+  net.pazar = null; PZ.bekle = ''; if (!$('#katModal').hidden && KAT.mod === 'pazar') katKapa();   // pazar (BÖLÜM 10g); DM'inki store.pazar'da kalır
   if (clearRole) store.sira = null;                                 // masa kapanınca savaş da biter
   if (clearRole) { tvReset(); store.net.role = ''; save(); if (mode !== 'sheet') setMode('table'); }   // DM ekranından ya da masadan: tek başına masaya
   setNet('off', '');
@@ -6015,12 +6172,14 @@ function dmReceive(pid, conn, msg) {
     hrHosgeldin(p, msg.hr);                                          // harita: yapı, piyonlar, oyuncuda olmayan açık resimler (BÖLÜM 10d)
     sozGecmisYolla(p);                                               // sohbetin son mesajları (BÖLÜM 10e)
     mzYay(p);                                                        // müzik: sıra ve çalan (BÖLÜM 10f)
+    if (pzY().acik) pzYay(p);                                        // pazar (BÖLÜM 10g)
   }
   else if (msg.t === 'piyon' || msg.t === 'hresim-iste') hrDmAl(p, msg);
   else if (msg.t === 'soz') sozDmAl(p, msg);                         // sohbet (BÖLÜM 10e)
   else if (msg.t === 'yaz') yazDmAl(p, msg);
   else if (msg.t === 'mz-ekle') mzDmEkle(p, msg);                    // müzik: oyuncu link ekledi / başlattı (BÖLÜM 10f)
   else if (msg.t === 'mz-is') mzDmIs(p, msg);                        // müzik: oyuncu çal / durdur / sonraki / seç
+  else if (msg.t === 'pazar-al') pzDmAl(p, msg);                     // pazar: oyuncu satın almak istiyor (BÖLÜM 10g)
   else if (msg.t === 'sheet' && msg.char && typeof msg.char === 'object') {
     const portrait = typeof msg.portrait === 'string' ? guvenliPortre(msg.portrait) : (p.char ? p.char.portrait : '');
     const c = normalize(Object.assign({}, msg.char, { portrait }));
@@ -6212,6 +6371,9 @@ function playerReceive(conn, msg) {
   else if (msg.t === 'soz-gecmis') sozGecmisAl(msg);
   else if (msg.t === 'yaz') { const k = cleanSeat(msg.kim); if (k && k !== net.mySeat) yazGoster(k, !!msg.on); }
   else if (msg.t === 'mz') mzAl(msg);                                // müzik (BÖLÜM 10f)
+  else if (msg.t === 'pazar') pzAl(msg);                             // pazar (BÖLÜM 10g)
+  else if (msg.t === 'pazar-ok') pzOk(msg);
+  else if (msg.t === 'pazar-red') pzRed(msg);
   else if (msg.t === 'mz-yavas') notify(msg.is ? 'Biraz yavaş' : 'Şarkın eklenmedi', msg.is ? 'Müzik düğmelerine çok hızlı bastın. Birkaç saniye sonra yeniden dene.' : 'Dakikada en çok 4 yeni şarkı. Biraz sonra yeniden dene.');
   else if (msg.t === 'soz-yavas') notify('Mesajın gitmedi', 'Çok hızlı yazıyorsun. Birkaç saniye bekleyip yeniden dene.');
   else if (msg.t === 'kick') { stopNet(); notify('DM seni masadan çıkardı'); }
@@ -6308,6 +6470,7 @@ function whoList() {
 }
 function renderNetUI() {
   const role = store.net.role, code = prettyCode(store.net.code);
+  pzDugme();                                                         // pazar düğmesi (BÖLÜM 10g)
   document.body.classList.toggle('role-dm', role === 'dm');          // DM isimliklere basıp hedef seçebilir (imleç)
   $('#tableDot').className = role ? dotClass() : 'dot';
   // Üst çubuk: masadayken düğmede masa kodu yazar, üstüne gelince durum görünür
