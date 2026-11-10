@@ -612,6 +612,42 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .lv-box>h2{margin:0;display:flex;flex-direction:column;gap:2px;font-family:var(--font-display);font-size:24px;line-height:1.15}
 .lv-box>h2 small{font-family:var(--font-ui);font-size:14px;font-weight:600;color:var(--muted)}
 .lv-box .modal-act{position:sticky;bottom:0;margin-top:0;padding-top:10px;background:var(--bg)}
+/* Eşya kataloğu penceresi (2026-11-10, BÖLÜM 8c): sekmeler, arama, ikonlu satırlar; pazar da aynı pencereyi kullanır */
+.kat-box{max-width:780px;width:100%;height:min(780px,calc(100dvh - 40px));display:flex;flex-direction:column;gap:10px}
+.kat-box>h2{margin:0;display:flex;flex-direction:column;gap:2px;font-family:var(--font-display);font-size:24px;line-height:1.15}
+.kat-box>h2 small{font-family:var(--font-ui);font-size:14px;font-weight:600;color:var(--muted)}
+.kat-sek{display:flex;flex-wrap:wrap;gap:4px}
+.kat-sekme{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px 0 8px;border:1px solid var(--line);border-radius:0;background:var(--surface-2);color:var(--muted);font:700 13px var(--font-ui);cursor:pointer}
+.kat-sekme .esya-ic{width:20px;height:20px;color:inherit}
+.kat-sekme:hover{color:var(--text)}
+.kat-sekme[aria-selected="true"]{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface-2))}
+.kat-liste{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:4px;padding-right:4px}
+.kat-grup{margin:10px 0 2px;font:700 13px var(--font-ui);color:var(--muted)}
+.kat-grup:first-child{margin-top:0}
+.kat-satir{display:grid;grid-template-columns:32px minmax(0,1fr) 72px 52px auto;gap:10px;align-items:center;padding:6px 8px 6px 10px;border:1px solid var(--line);background:var(--surface-2)}
+.kat-satir.yok{opacity:.55}
+.esya-ic{width:28px;height:28px;color:var(--accent)}
+.kat-ad{min-width:0;font-size:14px}
+.kat-ad i{font-style:normal;color:var(--muted)}
+.kat-ad small{display:block;margin-top:2px;font-size:12px;line-height:1.35;color:var(--muted)}
+.kat-fiyat,.kat-lb{text-align:right;font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kat-fiyat{font-weight:700}
+.kat-lb{color:var(--muted)}
+.kat-box .modal-act{margin-top:0;align-items:center}
+#katAlt{margin-right:auto;font-size:13px;color:var(--muted)}
+#katAlt b{color:var(--text)}
+@media (max-width:560px){
+  .kat-satir{grid-template-columns:28px minmax(0,1fr) auto;row-gap:2px}
+  .kat-satir>.kat-lb{display:none}
+  .kat-satir>.kat-fiyat{grid-column:2;grid-row:2;text-align:left}
+  .kat-satir>:last-child{grid-column:3;grid-row:1/3}
+}
+/* Envanter satırında katalog eşyasının ikonu (adın solunda) */
+.it-ad{position:relative;display:block;min-width:0}
+.it-ad>.esya-ic{position:absolute;left:6px;top:50%;width:22px;height:22px;transform:translateY(-50%);pointer-events:none}
+.it-ad>input{width:100%}
+.it-ad.ikonlu>input{padding-left:34px}
+.mc-esya .esya-ic{width:18px;height:18px;flex:none}
 .lv-sek{border-top:1px solid var(--line);padding-top:12px}
 .lv-sek h3{margin:0 0 8px;font-family:var(--font-display);font-size:18px}
 .lv-not{margin:0 0 8px;color:var(--muted);line-height:1.45}
@@ -819,7 +855,7 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
 @container tabs (max-width:480px){
   .li-head.item{display:none}
   .li.item{display:flex;flex-wrap:wrap}
-  .li.item>input:not([type=number]){flex:1 1 150px}
+  .li.item>input:not([type=number]),.li.item>.it-ad{flex:1 1 150px}
   .li.item>input[type=number]{flex:0 0 62px}
   .slots{grid-template-columns:minmax(0,1fr)}
 }
@@ -2560,7 +2596,7 @@ body.tv-full #tableView{height:100dvh}
             <label class="check"><input type="checkbox" data-bind="shield"> Kalkan</label>
           </div>
           <span class="sub-note" data-out="acNote"></span>
-          <p class="hint">Düşmanın sana vurabilmesi için tutturması gereken sayı. Değeri kalkanın içine kendin yazarsın.</p>
+          <p class="hint">Düşmanın sana vurabilmesi için tutturması gereken sayı. Envanterde zırhını ve kalkanını kuşanınca kendiliğinden hesaplanır; istersen kendin de yazabilirsin.</p>
         </section>
 
         <section class="card vital">
@@ -2679,7 +2715,10 @@ body.tv-full #tableView{height:100dvh}
               <h3>Weapons &amp; attacks<em>Silahlar ve saldırılar</em></h3>
               <p class="hint">Saldırı bonusu kendiliğinden hesaplanır: seçtiğin yeteneğin modifiyesi, yetkinsen yetkinlik bonusu ve varsa ek bonus. Hasar kutusuna zarı yaz (örnek: 1d8+3), yanındaki zar düğmesine bas. Yumruk / tekme her karakterde hep vardır.</p>
             </div>
-            <button class="btn accent sm" data-act="add" data-list="attacks"><svg class="ic"><use href="#i-plus"/></svg>Saldırı ekle</button>
+            <div class="btns">
+              <button class="btn sm" data-act="kat-ac" data-sek="silah"><svg class="ic"><use href="#e-uzunkilic"/></svg>Silah seç</button>
+              <button class="btn accent sm" data-act="add" data-list="attacks"><svg class="ic"><use href="#i-plus"/></svg>Saldırı ekle</button>
+            </div>
           </div>
           <div class="list" id="attacks"></div>
           <!-- Yumruk / tekme (silahsız vuruş; 2026-11-10): her karakterde hep durur, listeye kaydedilmez (silahsizCiz) -->
@@ -2728,9 +2767,12 @@ body.tv-full #tableView{height:100dvh}
           <div class="panel-h">
             <div>
               <h3>Equipment<em>Ekipman</em></h3>
-              <p class="hint">Ağırlığı libre (lb) olarak yaz. Toplam yük ve taşıma kapasiten aşağıda kendiliğinden hesaplanır.</p>
+              <p class="hint">"Katalogdan ekle" ile kurallardaki eşyaları seç: ağırlığı yazılı gelir, zırhı kuşanınca AC kendiliğinden hesaplanır. Kendi eşyanı "Eşya ekle" ile yaz (ağırlık libre, lb).</p>
             </div>
-            <button class="btn accent sm" data-act="add" data-list="items"><svg class="ic"><use href="#i-plus"/></svg>Eşya ekle</button>
+            <div class="btns">
+              <button class="btn sm" data-act="kat-ac" data-sek="macera"><svg class="ic"><use href="#i-canta"/></svg>Katalogdan ekle</button>
+              <button class="btn accent sm" data-act="add" data-list="items"><svg class="ic"><use href="#i-plus"/></svg>Eşya ekle</button>
+            </div>
           </div>
           <div class="list" id="items"></div>
           <p class="sub-note mt" data-out="carry"></p>
@@ -2975,6 +3017,16 @@ body.tv-full #tableView{height:100dvh}
       <button class="btn" data-act="lv-kapa">Vazgeç</button>
       <button class="btn accent" id="lvUygula" data-act="lv-uygula">Seviye atla</button>
     </div>
+  </div>
+</div>
+<!-- Eşya kataloğu (2026-11-10, BÖLÜM 8c): kağıtta "Silah seç" / "Katalogdan ekle", oluşturmada alışveriş, pazar -->
+<div class="modal kat-modal" id="katModal" hidden>
+  <div class="card modal-box kat-box" role="dialog" aria-modal="true" aria-labelledby="katBaslik">
+    <h2 id="katBaslik"></h2>
+    <input type="search" id="katAra" placeholder="Ara: longsword, halat, iksir…" aria-label="Eşya ara" autocomplete="off">
+    <div class="kat-sek" id="katSek" role="tablist" aria-label="Eşya türleri"></div>
+    <div class="kat-liste" id="katIc"></div>
+    <div class="modal-act"><span id="katAlt"></span><button class="btn" data-act="kat-kapa">Kapat</button></div>
   </div>
 </div>
 <div class="modal" id="modal" hidden>
@@ -4050,7 +4102,7 @@ function blankChar() {
     abilities:{ str:10, dex:10, con:10, int:10, wis:10, cha:10 },
     saves:{ str:0, dex:0, con:0, int:0, wis:0, cha:0 },
     skills: Object.fromEntries(SKILLS.map(s => [s.k, 0])),          // 0 yok, 1 yetkin, 2 uzman
-    ac:10, armorType:'', shield:false, initBonus:0, speed:30,
+    ac:10, armorType:'', shield:false, acOto:false, initBonus:0, speed:30,
     hp:{ cur:10, max:10, temp:0 }, hitDie:'d8', hdUsed:0, ds:{ s:0, f:0 }, hak:{}, secim:{},
     conds:[], exh:0,
     spellAbility:'', slots: Array.from({ length:9 }, () => ({ t:0, u:0 })),   // t toplam, u harcanan
@@ -4504,7 +4556,7 @@ function renderLists() {
     C.items.map((it, i) => `
     <div class="li item" data-list="items" data-i="${i}">
       <input type="number" min="0" data-f="qty" value="${int(it.qty)}" aria-label="Adet">
-      <input data-f="name" value="${esc(it.name)}" placeholder="Rope, 50 ft" aria-label="Eşya adı">
+      ${(e => `<span class="it-ad${e ? ' ikonlu' : ''}"${e ? ` title="${esc(e.tr + ': ' + esyaOzet(e))}"` : ''}>${e ? ESYA_IC(e) : ''}<input data-f="name" value="${esc(it.name)}" placeholder="Rope, 50 ft" aria-label="Eşya adı"></span>`)(esyaBul(it))}
       <input type="number" min="0" step="0.5" data-f="wt" value="${num(it.wt)}" title="Tek bir tanesinin ağırlığı" aria-label="Ağırlık">
       ${TG('eq', it.eq, it.eq ? 'Kuşanıldı' : 'Çantada', 'Üzerinde mi, çantada mı?')}
       ${DEL}
@@ -4587,7 +4639,8 @@ function refresh() {
 
   // Savaş değerleri
   out('init', sign(mod('dex') + int(C.initBonus)));
-  out('acNote', C.armorType
+  if (C.acOto) { const v = acHesap(C); if (v !== int(C.ac)) { C.ac = v; setInput('ac'); } }
+  out('acNote', C.acOto ? acNotu() : C.armorType
     ? 'Zırhının verdiği değeri yaz' + (C.shield ? ', kalkan için 2 ekle.' : '.')
     : `Zırhsız hesap: 10 + DEX${C.shield ? ' + 2 kalkan' : ''} = ${10 + mod('dex') + (C.shield ? 2 : 0)}`);
   const sp = Math.max(0, int(C.speed)), slow = Math.max(0, sp - 5 * int(C.exh));
@@ -5029,6 +5082,11 @@ const ACTIONS = {
     C[r.list][r.i][f] = v;
     b.setAttribute('aria-pressed', String(v));
     if (f === 'eq') b.textContent = v ? 'Kuşanıldı' : 'Çantada';
+    const ez = r.list === 'items' && f === 'eq' && esyaBul(C.items[r.i]);
+    if (ez && ez.zirh) {                                                   // aynı anda tek zırh, tek kalkan; AC kendiliğinden (BÖLÜM 8c)
+      if (v) C.items.forEach((x, j) => { const y = esyaBul(x); if (j !== r.i && x.eq && y && y.zirh && (y.alt === 'kalkan') === (ez.alt === 'kalkan')) x.eq = false; });
+      zirhUygula(C); renderLists(); ['ac', 'armorType', 'shield'].forEach(setInput);
+    }
     changed();
   },
   align: b => { C.alignment = C.alignment === b.dataset.k ? '' : b.dataset.k; changed(); },
@@ -5084,6 +5142,7 @@ document.addEventListener('input', e => {
   if (mode === 'peek') return;
   if (el.dataset.bind) {
     setPath(C, el.dataset.bind, readInput(el));
+    if (el.dataset.bind === 'ac' || el.dataset.bind === 'armorType') C.acOto = false;   // elle yazınca zırhtan hesap kapanır
     if (el.dataset.bind === 'hp.max' && int(C.hp.cur) > int(C.hp.max)) { C.hp.cur = Math.max(0, int(C.hp.max)); setInput('hp.cur'); }
     if (['name', 'species', 'cls'].includes(el.dataset.bind)) renderChars();
     changed();
@@ -5499,6 +5558,152 @@ Object.assign(ACTIONS, {
   'ol-look': b => { OL.look = b.dataset.v; olCiz(); },
   'ol-portre': b => { olPortre((OL_PORTRE[OL.sinif] || []).find(p => p.k === b.dataset.k)); olCiz(); },
 });
+/* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 8c — Eşya kataloğu penceresi (2026-11-10; veri ESYA, BÖLÜM 1)
+   Kağıtta "Silah seç" / "Katalogdan ekle": silah saldırı satırını kendisi kurar (vuruş yeteneği, yetkinlik, hasar, özellik),
+   zırh ve kalkan kuşanınca AC kendiliğinden hesaplanır (C.acOto; AC'yi elle yazınca kapanır). Paketler içindekilere açılır.
+   Pencerenin kipleri (KAT.mod): 'kagit' (bedava ekler), 'olustur' (oluşturmada altınla alır), 'pazar' / 'pazar-dm' (BÖLÜM 10g).
+   ═══════════════════════════════════════════════════════════════════ */
+const ESYA_KUCUK = Object.fromEntries(Object.keys(ESYA).map(k => [k.toLowerCase(), k]));
+const esyaBul = x => { if (!x) return null; if (x.k && ESYA[x.k]) return ESYA[x.k]; const k = ESYA_KUCUK[String(x.name || '').trim().toLowerCase()]; return k ? ESYA[k] : null; };
+const esyaAdet = e => { const m = /\((\d+)\)$/.exec(e.tr); return e.kat === 'cephane' && m ? int(m[1]) : 1; };   // cephane bir satışta kaç tane
+const ESYA_IC = e => `<svg class="ic esya-ic" aria-hidden="true"><use href="#e-${e.ic}"/></svg>`;
+function fiyatYaz(cp) {                                                // 1500 → "15 gp", 50 → "5 sp", 4 → "4 cp"
+  if (cp === null || cp === undefined) return '—';
+  const s = n => n.toLocaleString('tr-TR');
+  return cp % 100 === 0 && cp ? `${s(cp / 100)} gp` : cp % 10 === 0 && cp ? `${s(cp / 10)} sp` : `${s(cp)} cp`;
+}
+function lbYaz(lb) {
+  if (!lb) return '—';
+  const t = Math.floor(lb), k = lb - t, kes = { .25: '¼', .5: '½', .75: '¾' }[k];
+  return (kes ? (t || '') + kes : String(lb).replace('.', ',')) + ' lb';
+}
+const CEP_TR = { Arrow: 'ok', Bolt: 'cıvata', Bullet: 'mermi', Needle: 'iğne' };
+function silahOzet(e, uzun) {                                          // "1d8 kesici · Çift kullanım 1d10 · Ustalık: Zayıflatma"
+  const s = e.silah, oz = s.oz.map(([o, a, b]) => SILAH_OZ[o][1] + (o === 'cep' ? ` ${a} ft (${CEP_TR[b] || b})` : a ? ' ' + a + (o === 'firl' ? ' ft' : '') : ''));
+  const u = USTALIK[s.u];
+  return [`${s.zar} ${HASAR_TR[s.h][1]}`, ...oz, uzun ? `Ustalık: ${u[0]} (${s.u})` : ''].filter(Boolean).join(' · ');
+}
+function zirhOzet(e) {
+  const z = e.zirh;
+  if (e.alt === 'kalkan') return '+2 AC';
+  return [`AC ${z.ac}${z.dex >= 99 ? ' + DEX' : z.dex ? ` + DEX (en çok ${z.dex})` : ''}`, z.str ? `STR ${z.str} gerekir` : '', z.giz ? 'Gizlilikte dezavantaj' : ''].filter(Boolean).join(' · ');
+}
+const esyaOzet = e => e.silah ? silahOzet(e, true) : e.zirh ? zirhOzet(e) : e.d;
+const esyaIpucu = e => e.silah ? e.silah.oz.map(([o]) => `${SILAH_OZ[o][0]} (${SILAH_OZ[o][1]}): ${SILAH_OZ[o][2]}`).concat(`${e.silah.u} (${USTALIK[e.silah.u][0]}): ${USTALIK[e.silah.u][1]}`).join('\n')
+  : e.zirh ? ZIRH_SURE[e.alt] + (e.alt === 'agir' ? ' DEX eklenmez.' : '') : e.d;
+
+// Karakterin bir yetenek modifiyesi (C dışındaki karakterler için de: oluşturma)
+const kMod = (c, a) => md(int(c.abilities[a]));
+function silahYetkin(c, e) {                                           // sınıfın silah eğitimi ("Simple, Martial (Finesse or Light)")
+  const w = String(c.profs.weapons || '').toLowerCase(); if (!w.trim()) return true;   // eğitim yazılmamışsa sorma
+  if (w.includes(e.k.toLowerCase())) return true;
+  if (e.alt[0] === 'b') return w.includes('simple');
+  if (!w.includes('martial')) return false;
+  const oz = new Set(e.silah.oz.map(o => o[0]));
+  if (w.includes('martial (light)')) return oz.has('hafif');
+  if (w.includes('martial (finesse or light)')) return oz.has('hafif') || oz.has('fin');
+  return true;
+}
+function silahSatiri(c, e) {                                           // katalogdaki silahtan saldırı satırı
+  const s = e.silah, oz = new Set(s.oz.map(o => o[0]));
+  const ab = s.menzilli ? 'dex' : oz.has('fin') && kMod(c, 'dex') > kMod(c, 'str') ? 'dex' : 'str', m = kMod(c, ab);
+  const not = s.oz.map(([o, a]) => SILAH_OZ[o][0] + (a ? ` (${a})` : '')).concat(s.u).join(', ');
+  return { name: e.k, ab, prof: silahYetkin(c, e), bonus: 0, dmg: `${s.zar}${m ? (m > 0 ? '+' : '') + m : ''} ${HASAR_TR[s.h][0]}`, note: not, k: e.k };
+}
+// Bir katalog eşyasını karakterin çantasına koyar: paket içindekilere açılır, silah saldırı satırı da kurar, zırh boştaysa giyilir.
+function esyaKoy(c, k, adet = 1) {
+  const e = ESYA[k]; if (!e) return [];
+  if (e.kat === 'paket') return PAKET[k].flatMap(([a, n]) => esyaKoy(c, a, n * adet));
+  const n = esyaAdet(e) * adet, eski = c.items.find(x => x.k === k && !e.zirh);
+  if (eski) eski.qty = int(eski.qty) + n;                              // aynı eşya (hançer, ok, meşale…) tek satırda toplanır
+  else {
+    const giy = (e.silah && !c.attacks.some(a => a.k === k)) || (e.zirh && !zirhDurum(c)[e.alt === 'kalkan' ? 'kalkan' : 'govde']);
+    c.items.push({ qty: n, name: k, wt: Math.round(e.lb / esyaAdet(e) * 1000) / 1000, eq: !!giy, k });
+  }
+  if (e.silah && !c.attacks.some(a => a.k === k)) c.attacks.push(silahSatiri(c, e));
+  if (e.zirh) zirhUygula(c);
+  return [e];
+}
+// Zırh sınıfı: kuşanılmış katalog zırhı ve kalkandan
+function zirhDurum(c) {
+  let govde = null, kalkan = false;
+  c.items.forEach(it => { if (!it.eq) return; const e = esyaBul(it); if (!e || !e.zirh) return; if (e.alt === 'kalkan') kalkan = true; else if (!govde) govde = e; });
+  return { govde, kalkan };
+}
+function acHesap(c) {
+  const { govde } = zirhDurum(c), dex = kMod(c, 'dex'), cls = String(c.cls || '').trim().toLowerCase();
+  let ac;
+  if (govde) { const z = govde.zirh; ac = z.ac + (z.dex >= 99 ? dex : z.dex ? Math.min(z.dex, dex) : 0); }
+  else ac = 10 + dex + (cls === 'barbarian' ? kMod(c, 'con') : cls === 'monk' && !c.shield ? kMod(c, 'wis') : 0);   // zırhsız savunma
+  return ac + (c.shield ? 2 : 0);
+}
+function zirhUygula(c) {                                               // kuşanma değişince: tür, kalkan ve AC kendiliğinden
+  const { govde, kalkan } = zirhDurum(c);
+  c.armorType = govde ? { hafif: 'light', orta: 'medium', agir: 'heavy' }[govde.alt] : '';
+  c.shield = kalkan; c.acOto = true; c.ac = acHesap(c);
+}
+function acNotu() {                                                    // AC'nin altındaki not (refresh)
+  if (!C.acOto) return '';
+  const { govde } = zirhDurum(C), z = govde && govde.zirh, uy = [];
+  const sat = govde ? `${govde.k}: ${z.ac}${z.dex >= 99 ? ' + DEX' : z.dex ? ' + DEX (en çok 2)' : ''}` : 'Zırhsız: 10 + DEX' + ({ barbarian: ' + CON', monk: C.shield ? '' : ' + WIS' }[String(C.cls).trim().toLowerCase()] || '');
+  if (govde && z.str && int(C.abilities.str) < z.str) uy.push(`STR ${z.str} gerekir: hızın 10 ft düşer`);
+  if (govde && !C.profs[{ hafif: 'light', orta: 'medium', agir: 'heavy' }[govde.alt]] && (C.profs.light || C.profs.medium || C.profs.heavy || C.profs.shields))
+    uy.push('bu zırhta eğitimin yok: STR / DEX zarlarında dezavantaj, büyü yapamazsın');
+  if (C.shield && !C.profs.shields && (C.profs.light || C.profs.medium || C.profs.heavy)) uy.push('kalkan eğitimin yok: kurala göre +2 almazsın');
+  return `${sat}${C.shield ? ' + 2 kalkan' : ''} = ${acHesap(C)}. Kuşandığın zırhtan kendiliğinden.${uy.length ? ' Dikkat: ' + uy.join('; ') + '.' : ''}`;
+}
+
+// ── Pencere ──
+const KAT = { mod: 'kagit', sek: 'silah', ara: '' };
+function katAc(mod, sek) {
+  KAT.mod = mod; KAT.sek = sek || KAT.sek; KAT.ara = '';
+  $('#katAra').value = ''; $('#katModal').hidden = false; katCiz();
+  setTimeout(() => $('#katAra').focus(), 30);
+}
+function katKapa() { $('#katModal').hidden = true; if (KAT.kapaninca) { const f = KAT.kapaninca; KAT.kapaninca = null; f(); } }
+const katBaslik = {
+  kagit: ['Katalogdan ekle', 'Seçtiğin eşya çantana girer, parası düşülmez. Silah saldırılarına, zırh AC\'ine kendiliğinden işlenir.'],
+};
+function katListe() {                                                  // görünen eşyalar (sekme + arama); pazar kendi listesini verir
+  const ara = KAT.ara.trim().toLocaleLowerCase('tr');
+  const hepsi = KAT.liste ? KAT.liste() : Object.values(ESYA);
+  return hepsi.filter(e => ara ? (e.k + ' ' + e.tr).toLocaleLowerCase('tr').includes(ara) : e.kat === KAT.sek);
+}
+function katSatir(e) {
+  const sag = KAT.sag ? KAT.sag(e) : `<button class="btn sm" data-act="kat-ekle" data-k="${esc(e.k)}"><svg class="ic"><use href="#i-plus"/></svg>Ekle</button>`;
+  return `<div class="kat-satir" data-k="${esc(e.k)}">${ESYA_IC(e)}
+    <div class="kat-ad" title="${esc(esyaIpucu(e))}"><b>${esc(e.k)}</b> <i>${esc(e.tr)}</i>${esyaOzet(e) ? `<small>${esc(esyaOzet(e))}</small>` : ''}</div>
+    <span class="kat-fiyat">${KAT.fiyat ? KAT.fiyat(e) : fiyatYaz(e.cp)}</span><span class="kat-lb">${lbYaz(e.lb)}</span>${sag}</div>`;
+}
+function katCiz() {
+  const [bas, alt] = (KAT.baslik || katBaslik[KAT.mod] || katBaslik.kagit);
+  $('#katBaslik').innerHTML = `${esc(bas)}<small>${esc(alt)}</small>`;
+  const var_ = KAT.liste ? new Set(KAT.liste().map(e => e.kat)) : null;
+  $('#katSek').innerHTML = ESYA_KAT.filter(([k]) => !var_ || var_.has(k)).map(([k, en, t]) => `<button class="kat-sekme" role="tab" data-act="kat-sek" data-k="${k}" aria-selected="${!KAT.ara && KAT.sek === k}">${ESYA_IC({ ic: { silah: 'uzunkilic', zirh: 'kalkan', macera: 'sirtcanta', cephane: 'ok', odak: 'kristal', paket: 'paket', alet: 'alet', yiyecek: 'kupa', binek: 'at' }[k] })}<span>${t}</span></button>`).join('');
+  const l = katListe();
+  let h = '', son = null;
+  l.forEach(e => { const g = KAT.ara ? '' : e.alt && ESYA_ALT[e.alt]; if (g && g !== son) { h += `<h3 class="kat-grup">${g}</h3>`; son = g; } h += katSatir(e); });
+  $('#katIc').innerHTML = h || `<p class="empty">${KAT.ara ? `"${esc(KAT.ara)}" bulunamadı. İngilizce ya da Türkçe adıyla ara.` : (KAT.bos || 'Burada eşya yok.')}</p>`;
+  $('#katAlt').innerHTML = KAT.altYazi ? KAT.altYazi() : '';
+}
+function katEkle(k) {                                                  // kağıt kipi: bedava
+  const e = ESYA[k]; if (!e) return;
+  const once = C.items.length;
+  esyaKoy(C, k);
+  renderLists(); changed();
+  const ac = e.zirh ? ` AC ${C.ac}.` : '';
+  notify(`${e.k} çantanda`, e.kat === 'paket' ? `Paket açıldı: ${C.items.length - once} yeni satır.` : e.silah ? 'Saldırılarına da eklendi: vuruş ve hasar zarı hazır.' : e.zirh ? `Kuşandın.${ac}` : e.tr);
+}
+Object.assign(ACTIONS, {
+  'kat-ac': b => katAc('kagit', b.dataset.sek),
+  'kat-kapa': () => katKapa(),
+  'kat-sek': b => { KAT.sek = b.dataset.k; KAT.ara = ''; $('#katAra').value = ''; katCiz(); $('#katIc').scrollTop = 0; },
+  'kat-ekle': b => { if (KAT.ekle) KAT.ekle(b.dataset.k, b); else katEkle(b.dataset.k); },
+});
+$('#katAra').addEventListener('input', e => { KAT.ara = e.target.value; katCiz(); });
+$('#katModal').addEventListener('click', e => { if (e.target.id === 'katModal') katKapa(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#katModal').hidden) { e.stopPropagation(); katKapa(); } }, true);
 // Yetenek skoru seçimi (yer değiştirme), geçmiş artışı ve ad
 $('#olustur').addEventListener('change', e => {
   const el = e.target, n = el.dataset.ol; if (!OL || !n) return;
@@ -8508,7 +8713,7 @@ function renderMe() {
   } else if (sek === 'envanter') {
     const para = [['pp', 'platin'], ['gp', 'altın'], ['ep', 'elektrum'], ['sp', 'gümüş'], ['cp', 'bakır']].filter(([k]) => int(c.coins[k]))
       .map(([k, ad]) => `<span><b>${int(c.coins[k])}</b> ${ad}</span>`).join('');
-    const satir = c.items.map((x, i) => String(x.name || '').trim() ? `<li data-row data-i="${i}"${int(x.qty) ? '' : ' class="sifir"'}><span title="${esc(x.name)}">${esc(x.name)}</span>
+    const satir = c.items.map((x, i) => String(x.name || '').trim() ? `<li data-row data-i="${i}"${int(x.qty) ? '' : ' class="sifir"'}>${esyaBul(x) ? ESYA_IC(esyaBul(x)) : ''}<span title="${esc(esyaBul(x) ? esyaBul(x).tr : x.name)}">${esc(x.name)}</span>
         <button class="icon-btn" data-act="me-adet" data-d="-1" title="Bir azalt (kullandın, harcadın)" aria-label="${esc(x.name)}: bir azalt"><svg class="ic"><use href="#i-minus"/></svg></button><b>${int(x.qty)}</b>
         <button class="icon-btn" data-act="me-adet" data-d="1" title="Bir artır" aria-label="${esc(x.name)}: bir artır"><svg class="ic"><use href="#i-plus"/></svg></button></li>` : '').join('');
     sekCam = `<section class="mc-sek" aria-label="Envanter"><h3>Envanter<em>adet − / + · eşya eklemek için Kağıdım</em></h3>
