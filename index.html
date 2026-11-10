@@ -1036,6 +1036,21 @@ body.olusturuyor .kagit-ust :is(.gorunum,.ku-ad){visibility:hidden}
 .ol-alinan .esya-ic{width:20px;height:20px}
 .ol-alinan small{color:var(--muted)}
 .kat-yok{font-size:12px;color:var(--muted)}
+/* Kitap okuma (2026-11-10, BÖLÜM 8d): kitap satırı, 6 bölmeli okuma çubuğu (dolanlar senin renginde, bitince yeşil) */
+.kitaplar{display:grid;gap:8px;margin-bottom:14px}
+.kt{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);background:var(--surface-2)}
+.kt .esya-ic{width:38px;height:38px}
+.kt b{font-family:var(--font-display);font-size:17px;font-weight:600}
+.kt>div>i{font-style:normal;font-size:13px;color:var(--muted)}
+.kt p{margin:4px 0 0;font-size:12.5px;line-height:1.4;color:var(--muted)}
+.kt-bar{display:flex;gap:3px;margin-top:6px;max-width:260px}
+.kt-bar i{flex:1;height:8px;background:var(--field);border:1px solid var(--line)}
+.kt-bar i.on{background:var(--accent);border-color:var(--accent)}
+.kt.bitti .kt-bar i{background:var(--good);border-color:var(--good)}
+.kt.masa{grid-template-columns:30px minmax(0,1fr) auto;gap:8px;padding:6px 8px}
+.kt.masa .esya-ic{width:26px;height:26px}
+.kt.masa b{font-size:14px}
+.kt.masa>div>i{display:none}
 /* Dükkanlar (2026-11-10, BÖLÜM 10g): DM'in listesi ve oyuncunun seçimi; haritadaki dükkan ikonu */
 .dk-kartlar{display:grid;gap:8px}
 .dk-kart{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);background:var(--surface-2)}
@@ -2834,6 +2849,7 @@ body.tv-full #tableView{height:100dvh}
               <button class="btn accent sm" data-act="add" data-list="items"><svg class="ic"><use href="#i-plus"/></svg>Eşya ekle</button>
             </div>
           </div>
+          <div class="kitaplar" id="kitaplar" hidden></div><!-- Kitap okuma (BÖLÜM 8d) -->
           <div class="list" id="items"></div>
           <p class="sub-note mt" data-out="carry"></p>
 
@@ -4185,7 +4201,7 @@ function blankChar() {
     saves:{ str:0, dex:0, con:0, int:0, wis:0, cha:0 },
     skills: Object.fromEntries(SKILLS.map(s => [s.k, 0])),          // 0 yok, 1 yetkin, 2 uzman
     ac:10, armorType:'', shield:false, acOto:false, initBonus:0, speed:30,
-    hp:{ cur:10, max:10, temp:0 }, hitDie:'d8', hdUsed:0, ds:{ s:0, f:0 }, hak:{}, secim:{},
+    hp:{ cur:10, max:10, temp:0 }, hitDie:'d8', hdUsed:0, ds:{ s:0, f:0 }, hak:{}, secim:{}, gun:0,
     conds:[], exh:0,
     spellAbility:'', slots: Array.from({ length:9 }, () => ({ t:0, u:0 })),   // t toplam, u harcanan
     attacks:[], spells:[], items:[], feats:[],
@@ -4645,6 +4661,7 @@ function renderLists() {
     </div>`).join('')
     : '<p class="empty">Çantan boş. “Eşya ekle” ile zırhını, silahını ve yanında taşıdıklarını yaz.</p>';
 
+  kitapCiz();                                                         // okunan kitaplar (BÖLÜM 8d)
   $('#feats').innerHTML = C.feats.length ? C.feats.map((f, i) => `
     <div class="li feat" data-list="feats" data-i="${i}">
       <div class="feat-top"><input data-f="name" value="${esc(f.name)}" placeholder="Hüner adı, örnek: Alert" aria-label="Hüner adı">${DEL}</div>
@@ -5117,6 +5134,7 @@ const ACTIONS = {
     if (mode === 'peek') return;
     if (!await confirmBox('Uzun dinlenme yapılsın mı? Canın, can zarların, büyü yuvaların ve sınıf hakların yenilenir, geçici can ve ölüm zarı işaretleri sıfırlanır, bitkinlik bir kademe azalır.', 'Dinlen')) return;
     C.hp.cur = Math.max(0, int(C.hp.max)); C.hp.temp = 0; C.hdUsed = 0; C.ds = { s:0, f:0 };
+    C.gun = int(C.gun) + 1;                                           // oyun günü: kitap okuma (BÖLÜM 8d)
     C.slots.forEach(s => { s.u = 0; });
     C.exh = Math.max(0, int(C.exh) - 1);
     const hak = hakDinlen('uzun');
@@ -5777,7 +5795,7 @@ function silahSatiri(c, e) {                                           // katalo
 function esyaKoy(c, k, adet = 1, not = '') {                         // not: "Book (prayers)" gibi ayrı satır
   const e = ESYA[k]; if (!e) return [];
   if (e.kat === 'paket') return PAKET[k].flatMap(([a, n]) => esyaKoy(c, a, n * adet));
-  const n = esyaAdet(e) * adet, eski = !not && c.items.find(x => x.k === k && x.name === k && !e.zirh);
+  const n = esyaAdet(e) * adet, eski = !not && !e.kitap && c.items.find(x => x.k === k && x.name === k && !e.zirh);   // kitap: her biri kendi okuma sayacıyla
   if (eski) eski.qty = int(eski.qty) + n;                              // aynı eşya (hançer, ok, meşale…) tek satırda toplanır
   else {
     const giy = (e.silah && !c.attacks.some(a => a.k === k)) || (e.zirh && !zirhDurum(c)[e.alt === 'kalkan' ? 'kalkan' : 'govde']);
@@ -5872,6 +5890,64 @@ $('#katAra').addEventListener('input', e => { KAT.ara = e.target.value; katCiz()
 $('#katModal').addEventListener('change', e => { if (e.target.dataset.pz && KAT.degis) KAT.degis(e.target); });   // pazar: satışta, fiyat, adet, ad
 $('#katModal').addEventListener('click', e => { if (e.target.id === 'katModal') katKapa(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#katModal').hidden) { e.stopPropagation(); katKapa(); } }, true);
+/* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 8d — Kitap okuma (2026-11-10, kullanıcının isteği; kural SRD 5.2.1: Manual / Tome)
+   Büyülü kitap: 6 gün içinde 48 saat okuyup çalışınca yetenek +2 (en çok 30), sonra büyüsü tükenir. Sitede: günde bir "Bugün oku"
+   (8 saat), gün = uzun dinlenme (C.gun her uzun dinlenmede 1 artar). 6 okuma dolunca yetenek kendiliğinden artar. Bir gün ara
+   verirsen (6 gün içine sığmaz) sayaç baştan başlar. Okuma eşyanın satırında durur: it.okuma = { n, son, bitti }; kitap satılınca
+   bilgisi de gider. Bilgi kitabı: "Kitaba bakarak at" o beceriye +5 ekler. Kağıtta Envanter'in başında, masada envanter camında.
+   ═══════════════════════════════════════════════════════════════════ */
+const kitapDurum = (c, it) => {                                        // { o, bugun, ara, kalan }
+  const o = it.okuma || { n: 0, son: -1, bitti: false }, g = int(c.gun);
+  return { o, bugun: o.son === g, ara: !o.bitti && o.n > 0 && g - o.son > 1, kalan: KITAP_OKUMA - o.n };
+};
+function kitapSatiri(c, it, i, masa) {
+  const e = esyaBul(it); if (!e || !e.kitap) return '';
+  const k = e.kitap, act = `data-i="${i}"`;
+  if (k.tur === 'konu') {
+    const s = SKILL[k.x];
+    return `<div class="kt${masa ? ' masa' : ''}">${ESYA_IC(e)}<div><b>${esc(e.k.replace(/^Book: /, ''))}</b> <i>${esc(e.tr)}</i>
+      <p>Bilgi kitabı: konusuna bakarak attığın ${s.en} (${s.tr}) zarına +5.</p></div>
+      <button class="btn sm" data-act="kitap-bak" ${act} title="${s.en} zarı at: kitaba bakarak +5"><svg class="ic"><use href="#i-d20"/></svg>${s.en} +5</button></div>`;
+  }
+  const d = kitapDurum(c, it), o = d.o, n = d.ara ? 0 : o.n;
+  const durum = o.bitti ? `Bitti: ${YET_TR[k.x]} +2 aldın. Kitabın büyüsü tükendi (yüz yılda geri gelir); artık satabilirsin.`
+    : d.bugun ? `Bugün okudun (${o.n}/${KITAP_OKUMA}). Bir sonraki okuma uzun dinlenmeden sonra.`
+    : d.ara ? 'Bir gün ara verdin: 48 saat 6 gün içinde bitmeli, okuma baştan başlayacak.'
+    : o.n ? `${o.n}/${KITAP_OKUMA} gün okundu; ${d.kalan} gün kaldı. Her gün bir kez oku, ara verme.` : `${KITAP_OKUMA} gün, her gün 8 saat okuyunca ${YET_TR[k.x]} 2 artar (en çok 30).`;
+  return `<div class="kt${o.bitti ? ' bitti' : ''}${masa ? ' masa' : ''}">${ESYA_IC(e)}<div><b>${esc(e.k)}</b> <i>${esc(e.tr)}</i>
+      <span class="kt-bar" role="img" aria-label="${n} / ${KITAP_OKUMA} okundu">${Array.from({ length: KITAP_OKUMA }, (_, j) => `<i${o.bitti || j < n ? ' class="on"' : ''}></i>`).join('')}</span>
+      <p>${durum}</p></div>
+    ${o.bitti ? '' : `<button class="btn sm${d.bugun ? '' : ' accent'}" data-act="kitap-oku" ${act}${d.bugun ? ' disabled' : ''}><svg class="ic"><use href="#i-book"/></svg>${d.bugun ? 'Okundu' : 'Bugün oku'}</button>`}</div>`;
+}
+function kitapCiz() {
+  const h = C.items.map((it, i) => kitapSatiri(C, it, i)).join('');
+  const el = $('#kitaplar'); el.hidden = !h;
+  el.innerHTML = h ? `<span class="f-l">Kitapların<i>okudukça ilerler; günde bir kez (gün = uzun dinlenme)</i></span>${h}` : '';
+}
+function kitapOku(i) {
+  const it = C.items[i], e = esyaBul(it); if (!it || !e || !e.kitap || e.kitap.tur !== 'yet' || mode === 'peek') return;
+  const d = kitapDurum(C, it), o = it.okuma = d.o, a = e.kitap.x, g = int(C.gun);
+  if (o.bitti) { notify('Bu kitabın büyüsü tükenmiş', 'Yüz yıl sonra geri gelir. Satabilirsin.'); return; }
+  if (d.bugun) { notify('Bugün zaten okudun', 'Bir sonraki okuma uzun dinlenmeden sonra (yeni gün).'); return; }
+  if (d.ara) { o.n = 0; notify('Ara verdiğin için baştan', `48 saat 6 gün içinde bitmeli. Bugünden başlayarak ${KITAP_OKUMA} gün üst üste oku.`); }
+  o.n += 1; o.son = g;
+  if (o.n >= KITAP_OKUMA) {
+    o.bitti = true;
+    const once = int(C.abilities[a]); C.abilities[a] = Math.min(30, once + 2);
+    setInput('abilities.' + a); ses('ilham');
+    notify(`${e.tr} bitti!`, `${YET_TR[a]} ${once} → ${C.abilities[a]}. Kitabın büyüsü tükendi; artık satabilirsin.`);
+  } else notify(`${e.tr}: ${o.n}/${KITAP_OKUMA}`, `8 saat okudun. Yarın (uzun dinlenmeden sonra) yeniden oku; ${KITAP_OKUMA - o.n} gün kaldı.`);
+  ownYenile(C);
+}
+Object.assign(ACTIONS, {
+  'kitap-oku': b => kitapOku(int(b.dataset.i)),
+  'kitap-bak': b => {
+    const it = C.items[int(b.dataset.i)], e = esyaBul(it); if (!e || !e.kitap) return;
+    const s = SKILL[e.kitap.x];
+    rollD20(`${s.en} (${s.tr}) · kitaba bakarak`, [[s.ab.toUpperCase(), mod(s.ab)], [C.skills[e.kitap.x] === 2 ? 'uzmanlık' : 'yetkinlik', int(C.skills[e.kitap.x]) * pb()], ['kitap', 5]]);
+  },
+});
 /* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 10g — Dükkanlar: pazar ve kütüphane (2026-11-10, kullanıcının isteği)
    DM istediği kadar dükkan kurar (pazar ya da kütüphane). Yeni dükkan örnek bir listeyle ve kurallardaki (örnek) fiyatlarla
@@ -9144,7 +9220,8 @@ function renderMe() {
     const satir = c.items.map((x, i) => String(x.name || '').trim() ? `<li data-row data-i="${i}"${int(x.qty) ? '' : ' class="sifir"'}>${esyaBul(x) ? ESYA_IC(esyaBul(x)) : ''}<span title="${esc(esyaBul(x) ? esyaBul(x).tr : x.name)}">${esc(x.name)}</span>
         <button class="icon-btn" data-act="me-adet" data-d="-1" title="Bir azalt (kullandın, harcadın)" aria-label="${esc(x.name)}: bir azalt"><svg class="ic"><use href="#i-minus"/></svg></button><b>${int(x.qty)}</b>
         <button class="icon-btn" data-act="me-adet" data-d="1" title="Bir artır" aria-label="${esc(x.name)}: bir artır"><svg class="ic"><use href="#i-plus"/></svg></button></li>` : '').join('');
-    sekCam = `<section class="mc-sek" aria-label="Envanter"><h3>Envanter<em>adet − / + · eşya eklemek için Kağıdım</em></h3>
+    const kit = c.items.map((it, i) => kitapSatiri(c, it, i, true)).join('');
+    sekCam = `<section class="mc-sek" aria-label="Envanter"><h3>Envanter<em>adet − / + · eşya eklemek için Kağıdım</em></h3>${kit ? `<div class="kitaplar">${kit}</div>` : ''}
       ${satir ? `<ul class="mc-esya">${satir}</ul>` : '<p class="mc-bos">Envanterin boş. Eşya eklemek için <b>Kağıdım</b>.</p>'}${para ? `<p class="mc-para">${para}</p>` : ''}</section>`;
   }
   let detay = '';
