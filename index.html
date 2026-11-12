@@ -934,7 +934,18 @@ body.sade .hp-cur{height:1.08em;border-width:0 0 1px!important;border-style:dash
 body.sade .hp-cur:focus{border-color:var(--accent)!important}
 .hp-adim{gap:6px;align-self:center;margin-left:10px}
 body.sade .hd select{display:none}                                       /* zar türünü sınıf belirler; okunur satırda yazar */
-.hd-dinlen{margin-top:12px}
+/* Can paneli (2026-11-12): iki dinlenme başlıkta yan yana; can zarı ve ölüm zarları can çubuğunun altında, aynı panelde.
+   Ölüm zarları Sade'de yalnızca canın 0'sa ya da işaret varsa görünür (data-tam="ds"); görünmezken can zarı bütün satırı alır. */
+.hp-dinlen{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.hp-alt{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 26px;margin-top:16px;border-top:1px solid var(--line)}
+.hp-alt .card-h.sub{margin:12px 0 10px;padding:0 0 8px;border-top:0}
+.hp-alt .card-h h3{font-family:var(--font-display);font-weight:600;font-size:18px;line-height:1.15}
+.hp-alt .card-h h3 em{font-family:var(--font-ui);font-style:normal;font-weight:500;font-size:12.5px;color:var(--muted);margin-left:8px}
+.hp-alt .hint{margin-top:10px}
+/* Sınıf hakları kendi kartında; sınıfın sayılan hakkı yoksa kart da yok, Durumlar bütün satırı alır */
+.hak-kart .haklar{margin-top:0;padding-top:0;border-top:0}
+.hak-kart:has(>#haklar[hidden]){display:none}
+.vitals2:has(#haklar[hidden]){grid-template-columns:minmax(0,1fr)}
 body.sade .tabs-card .panel[data-panel="inventory"] .panel-h .hint{display:none}   /* ağırlıktan söz ediyor; ağırlık Tam'da */
 body.sade :is(.li,.li-head).item>:nth-child(3),body.sade :is(.li,.li-head).item>:nth-child(4),body.sade [data-out="carry"]{display:none}
 body.sade .item{grid-template-columns:62px minmax(140px,1fr) var(--del)}
@@ -2720,10 +2731,15 @@ body.tv-full #tableView{height:100dvh}
           <p class="hint">Bir turda yürüyebileceğin mesafe. Haritada her kare 5 ft sayılır.</p>
         </section>
 
+        <!-- Can paneli (2026-11-12, kullanıcı: "kısa dinlenme uzun dinlenmenin yanında olsun; can zarı ve ölüm zarı can çubuğundan kopuk
+             duruyor"): can, geçici can, can zarı, ölüm zarları ve iki dinlenme tek panelde. Sınıf hakları aşağıdaki kendi kartında. -->
         <section class="card hp">
           <div class="card-h">
             <h2>Hit Points<em>Can puanı</em></h2>
-            <button class="btn sm tam-only" data-act="longrest" title="Canı ve büyü yuvalarını yeniler"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button>
+            <div class="btns hp-dinlen">
+              <button class="btn sm" data-act="kisa-dinlen" title="Kısa dinlenme (1 saat): kısa dinlenmede dolan hakların yenilenir; canın eksikse bir can zarı atıp canını doldurursun (zar + CON modifiyen)"><svg class="ic"><use href="#i-flame"/></svg>Kısa dinlenme</button>
+              <button class="btn sm" data-act="longrest" title="Uzun dinlenme (8 saat): can, can zarları, haklar ve büyü yuvaları yenilenir"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button>
+            </div>
           </div>
           <div class="hp-body">
             <div class="hp-nums">
@@ -2749,41 +2765,38 @@ body.tv-full #tableView{height:100dvh}
             </div>
           </div>
           <p class="hint">Soldaki büyük sayı şimdiki canın, yanındaki en yüksek canın. Miktarı yazıp düğmeye bas: hasar önce geçici candan düşer, iyileşme en yüksek canı aşamaz.</p>
+          <div class="hp-alt">
+            <div class="hp-hd">
+              <div class="card-h sub"><h3>Hit Dice<em>Can zarı</em></h3></div>
+              <div class="hd">
+                <select data-bind="hitDie" aria-label="Can zarı türü"><option>d6</option><option>d8</option><option>d10</option><option>d12</option></select>
+                <span><span class="sade-blok">Can zarın: <b data-out="hdTur">d8</b> · </span><b data-out="hdLeft">1</b> / <span data-out="level">1</span> kaldı</span>
+                <button class="btn sm tam-only" data-act="hitdie" title="Kısa dinlenmeden ayrı, yalnızca bir can zarı harca">Zar harca</button>
+              </div>
+              <p class="hint">Kısa dinlenmede bir can zarı harcayıp can yenilersin: zar sonucu + CON modifiyen. Uzun dinlenmede can ve can zarların geri gelir.</p>
+            </div>
+            <div class="hp-ds" data-tam="ds">
+              <div class="card-h sub">
+                <h3>Death Saves<em>Ölüm zarları</em></h3>
+                <button class="btn sm" data-act="roll" data-roll="death">Zar at</button>
+              </div>
+              <div class="ds">
+                <span>Başarı</span><div class="pips" id="dsS"></div>
+                <span>Başarısızlık</span><div class="pips bad" id="dsF"></div>
+              </div>
+              <p class="hint">Canın 0 iken her turun başında atılır. 10 ve üstü başarıdır: tek başarıda 1 canla ayağa kalkarsın ve bir başarı kutusu dolar. Üç kutu, uzun dinlenmeye kadar üç kalkma hakkındır; hakların bitmişken yeniden düşersen ölürsün. Üç başarısızlıkta da karakter ölür. İşaretler yalnızca uzun dinlenmede silinir.</p>
+            </div>
+          </div>
         </section>
         <p class="hint vit-rehber">Canın sıfıra inerse bayılırsın. Masada biri sana vurunca canın kendiliğinden düşer; bir yanlışlık olursa sayının üstüne yazarak ya da −/+ ile düzeltebilirsin. AC, sana vurmanın ne kadar zor olduğunu gösterir: yükseldikçe düşmanın işi zorlaşır. Savaş başlayınca inisiyatife bas; kimin önce oynayacağı bu zarla belli olur. Hız, bir turda ne kadar yol alabileceğin. Saldırırken önce vuruş zarına bas; tutturursan hançerli zarla hasarını at.</p>
         <section class="card atk-yuva" id="atkYuva"></section><!-- Sade: saldırılar burada (Tam'da Saldırılar sekmesinde) -->
       </div>
 
       <div class="vitals2 card">
-        <section class="card">
-          <div class="card-h"><h2 class="tam-only">Hit Dice<em>Can zarı</em></h2><h2 class="sade-blok">Rest<em>Dinlenme</em></h2></div>
-          <!-- Sade (2026-10-27): zar türü okunur satırda (sınıf belirler); "Zar harca" = Kısa dinlenme, yanında Uzun dinlenme -->
-          <div class="hd">
-            <select data-bind="hitDie" aria-label="Can zarı türü"><option>d6</option><option>d8</option><option>d10</option><option>d12</option></select>
-            <span><span class="sade-blok">Can zarın: <b data-out="hdTur">d8</b> · </span><b data-out="hdLeft">1</b> / <span data-out="level">1</span> kaldı</span>
-            <button class="btn sm tam-only" data-act="hitdie">Zar harca</button>
-            <button class="btn sm tam-only" data-act="kisa-dinlen" title="Kısa dinlenme: kısa dinlenmede dolan hakların yenilenir, canın eksikse bir can zarı harcanır">Kısa dinlenme</button>
-          </div>
-          <div class="btns hd-dinlen sade-blok">
-            <button class="btn sm" data-act="kisa-dinlen" title="Kısa dinlenmede dolan hakların yenilenir; canın eksikse bir can zarı atıp canını doldurursun (zar + CON modifiyen)"><svg class="ic"><use href="#i-flame"/></svg>Kısa dinlenme</button>
-            <button class="btn sm" data-act="longrest" title="Canı, can zarlarını ve büyü yuvalarını yeniler"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button>
-          </div>
-          <p class="hint tam-only">Kısa dinlenmede harcayıp can yenilersin: zar sonucu + CON modifiyen. Uzun dinlenmede hepsi geri gelir.</p>
-          <p class="hint sade-blok">Kısa dinlenme bir can zarı harcar: zar sonucu + CON modifiyen kadar can yenilersin. Uzun dinlenmede can ve can zarların geri gelir.</p>
-          <!-- Sınıf hakları (2026-11-10, hakCiz): Öfke, İkinci soluk, El koyma… kısa / uzun dinlenmede dolar -->
+        <!-- Sınıf hakları (2026-11-10, hakCiz): Öfke, İkinci soluk, El koyma… kısa / uzun dinlenmede dolar. 2026-11-12'den beri kendi
+             kartı (can zarı ve ölüm zarları can panelinde); sınıfın sayılan hakkı yoksa kart görünmez, Durumlar bütün satırı alır. -->
+        <section class="card hak-kart">
           <div class="haklar" id="haklar" hidden></div>
-
-          <div data-tam="ds">
-          <div class="card-h sub">
-            <h2>Death Saves<em>Ölüm zarları</em></h2>
-            <button class="btn sm" data-act="roll" data-roll="death">Zar at</button>
-          </div>
-          <div class="ds">
-            <span>Başarı</span><div class="pips" id="dsS"></div>
-            <span>Başarısızlık</span><div class="pips bad" id="dsF"></div>
-          </div>
-          <p class="hint">Canın 0 iken her turun başında atılır. 10 ve üstü başarıdır: tek başarıda 1 canla ayağa kalkarsın ve bir başarı kutusu dolar. Üç kutu, uzun dinlenmeye kadar üç kalkma hakkındır; hakların bitmişken yeniden düşersen ölürsün. Üç başarısızlıkta da karakter ölür. İşaretler yalnızca uzun dinlenmede silinir.</p>
-          </div>
         </section>
 
         <section class="card">
