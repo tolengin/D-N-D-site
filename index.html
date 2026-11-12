@@ -2428,6 +2428,8 @@ body.tv-full #tableView{height:100dvh}
       <div class="tv-ust">
         <!-- Tam ekran: tarayıcı desteklemiyorsa (ör. iPhone Safari) JS gizler -->
         <button class="btn sm tv-fs" id="tvFull" data-act="tv-full" aria-pressed="false" title="Tam ekran" hidden><svg class="ic"><use href="#i-expand"/></svg><span>Tam ekran</span></button>
+        <!-- DM ekranı (2026-11-12): yalnızca DM'de. Eskiden üstteki masa şeridindeydi; şerit masada kalktı -->
+        <button class="btn sm" id="tvDm" data-act="mode-dm" title="DM ekranı: oyuncular, düşmanlar, zarlar" hidden><svg class="ic"><use href="#i-users"/></svg><span>DM ekranı</span></button>
         <!-- Karakter kağıdını açar: kamera koltuğa yaklaşır, kağıt masanın üstünde açılır (madde 7) -->
         <button class="btn sm" id="tvKagit" data-act="mode-sheet" title="Karakter kağıdını aç"><svg class="ic"><use href="#i-scroll"/></svg><span>Kağıdım</span></button>
         <!-- Harita (BÖLÜM 10d): DM yükler, herkes görür; oyuncuda DM bir harita paylaşınca görünür -->
@@ -6895,6 +6897,7 @@ function whoList() {
 function renderNetUI() {
   const role = store.net.role, code = prettyCode(store.net.code);
   pzDugme();                                                         // pazar düğmesi (BÖLÜM 10g)
+  $('#tvDm').hidden = role !== 'dm';                                 // araç şeridinde "DM ekranı" (2026-11-12)
   document.body.classList.toggle('role-dm', role === 'dm');          // DM isimliklere basıp hedef seçebilir (imleç)
   $('#tableDot').className = role ? dotClass() : 'dot';
   // Üst çubuk: masadayken düğmede masa kodu yazar, üstüne gelince durum görünür
@@ -6904,9 +6907,9 @@ function renderNetUI() {
   const bar = $('#tableBar'), btn = $('#tableBarBtn');
   let text = '';
   if (role && mode === 'table') {
-    text = net.status === 'open'
-      ? `Masa ${code}: ${role === 'dm' ? `açık, ${onlineCount()} oyuncu bağlı.` : 'bağlısın.'} Atılan zarlar atanın koltuğundan masaya yuvarlanır.`
-      : `Masa ${code}: ${net.note || 'bağlanılıyor…'}`;
+    // 2026-11-12 (kullanıcı: "üstteki çıkıntı kötü duruyor"): bağlıyken masada şerit yok (masa kodu ve durum üstteki Masa düğmesinde,
+    // Kağıdım ve DM ekranı kendi düğmelerinde). Yalnızca bağlantı yoksa ya da koptuysa görünür.
+    text = net.status === 'open' ? '' : `Masa ${code}: ${net.note || 'bağlanılıyor…'}`;
     btn.textContent = role === 'dm' ? 'DM ekranına dön' : 'Kağıda dön'; btn.dataset.act = role === 'dm' ? 'mode-dm' : 'mode-sheet';
   } else if (role === 'player') {
     text = net.status === 'open' ? `Masa ${code}: bağlısın. ${net.dmName || 'DM'} açık olan kağıdını ve attığın zarları canlı görüyor.` : `Masa ${code}: ${net.note || 'bağlanılıyor…'}`;
