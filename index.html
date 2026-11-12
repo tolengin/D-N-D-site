@@ -7692,7 +7692,7 @@ function svRender() {
   if (!W) return;
   const { oyuncu, dus } = svListe(), u = Math.min(W / 100, H / 56.25), kw = 9.5 * u;
   // Sağ kenar: oyuncunun sağ alttaki kutusu ve (kartların boyuna uzanıyorsa) sağ sütun kartları kapatmasın
-  const sag = [$('#tvMe'), ...$$('.cam')].filter(el => el && !el.hidden && el.offsetParent).map(el => el.getBoundingClientRect())
+  const sag = [$('#tvMe'), ...$$('.cam'), $('#saPano')].filter(el => el && !el.hidden && el.offsetParent).map(el => el.getBoundingClientRect())
     .filter(b => b.left > st.left + W * 0.5 && b.bottom > st.top + H * 0.42).map(b => b.left - st.left - u * 1.5);
   const L = W * 0.05, R = Math.min(W * 0.95, ...sag), gap = Math.max(W * 0.05, u * 4);
   SV.mid = (L + R) / 2;
@@ -7763,7 +7763,7 @@ function svGecis(ac) {
     SV.t = setTimeout(() => { sah.hidden = true; sah.classList.remove('cik'); $('#svKisiler').innerHTML = ''; SV.html = ''; }, 500);
     SV.can.clear();
   }
-  svMerkez(); povGoster(); tavKick();
+  svMerkez(); povGoster(); tavKick(); saPanoYer();                    // sahne panosu savaşta sağ sütunda
 }
 // Kullanıcının resmi (masa/savas/orman.webp) varsa boyanmış orman yerine o kullanılır
 function svResimDene() {
@@ -8858,8 +8858,10 @@ function mzCiz() {
    Telefonda (gezinme yok) ve 3D açılamazsa sağ sütunda durur. */
 function saPanoYer(sc) {
   const el = $('#saPano'), sag = $('.tv-sag'), yuz = $('#tvCamlar');
-  if (telefonDik.matches || tav.state === 'fail' || !SAHNE.ozan) {
+  // 2026-11-12 (kullanıcı: "savaşta da şarkı ekleyip çıkarabilelim"): savaşta sahne görünmez, pano sağ sütuna geçer; savaş bitince sahneye döner
+  if (telefonDik.matches || tav.state === 'fail' || !SAHNE.ozan || (svAcik() && mode === 'table')) {
     if (el.parentNode !== sag) sag.appendChild(el);
+    el.classList.remove('uzak');
     el.hidden = false; el.style.transform = ''; return;
   }
   if (el.parentNode !== yuz) yuz.prepend(el);
