@@ -1746,7 +1746,10 @@ button.mz-sec:hover{background:var(--lit)}
   border-radius:31px 31px 0 0;background:color-mix(in srgb,var(--g) 18%,var(--surface));transition:height .25s ease,background-color .25s}
 .sira-i.t-npc{--g:var(--g-dus)}
 .sira-av{width:40px;height:44px;border-radius:20px 20px 0 0;border:2px solid var(--lead);font-size:18px}
-.sira-i b{font-family:var(--font-display);font-size:20px;font-weight:700;line-height:1;font-variant-numeric:lining-nums}
+.sira-i b{font-family:var(--font-display);font-size:20px;font-weight:700;line-height:1;font-variant-numeric:lining-nums;transition:opacity .4s}
+/* 2026-11-12 (kullanıcı: "inisiyatifler kafa karıştırıyor"): sıra başladıktan 5 sn sonra sayılar söner (yer kalır, şerit oynamaz);
+   şeridin üstüne gelince ya da klavyeyle içine girince görünür. Sıra başlamadan (zarlar atılırken) hep görünür. */
+.tv-sira.ini-sonuk:not(:hover,:focus-within) .sira-i b{opacity:0}
 .sira-i small{max-width:60px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--muted)}
 .sira-i.ben small{color:var(--text);font-weight:700}
 .sira-i.simdi{height:114px;background:var(--g);color:#0b0910}
@@ -7514,6 +7517,9 @@ function renderSira() {
   const box = $('#tvSira'), dm = store.net.role === 'dm';
   const s = dm ? (store.sira && store.sira.aktif ? { tur: store.sira.tur, simdi: store.sira.simdi, liste: siraSirali(false) } : null) : net.sira;
   box.hidden = !s;
+  // İnisiyatif sayıları sıra başlayınca 5 sn sonra söner (üstüne gelince görünür); sıra başlamadan hep görünür
+  if (!s || !s.simdi) { clearTimeout(renderSira.t); renderSira.t = 0; box.classList.remove('ini-sonuk'); }
+  else if (!renderSira.t && !box.classList.contains('ini-sonuk')) renderSira.t = setTimeout(() => { renderSira.t = 0; if ($('#tvSira').querySelector('.sira-i')) $('#tvSira').classList.add('ini-sonuk'); }, 5000);
   svRender();                                                        // savaş sahnesi (BÖLÜM 10c): savaş açılınca orman gelir
   if (mode === 'table' && !dm) renderMe();                          // rehber satırı sıraya göre değişir
   if (!s) return;
