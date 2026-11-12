@@ -698,6 +698,10 @@ body.peek #sheet [data-act="kisa-dinlen"]{display:none}
 .sinif-oz{margin-bottom:18px}
 .tur-oz{padding-top:16px;border-top:1px solid var(--line)}            /* tür özellikleri (2026-11-12): sınıfınkinin altında, aynı satır düzeni */
 .tur-yok{margin:0}
+.huner-sec{width:auto;max-width:300px;padding:6px 8px}                /* Hünerler: SRD listesinden seç (hunerSecCiz) */
+.ol-serbest{margin-bottom:14px}                                       /* oluşturma: SRD dışı geçmişte iki beceri + hüner */
+.ol-ghuner{display:grid;gap:4px;max-width:420px;margin-top:10px}
+.ol-ghuner small{font-size:13px;color:var(--muted)}
 .so-bas h3{margin:0 0 6px;font-family:var(--font-display);font-size:20px}
 .so-bas h3 em{display:block;font-family:var(--font-ui);font-style:normal;font-size:13px;font-weight:500;color:var(--muted)}
 .so-terim{margin:0 0 10px}
@@ -2958,6 +2962,8 @@ body.tv-full #tableView{height:100dvh}
           <section class="sinif-oz" id="sinifOz"></section>
           <!-- Tür özellikleri (2026-11-12, turOzCiz): SRD'deki 9 tür kendiliğinden; öbürlerinde "kendin yaz" -->
           <section class="sinif-oz tur-oz" id="turOz"></section>
+          <!-- Geçmiş (2026-11-12, gecOzCiz): ne verdiği; SRD dışındakilerde "kendin yaz" -->
+          <section class="sinif-oz tur-oz gec-oz" id="gecOz"></section>
           <div class="grid2">
             <label class="f"><span class="f-l">Class notes<i>Kendi notların</i></span>
               <textarea data-bind="features" style="min-height:200px" placeholder="Yukarıdaki listede olmayanları ya da kendi notlarını buraya yaz."></textarea></label>
@@ -2983,9 +2989,12 @@ body.tv-full #tableView{height:100dvh}
           <div class="panel-h">
             <div>
               <h3>Feats<em>Hünerler</em></h3>
-              <p class="hint">Geçmişinden ya da seviye atlayınca kazandığın özel yetenekler.</p>
+              <p class="hint">Hüner, karakterine kalıcı bir özel yetenek verir. 1. seviyede geçmişinden bir başlangıç hüneri gelir (Human bir tane daha seçer); 4, 8, 12 ve 16. seviyede yetenek artışı yerine bir hüner seçebilirsin; 19. seviyede destansı lütuf.</p>
             </div>
-            <button class="btn accent sm" data-act="add" data-list="feats"><svg class="ic"><use href="#i-plus"/></svg>Hüner ekle</button>
+            <div class="btns">
+              <select class="huner-sec" id="hunerSec" aria-label="SRD'deki hünerlerden seç"></select>
+              <button class="btn sm" data-act="add" data-list="feats" title="Listede olmayan bir hüneri kendin yaz"><svg class="ic"><use href="#i-plus"/></svg>Kendim yazayım</button>
+            </div>
           </div>
           <div class="list" id="feats"></div>
           </div>
@@ -3741,7 +3750,7 @@ function lvDugmeler() {                                               // refresh
   a.title = d.hazir ? 'XP doldu: seviye atla' : `${d.ust - d.xp} XP daha gerekiyor (XP'yi DM verir)`;
   $('#xpCubuk span').style.width = (d.pct * 100).toFixed(1) + '%';
   $('#xpYazi').textContent = d.l >= 20 ? `${d.xp} XP · en yüksek seviye` : d.hazir ? `${d.xp} XP · seviye atlayabilirsin` : `${d.xp} / ${d.ust} XP`;
-  hakCiz(); sinifOzCiz(); turOzCiz();
+  hakCiz(); sinifOzCiz(); turOzCiz(); gecOzCiz();
 }
 
 /* ───────── Hak sayacı ve XP (2026-11-10, kullanıcının isteği) ─────────
@@ -4345,6 +4354,9 @@ const TERIMLER = [
   ['Kritik vuruş', 'd20\'de 20 gelince: hasar zarları iki kez atılır.'],
   ['Kısa / uzun dinlenme', 'Kısa: en az 1 saatlik mola. Uzun: 8 saatlik uyku ve dinlenme.'],
   ['Fırsat saldırısı', 'Yanından uzaklaşan düşmana tepkinle yaptığın tek saldırı.'],
+  ['Geçmiş (background)', 'Maceradan önceki hayatın (asker, rahip yamağı, bilgin…). Oluştururken seçilir: üç yetenekten birine +2 birine +1 (ya da üçüne +1), bir başlangıç hüneri, iki beceri, bir alet ve başlangıç eşyası verir.'],
+  ['Alt sınıf (subclass)', 'Sınıfının içinde 3. seviyede seçtiğin yol (ör. Fighter → Champion). O yola özel özellikler sonraki seviyelerde gelir. Bu sitede her sınıfın SRD\'deki bir alt sınıfı var.'],
+  ['Hüner (feat)', 'Kalıcı bir özel yetenek. 1. seviyede geçmişinden bir başlangıç hüneri gelir; 4, 8, 12, 16. seviyede yetenek artışı yerine bir hüner seçebilirsin; 19\'da destansı lütuf.'],
 ];
 function sinifOzSatir(x, cls, l, gelecek) {
   const [lv, en, tr, acik] = x.o, s = !gelecek && OZ_SECIM[en] ? OZ_SECIM[en](cls, l) : null, key = `${en}@${lv}`;
@@ -4412,6 +4424,41 @@ function sinifOzCiz() {                                               // refresh
     <ol class="so-liste">${gelen.map(x => sinifOzSatir(x, cl.name, l, false)).join('')}</ol>
     ${gelecek.length ? `<details class="so-gelecek"${gelAcik ? ' open' : ''}><summary>Sonraki seviyelerde gelecekler (${gelecek.length})</summary><ol class="so-liste">${gelecek.map(x => sinifOzSatir(x, cl.name, l, true)).join('')}</ol></details>` : ''}`;
 }
+/* Geçmiş paneli (2026-11-12, R2 madde 12): geçmişin ne verdiği. SRD'deki 4 geçmişte tablodan; öbürlerinde "kendin yaz". */
+function gecKey(c = C) {
+  const s = deger(c.background).trim().toLocaleLowerCase('tr'); if (!s) return '';
+  return Object.keys(OL_GECMIS).find(k => k.toLowerCase() === s || OL_GECMIS[k].tr.toLocaleLowerCase('tr') === s) || '';
+}
+function gecOzCiz() {
+  const el = $('#gecOz'); if (!el) return;
+  const ad = deger(C.background).trim(), k = gecKey(), g = OL_GECMIS[k];
+  const bas = `<div class="so-bas"><h3>${esc(k || ad || 'Background')}${ad ? ' background' : ''}<em>Geçmişin${g ? ' · ' + esc(g.tr) : ''}: maceradan önceki hayatın</em></h3></div>`;
+  if (!ad) { el.innerHTML = '<p class="hint always">Geçmişini kağıdın başına yazınca (ör. Soldier) ne verdiği burada görünür.</p>'; return; }
+  if (!g || g.srd === false) { el.innerHTML = bas + `<p class="hint always tur-yok"><b>${esc(ad)}</b> SRD 5.2.1'de yok. Bir geçmiş genelde üç yetenekten birine +2 birine +1 (ya da üçüne +1), bir başlangıç hüneri, iki beceri, bir alet ve başlangıç eşyası verir. Seninkinin verdiklerini DM'inle konuşup Hünerler'e, Beceriler'e ve Eğitim'e kendin yaz.</p>`; return; }
+  const h = hunerBul(g.huner), sat = (en, tr, d) => `<li class="so"><span class="so-sv" title="1. seviye">1</span><div><b>${esc(tr)}</b> <i>${esc(en)}</i><p>${d}</p></div></li>`;
+  el.innerHTML = bas + `<ol class="so-liste">
+    ${sat('Ability Scores', 'Yetenek artışı', `${g.ab.map(a => a.toUpperCase()).join(', ')}: birine +2 birine +1 ya da üçüne +1 (en çok 20). Oluştururken uygulandı.`)}
+    ${sat('Feat', 'Başlangıç hüneri', `<b>${esc(h ? hunerAd(h) : g.huner)}</b>: ${esc(OL_HUNER[g.huner] || '')}`)}
+    ${sat('Skill Proficiencies', 'Beceriler', esc(g.beceri.map(b => `${SKILL[b].en} (${SKILL[b].tr})`).join(', ')))}
+    ${sat('Tool Proficiency', 'Alet', esc(g.alet))}
+    ${sat('Equipment', 'Ekipman', 'Hazır paket ya da 50 gp (oluştururken seçtin).')}</ol>`;
+}
+/* Hünerlerde listeden seçme (2026-11-12, R2 madde 13): SRD'deki 17 hüner, gruplu; alınmış (tekrarlanamayan) hüner kapalı */
+function hunerSecCiz() {
+  const el = $('#hunerSec'); if (!el || el === document.activeElement) return;
+  const var_ = new Set(C.feats.map(f => (hunerBul(f.name) || [])[1]).filter(Boolean));
+  el.innerHTML = '<option value="">Listeden seç…</option>' + Object.entries(HUNER_GRUP).map(([g, ad]) => `<optgroup label="${esc(ad)}">${HUNERLER.filter(h => h[0] === g).map(h =>
+    `<option value="${esc(h[1])}"${var_.has(h[1]) && !h[5] ? ' disabled' : ''}>${esc(hunerAd(h))}${h[3] ? ' · ' + esc(h[3]) : ''}${var_.has(h[1]) && !h[5] ? ' · alındı' : ''}</option>`).join('')}</optgroup>`).join('');
+}
+document.addEventListener('change', e => {
+  if (e.target.id !== 'hunerSec' || mode === 'peek') return;
+  const h = HUNERLER.find(x => x[1] === e.target.value); e.target.value = ''; e.target.blur();
+  if (!h) return;
+  const l = int(C.level), en = { genel: 4, boon: 19 }[h[0]] || 1;
+  if (l < en) { notify(`${h[1]}: ${en}. seviyeden alınır`, `Şu an ${l}. seviyedesin.`); return; }
+  C.feats.push({ name: hunerAd(h), desc: (h[3] ? `Ön koşul: ${h[3]}. ` : '') + h[4] }); renderLists(); changed();
+  notify(`${hunerAd(h)} eklendi`, h[0] === 'genel' || h[0] === 'boon' ? 'Yetenek artışını kağıttaki skora kendin ekle.' : 'Hünerler listende.');
+});
 function xpDurum(c = C) {
   const l = int(c.level), alt = XP_ESIK[l - 1] || 0, ust = XP_ESIK[l], xp = Math.max(int(c.xp), alt);
   return { l, xp, alt, ust, hazir: l < 20 && xp >= ust, pct: ust ? clamp((xp - alt) / (ust - alt), 0, 1) : 1 };
@@ -4928,6 +4975,7 @@ function renderLists() {
       <textarea data-f="desc" placeholder="Ne işe yaradığını kısaca yaz." aria-label="Hüner açıklaması">${esc(f.desc)}</textarea>
     </div>`).join('')
     : '<p class="empty">Henüz hüner yok. Geçmişin sana bir başlangıç hüneri verir.</p>';
+  hunerSecCiz();
 }
 
 function renderSlots() {
@@ -5633,38 +5681,52 @@ const OL_TUR = {
   Tiefling:  { tr:'Tiefling', d:'Cehennem soyundan. Şeytani bir miras ve birkaç küçük büyü.', hiz:30, boy:'Medium' },
   Aasimar:   { tr:'Aasimar', d:'SRD\'de yok: özelliklerini kağıda kendin yazarsın.', hiz:30, boy:'Medium' },
 };
-const OL_GECMIS = {   // ab: +2 / +1 verilebilen üç yetenek; beceri: iki yetkinlik; huner: başlangıç hüneri
+const OL_GECMIS = {   // SRD'deki 4 geçmiş: ab (+2 / +1 verilebilen üç yetenek), beceri (iki), alet, huner (başlangıç hüneri).
+  // Öbür 12'si SRD'de yok (2026-11-12, kullanıcının kararı: kul hakkı): listede kalır, yetenekleri, becerileri ve hüneri oyuncu seçer (olG).
   Acolyte:    { tr:'Rahip yamağı', ab:['int','wis','cha'], beceri:['insight','religion'],     alet:"Calligrapher's Supplies", huner:'Magic Initiate (Cleric)', d:'Bir tapınakta hizmet ederek yetiştin.' },
-  Artisan:    { tr:'Zanaatkâr',    ab:['str','dex','int'], beceri:['investigation','persuasion'], alet:"Artisan's Tools",       huner:'Crafter',                d:'Bir ustanın yanında el işi öğrendin.' },
-  Charlatan:  { tr:'Şarlatan',     ab:['dex','con','cha'], beceri:['deception','sleightHand'],  alet:'Forgery Kit',             huner:'Skilled',                d:'Sahte iksirler, sahte belgelerle geçindin.' },
+  Artisan:    { tr:'Zanaatkâr', srd:false, d:'Bir ustanın yanında el işi öğrendin.' },
+  Charlatan:  { tr:'Şarlatan', srd:false, d:'Sahte iksirler, sahte belgelerle geçindin.' },
   Criminal:   { tr:'Suçlu',        ab:['dex','con','int'], beceri:['sleightHand','stealth'],    alet:"Thieves' Tools",          huner:'Alert',                  d:'Karanlık sokaklarda yankesicilik ve hırsızlık.' },
-  Entertainer:{ tr:'Sanatçı',      ab:['str','dex','cha'], beceri:['acrobatics','performance'], alet:'Musical Instrument',      huner:'Musician',               d:'Panayırlarda, meyhanelerde sahneye çıktın.' },
-  Farmer:     { tr:'Çiftçi',       ab:['str','con','wis'], beceri:['animalHandling','nature'],  alet:"Carpenter's Tools",       huner:'Tough',                  d:'Toprakla, hayvanla büyüdün; zor işe alışkınsın.' },
-  Guard:      { tr:'Muhafız',      ab:['str','int','wis'], beceri:['athletics','perception'],   alet:'Gaming Set',              huner:'Alert',                  d:'Bir kentin surlarında nöbet tuttun.' },
-  Guide:      { tr:'Kılavuz',      ab:['dex','con','wis'], beceri:['stealth','survival'],       alet:"Cartographer's Tools",    huner:'Magic Initiate (Druid)', d:'Yolcuları vahşi doğada güvenle geçirdin.' },
-  Hermit:     { tr:'Münzevi',      ab:['con','wis','cha'], beceri:['medicine','religion'],      alet:'Herbalism Kit',           huner:'Healer',                 d:'Yıllarca insanlardan uzak, tek başına yaşadın.' },
-  Merchant:   { tr:'Tüccar',       ab:['con','int','cha'], beceri:['animalHandling','persuasion'], alet:"Navigator's Tools",    huner:'Lucky',                  d:'Kervanlarla kent kent mal taşıdın.' },
-  Noble:      { tr:'Soylu',        ab:['str','int','cha'], beceri:['history','persuasion'],     alet:'Gaming Set',              huner:'Skilled',                d:'Varlıklı, adı bilinen bir ailede büyüdün.' },
+  Entertainer:{ tr:'Sanatçı', srd:false, d:'Panayırlarda, meyhanelerde sahneye çıktın.' },
+  Farmer:     { tr:'Çiftçi', srd:false, d:'Toprakla, hayvanla büyüdün; zor işe alışkınsın.' },
+  Guard:      { tr:'Muhafız', srd:false, d:'Bir kentin surlarında nöbet tuttun.' },
+  Guide:      { tr:'Kılavuz', srd:false, d:'Yolcuları vahşi doğada güvenle geçirdin.' },
+  Hermit:     { tr:'Münzevi', srd:false, d:'Yıllarca insanlardan uzak, tek başına yaşadın.' },
+  Merchant:   { tr:'Tüccar', srd:false, d:'Kervanlarla kent kent mal taşıdın.' },
+  Noble:      { tr:'Soylu', srd:false, d:'Varlıklı, adı bilinen bir ailede büyüdün.' },
   Sage:       { tr:'Bilge',        ab:['con','int','wis'], beceri:['arcana','history'],         alet:"Calligrapher's Supplies", huner:'Magic Initiate (Wizard)', d:'Kütüphanelerde, kadim kitapların arasında yıllar geçirdin.' },
-  Sailor:     { tr:'Denizci',      ab:['str','dex','wis'], beceri:['acrobatics','perception'],  alet:"Navigator's Tools",       huner:'Tavern Brawler',         d:'Gemilerde, fırtınalı denizlerde çalıştın.' },
-  Scribe:     { tr:'Kâtip',        ab:['dex','int','wis'], beceri:['investigation','perception'], alet:"Calligrapher's Supplies", huner:'Skilled',              d:'Belgeleri kopyaladın, ayrıntıyı kaçırmamayı öğrendin.' },
+  Sailor:     { tr:'Denizci', srd:false, d:'Gemilerde, fırtınalı denizlerde çalıştın.' },
+  Scribe:     { tr:'Kâtip', srd:false, d:'Belgeleri kopyaladın, ayrıntıyı kaçırmamayı öğrendin.' },
   Soldier:    { tr:'Asker',        ab:['str','dex','con'], beceri:['athletics','intimidation'], alet:'Gaming Set',              huner:'Savage Attacker',        d:'Bir orduda savaşmak için eğitildin.' },
-  Wayfarer:   { tr:'Gezgin',       ab:['dex','wis','cha'], beceri:['insight','stealth'],        alet:"Thieves' Tools",          huner:'Lucky',                  d:'Yollarda, kimsesiz ve kendi başının çaresine bakarak büyüdün.' },
+  Wayfarer:   { tr:'Gezgin', srd:false, d:'Yollarda, kimsesiz ve kendi başının çaresine bakarak büyüdün.' },
 };
-const OL_HUNER = {
-  'Alert': 'İnisiyatif zarına yetkinlik bonusun eklenir; savaş başında sıranı bir dostunla değiştirebilirsin.',
-  'Crafter': 'Üç zanaat aletinde yetkinlik; eşya alırken %20 indirim.',
-  'Healer': 'Healer\'s Kit ile bir aksiyonla dostunu iyileştirirsin; iyileştirme zarlarında 1\'leri yeniden atarsın.',
-  'Lucky': 'Yetkinlik bonusun kadar şans puanı: bir d20\'ye avantaj ya da sana yapılan saldırıya dezavantaj ver (uzun dinlenmede dolar).',
-  'Magic Initiate (Cleric)': 'Cleric listesinden 2 cantrip ve 1 tane 1. seviye büyü (günde bir kez yuva harcamadan).',
-  'Magic Initiate (Druid)': 'Druid listesinden 2 cantrip ve 1 tane 1. seviye büyü (günde bir kez yuva harcamadan).',
-  'Magic Initiate (Wizard)': 'Wizard listesinden 2 cantrip ve 1 tane 1. seviye büyü (günde bir kez yuva harcamadan).',
-  'Musician': 'Üç müzik aletinde yetkinlik; dinlenmenin sonunda çalıp dostlarına ilham verirsin.',
-  'Savage Attacker': 'Turunda bir kez silahla vurduğunda hasar zarlarını iki kez at, büyüğünü al.',
-  'Skilled': 'İstediğin üç beceri ya da alette yetkinlik.',
-  'Tavern Brawler': 'Silahsız vuruşun 1d4 + STR; vurduğun düşmanı 5 ft itebilirsin.',
-  'Tough': 'Her seviyede +2 en yüksek can.',
-};
+/* Hünerler (2026-11-12, R2 madde 13; SRD 5.2.1 "Feats", kendi sözlerimizle). Dört grup: başlangıç (geçmişten gelir; Human bir tane
+   daha seçer), genel (4. seviyeden, yetenek artışı yerine), dövüş stili (Dövüş stili özelliği olanlar), destansı lütuf (19. seviye).
+   SRD'de olmayan hünerler (Tough, Lucky, Healer…) listede yok; istenirse kağıda elle yazılır. [grup, İngilizce, Türkçe, ön koşul, açıklama, tekrar] */
+const HUNER_GRUP = { koken: 'Origin · Başlangıç hünerleri', genel: 'General · Genel hünerler (4. seviyeden)', stil: 'Fighting Style · Dövüş stilleri', boon: 'Epic Boon · Destansı lütuflar (19. seviye)' };
+const HUNER_MI = l => ['koken', `Magic Initiate (${l})`, 'Büyüye giriş', '', `${l} listesinden iki cantrip ve bir 1. seviye büyü öğrenirsin; bu büyülerin yeteneği INT, WIS ya da CHA (sen seçersin). 1. seviye büyü hep hazırdır: uzun dinlenmede bir kez yuvasız yaparsın, yuvanla da yapabilirsin. Her seviye atlayışta bu büyülerden birini aynı seviyeden başkasıyla değiştirebilirsin. Başka bir listeyle yeniden alınabilir.`, true];
+const HUNERLER = [
+  ['koken', 'Alert', 'Tetikte', '', 'İnisiyatif zarına yetkinlik bonusun eklenir. İnisiyatifi attıktan hemen sonra, isteyen bir dostunla inisiyatifinizi değiş tokuş edebilirsin (ikiniz de Incapacitated değilken).'],
+  HUNER_MI('Cleric'), HUNER_MI('Druid'), HUNER_MI('Wizard'),
+  ['koken', 'Savage Attacker', 'Vahşi saldırgan', '', 'Turunda bir kez silahla vurunca silahın hasar zarlarını iki kez atar, istediğini kullanırsın.'],
+  ['koken', 'Skilled', 'Becerikli', '', 'İstediğin üç beceri ya da alette (karışık da olur) yetkin olursun. Yeniden alınabilir.', true],
+  ['genel', 'Ability Score Improvement', 'Yetenek artışı', '4. seviye', 'Bir yeteneğine +2 ya da iki yeteneğine +1 (en çok 20). Yeniden alınabilir.', true],
+  ['genel', 'Grappler', 'Güreşçi', '4. seviye, STR ya da DEX 13+', 'STR ya da DEX\'ine +1 (en çok 20). Saldırı eyleminde yumrukla vurunca aynı vuruşta hem hasar verir hem tutarsın (turda bir kez). Tuttuğun yaratığa saldırılarında avantajlısın. Senin boyunda ya da küçük, tuttuğun bir yaratığı sürüklerken fazladan hareket harcamazsın.'],
+  ['stil', 'Archery', 'Okçuluk', 'Dövüş stili özelliği', 'Menzilli silahlarla vuruş zarına +2.'],
+  ['stil', 'Defense', 'Savunma', 'Dövüş stili özelliği', 'Hafif, orta ya da ağır zırh giyerken AC\'ine +1.'],
+  ['stil', 'Great Weapon Fighting', 'Büyük silah dövüşü', 'Dövüş stili özelliği', 'İki elle tuttuğun yakın dövüş silahının (Two-Handed ya da Versatile) hasar zarında 1 ya da 2 gelirse 3 sayılır.'],
+  ['stil', 'Two-Weapon Fighting', 'İki silahla dövüş', 'Dövüş stili özelliği', 'Light (hafif) silahla yaptığın ek saldırının hasarına, eklemiyorsan, yetenek bonusunu eklersin.'],
+  ['boon', 'Boon of Combat Prowess', 'Savaş ustalığı lütfu', '19. seviye', 'Bir yeteneğine +1 (en çok 30). Saldırı zarında ıskalarsan vurmuş sayılabilirsin; sonra bir sonraki turunun başına kadar yeniden kullanamazsın.'],
+  ['boon', 'Boon of Dimensional Travel', 'Boyut yolculuğu lütfu', '19. seviye', 'Bir yeteneğine +1 (en çok 30). Saldırı ya da Magic (büyü) eyleminden hemen sonra görebildiğin boş bir yere 30 ft\'e kadar ışınlanırsın.'],
+  ['boon', 'Boon of Fate', 'Kader lütfu', '19. seviye', 'Bir yeteneğine +1 (en çok 30). 60 ft içinde biri (sen de olabilirsin) bir d20 testini tutturunca ya da kaçırınca 2d4 atıp sonucu o zara ekler ya da çıkarırsın. Sonra inisiyatif atana ya da kısa / uzun dinlenmeye kadar yeniden kullanamazsın.'],
+  ['boon', 'Boon of Irresistible Offense', 'Karşı konulmaz saldırı lütfu', '19. seviye', 'STR ya da DEX\'ine +1 (en çok 30). Verdiğin ezici, delici ve kesici hasar direnci hep aşar. Saldırı zarında 20 gelince hedefe, bu lütufla artırdığın yeteneğin skoru kadar ek hasar verirsin (saldırının türünde).'],
+  ['boon', 'Boon of Spell Recall', 'Büyü hatırlama lütfu', '19. seviye, büyü yapabilme', 'INT, WIS ya da CHA\'na +1 (en çok 30). 1–4. seviye yuvayla büyü yapınca 1d4 at: yuvanın seviyesi gelirse yuva harcanmaz.'],
+  ['boon', 'Boon of the Night Spirit', 'Gece ruhu lütfu', '19. seviye', 'Bir yeteneğine +1 (en çok 30). Loş ışıkta ya da karanlıkta bonus eylemle görünmez olursun (bir eylem, bonus eylem ya da tepki yapınca biter). Loş ışıkta ya da karanlıkta psişik ve ışıyan (radiant) dışındaki her hasara direncin olur.'],
+  ['boon', 'Boon of Truesight', 'Gerçek görüş lütfu', '19. seviye', 'Bir yeteneğine +1 (en çok 30). 60 ft içinde Truesight\'ın olur: büyülü karanlıkta da görürsün, görünmezleri, yanılsamaların ardını ve gerçek biçimleri görürsün.'],
+];
+const OL_HUNER = Object.fromEntries(HUNERLER.map(h => [h[1], h[4]]));
+const hunerAd = h => h[1].includes('(') ? `${h[1]} · ${h[2]}` : `${h[1]} (${h[2]})`;   // kağıttaki adı: "Alert (Tetikte)"
+const hunerBul = ad => HUNERLER.find(h => String(ad || '').trim().toLowerCase().startsWith(h[1].toLowerCase()));
 const OL_ZIRH = {   // ac: modifiyelerden AC; tur: kağıttaki zırh türü
   none:      { ad:'',                      tur:'',       ac:m => 10 + m.dex },
   barbar:    { ad:'',                      tur:'',       ac:m => 10 + m.dex + m.con, not:'Unarmored Defense: 10 + DEX + CON' },
@@ -5769,7 +5831,7 @@ const md = v => Math.floor((v - 10) / 2);
 
 let OL = null;   // açık oluşturmanın seçimleri
 function olAc() {
-  OL = { adim:0, sinif:'', gecmis:'', tur:'', dizi:null, iki:'', bir:'', ucBir:false, beceri:[], ekBeceri:[], ad:'', look:'', portre:'', hepsi:false,
+  OL = { adim:0, sinif:'', gecmis:'', tur:'', dizi:null, iki:'', bir:'', ucBir:false, beceri:[], ekBeceri:[], gBeceri:[], gHuner:'', ad:'', look:'', portre:'', hepsi:false,
         ekip:{ sinif:0, gecmis:0, sec:{}, alinan:[] } };   // ekip: seçilen paketler (0 = A), "?" seçimleri, altınla alınanlar
   document.body.classList.add('olusturuyor');
   $('#olustur').hidden = false; $('#welcome').hidden = true;
@@ -5782,24 +5844,32 @@ function olSinifSec(k) {                                               // sını
   OL.sinif = k; OL.dizi = Object.assign({}, OL_SINIF[k].dizi); OL.beceri = []; olBonusOner();
   OL.ekip.sinif = 0; OL.ekip.alinan = [];
 }
+// Geçmişin etkili değerleri: SRD'dekilerde tablodan; öbürlerinde oyuncunun seçtikleri (yetenek: altısından biri +2, biri +1; iki beceri; hüner)
+function olG(k = OL && OL.gecmis) {
+  const g = OL_GECMIS[k]; if (!g) return null;
+  if (g.srd !== false) return Object.assign({ srd: true }, g);
+  return { tr: g.tr, d: g.d, srd: false, ab: ABIL.map(x => x.k), beceri: OL.gBeceri || [], alet: '', huner: OL.gHuner || '' };
+}
 function olBonusOner() {                                               // geçmişin üç yeteneğinden en yüksek ikisine +2 / +1
-  const g = OL_GECMIS[OL.gecmis]; if (!g || !OL.dizi) { OL.iki = OL.bir = ''; return; }
+  const g = olG(); if (!g || !OL.dizi) { OL.iki = OL.bir = ''; return; }
   const s = g.ab.slice().sort((a, b) => OL.dizi[b] - OL.dizi[a]);
   OL.iki = s[0]; OL.bir = s[1]; OL.ucBir = false;
 }
 function olSkor() {                                                    // standart dizi + geçmiş artışı (en çok 20)
-  const sk = Object.assign({}, OL.dizi), g = OL_GECMIS[OL.gecmis];
-  if (g) { if (OL.ucBir) g.ab.forEach(a => { sk[a] += 1; }); else { if (OL.iki) sk[OL.iki] += 2; if (OL.bir) sk[OL.bir] += 1; } }
+  const sk = Object.assign({}, OL.dizi), g = olG();
+  if (g) { if (OL.ucBir && g.srd) g.ab.forEach(a => { sk[a] += 1; }); else { if (OL.iki) sk[OL.iki] += 2; if (OL.bir) sk[OL.bir] += 1; } }
   for (const k in sk) sk[k] = Math.min(20, sk[k]);
   return sk;
 }
-const olVerilen = () => new Set([...(OL_GECMIS[OL.gecmis] ? OL_GECMIS[OL.gecmis].beceri : []), ...(OL_TUR[OL.tur] && OL_TUR[OL.tur].turBeceri ? [OL_TUR[OL.tur].turBeceri] : [])]);
+const olVerilen = () => new Set([...(olG() ? olG().beceri : []), ...(OL_TUR[OL.tur] && OL_TUR[OL.tur].turBeceri ? [OL_TUR[OL.tur].turBeceri] : [])]);
 const olEkSayi = () => (OL_TUR[OL.tur] && OL_TUR[OL.tur].ekBeceri) || 0;
 function olHazirMi(a = OL.adim) {                                      // "Devam" ne zaman açılır
   if (a === 1) return !!OL.sinif;
   if (a === 2) return !!OL.gecmis;
   if (a === 3) return !!OL.tur;
-  if (a === 4) return OL.beceri.length === OL_SINIF[OL.sinif].beceri[0] && OL.ekBeceri.length === olEkSayi() && (OL.ucBir || (OL.iki && OL.bir && OL.iki !== OL.bir));
+  if (a === 4) { const g = olG();
+    return OL.beceri.length === OL_SINIF[OL.sinif].beceri[0] && OL.ekBeceri.length === olEkSayi() && ((OL.ucBir && g.srd) || (OL.iki && OL.bir && OL.iki !== OL.bir))
+      && (g.srd || (OL.gBeceri.length === 2 && !!OL.gHuner)); }
   return true;
 }
 function olHazir(k) {                                                  // hazır karakteri seç: doğrudan 5. adıma
@@ -5854,35 +5924,42 @@ function olCiz() {
   } else if (a === 2) {
     const ana = Object.keys(OL.dizi).sort((x, y) => OL.dizi[y] - OL.dizi[x])[0];
     // Önerilen: ana yeteneği artıran ve üç yeteneği sınıfın dağılımına en çok uyan dört geçmiş
-    const puan = k => OL_GECMIS[k].ab.reduce((t, a) => t + OL.dizi[a], 0) + (OL_GECMIS[k].ab.includes(ana) ? 100 : 0);
+    const puan = k => OL_GECMIS[k].srd === false ? -1e6 : OL_GECMIS[k].ab.reduce((t, a) => t + OL.dizi[a], 0) + (OL_GECMIS[k].ab.includes(ana) ? 100 : 0);   // önerilenler yalnızca SRD'dekiler
     const hepsi = Object.keys(OL_GECMIS), oneri = hepsi.slice().sort((x, y) => puan(y) - puan(x)).slice(0, 4);
     h = `<h3 class="ol-soru">Maceradan önce ne yapıyordun?</h3><p class="ol-ipucu">Geçmiş sana iki beceri, bir alet ve bir başlangıç hüneri verir; üç yetenekten birine +2, birine +1 ekler. ${OL_SINIF[OL.sinif].tr} için ${ABIL.find(x => x.k === ana).en} artıranlar önde.</p>`
       + olListe('ol-gecmis', hepsi, oneri, k => { const g = OL_GECMIS[k];
-          return olKart('ol-gecmis', k, k, g.tr, g.d, `${g.beceri.map(s => SKILL[s].en).join(', ')} · ${g.huner}`, OL.gecmis === k, oneri.includes(k) && OL.hepsi ? 'Önerilen' : ''); }, OL.gecmis);
+          return olKart('ol-gecmis', k, k, g.tr, g.d, g.srd === false ? 'SRD\'de yok · beceri ve hüneri sen seçersin' : `${g.beceri.map(s => SKILL[s].en).join(', ')} · ${g.huner}`, OL.gecmis === k, oneri.includes(k) && OL.hepsi ? 'Önerilen' : ''); }, OL.gecmis);
   } else if (a === 3) {
     h = `<h3 class="ol-soru">Hangi halktansın?</h3><p class="ol-ipucu">Tür, bedenini ve doğuştan gelen özelliklerini belirler. Görünüşünü sonra kendin tarif edersin.</p>`
       + olListe('ol-tur', Object.keys(OL_TUR), OL_ONERI.tur, k => { const t = OL_TUR[k];
           return olKart('ol-tur', k, k, t.tr, t.d, `Hız ${t.hiz} ft · ${t.boy === 'Small' ? 'Küçük' : 'Orta'} boy`, OL.tur === k, OL_ONERI.tur.includes(k) && OL.hepsi ? 'Önerilen' : ''); }, OL.tur);
   } else if (a === 4) {
-    const g = OL_GECMIS[OL.gecmis], sk = olSkor(), [n, liste] = OL_SINIF[OL.sinif].beceri, ver = olVerilen(), ek = olEkSayi();
+    const g = olG(), sk = olSkor(), [n, liste] = OL_SINIF[OL.sinif].beceri, ver = olVerilen(), ek = olEkSayi();
     const secOpt = (k, v) => DIZI.map(d => `<option value="${d}"${d === v ? ' selected' : ''}>${d}</option>`).join('');
     h = `<h3 class="ol-soru">Yeteneklerin ve becerilerin</h3>
       <p class="ol-ipucu">${OL_SINIF[OL.sinif].tr} için önerilen dağılım hazır seçili; istersen iki yeteneğin sayısını değiştir (yer değiştirirler). Büyük sayı zar atarken eklenen modifiyedir.</p>
       <div class="ol-yet">${ABIL.map(x => { const b = sk[x.k] - OL.dizi[x.k];
         return `<div class="ol-y"><span class="f-l">${x.en}<i>${x.tr}</i></span><b>${sign(md(sk[x.k]))}</b>
           <span class="ol-y-alt"><select data-ol="dizi" data-k="${x.k}" aria-label="${x.en} skoru">${secOpt(x.k, OL.dizi[x.k])}</select>${b ? `<em>+${b}</em>` : ''}<span>= ${sk[x.k]}</span></span></div>`; }).join('')}</div>
-      <div class="ol-bonus"><span class="f-l">Geçmişinden artış<i>${esc(g.tr)}: ${g.ab.map(k => k.toUpperCase()).join(', ')}</i></span>
+      <div class="ol-bonus"><span class="f-l">Geçmişinden artış<i>${esc(g.tr)}: ${g.srd ? g.ab.map(k => k.toUpperCase()).join(', ') : 'SRD\'de yok, hangi yeteneklere ekleneceğini sen seçersin (DM\'ine danış)'}</i></span>
         <label>+2 <select data-ol="iki" aria-label="+2 eklenecek yetenek"${OL.ucBir ? ' disabled' : ''}>${g.ab.map(k => `<option value="${k}"${k === OL.iki ? ' selected' : ''}>${k.toUpperCase()}</option>`).join('')}</select></label>
         <label>+1 <select data-ol="bir" aria-label="+1 eklenecek yetenek"${OL.ucBir ? ' disabled' : ''}>${g.ab.map(k => `<option value="${k}"${k === OL.bir ? ' selected' : ''}>${k.toUpperCase()}</option>`).join('')}</select></label>
-        <label class="check"><input type="checkbox" data-ol="uc"${OL.ucBir ? ' checked' : ''}> Üçüne de +1</label>
+        ${g.srd ? `<label class="check"><input type="checkbox" data-ol="uc"${OL.ucBir ? ' checked' : ''}> Üçüne de +1</label>` : ''}
         ${!OL.ucBir && OL.iki === OL.bir ? '<span class="ol-uyari">+2 ve +1 ayrı yeteneklere gitmeli.</span>' : ''}</div>
+      ${g.srd ? '' : `<div class="ol-bec ol-serbest">
+        <span class="f-l">Geçmişinden iki beceri<i>${esc(g.tr)} SRD'de yok: kendin seç (${OL.gBeceri.length}/2)</i></span>
+        <div class="chips">${SKILLS.filter(s => !OL.beceri.includes(s.k) && !OL.ekBeceri.includes(s.k) && !(OL_TUR[OL.tur] && OL_TUR[OL.tur].turBeceri === s.k)).map(s => `<button class="chip" data-act="ol-gbeceri" data-k="${s.k}" aria-pressed="${OL.gBeceri.includes(s.k)}">${s.en}<small>${s.tr}</small></button>`).join('')}</div>
+        <label class="f ol-ghuner"><span class="f-l">Başlangıç hünerin<i>SRD'deki başlangıç hünerlerinden biri; aletini sonra kağıda yazarsın</i></span>
+          <select data-ol="ghuner" aria-label="Başlangıç hüneri"><option value="">Seç…</option>${HUNERLER.filter(h => h[0] === 'koken').map(h => `<option value="${esc(h[1])}"${h[1] === OL.gHuner ? ' selected' : ''}>${esc(hunerAd(h))}</option>`).join('')}</select>
+          ${OL.gHuner ? `<small>${esc(OL_HUNER[OL.gHuner])}</small>` : ''}</label>
+      </div>`}
       <div class="ol-bec">
         <span class="f-l">Sınıfından beceriler<i>${n} tane seç (${OL.beceri.length}/${n})</i></span>
         <div class="chips">${liste.map(k => { const v = ver.has(k), on = v || OL.beceri.includes(k);
           return `<button class="chip" data-act="ol-beceri" data-k="${k}" aria-pressed="${on}"${v ? ' disabled title="Geçmişinden ya da türünden zaten geliyor"' : ''}>${SKILL[k].en}<small>${SKILL[k].tr}${v ? ' · var' : ''}</small></button>`; }).join('')}</div>
         ${ek ? `<span class="f-l">İnsan: bir beceri daha<i>herhangi biri (${OL.ekBeceri.length}/${ek})</i></span>
         <div class="chips">${SKILLS.filter(s => !ver.has(s.k) && !OL.beceri.includes(s.k)).map(s => `<button class="chip" data-act="ol-ekbeceri" data-k="${s.k}" aria-pressed="${OL.ekBeceri.includes(s.k)}">${s.en}<small>${s.tr}</small></button>`).join('')}</div>` : ''}
-        <p class="ol-ipucu">Geçmişinden gelen: ${[...ver].map(k => SKILL[k].en).join(', ')}. Becerilerde yetkinsen zar atarken yetkinlik bonusun (+2) eklenir.</p>
+        <p class="ol-ipucu">Geçmişinden ve türünden gelen: ${[...ver].map(k => SKILL[k].en).join(', ') || 'henüz yok'}. Becerilerde yetkinsen zar atarken yetkinlik bonusun (+2) eklenir.</p>
       </div>`;
   } else if (a === 5) {
     const kart = (t, liste, i) => { const o = liste[i];
@@ -5941,7 +6018,7 @@ function olCiz() {
 }
 // Seçimlerden kağıt kur (5. adımdaki özet de bunu gösterir)
 function olKur() {
-  const c = blankChar(), s = OL_SINIF[OL.sinif], cl = CLASSES[OL.sinif], t = OL_TUR[OL.tur], g = OL_GECMIS[OL.gecmis], sk = olSkor();
+  const c = blankChar(), s = OL_SINIF[OL.sinif], cl = CLASSES[OL.sinif], t = OL_TUR[OL.tur], g = olG(), sk = olSkor();
   const m = Object.fromEntries(Object.entries(sk).map(([k, v]) => [k, md(v)]));
   const huner = g.huner;
   c.view = 'sade'; c.name = OL.ad.trim(); c.look = OL.look; c.portrait = OL.portre ? portreYol(OL.portre) : '';
@@ -5950,12 +6027,12 @@ function olKur() {
   c.hitDie = cl.hd; cl.saves.forEach(a => { c.saves[a] = 1; });
   cl.armor.forEach(a => { c.profs[a] = true; }); c.profs.weapons = cl.weapons; c.profs.tools = g.alet; c.profs.languages = 'Common';
   [...olVerilen(), ...OL.beceri, ...OL.ekBeceri].forEach(k => { c.skills[k] = 1; });
-  c.hp.max = c.hp.cur = Math.max(1, int(cl.hd.slice(1)) + m.con + (t.canEk || 0) + (huner === 'Tough' ? 2 : 0));
+  c.hp.max = c.hp.cur = Math.max(1, int(cl.hd.slice(1)) + m.con + (t.canEk || 0));
   c.initBonus = huner === 'Alert' ? 2 : 0;
   c.speed = t.hiz; c.size = t.boy;
   const z = OL_ZIRH[s.zirh];   // yalnızca zırhsız savunmanın notu için; AC ekipmandan (zirhUygula)
   if (cl.sp) { c.spellAbility = cl.sp; slotsFor(cl, 1).forEach((n, i) => { c.slots[i].t = n; }); }
-  if (OL.sinif === 'Monk') c.profs.tools = [g.alet, ekipSecim('kesis')].join(', ');
+  if (OL.sinif === 'Monk') c.profs.tools = [g.alet, ekipSecim('kesis')].filter(Boolean).join(', ');
   olEkipListe().forEach(([k, n, not]) => {                             // paketler ve alınanlar: silah saldırıya, zırh AC'ye (esyaKoy)
     esyaKoy(c, k, n, not);
   });
@@ -5968,7 +6045,8 @@ function olKur() {
   c.traits = '';                                                      // tür özellikleri artık panelde (turOzCiz)
   if (OL.tur === 'Elf') c.turSecim.duyu = 'perception';
   if (OL.tur === 'Human' && OL.ekBeceri[0]) c.turSecim.beceri = OL.ekBeceri[0];
-  c.feats = [{ name: huner, desc: OL_HUNER[huner] || '' }];
+  const hb = hunerBul(huner);
+  c.feats = huner ? [{ name: hb ? hunerAd(hb) : huner, desc: OL_HUNER[huner] || '' }] : [];
   return c;
 }
 function olBitir() {
@@ -5989,11 +6067,12 @@ Object.assign(ACTIONS, {
   'ol-geri': () => { OL.adim = OL.hazir && OL.adim === 6 ? 0 : OL.adim - 1; if (!OL.adim) OL.hazir = ''; OL.hepsi = false; olCiz(); olUst(); },
   'ol-ileri': () => { if (!olHazirMi()) return; if (OL.adim === 6) { olBitir(); return; } OL.adim++; OL.hepsi = false; olCiz(); olUst(); },
   'ol-sinif': b => { olSinifSec(b.dataset.k); olCiz(); },
-  'ol-gecmis': b => { if (OL.gecmis !== b.dataset.k) { OL.ekip.gecmis = 0; OL.ekip.alinan = []; } OL.gecmis = b.dataset.k; olBonusOner(); const v = olVerilen(); OL.beceri = OL.beceri.filter(k => !v.has(k)); OL.ekBeceri = OL.ekBeceri.filter(k => !v.has(k)); olCiz(); },
+  'ol-gecmis': b => { if (OL.gecmis !== b.dataset.k) { OL.ekip.gecmis = 0; OL.ekip.alinan = []; OL.gBeceri = []; OL.gHuner = ''; } OL.gecmis = b.dataset.k; olBonusOner(); const v = olVerilen(); OL.beceri = OL.beceri.filter(k => !v.has(k)); OL.ekBeceri = OL.ekBeceri.filter(k => !v.has(k)); olCiz(); },
   'ol-tur': b => { OL.tur = b.dataset.k; const v = olVerilen(); OL.beceri = OL.beceri.filter(k => !v.has(k)); OL.ekBeceri = olEkSayi() ? OL.ekBeceri.filter(k => !v.has(k)) : []; olCiz(); },
   'ol-beceri': b => { const k = b.dataset.k, i = OL.beceri.indexOf(k), n = OL_SINIF[OL.sinif].beceri[0];
     if (i >= 0) OL.beceri.splice(i, 1); else if (OL.beceri.length < n) { OL.beceri.push(k); OL.ekBeceri = OL.ekBeceri.filter(x => x !== k); }
     else { notify(`En çok ${n} beceri seçebilirsin`, 'Önce seçili birini kaldır.'); return; } olCiz(); },
+  'ol-gbeceri': b => { const k = b.dataset.k, i = OL.gBeceri.indexOf(k); if (i >= 0) OL.gBeceri.splice(i, 1); else if (OL.gBeceri.length < 2) OL.gBeceri.push(k); olCiz(); },   // SRD dışı geçmiş: iki beceri
   'ol-ekbeceri': b => { const k = b.dataset.k; OL.ekBeceri = OL.ekBeceri[0] === k ? [] : [k]; olCiz(); },
   'ol-look': b => { OL.look = b.dataset.v; olCiz(); },
   'ol-ekip': b => { const t = b.dataset.t, i = int(b.dataset.i); if (OL.ekip[t] === i) return;
@@ -6625,6 +6704,7 @@ $('#olustur').addEventListener('change', e => {
     if (diger) OL.dizi[diger] = eski; OL.dizi[k] = v; }
   else if (n === 'iki' || n === 'bir') OL[n] = el.value;
   else if (n === 'uc') OL.ucBir = el.checked;
+  else if (n === 'ghuner') OL.gHuner = HUNERLER.some(h => h[0] === 'koken' && h[1] === el.value) ? el.value : '';
   else if (n === 'esec') OL.ekip.sec[el.dataset.k] = el.value;
   if (n !== 'ad') olCiz();
 });
