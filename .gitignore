@@ -25,6 +25,7 @@ taverna ornek.jpg
 araclar/test/test.html
 araclar/test/test-*.html
 araclar/test/*.png
+araclar/test/*.jpg
 
 # Gizli bilgiler: API anahtarları, şifreler, sertifikalar (sitede yok; ileride eklenirse yanlışlıkla gitmesin, 2026-10-28)
 .env
@@ -53,3 +54,11 @@ masa/han.js
 !masa/LISANS.txt
 !ses/LISANS.txt
 !yazitipleri/OFL-*.txt
+
+# Kullanıcının tarz örnekleri (perde tasarımı için; sitede kullanılmıyor, bilgisayarda kalır, 2026-11-12)
+perde-1.jpg
+perde-2.jpg
+perde-3.png
+
+# Tasarım aracının (impeccable) ekran görüntüleri: her seferinde yeniden üretilir
+.impeccable/review/
