@@ -644,6 +644,21 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
   .kat-satir>.kat-fiyat{grid-column:2;grid-row:2;text-align:left}
   .kat-satir>:last-child{grid-column:3;grid-row:1/3}
 }
+/* Tür / sınıf / geçmiş seçme listesi (2026-11-12): tarayıcının datalist'i yazılı değere göre süzüyordu, başka sınıf seçilemiyordu */
+.sec-pop{position:fixed;z-index:60;max-height:300px;overflow:auto;padding:4px;background:var(--surface);border:var(--lw) solid var(--lead);box-shadow:var(--shadow)}
+.sec-pop[hidden]{display:none}
+.sec-pop button{display:flex;justify-content:space-between;gap:12px;width:100%;padding:7px 10px;border:0;background:transparent;color:var(--text);font:600 14px var(--font-ui);text-align:left;cursor:pointer}
+.sec-pop button small{color:var(--muted);font-weight:500}
+.sec-pop button:is(:hover,.on){background:var(--lit)}
+.sec-pop button[aria-selected="true"]{color:var(--accent)}
+/* Görünüm menüsü (2026-11-12): araç şeridindeki "Görünüm" düğmesinin sağında; Düzen kutusunun kalıbı */
+.gor-pop{width:230px;gap:4px}
+.gor-pop h3{margin-bottom:6px}
+.gor-pop .btn{justify-content:flex-start;width:100%;--h:40px;border-color:transparent;background:transparent;color:var(--text)}
+.gor-pop .btn:hover{background:var(--lit)}
+.gor-pop .btn[aria-pressed="true"]{background:var(--lit);border-color:var(--accent)}
+.gor-pop .btn[aria-pressed="true"] .ic{color:color-mix(in srgb,var(--accent) 55%,#fff)}
+.gor-pop #tvCanli{margin-top:6px;border-top:1px solid var(--line)}
 /* Büyü seçme penceresi ve kağıttaki büyü satırları (2026-11-12, BÖLÜM 8e). Pencere katalog penceresinin kalıbını kullanır. */
 .by-say{display:flex;flex-wrap:wrap;gap:6px}
 .by-say>span{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;border:1px solid var(--line);background:var(--surface-2);font:600 13px var(--font-ui);color:var(--muted)}
@@ -2099,6 +2114,23 @@ align-items:center;gap:4px;min-height:36px;border-bottom:1px solid var(--line)}
 .mc-para{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;font-size:13px;color:var(--muted)}
 .mc-para b{font-family:var(--font-display);font-size:17px;color:var(--text)}
 .mc-bos{margin:0;color:var(--muted)}
+/* Büyüler sekmesi (2026-11-12, BÖLÜM 8e byCamSek): üstte ZD, saldırı, yuvalar, konsantrasyon; altta seviye seviye büyüler */
+.mc-byust{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;font-size:13px;color:var(--muted)}
+.mc-byust b{color:var(--text);font-variant-numeric:tabular-nums}
+.mc-yv{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.mc-yv .pip{width:14px;height:14px}
+.mc-kons{display:inline-flex;align-items:center;gap:6px;padding:0 0 0 8px;border:1px solid var(--accent-2);color:var(--text)}
+.mc-kons .icon-btn{width:26px;height:26px}
+.mc-by{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 18px;margin:0;padding:0;list-style:none;max-height:236px;overflow:auto}
+.mc-by li{display:flex;align-items:center;gap:6px;min-width:0}
+.mc-by li>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:14px}
+.mc-by li>span small{display:block;font-weight:500;font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+.mc-by li.yuvasiz>span{opacity:.55}
+.mc-by .mc-bygrup{grid-column:1/-1;margin-top:4px;font:700 12px var(--font-ui);color:var(--muted);border-bottom:1px solid var(--line)}
+.mc-by .mc-bygrup:first-child{margin-top:0}
+.mc-by .roll.die{width:34px;height:34px}
+.mc-yuva{width:auto;padding:4px 6px;font-size:12px}
+.mc-batk small{color:color-mix(in srgb,var(--accent-2) 70%,var(--muted))}
 /* Ayrıntı camı (açılınca, ana sıranın üstünde) */
 .mc-detay{display:grid;grid-template-columns:auto auto;gap:var(--lw);padding:var(--lw);background:var(--lead);box-shadow:var(--shadow)}
 .mc-detay>section{display:grid;align-content:start;gap:8px;padding:12px 14px;background:var(--surface)}
@@ -2152,11 +2184,12 @@ body.tv-full #tableView{height:100dvh}
   .mc-y.roll{width:auto}
   .mc-detay{grid-template-columns:minmax(0,1fr)}
   .mc-bc{grid-template-columns:repeat(2,minmax(0,1fr))}                  /* telefonda beceriler iki sütun, eşyalar tek */
-  .mc-esya{grid-template-columns:minmax(0,1fr)}
+  .mc-esya,.mc-by{grid-template-columns:minmax(0,1fr)}
   .tv-ust{display:contents}
   .tv-fs{position:absolute;z-index:9;top:8px;left:8px}
   .tv-zoom,#tvAll,#tvSahne,#tvPovTek{display:none}                     /* telefonda tavernada gezinme ve POV düğmesi yok */
-  .tv-arac{position:absolute;z-index:9;top:8px;right:8px}     /* yalnızca "Canlı" kalır, sağ üstte */
+  .tv-arac{position:absolute;z-index:9;top:8px;right:8px}     /* yalnızca "Görünüm" ve "Arayüzü gizle" kalır, sağ üstte */
+  .gor-pop{left:auto;right:8px}
   .tv-stage.tav{cursor:auto;touch-action:auto}
   /* Panel sürekli görünmez; yalnızca kendi zarımı atınca sahnenin sol altında küçük bir kutu olarak açılır (.pop).
      Sahne 6:5'tir, yüksekliği 83,33 birim; kutu 40 birim genişliğinde, 53,33 birim yüksekliğindedir. */
@@ -2512,6 +2545,15 @@ body.tv-full #tableView{height:100dvh}
         <label class="duzen-sec"><input type="checkbox" id="duzenSolma"><span>Kullanmadığım camlar solsun</span><small>12 sn dokunulmayınca; üstüne gelince ya da yeni bir şey olunca geri gelir</small></label>
         <button class="btn sm" data-act="duzen-sifirla">Varsayılan düzene dön</button>
       </div>
+      <div class="duzen-pop gor-pop" id="gorPop" role="dialog" aria-label="Görünüm" hidden>
+        <h3>Görünüm</h3>
+        <button class="btn sm" id="tvYandan" data-act="gor-masa" aria-pressed="true" title="Masaya yandan (eğik) bak: oyunun olağan görünümü"><svg class="ic"><use href="#i-table"/></svg><span>Yandan (masa)</span></button>
+        <button class="btn sm" id="tvTepe" data-act="tav-tepe" aria-pressed="false" title="Kuş bakışı: hanı tam tepeden, harita gibi gör"><svg class="ic"><use href="#i-tepe"/></svg><span>Kuş bakışı</span></button>
+        <button class="btn sm" id="tvPovTek" data-act="pov-tek" aria-pressed="false" title="POV: oyunu karakterinin gözünden oyna (bütün ekran)"><svg class="ic"><use href="#i-povtek"/></svg><span>POV</span></button>
+        <button class="btn sm" id="tvAll" data-act="tav-all" aria-pressed="false" title="Bütün tavernaya bak"><svg class="ic"><use href="#i-harita"/></svg><span>Bütün taverna</span></button>
+        <button class="btn sm" id="tvSahne" data-act="tav-sahne" aria-pressed="false" title="Sahneye git: müziği buradan başlat"><svg class="ic"><use href="#i-nota"/></svg><span>Sahne</span></button>
+        <button class="btn sm" id="tvCanli" data-act="tav-canli" aria-pressed="true" title="Sahne sürekli çizilsin, ışıklar titresin (kapatınca bilgisayar daha az yorulur)"><svg class="ic"><use href="#i-flame"/></svg><span>Canlı</span></button>
+      </div>
       <input type="file" id="hrDosya" accept="image/*" hidden>
       <div class="tv-ust">
         <!-- Tam ekran: tarayıcı desteklemiyorsa (ör. iPhone Safari) JS gizler -->
@@ -2528,15 +2570,8 @@ body.tv-full #tableView{height:100dvh}
         <button class="btn sm" id="tvDuzen" data-act="duzen" aria-expanded="false" aria-controls="duzenPop" title="Düzen: camları taşı ve büyüt, varsayılana dön, solma"><svg class="ic"><use href="#i-duzen"/></svg><span>Düzen</span></button>
         <!-- NPR taverna yüklenince görünür: bütün tavernaya bakmak / masaya dönmek -->
         <div class="tv-arac" id="tvArac" hidden>
-          <button class="btn sm" id="tvAll" data-act="tav-all" aria-pressed="false" title="Bütün tavernaya bak (bir daha basınca masaya döner)"><svg class="ic"><use href="#i-harita"/></svg><span>Bütün taverna</span></button>
-          <!-- Sahne: kamera ozan sahnesine gider (bir daha basınca masaya döner) -->
-          <button class="btn sm" id="tvSahne" data-act="tav-sahne" aria-pressed="false" title="Sahneye git: müziği buradan başlat (bir daha basınca masaya döner)"><svg class="ic"><use href="#i-nota"/></svg><span>Sahne</span></button>
-          <!-- Tam tepeden: han harita gibi, kuzey yukarıda; galeri gizlenir (bir daha basınca eğik görünüm) -->
-          <button class="btn sm" id="tvTepe" data-act="tav-tepe" aria-pressed="false" title="Tam tepeden bak: hanı harita gibi gör (bir daha basınca eğik görünüme döner)"><svg class="ic"><use href="#i-tepe"/></svg><span>Tam tepeden</span></button>
-          <!-- Canlı: sahne sürekli çizilir, ışıklar titrer. Kapalıyken yalnızca bir şey değişince çizilir (bilgisayarı daha az yorar). -->
-          <button class="btn sm" id="tvCanli" data-act="tav-canli" aria-pressed="true" title="Sahne sürekli çizilsin, ışıklar titresin (kapatınca bilgisayar daha az yorulur)"><svg class="ic"><use href="#i-flame"/></svg><span>Canlı</span></button>
-          <!-- POV: oyun karakterin koltuğundan, bütün ekran (bir daha basınca masaya döner). 2026-11-10'dan beri tek düğme; yarım açılan yan panel kalktı -->
-          <button class="btn sm" id="tvPovTek" data-act="pov-tek" aria-pressed="false" title="POV: oyunu karakterinin gözünden oyna (bütün ekran; bir daha basınca masaya döner)"><svg class="ic"><use href="#i-povtek"/></svg><span>POV</span></button>
+          <!-- Görünüm (2026-11-12, kullanıcının isteği): yandan / kuş bakışı / POV / bütün han / sahne ve "Canlı" tek düğmenin menüsünde (gorAc) -->
+          <button class="btn sm" id="tvGorunum" data-act="gor-ac" aria-expanded="false" aria-controls="gorPop" title="Görünüm: yandan, kuş bakışı, POV, bütün han"><svg class="ic"><use href="#i-eye"/></svg><span>Görünüm</span></button>
           <!-- Arayüzü gizle: yalnızca han kalır (sürükleyip tekerlekle gezinilir); yine bu düğme ya da Esc geri getirir -->
           <button class="btn sm" id="tvHud" data-act="hud" aria-pressed="false" title="Arayüzü gizle: yalnızca hana bak (geri getirmek için yine bu düğme ya da Esc)"><svg class="ic"><use href="#i-hud"/></svg><span>Arayüzü gizle</span></button>
         </div>
@@ -2698,16 +2733,17 @@ body.tv-full #tableView{height:100dvh}
         <button class="btn sm" data-act="kimlik-duzen" aria-expanded="false" aria-controls="heroFields"></button>
       </div>
       <div class="hero-fields" id="heroFields">
-        <label class="f"><span class="f-l">Species<i>Tür</i></span><input data-bind="species" list="dl-species" placeholder="Human, Elf, Dwarf…" autocomplete="off"></label>
-        <label class="f"><span class="f-l">Class<i>Sınıf</i></span><input data-bind="cls" list="dl-class" placeholder="Fighter, Wizard…" autocomplete="off"></label>
+        <label class="f"><span class="f-l">Species<i>Tür</i></span><input data-bind="species" data-sec="dl-species" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Human, Elf, Dwarf…" autocomplete="off"></label>
+        <label class="f"><span class="f-l">Class<i>Sınıf</i></span><input data-bind="cls" data-sec="dl-class" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Fighter, Wizard…" autocomplete="off"></label>
         <label class="f" data-tam><span class="f-l">Subclass<i>Alt sınıf</i></span><input data-bind="subclass" placeholder="3. seviyede seçilir" autocomplete="off"></label>
-        <label class="f"><span class="f-l">Background<i>Geçmiş</i></span><input data-bind="background" list="dl-bg" placeholder="Soldier, Sage…" autocomplete="off"></label>
+        <label class="f"><span class="f-l">Background<i>Geçmiş</i></span><input data-bind="background" data-sec="dl-bg" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Soldier, Sage…" autocomplete="off"></label>
       </div>
       <div class="class-hint" id="classHint" hidden>
         <span id="classHintText"></span>
         <button class="btn sm" data-act="apply-class">Bu ayarları uygula</button>
       </div>
       <datalist id="dl-species"></datalist><datalist id="dl-class"></datalist><datalist id="dl-bg"></datalist>
+      <div class="sec-pop" id="secPop" role="listbox" hidden></div><!-- Tür / sınıf / geçmiş listesi (2026-11-12, secAc): yazılı değer tam eşleşiyorsa hepsi görünür -->
     </div>
 
     <div class="hero-side">
@@ -4859,7 +4895,7 @@ function rollExpr(expr, label, opt = {}) {
       detail += `${op}${n}d${t.s} (${r.join(', ')})`;
     } else { total += t.neg ? -t.k : t.k; detail += op + t.k; }
   });
-  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : '', dice, hasar: !!opt.hasar, hedefsiz: !!opt.hedefsiz });
+  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : (opt.note || ''), dice, hasar: !!opt.hasar, hedefsiz: !!opt.hedefsiz });
   return total;
 }
 
@@ -5515,7 +5551,7 @@ const ACTIONS = {
     if (!await confirmBox('Uzun dinlenme yapılsın mı? Canın, can zarların, büyü yuvaların ve sınıf hakların yenilenir, geçici can ve ölüm zarı işaretleri sıfırlanır, bitkinlik bir kademe azalır.', 'Dinlen')) return;
     C.hp.cur = Math.max(0, int(C.hp.max)); C.hp.temp = 0; C.hdUsed = 0; C.ds = { s:0, f:0 };
     C.gun = int(C.gun) + 1;                                           // oyun günü: kitap okuma (BÖLÜM 8d)
-    C.slots.forEach(s => { s.u = 0; });
+    C.slots.forEach(s => { s.u = 0; }); C.kons = '';                  // uyuyunca konsantrasyon da biter (BÖLÜM 8e)
     C.exh = Math.max(0, int(C.exh) - 1);
     const hak = hakDinlen('uzun');
     if (turKey() === 'Human') C.insp = true;                          // Resourceful: her uzun dinlenmede ilham
@@ -6372,6 +6408,52 @@ Object.assign(ACTIONS, {
     rollD20(`${s.en} (${s.tr}) · kitaba bakarak`, [[s.ab.toUpperCase(), mod(s.ab)], [C.skills[e.kitap.x] === 2 ? 'uzmanlık' : 'yetkinlik', int(C.skills[e.kitap.x]) * pb()], ['kitap', 5]]);
   },
 });
+/* Tür / sınıf / geçmiş kutusu (2026-11-12, kullanıcının isteği): bir sınıf yazılıyken başkası da seçilebilsin.
+   Kutu odaklanınca bütün seçenekler açılır; yazdıkça süzülür (yazılan bir seçeneğin tam adıysa yine hepsi). Ok tuşları, Enter, Esc. */
+const SEC = { el: null, i: -1 };
+function secListe(el) {
+  const v = el.value.trim().toLocaleLowerCase('tr'), tum = $$('option', $('#' + el.dataset.sec)).map(o => o.value);
+  const tr = x => (el.dataset.sec === 'dl-class' ? (OL_SINIF[x] || {}).tr : el.dataset.sec === 'dl-species' ? (OL_TUR[x] || {}).tr : (OL_GECMIS[x] || {}).tr) || '';
+  const l = !v || tum.some(x => x.toLowerCase() === v) ? tum : tum.filter(x => (x + ' ' + tr(x)).toLocaleLowerCase('tr').includes(v));
+  return l.map(x => ({ x, tr: tr(x) }));
+}
+function secAc(el) {
+  if (el.disabled || el.readOnly || mode === 'peek' || !el.offsetParent) return;   // görünmeyen kutuda (Sade) açılmasın
+  const pop = $('#secPop'), l = secListe(el);
+  SEC.el = el; SEC.i = -1;
+  if (!l.length) { $('#secPop').hidden = true; return; }
+  const v = el.value.trim().toLowerCase();
+  pop.innerHTML = l.map((o, i) => `<button type="button" role="option" data-i="${i}" data-v="${esc(o.x)}" aria-selected="${o.x.toLowerCase() === v}">${esc(o.x)}${o.tr && o.tr !== o.x ? `<small>${esc(o.tr)}</small>` : ''}</button>`).join('');
+  const r = el.getBoundingClientRect();
+  pop.style.left = r.left + 'px'; pop.style.minWidth = r.width + 'px';
+  pop.hidden = false;
+  const alt = innerHeight - r.bottom - 8;
+  pop.style.top = (alt < Math.min(300, pop.offsetHeight) && r.top > alt ? r.top - pop.offsetHeight - 4 : r.bottom + 4) + 'px';
+  el.setAttribute('aria-expanded', 'true');
+  const sec = $('[aria-selected="true"]', pop); if (sec) sec.scrollIntoView({ block: 'nearest' });
+}
+function secKapa() { $('#secPop').hidden = true; if (SEC.el) SEC.el.setAttribute('aria-expanded', 'false'); SEC.el = null; }
+function secYaz(v) {
+  const el = SEC.el; if (!el) return;
+  el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true }));
+  secKapa();
+}
+document.addEventListener('focusin', e => { if (e.target.dataset && e.target.dataset.sec) secAc(e.target); });
+document.addEventListener('click', e => { if (e.target.dataset && e.target.dataset.sec && $('#secPop').hidden) secAc(e.target); });
+document.addEventListener('input', e => { if (e.target.dataset && e.target.dataset.sec && SEC.el === e.target && e.isTrusted) secAc(e.target); });
+$('#secPop').addEventListener('pointerdown', e => { e.preventDefault(); const b = e.target.closest('button[data-v]'); if (b) secYaz(b.dataset.v); });   // kutu odağı kaybetmesin
+document.addEventListener('pointerdown', e => { if (SEC.el && !e.target.closest('#secPop') && e.target !== SEC.el) secKapa(); }, true);
+document.addEventListener('focusout', e => { if (SEC.el === e.target) setTimeout(() => { if (SEC.el && document.activeElement !== SEC.el) secKapa(); }, 0); });
+document.addEventListener('keydown', e => {
+  if (!SEC.el || e.target !== SEC.el || $('#secPop').hidden) return;
+  const b = $$('#secPop button');
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault(); SEC.i = clamp(SEC.i + (e.key === 'ArrowDown' ? 1 : -1), 0, b.length - 1);
+    b.forEach((x, i) => x.classList.toggle('on', i === SEC.i)); b[SEC.i].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter' && SEC.i >= 0) { e.preventDefault(); secYaz(b[SEC.i].dataset.v); }
+  else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); secKapa(); }
+}, true);
+addEventListener('scroll', e => { if (SEC.el && !(e.target && e.target.closest && e.target.closest('#secPop'))) secKapa(); }, { passive: true, capture: true });
 /* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 8e — Büyüler (2026-11-12, yol haritası R2 madde 14; kural SRD 5.2.1, 2024)
    Veri: masa/buyuler.js (window.SRD_BUYU, 339 büyü; araclar/buyu_yaz.py üretir; açıklamalar kendi Türkçe sözlerimiz).
@@ -6513,7 +6595,7 @@ function byOzetCiz() {                                                 // kağı
 }
 
 /* ── Seçme penceresi ── */
-const BY = { sek: 1, ara: '', kapsam: 'sinif', serbest: false, yeni: new Set(), ac: new Set() };
+const BY = { sek: 1, ara: '', kapsam: 'sinif', serbest: false, yeni: new Set(), ac: new Set(), son: null, krit: '' };
 function byAc() {
   if (mode === 'peek') return;
   const cl = findClass(), d = byDurum();
@@ -6641,6 +6723,100 @@ function bySatirAcik(s) {                                              // kağı
   const bi = byBilgi(b), kay = s.kay === 'hep' ? `Hep hazır · ${s.kayAd || ''}` : s.kay === 'ek' ? 'Ek büyü' : '';
   return `<p class="sp-acik" data-act="sp-acik" title="Tamamını göster / kısalt">${kay ? `<span class="sp-kay">${esc(kay)}</span>` : ''}<b>${esc(b.t)}</b> · ${esc(BY_OKUL[b.o][1])}${bi.z.length ? ` · <em>${bi.z.map(esc).join(' · ')}</em>` : ''} · ${esc(b.x)}${b.m ? ` <span class="by-mat">Malzeme (SRD): ${esc(b.m)}</span>` : ''}</p>`;
 }
+/* ── Büyü yapma: masadaki kendi camın (2026-11-12, kullanıcının isteği: "silahlar gibi büyüler de olsun") ──
+   Hasar veren cantrip'ler saldırı satırında silahların yanında (vuruş ya da ZD + hasar). "Büyüler" sekmesi: büyü ZD'si ve saldırısı,
+   yuvalar (dolu elmas = kalan), konsantrasyon, hazır büyüler seviye seviye: Yap (yuva harcar; üst yuva seçilebilir), hasar, iyileştirme.
+   Büyü saldırısında d20 atılır; kurtarmalı büyüde hedefin hangi zarı atacağı ve ZD söylenir. Zarlar: cantrip 5 / 11 / 17. seviyede büyür,
+   üst yuvada `up` eklenir, +mod büyü yeteneği bonusu. BY.son: son yapılan büyü ve yuvası (hasar zarı ona göre), BY.krit: kritik vuruş. */
+const byCantripKat = l => 1 + (l >= 5) + (l >= 11) + (l >= 17);
+const byZd = () => 8 + pb() + (C.spellAbility ? mod(C.spellAbility) : 0);
+const bySld = () => pb() + (C.spellAbility ? mod(C.spellAbility) : 0);
+function byKullan(c) {                                                 // camda gösterilecekler: cantrip'ler, hazırlananlar, her zaman hazırlar
+  return c.spells.map((s, i) => ({ s, i, b: buyuBul(s) })).filter(x => String(x.s.name || '').trim() && (int(x.s.lvl) === 0 || x.s.prep || x.s.kay === 'hep'))
+    .sort((x, y) => int(x.s.lvl) - int(y.s.lvl) || x.i - y.i);
+}
+function byZarIfade(b, yuva, tur) {                                    // tur 'h' (hasar) | 'iy' (iyileştirme) → "3d6+2"
+  const src = tur === 'iy' ? b.iy : b.h; if (!src) return '';
+  const m = C.spellAbility ? mod(C.spellAbility) : 0;
+  if (b.a === 'Magic Missile') { const n = 3 + Math.max(0, yuva - 1); return `${n}d4+${n}`; }   // ok başına 1d4+1
+  return src.split(' + ').map(x => x.split(' ')[0]).map((z, i) => {
+    const r = z.match(/^(\d+)d(\d+)(.*)$/); if (!r) return z;
+    let n = int(r[1]), ek = r[3];
+    if (b.s === 0 && b.a !== 'Eldritch Blast') n *= byCantripKat(int(C.level));
+    if (i === 0 && b.up && yuva > b.s) { const u = b.up.match(/(\d+)d(\d+)/); if (u && u[2] === r[2]) n += int(u[1]) * (yuva - b.s); else if (u) ek += `+${int(u[1]) * (yuva - b.s)}d${u[2]}`; }
+    ek = ek.replace('+mod', m ? (m > 0 ? '+' + m : String(m)) : '');
+    return `${n}d${r[2]}${ek}`;
+  }).join('+');
+}
+const byYuvalar = sv => C.slots.map((s, i) => ({ sv: i + 1, kalan: int(s.t) - int(s.u) })).filter(x => x.sv >= sv && x.kalan > 0);
+function byYap(i, yuvaSec) {
+  const s = C.spells[i]; if (!s) return;
+  const b = buyuBul(s) || { a: s.name, t: s.name, s: int(s.lvl), x: s.note || '' };
+  if ((b.at || b.sv) && !C.spellAbility) { notify('Önce büyü yeteneğini seç', 'Kağıdında Büyüler sekmesinin en üstünden.'); return; }
+  let yuva = 0;
+  if (b.s > 0) {
+    const l = byYuvalar(b.s);
+    yuva = l.some(x => x.sv === yuvaSec) ? yuvaSec : (l[0] || {}).sv;
+    if (!yuva) { notify(`${b.s}. seviye ve üstü büyü yuvan kalmadı`, `Uzun dinlenmede dolar.${b.r ? ' Ritüel olarak 10 dakika fazladan harcayıp yuvasız yapabilirsin.' : ''}`); return; }
+    C.slots[yuva - 1].u = int(C.slots[yuva - 1].u) + 1;
+    if (C.byHak && C.byHak.p === 'hepsi') C.byHak = Object.assign({}, C.byHak, { p: 0 });
+  }
+  BY.son = { a: b.a, yuva }; BY.krit = '';
+  const once = C.kons; if (b.c) C.kons = b.a;
+  const ad = `${b.a}${b.t !== b.a ? ` (${b.t})` : ''}${yuva > b.s ? ` · ${yuva}. sv yuva` : ''}`;
+  const isin = b.a === 'Eldritch Blast' ? byCantripKat(int(C.level)) : 0;
+  const kons = b.c && once && once !== b.a ? ` Konsantrasyonun ${once} büyüsünden buna geçti.` : '';
+  if (b.at) {
+    const r = rollD20(`${ad}: büyü saldırısı${isin > 1 ? ` (${isin} ışından biri)` : ''}`, [[C.spellAbility.toUpperCase(), mod(C.spellAbility)], ['yetkinlik', pb()]],
+      { on20: 'Kritik vuruş! Şimdi hasar zarına bas, zarlar iki kez atılır.', on1: 'Doğal 1: büyü ıskalar.' });
+    BY.krit = r && r.kept === 20 ? b.a : '';
+    if (kons) notify('Konsantrasyon', kons.trim());
+  } else if (b.sv) notify(`${ad}: hedef ${b.sv.toUpperCase()} kurtarması atar`, `Büyü zorluğun (ZD) ${byZd()}.${b.h ? ' Hasar zarına bas; kurtarmayı geçenin ne alacağını açıklama söyler.' : ''}${kons}`);
+  else notify(`${ad} yapıldı`, `${yuva ? `${yuva}. seviye yuva harcandı. ` : ''}${b.x || ''}${kons}`.trim());
+  changed(); renderLists(); if (mode === 'table') renderMe();
+}
+function byZarAt(i, tur) {
+  const s = C.spells[i], b = s && buyuBul(s); if (!b) return;
+  const yuva = BY.son && BY.son.a === b.a ? BY.son.yuva : b.s, expr = byZarIfade(b, yuva, tur); if (!expr) return;
+  if (tur === 'iy') rollExpr(expr, `${b.a}: iyileştirme (can)`, { hedefsiz: true });
+  else { rollExpr(expr, `${b.a}: hasar (${b.h.split(' + ').map(x => BY_HT[x.split(' ')[1]] || x.split(' ')[1]).join(' + ')})`, { hasar: true, crit: BY.krit === b.a }); BY.krit = ''; }
+}
+function byCamSatir(c) {                                               // saldırı satırına: hasar veren cantrip'ler
+  return byKullan(c).filter(x => x.b && x.b.s === 0 && x.b.h && (x.b.at || x.b.sv)).slice(0, 4).map(({ i, b }) => {
+    const zar = calc(c, () => byZarIfade(b, 0, 'h'));
+    return `<div class="mc-atk mc-batk" data-row data-i="${i}"><span title="${esc(b.t)}: ${esc(b.x)}">${esc(b.a)}<small>${esc(zar)} · cantrip</small></span>
+      <button class="roll" data-act="by-yap" data-i="${i}" title="${b.at ? 'Büyü saldırısı: vuruş zarı at' : `Hedef ${b.sv.toUpperCase()} kurtarması atar`}">${b.at ? sign(calc(c, bySld)) : `ZD ${calc(c, byZd)}`}</button>
+      <button class="roll die" data-act="by-zar" data-i="${i}" title="Hasar zarı at: ${esc(zar)}" aria-label="${esc(b.a)}: hasar zarı">${HASAR_IC}</button></div>`;
+  }).join('');
+}
+function byCamSek(c) {                                                 // "Büyüler" sekmesi
+  const l = byKullan(c);
+  const yuva = c.slots.map((s, k) => ({ s, k })).filter(x => int(x.s.t) > 0);
+  const ust = `<div class="mc-byust"><span>ZD <b>${calc(c, byZd)}</b></span><span>Saldırı <b>${sign(calc(c, bySld))}</b></span>
+    ${yuva.map(({ s, k }) => `<span class="mc-yv" title="${k + 1}. seviye büyü yuvaları: ${int(s.t) - int(s.u)} / ${int(s.t)} kaldı (elmasa basarak düzelt)">${k + 1}. sv ${Array.from({ length: int(s.t) }, (_, n) => `<button class="pip${n < int(s.t) - int(s.u) ? ' on' : ''}" data-act="me-yuva" data-i="${k}" data-n="${n}" aria-label="${k + 1}. seviye yuva ${n + 1}"></button>`).join('')}</span>`).join('')}
+    ${c.kons ? `<span class="mc-kons" title="Konsantrasyon: hasar alınca CON kurtarması (ZD 10 ya da hasarın yarısı) atarsın; başka bir konsantrasyon büyüsü yapınca biter">Konsantrasyon: <b>${esc(c.kons)}</b><button class="icon-btn" data-act="by-kons" title="Konsantrasyonu bitir" aria-label="Konsantrasyonu bitir"><svg class="ic"><use href="#i-x"/></svg></button></span>` : ''}</div>`;
+  let son = -1;
+  const satir = l.map(({ s, i, b }) => {
+    const sv = int(s.lvl), bas = sv !== son ? `<li class="mc-bygrup">${sv ? sv + '. seviye' : 'Cantrip'}</li>` : ''; son = sv;
+    const yv = sv > 0 ? calc(c, () => byYuvalar(sv)) : [];
+    const sec = yv.length > 1 && b && b.up ? `<select class="mc-yuva" data-i="${i}" aria-label="Hangi yuvayla" title="Üst yuvayla yaparsan güçlenir">${yv.map(x => `<option value="${x.sv}">${x.sv}. sv</option>`).join('')}</select>` : '';
+    const zar = b && b.h ? calc(c, () => byZarIfade(b, sv, 'h')) : '', iy = b && b.iy ? calc(c, () => byZarIfade(b, sv, 'iy')) : '';
+    const etiket = b ? [b.c ? 'K' : '', b.r ? 'R' : '', b.sv ? `${b.sv.toUpperCase()} kurt.` : b.at ? 'saldırı' : ''].filter(Boolean).join(' · ') : '';
+    return `${bas}<li data-row data-i="${i}"${sv > 0 && !yv.length ? ' class="yuvasiz"' : ''}><span title="${esc(b ? `${b.t}: ${b.x}` : s.note || '')}">${esc(s.name)}<small>${esc([b && b.t !== b.a ? b.t : '', etiket, s.kay === 'hep' ? 'hep hazır' : ''].filter(Boolean).join(' · '))}</small></span>
+      ${sec}<button class="btn sm" data-act="by-yap" data-i="${i}"${sv > 0 && !yv.length ? ' disabled title="Bu seviyede yuvan kalmadı"' : ''}>Yap</button>
+      ${zar ? `<button class="roll die" data-act="by-zar" data-i="${i}" title="Hasar zarı at: ${esc(zar)}" aria-label="Hasar zarı">${HASAR_IC}</button>` : ''}
+      ${iy ? `<button class="btn sm good" data-act="by-iyi" data-i="${i}" title="İyileştirme zarı at: ${esc(iy)}">+can</button>` : ''}</li>`;
+  }).join('');
+  return `<section class="mc-sek" aria-label="Büyüler"><h3>Büyüler<em>Yap: yuva harcanır · hasar ve iyileştirme zarları yanında</em></h3>${ust}
+    ${satir ? `<ul class="mc-by">${satir}</ul>` : '<p class="mc-bos">Hazır büyün yok. <b>Kağıdım</b> → Büyüler → "Büyü seç".</p>'}</section>`;
+}
+Object.assign(ACTIONS, {
+  'by-yap': b => { const li = b.closest('li'), sel = li && $('select.mc-yuva', li); byYap(int(b.dataset.i), sel ? int(sel.value) : 0); },
+  'by-zar': b => byZarAt(int(b.dataset.i), 'h'),
+  'by-iyi': b => byZarAt(int(b.dataset.i), 'iy'),
+  'by-kons': () => { C.kons = ''; changed(); if (mode === 'table') renderMe(); },
+  'me-yuva': b => { ACTIONS['slot-pip'](b); renderLists(); if (mode === 'table') renderMe(); },
+});
 Object.assign(ACTIONS, {
   'by-ac': () => byAc(),
   'by-kapa': () => byKapa(),
@@ -10121,7 +10297,8 @@ function renderMe() {
       <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(a.dmg)}" aria-label="Hasar zarı at">${HASAR_IC}</button></div>`).join('')
     + (u => `<div class="mc-atk" data-row data-i="-1"><span title="Silahsız vuruş · tutma / itme: hedef ZD ${u.zd}">Yumruk / tekme<small>${esc(u.dmg)}</small></span>
       <button class="roll" data-act="roll" data-roll="silahsiz" title="Yumruk ya da tekme: vuruş zarı at">${sign(u.vurus)}</button>
-      <button class="roll die" data-act="roll" data-roll="silahsiz-hasar" title="Hasar: ${esc(u.dmg)} ezici" aria-label="Yumruk / tekme hasarı">${HASAR_IC}</button></div>`)(silahsiz(c));
+      <button class="roll die" data-act="roll" data-roll="silahsiz-hasar" title="Hasar: ${esc(u.dmg)} ezici" aria-label="Yumruk / tekme hasarı">${HASAR_IC}</button></div>`)(silahsiz(c))
+    + byCamSatir(c);                                                    // hasar veren cantrip'ler (BÖLÜM 8e)
   // Beceriler / envanter camı (store.meSek: '' | 'beceri' | 'envanter')
   const sek = store.meSek || '';
   let sekCam = '';
@@ -10133,6 +10310,8 @@ function renderMe() {
   } else if (sek === 'hak') {
     sekCam = `<section class="mc-sek" aria-label="Haklar"><h3>Haklar<em>harcadıkça dokun · dinlenince dolar</em></h3>${calc(c, hakHtml) || '<p class="mc-bos">Sınıfının sayılan bir hakkı yok.</p>'}
       <div class="mc-dinlen"><button class="btn sm" data-act="kisa-dinlen"><svg class="ic"><use href="#i-flame"/></svg>Kısa dinlenme</button><button class="btn sm" data-act="longrest"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button></div></section>`;
+  } else if (sek === 'buyu') {
+    sekCam = byCamSek(c);
   } else if (sek === 'envanter') {
     const para = [['pp', 'platin'], ['gp', 'altın'], ['ep', 'elektrum'], ['sp', 'gümüş'], ['cp', 'bakır']].filter(([k]) => int(c.coins[k]))
       .map(([k, ad]) => `<span><b>${int(c.coins[k])}</b> ${ad}</span>`).join('');
@@ -10165,10 +10344,12 @@ function renderMe() {
         <div class="me-foot"><button class="btn sm" data-act="me-look" title="Masadaki figürünü değiştir (kadın ya da erkek)">Figür: ${c.look === 'f' ? 'kadın' : c.look === 'm' ? 'erkek' : 'seçilmedi'}</button></div></section>
     </div>`;
   }
+  const kay = ['.mc-esya', '.mc-by', '.mc-bc'].map(s => { const el = $(s, box); return el ? el.scrollTop : 0; });   // yeniden çizince kaydırma yeri kalsın (+/− basınca yukarı atmasın)
   box.innerHTML = `${rehber && min && !sek ? `<p class="mc-rehber" role="status">${rehber}</p>` : ''}${sekCam}${detay}
     <div class="mc-izgara mc-ust">
       <button class="btn${sek === 'beceri' ? ' on' : ''}" data-act="me-sek" data-k="beceri" aria-expanded="${sek === 'beceri'}" title="Beceri zarları: kağıda dönmeden at"><svg class="ic"><use href="#i-d20"/></svg>Beceriler</button>
       ${calc(c, () => hakListe().length) ? `<button class="btn${sek === 'hak' ? ' on' : ''}" data-act="me-sek" data-k="hak" aria-expanded="${sek === 'hak'}" title="Sınıf hakların: Öfke, İkinci soluk… harcadıkça dokun"><svg class="ic"><use href="#i-flame"/></svg>Haklar</button>` : ''}
+      ${byKullan(c).length ? `<button class="btn${sek === 'buyu' ? ' on' : ''}" data-act="me-sek" data-k="buyu" aria-expanded="${sek === 'buyu'}" title="Büyülerin: yuvalar, büyü yap, hasar ve iyileştirme zarları"><svg class="ic"><use href="#i-book"/></svg>Büyüler</button>` : ''}
       <button class="btn${sek === 'envanter' ? ' on' : ''}" data-act="me-sek" data-k="envanter" aria-expanded="${sek === 'envanter'}" title="Envanterin: eşyalar ve paralar"><svg class="ic"><use href="#i-canta"/></svg>Envanter</button>
       <button class="btn" data-act="mode-sheet" title="Karakter kağıdının tamamı"><svg class="ic"><use href="#i-scroll"/></svg>Kağıdım</button>
       <button class="btn icon" data-act="me-min" aria-expanded="${!min}" title="${min ? 'Ayrıntıları aç: kurtarma zarları, can, inisiyatif' : 'Ayrıntıları kapat'}" aria-label="${min ? 'Ayrıntıları aç' : 'Ayrıntıları kapat'}"><svg class="ic"><use href="#i-yukari"/></svg></button></div>
@@ -10180,6 +10361,7 @@ function renderMe() {
       <div class="mc-ac" title="Armor Class (zırh sınıfı): sana vurmak için tutturulması gereken sayı">${kalkan}<b>${int(c.ac)}</b><small>AC</small></div>
       ${ABIL.map(a => `<button class="mc-y roll" data-act="roll" data-roll="ability" data-k="${a.k}" title="${a.en} (${a.tr}) zarı at · skor ${int(c.abilities[a.k])}"><small>${a.k.toUpperCase()}</small><b>${sign(mod(a.k))}</b><i>${int(c.abilities[a.k])}</i></button>`).join('')}
     </div>`;
+  ['.mc-esya', '.mc-by', '.mc-bc'].forEach((s, i) => { const el = $(s, box); if (el && kay[i]) el.scrollTop = kay[i]; });
 }
 
 /* Rehber satırı (2026-10-21): yeni başlayana o an ne yapacağını tek cümleyle söyler. Üstteki "Açıklamalar" kapalıysa görünmez.
@@ -10733,8 +10915,36 @@ function duzenAc(ac) {
   const w = $('.tv-wrap').getBoundingClientRect(), r = b.getBoundingClientRect();
   pop.style.top = clamp(r.top - w.top - 10, 8, Math.max(8, w.height - pop.offsetHeight - 8)) + 'px';
 }
+/* Görünüm menüsü (2026-11-12, kullanıcının isteği: sol şerit sadeleşsin). Düğmelerin kendi işleri (tav-tepe, pov-tek, tav-all,
+   tav-sahne, tav-canli) aynı; "Yandan (masa)" hepsini kapatıp masaya eğik bakışa döner. Görünüm seçince menü kapanır, Canlı'da açık kalır. */
+function gorDurum() {
+  const v = tav.state === 'on';
+  $('#tvYandan').setAttribute('aria-pressed', String(v && !tav.tepe && !tav.all && !tav.sahnede && !store.povTek));
+}
+function gorAc(ac) {
+  const pop = $('#gorPop'), b = $('#tvGorunum');
+  pop.hidden = !ac; b.setAttribute('aria-expanded', String(ac));
+  if (!ac) return;
+  if (!$('#duzenPop').hidden) duzenAc(false);
+  gorDurum();
+  const w = $('.tv-wrap').getBoundingClientRect(), r = b.getBoundingClientRect();
+  if (matchMedia('(max-width:640px) and (orientation:portrait)').matches) { pop.style.top = (r.bottom - w.top + 6) + 'px'; return; }
+  pop.style.top = clamp(r.top - w.top - 10, 8, Math.max(8, w.height - pop.offsetHeight - 8)) + 'px';
+}
+$('#gorPop').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  setTimeout(() => { gorDurum(); if (b.id !== 'tvCanli') gorAc(false); }, 0);
+});
+document.addEventListener('pointerdown', e => { if (!$('#gorPop').hidden && !e.target.closest('#gorPop, #tvGorunum')) gorAc(false); }, true);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#gorPop').hidden) { e.stopPropagation(); gorAc(false); } }, true);
 Object.assign(ACTIONS, {
-  'duzen': () => duzenAc($('#duzenPop').hidden),
+  'gor-ac': () => gorAc($('#gorPop').hidden),                          // (adı 'gorunum' olamaz: Sade / Tam düğmesi)
+  'gor-masa': () => {
+    if (store.povTek) ACTIONS['pov-tek']();
+    if (tav.tepe) tavTepe(false);
+    if (tav.all || tav.sahnede) tavOverview(false);
+  },
+  'duzen': () => { gorAc(false); duzenAc($('#duzenPop').hidden); },
   'duzen-sifirla': () => { store.cam = {}; save(); camYerlestir(); renderTable(); duzenAc(false); notify('Camlar varsayılan yerinde'); },
 });
 $('#duzenSolma').addEventListener('change', e => { store.solma = e.target.checked; save(); solmaBasla(); });
