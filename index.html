@@ -2003,7 +2003,8 @@ body:not(.guide) .mc-rehber{display:none}
 .mc-b small{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted)}
 .mc-b.roll:hover small{color:inherit}
 .mc-esya{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 18px;margin:0;padding:0;list-style:none;max-height:216px;overflow:auto}
-.mc-esya li{display:grid;grid-template-columns:minmax(0,1fr) auto 2.2em auto;align-items:center;gap:4px;min-height:36px;border-bottom:1px solid var(--line)}
+.mc-esya li{display:grid;grid-template-columns:18px minmax(0,1fr) auto 2.2em auto;   /* 2026-11-12: ikonun kendi sütunu (yoksa "+" alt satırın ikonuna kayıyordu) */
+align-items:center;gap:4px;min-height:36px;border-bottom:1px solid var(--line)}
 .mc-esya li>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .mc-esya li>b{text-align:center;font-family:var(--font-display);font-size:18px;font-variant-numeric:lining-nums}
 .mc-esya li.sifir>span{color:var(--muted);text-decoration:line-through}
@@ -9443,7 +9444,7 @@ function renderMe() {
   } else if (sek === 'envanter') {
     const para = [['pp', 'platin'], ['gp', 'altın'], ['ep', 'elektrum'], ['sp', 'gümüş'], ['cp', 'bakır']].filter(([k]) => int(c.coins[k]))
       .map(([k, ad]) => `<span><b>${int(c.coins[k])}</b> ${ad}</span>`).join('');
-    const satir = c.items.map((x, i) => String(x.name || '').trim() ? `<li data-row data-i="${i}"${int(x.qty) ? '' : ' class="sifir"'}>${esyaBul(x) ? ESYA_IC(esyaBul(x)) : ''}<span title="${esc(esyaBul(x) ? esyaBul(x).tr : x.name)}">${esc(x.name)}</span>
+    const satir = c.items.map((x, i) => String(x.name || '').trim() ? `<li data-row data-i="${i}"${int(x.qty) ? '' : ' class="sifir"'}>${esyaBul(x) ? ESYA_IC(esyaBul(x)) : '<i class="esya-ic" aria-hidden="true"></i>'}<span title="${esc(esyaBul(x) ? esyaBul(x).tr : x.name)}">${esc(x.name)}</span>
         <button class="icon-btn" data-act="me-adet" data-d="-1" title="Bir azalt (kullandın, harcadın)" aria-label="${esc(x.name)}: bir azalt"><svg class="ic"><use href="#i-minus"/></svg></button><b>${int(x.qty)}</b>
         <button class="icon-btn" data-act="me-adet" data-d="1" title="Bir artır" aria-label="${esc(x.name)}: bir artır"><svg class="ic"><use href="#i-plus"/></svg></button></li>` : '').join('');
     const kit = c.items.map((it, i) => kitapSatiri(c, it, i, true)).join('');
