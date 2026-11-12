@@ -696,6 +696,8 @@ body.peek #sheet [data-act="kisa-dinlen"]{display:none}
 .mc-dinlen{display:flex;gap:var(--lw);margin-top:var(--lw)}
 /* Sınıf özellikleri paneli (2026-11-10): Özellikler sekmesinin başında. Seviye kare rozet; gelecekler soluk, katlı bölümde */
 .sinif-oz{margin-bottom:18px}
+.tur-oz{padding-top:16px;border-top:1px solid var(--line)}            /* tür özellikleri (2026-11-12): sınıfınkinin altında, aynı satır düzeni */
+.tur-yok{margin:0}
 .so-bas h3{margin:0 0 6px;font-family:var(--font-display);font-size:20px}
 .so-bas h3 em{display:block;font-family:var(--font-ui);font-style:normal;font-size:13px;font-weight:500;color:var(--muted)}
 .so-terim{margin:0 0 10px}
@@ -2954,6 +2956,8 @@ body.tv-full #tableView{height:100dvh}
         <div class="panel" data-panel="features">
           <!-- Sınıf özellikleri (2026-11-10, sinifOzCiz): alınanlar, seçmeliler, sonraki seviyelerde gelecekler -->
           <section class="sinif-oz" id="sinifOz"></section>
+          <!-- Tür özellikleri (2026-11-12, turOzCiz): SRD'deki 9 tür kendiliğinden; öbürlerinde "kendin yaz" -->
+          <section class="sinif-oz tur-oz" id="turOz"></section>
           <div class="grid2">
             <label class="f"><span class="f-l">Class notes<i>Kendi notların</i></span>
               <textarea data-bind="features" style="min-height:200px" placeholder="Yukarıdaki listede olmayanları ya da kendi notlarını buraya yaz."></textarea></label>
@@ -3639,8 +3643,9 @@ function lvCan(zar) {
   let t;
   if (zar) { t = rollExpr('1' + hd, `Seviye atlama: can zarı (${LV.l}. seviye)`, { hedefsiz: true }); if (t === null) return; }
   else t = SABIT_CAN[hd] || 5;
-  LV.can = Math.max(1, t + con) + b.ejder;
-  LV.ayrinti = `${zar ? 'zar' : 'sabit'} ${t} ${con < 0 ? '−' : '+'} ${Math.abs(con)} CON${b.ejder ? ` + ${b.ejder} ejder dayanıklılığı` : ''}`;
+  const cuce = turKey() === 'Dwarf' ? 1 : 0;                          // Dwarven Toughness: her seviyede +1 can (2026-11-12)
+  LV.can = Math.max(1, t + con) + b.ejder + cuce;
+  LV.ayrinti = `${zar ? 'zar' : 'sabit'} ${t} ${con < 0 ? '−' : '+'} ${Math.abs(con)} CON${b.ejder ? ` + ${b.ejder} ejder dayanıklılığı` : ''}${cuce ? ' + 1 cüce dayanıklılığı' : ''}`;
   LV.kayit = { id: C.id, l: LV.l, can: LV.can, ayrinti: LV.ayrinti };
   lvCiz();
 }
@@ -3736,7 +3741,7 @@ function lvDugmeler() {                                               // refresh
   a.title = d.hazir ? 'XP doldu: seviye atla' : `${d.ust - d.xp} XP daha gerekiyor (XP'yi DM verir)`;
   $('#xpCubuk span').style.width = (d.pct * 100).toFixed(1) + '%';
   $('#xpYazi').textContent = d.l >= 20 ? `${d.xp} XP · en yüksek seviye` : d.hazir ? `${d.xp} XP · seviye atlayabilirsin` : `${d.xp} / ${d.ust} XP`;
-  hakCiz(); sinifOzCiz();
+  hakCiz(); sinifOzCiz(); turOzCiz();
 }
 
 /* ───────── Hak sayacı ve XP (2026-11-10, kullanıcının isteği) ─────────
@@ -3745,6 +3750,154 @@ function lvDugmeler() {                                               // refresh
    değil miktarla harcanır (El koyma, büyü puanı, odak). Kağıtta Dinlenme camında, masada kendi camında "Haklar".
    XP: DM verir ({t:'xp'}), kağıtta seviye kutusunda çubuk; bir sonraki seviyenin XP'si dolunca "Seviye atla" açılır. */
 const XP_ESIK = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000];
+/* ═══ TÜR ÖZELLİKLERİ (2026-11-12, R2 madde 11; SRD 5.2.1 "Species Descriptions", kendi Türkçe sözlerimizle) ═══
+   Yalnızca SRD'deki 9 tür. Öbürleri (Aasimar, Aarakocra, Dhampir, Genasi, Tabaxi) SRD'de yok: panel "kendin yaz" der, site metin
+   vermez (kullanıcının kararı: kul hakkı). Seçimler C.turSecim: soy (ejder / elf / gnom / dev / iblis), yet (büyü yeteneği),
+   duyu (Elf Keen Senses), beceri (Human Skillful). Günlük kullanımlar hakListe'ye eklenir (anahtarları "t-"). Panel: turOzCiz. */
+const TUR_SECENEK = {
+  ejder: { ad: 'Ejder soyu', liste: { Black: ['Siyah', 'Acid', 'Asit'], Blue: ['Mavi', 'Lightning', 'Yıldırım'], Brass: ['Pirinç', 'Fire', 'Ateş'],
+    Bronze: ['Bronz', 'Lightning', 'Yıldırım'], Copper: ['Bakır', 'Acid', 'Asit'], Gold: ['Altın', 'Fire', 'Ateş'], Green: ['Yeşil', 'Poison', 'Zehir'],
+    Red: ['Kırmızı', 'Fire', 'Ateş'], Silver: ['Gümüş', 'Cold', 'Soğuk'], White: ['Beyaz', 'Cold', 'Soğuk'] },
+    etiket: (en, x) => `${en} (${x[0]}) · ${x[1]} (${x[2]})` },
+  elf: { ad: 'Elf soyu', liste: {
+    Drow: ['Drow', 'Karanlık görüşün 120 ft olur. Dancing Lights (Dans eden ışıklar) cantrip\'ini bilirsin.', ['Faerie Fire', 'Peri ateşi'], ['Darkness', 'Karanlık']],
+    'High Elf': ['Yüksek elf', 'Prestidigitation (Küçük hüner) cantrip\'ini bilirsin; her uzun dinlenmeden sonra onu Wizard listesinden başka bir cantrip\'le değiştirebilirsin.', ['Detect Magic', 'Büyü sezme'], ['Misty Step', 'Sisli adım']],
+    'Wood Elf': ['Orman elfi', 'Hızın 35 ft olur. Druidcraft (Druid zanaatı) cantrip\'ini bilirsin.', ['Longstrider', 'Uzun adım'], ['Pass without Trace', 'İz bırakmadan']] },
+    etiket: (en, x) => `${en} (${x[0]})` },
+  iblis: { ad: 'İblis mirası', liste: {
+    Abyssal: ['Uçurum', 'Zehir (poison) hasarına direncin olur. Poison Spray (Zehir püskürtme) cantrip\'ini bilirsin.', ['Ray of Sickness', 'Hastalık ışını'], ['Hold Person', 'Kişiyi dondur']],
+    Chthonic: ['Yeraltı', 'Çürüten (necrotic) hasara direncin olur. Chill Touch (Buz dokunuşu) cantrip\'ini bilirsin.', ['False Life', 'Sahte can'], ['Ray of Enfeeblement', 'Zayıflatma ışını']],
+    Infernal: ['Cehennem', 'Ateş (fire) hasarına direncin olur. Fire Bolt (Ateş oku) cantrip\'ini bilirsin.', ['Hellish Rebuke', 'Cehennem karşılığı'], ['Darkness', 'Karanlık']] },
+    etiket: (en, x) => `${en} (${x[0]})` },
+  gnom: { ad: 'Gnom soyu', liste: {
+    'Forest Gnome': ['Orman gnomu', x => `Minor Illusion (Küçük yanılsama) cantrip'ini bilirsin. Speak with Animals (Hayvanlarla konuşma) hep hazırdır: yuva harcamadan günde ${x.pb} kez yaparsın (uzun dinlenmede dolar); yuvanla da yapabilirsin.`],
+    'Rock Gnome': ['Kaya gnomu', () => 'Mending (Onarma) ve Prestidigitation (Küçük hüner) cantrip\'lerini bilirsin. 10 dakika uğraşıp Prestidigitation\'ın bir etkisini yapan minik bir düzenek kurabilirsin (oyuncak, çakmak, müzik kutusu; AC 5, 1 can): biri bonus eylemle dokununca çalışır. Aynı anda en çok üç tane olur; her biri 8 saat sonra dağılır.'] },
+    etiket: (en, x) => `${en} (${x[0]})` },
+  dev: { ad: 'Dev soyu', liste: {
+    'Cloud’s Jaunt': ['Bulut sıçrayışı', 'Bulut devi', 'Bonus eylemle görebildiğin boş bir yere 30 ft\'e kadar ışınlanırsın.'],
+    'Fire’s Burn': ['Ateş yakışı', 'Ateş devi', 'Saldırıyla vurup hasar verince hedefe ek 1d10 ateş hasarı verirsin.'],
+    'Frost’s Chill': ['Ayaz soğuğu', 'Ayaz devi', 'Saldırıyla vurup hasar verince hedefe ek 1d6 soğuk hasarı verirsin; senin bir sonraki turunun başına kadar hızı 10 ft düşer.'],
+    'Hill’s Tumble': ['Tepe devirişi', 'Tepe devi', 'Large ya da daha küçük bir yaratığa saldırıyla vurup hasar verince onu yere düşürebilirsin (Prone).'],
+    'Stone’s Endurance': ['Taş dayanıklılığı', 'Taş devi', 'Hasar alınca tepkinle 1d12 atıp CON bonusunu eklersin; hasar o kadar azalır.'],
+    'Storm’s Thunder': ['Fırtına gürlemesi', 'Fırtına devi', '60 ft içindeki bir yaratık sana hasar verince tepkinle ona 1d8 gök gürültüsü (thunder) hasarı verirsin.'] },
+    etiket: (en, x) => `${en} (${x[0]}) · ${x[1]}` },
+  yet: { ad: 'Büyü yeteneği', liste: { int: ['INT · Zekâ'], wis: ['WIS · Bilgelik'], cha: ['CHA · Karizma'] }, etiket: (en, x) => x[0] },
+  duyu: { ad: 'Keskin duyu becerisi', liste: { insight: ['Insight · Sezgi'], perception: ['Perception · Algı'], survival: ['Survival · Hayatta kalma'] }, etiket: (en, x) => x[0] },
+};
+const turKaranlik = ft => `${ft} ft içinde loş ışığı aydınlık, karanlığı loş ışık gibi görürsün (karanlıkta renkleri yalnızca gri tonlarında ayırt edersin).`;
+// Soydan gelen büyüler (Elf, Tiefling): 1. seviyedeki fayda + 3. ve 5. seviyede birer büyü; yetenek seçimiyle büyü ZD'si ve saldırısı
+function turSoyBuyu(x, set) {
+  const s = TUR_SECENEK[set].liste[x.s.soy];
+  if (!s) return `Önce ${TUR_SECENEK[set].ad.toLocaleLowerCase('tr')} seç: 1. seviyede bir fayda, 3. ve 5. seviyede birer büyü verir.`;
+  const yet = x.s.yet, by = yet ? ` Büyü yeteneğin ${yet.toUpperCase()}: büyü ZD'si ${8 + x.m(yet) + x.pb}, büyü saldırısı ${sign(x.m(yet) + x.pb)}.` : ' Büyü yeteneğini (INT, WIS ya da CHA) seç.';
+  return `${s[1]} 3. seviyede ${s[2][0]} (${s[2][1]}), 5. seviyede ${s[3][0]} (${s[3][1]}) büyüsünü öğrenirsin: hep hazırdır, uzun dinlenmede birer kez yuvasız yaparsın; yuvanla da yapabilirsin.${by}`;
+}
+// [seviye, İngilizce, Türkçe, açıklama (x => metin), seçimler]
+const TUR_OZ = {
+  Dragonborn: { boy: 'Medium (1,5–2,1 m)', hiz: 30, oz: [
+    [1, 'Draconic Ancestry', 'Ejder soyu', x => x.ejder ? `Atan ${x.s.soy} (${x.ejder[0].toLocaleLowerCase('tr')}) ejder: nefesin ve direncin ${x.ejder[2].toLocaleLowerCase('tr')} (${x.ejder[1].toLowerCase()}) türünde.` : 'Atan olan ejderin türünü seç: nefes silahının ve hasar direncinin türünü belirler.', ['soy']],
+    [1, 'Breath Weapon', 'Nefes silahı', x => `Saldırı eyleminde saldırılarından birinin yerine büyülü bir nefes verirsin: 15 ft koni ya da 5 ft genişliğinde 30 ft çizgi (her seferinde seçersin). Alandaki her yaratık DEX kurtarması atar (ZD ${8 + x.m('con') + x.pb}); başaramayan ${x.l >= 17 ? 4 : x.l >= 11 ? 3 : x.l >= 5 ? 2 : 1}d10 ${x.ejder ? x.ejder[2].toLocaleLowerCase('tr') + ' ' : ''}hasarı alır, başaran yarısını. Günde ${x.pb} kez (yetkinlik bonusun kadar), uzun dinlenmede dolar. Hasar 5., 11. ve 17. seviyede 1d10 artar.`],
+    [1, 'Damage Resistance', 'Hasar direnci', x => x.ejder ? `${x.ejder[2]} (${x.ejder[1].toLowerCase()}) hasarına direncin var: bu hasarın yarısını alırsın.` : 'Soyunun hasar türüne direncin var (önce ejder soyunu seç).'],
+    [1, 'Darkvision', 'Karanlık görüş', () => turKaranlik(60)],
+    [5, 'Draconic Flight', 'Ejder kanatları', () => 'Bonus eylemle sırtında nefesinle aynı enerjiden hayalet kanatlar çıkar: 10 dakika (ya da sen kapatana ya da Incapacitated olana kadar) hızın kadar uçarsın. Uzun dinlenmede bir kez.'],
+  ] },
+  Dwarf: { boy: 'Medium (1,2–1,5 m)', hiz: 30, oz: [
+    [1, 'Darkvision', 'Karanlık görüş', () => turKaranlik(120)],
+    [1, 'Dwarven Resilience', 'Cüce direnci', () => 'Zehir (poison) hasarına direncin var. Poisoned (zehirlenmiş) durumundan kaçınmak ya da kurtulmak için attığın kurtarma zarlarında avantajlısın.'],
+    [1, 'Dwarven Toughness', 'Cüce dayanıklılığı', x => `En yüksek canın her seviyede 1 fazladır (şu an toplam +${x.l}). Seviye atlarken kendiliğinden eklenir.`],
+    [1, 'Stonecunning', 'Taş sezgisi', x => `Bonus eylemle 10 dakikalığına 60 ft içindeki titreşimleri sezersin (Tremorsense); taşın üstünde durmalı ya da taşa dokunmalısın. Günde ${x.pb} kez, uzun dinlenmede dolar.`],
+  ] },
+  Elf: { boy: 'Medium (1,5–1,8 m)', hiz: 30, oz: [
+    [1, 'Darkvision', 'Karanlık görüş', x => turKaranlik(x.s.soy === 'Drow' ? 120 : 60)],
+    [1, 'Elven Lineage', 'Elf soyu', x => turSoyBuyu(x, 'elf'), ['soy', 'yet']],
+    [1, 'Fey Ancestry', 'Peri soyu', () => 'Charmed (büyülenmiş) durumundan kaçınmak ya da kurtulmak için attığın kurtarma zarlarında avantajlısın.'],
+    [1, 'Keen Senses', 'Keskin duyular', () => 'Insight, Perception ya da Survival becerilerinden birinde yetkin olursun. Seçince Beceriler\'de işaretlenir.', ['duyu']],
+    [1, 'Trance', 'Trans', () => 'Uyumazsın, büyü de seni uyutamaz. Uzun dinlenmeyi 4 saatlik, bilincin açık bir meditasyonla tamamlarsın.'],
+  ] },
+  Gnome: { boy: 'Small (0,9–1,2 m)', hiz: 30, oz: [
+    [1, 'Darkvision', 'Karanlık görüş', () => turKaranlik(60)],
+    [1, 'Gnomish Cunning', 'Gnom kurnazlığı', () => 'INT, WIS ve CHA kurtarma zarlarında avantajlısın.'],
+    [1, 'Gnomish Lineage', 'Gnom soyu', x => { const s = TUR_SECENEK.gnom.liste[x.s.soy]; return s ? s[1](x) + (x.s.yet ? ` Büyü yeteneğin ${x.s.yet.toUpperCase()}: büyü ZD'si ${8 + x.m(x.s.yet) + x.pb}.` : ' Büyü yeteneğini (INT, WIS ya da CHA) seç.') : 'Soyunu seç: orman gnomu ya da kaya gnomu.'; }, ['soy', 'yet']],
+  ] },
+  Goliath: { boy: 'Medium (2,1–2,4 m)', hiz: 35, oz: [
+    [1, 'Giant Ancestry', 'Dev soyu', x => { const s = TUR_SECENEK.dev.liste[x.s.soy]; return s ? `${s[2]} Günde ${x.pb} kez (yetkinlik bonusun kadar), uzun dinlenmede dolar.` : `Devlerden gelen bir güç seç; günde ${x.pb} kez kullanırsın, uzun dinlenmede dolar.`; }, ['soy']],
+    [5, 'Large Form', 'İri biçim', () => 'Bonus eylemle (yer yeterliyse) 10 dakikalığına Large boya büyürsün: STR yetenek zarlarında avantajlısın, hızın 10 ft artar. Uzun dinlenmede bir kez.'],
+    [1, 'Powerful Build', 'Güçlü yapı', () => 'Grappled (yakalanmış) durumundan kurtulmak için attığın yetenek zarlarında avantajlısın. Taşıma kapasiten bir boy büyükmüşsün gibi sayılır.'],
+  ] },
+  Halfling: { boy: 'Small (0,6–0,9 m)', hiz: 30, oz: [
+    [1, 'Brave', 'Cesur', () => 'Frightened (korkmuş) durumundan kaçınmak ya da kurtulmak için attığın kurtarma zarlarında avantajlısın.'],
+    [1, 'Halfling Nimbleness', 'Buçukluk çevikliği', () => 'Senden bir boy büyük yaratıkların bulunduğu yerden geçebilirsin (orada duramazsın).'],
+    [1, 'Luck', 'Şans', () => 'Saldırı, yetenek ya da kurtarma zarında d20\'de 1 gelince zarı yeniden atarsın; yeni sonucu kullanırsın.'],
+    [1, 'Naturally Stealthy', 'Doğuştan gizli', () => 'Seni yalnızca senden en az bir boy büyük bir yaratık örtüyor olsa bile Hide (saklanma) eylemini yapabilirsin.'],
+  ] },
+  Human: { boy: 'Medium (1,2–2,1 m) ya da Small (0,6–1,2 m), sen seçersin', hiz: 30, oz: [
+    [1, 'Resourceful', 'Becerikli', () => 'Her uzun dinlenmeden sonra Heroic Inspiration (ilham) kazanırsın: kağıttaki yıldız kendiliğinden yanar.'],
+    [1, 'Skillful', 'Hünerli', () => 'Seçtiğin bir beceride yetkin olursun. Seçince Beceriler\'de işaretlenir.', ['beceri']],
+    [1, 'Versatile', 'Çok yönlü', () => 'Bir başlangıç hüneri (Origin feat) seçersin; Skilled önerilir. Hünerler bölümüne ekle.'],
+  ] },
+  Orc: { boy: 'Medium (1,8–2,1 m)', hiz: 30, oz: [
+    [1, 'Adrenaline Rush', 'Adrenalin', x => `Bonus eylemle Dash (koşma) yaparsın ve ${x.pb} geçici can kazanırsın. Günde ${x.pb} kez, kısa ya da uzun dinlenmede dolar.`],
+    [1, 'Darkvision', 'Karanlık görüş', () => turKaranlik(120)],
+    [1, 'Relentless Endurance', 'Yılmaz dayanıklılık', () => 'Canın 0\'a inince (hemen ölmüyorsan) 1 canla ayakta kalabilirsin. Uzun dinlenmede bir kez.'],
+  ] },
+  Tiefling: { boy: 'Medium (1,2–2,1 m) ya da Small (0,9–1,2 m), sen seçersin', hiz: 30, oz: [
+    [1, 'Darkvision', 'Karanlık görüş', () => turKaranlik(60)],
+    [1, 'Fiendish Legacy', 'İblis mirası', x => turSoyBuyu(x, 'iblis'), ['soy', 'yet']],
+    [1, 'Otherworldly Presence', 'Öteki dünyadan', () => 'Thaumaturgy (Mucize gösterisi) cantrip\'ini bilirsin; iblis mirasınla aynı büyü yeteneğini kullanır.'],
+  ] },
+};
+const TUR_SOY_SET = { Dragonborn: 'ejder', Elf: 'elf', Tiefling: 'iblis', Gnome: 'gnom', Goliath: 'dev' };
+function turKey(c = C) {                                               // kağıttaki türün TUR_OZ adı (SRD'de yoksa '')
+  const s = deger(c.species).trim().toLocaleLowerCase('tr'); if (!s) return '';
+  return Object.keys(TUR_OZ).find(k => k.toLowerCase() === s || (OL_TUR[k] && OL_TUR[k].tr.toLocaleLowerCase('tr') === s)) || '';
+}
+function turBaglam(c = C) {
+  const l = clamp(int(c.level), 1, 20), s = c.turSecim || {}, k = turKey(c);
+  return { l, pb: 2 + Math.floor((l - 1) / 4), s, k, m: a => Math.floor((int(c.abilities[a]) - 10) / 2),
+    ejder: k === 'Dragonborn' ? TUR_SECENEK.ejder.liste[s.soy] : null };
+}
+function turHaklar(h) {                                                // hakListe'ye: türün günlük kullanımları
+  const x = turBaglam(), soy = TUR_SOY_SET[x.k] && TUR_SECENEK[TUR_SOY_SET[x.k]].liste[x.s.soy];
+  if (x.k === 'Dragonborn') { h('t-nefes', 'Breath Weapon', 'Nefes silahı', x.pb); if (x.l >= 5) h('t-kanat', 'Draconic Flight', 'Ejder kanatları', 1); }
+  if (x.k === 'Dwarf') h('t-tas', 'Stonecunning', 'Taş sezgisi', x.pb);
+  if ((x.k === 'Elf' || x.k === 'Tiefling') && soy) { if (x.l >= 3) h('t-b3', soy[2][0], soy[2][1] + ' (yuvasız)', 1); if (x.l >= 5) h('t-b5', soy[3][0], soy[3][1] + ' (yuvasız)', 1); }
+  if (x.k === 'Gnome' && x.s.soy === 'Forest Gnome') h('t-hayvan', 'Speak with Animals', 'Hayvanlarla konuşma (yuvasız)', x.pb);
+  if (x.k === 'Goliath') { h('t-dev', soy ? x.s.soy : 'Giant Ancestry', soy ? soy[0] : 'Dev soyu', x.pb); if (x.l >= 5) h('t-iri', 'Large Form', 'İri biçim', 1); }
+  if (x.k === 'Orc') { h('t-adr', 'Adrenaline Rush', 'Adrenalin', x.pb, 'hepsi'); h('t-yilmaz', 'Relentless Endurance', 'Yılmaz dayanıklılık', 1); }
+}
+function turOzCiz() {                                                  // kağıdın Özellikler sekmesi (refresh'ten)
+  const el = $('#turOz'); if (!el) return;
+  if (el.contains(document.activeElement) && document.activeElement.tagName === 'SELECT') return;
+  const ad = deger(C.species).trim(), x = turBaglam(), v = TUR_OZ[x.k], not = $('[data-bind="traits"]');
+  if (not) not.placeholder = v ? 'Panelde olmayanlar ya da kendi notların (ör. dillerin, görünüşün).' : 'Türünden gelen özellikler. Örnek: Darkvision 60 ft…';
+  if (!ad) { el.innerHTML = '<p class="hint always">Türünü kağıdın başına yazınca (ör. Elf) türünün bütün özellikleri burada görünür.</p>'; return; }
+  if (!v) { el.innerHTML = `<p class="hint always tur-yok"><b>${esc(ad)}</b> SRD 5.2.1'de yok, bu yüzden site özelliklerini yazamıyor. Kitabından ya da kendi hesabından bakıp aşağıdaki <b>Species traits</b> kutusuna kendin yaz.</p>`; return; }
+  const secHtml = (set, alan) => { const T = TUR_SECENEK[alan === 'soy' ? set : alan], cur = x.s[alan] || '';
+    const liste = alan === 'beceri' ? Object.fromEntries(SKILLS.map(s => [s.k, [`${s.en} · ${s.tr}`]])) : T ? T.liste : {};
+    const etiket = alan === 'beceri' ? (en, y) => y[0] : T.etiket;
+    return `<label class="so-sec-i"><select data-tursec="${alan}" aria-label="${esc(alan === 'beceri' ? 'Beceri' : T.ad)}"><option value="">${alan === 'yet' ? 'Büyü yeteneği seç…' : 'Seç…'}</option>${Object.entries(liste).map(([en, y]) => `<option value="${esc(en)}"${en === cur ? ' selected' : ''}>${esc(etiket(en, y))}</option>`).join('')}</select></label>`; };
+  const satir = (o, gelecek) => { const [lv, en, tr, d, sec] = o;
+    return `<li class="so${gelecek ? ' gelecek' : ''}"><span class="so-sv" title="${lv}. seviye">${lv}</span><div><b>${esc(tr)}</b> <i>${esc(en)}</i>${gelecek ? `<small class="so-gel">${lv}. seviyede gelecek</small>` : ''}<p>${esc(d(x))}</p>${!gelecek && sec ? `<div class="so-sec">${sec.map(a => secHtml(TUR_SOY_SET[x.k], a)).join('')}</div>` : ''}</div></li>`; };
+  const gelen = v.oz.filter(o => o[0] <= x.l), gelecek = v.oz.filter(o => o[0] > x.l);
+  el.innerHTML = `<div class="so-bas"><h3>${esc(x.k)} traits<em>Tür özelliklerin · ${esc(OL_TUR[x.k] ? OL_TUR[x.k].tr : x.k)} · Humanoid · ${esc(v.boy)} · hız ${x.k === 'Elf' && x.s.soy === 'Wood Elf' ? 35 : v.hiz} ft</em></h3></div>
+    <ol class="so-liste">${gelen.map(o => satir(o, false)).join('')}</ol>
+    ${gelecek.length ? `<details class="so-gelecek"><summary>Sonraki seviyelerde gelecekler (${gelecek.length})</summary><ol class="so-liste">${gelecek.map(o => satir(o, true)).join('')}</ol></details>` : ''}`;
+}
+function turSec(alan, deg) {                                           // panelde bir seçim: kaydet, gerekirse beceriyi / hızı uygula
+  if (mode === 'peek') return;
+  const once = (C.turSecim || {})[alan] || '';
+  C.turSecim = Object.assign({}, C.turSecim, { [alan]: short(deg, 40) });
+  if ((alan === 'duyu' || alan === 'beceri') && deg && SKILL[deg]) {
+    if (!int(C.skills[deg])) C.skills[deg] = 1;
+    if (once && once !== deg && SKILL[once]) notify(`${SKILL[deg].en} yetkinliği eklendi`, `Eski seçimin (${SKILL[once].en}) yetkinliği duruyor; başka yerden gelmiyorsa Beceriler'den kaldır.`);
+  }
+  if (alan === 'soy' && turKey() === 'Elf') {                          // Orman elfi: hız 35
+    if (deg === 'Wood Elf' && int(C.speed) === 30) { C.speed = 35; setInput('speed'); }
+    else if (once === 'Wood Elf' && deg !== 'Wood Elf' && int(C.speed) === 35) { C.speed = 30; setInput('speed'); }
+  }
+  changed();
+}
+document.addEventListener('change', e => { const a = e.target.dataset && e.target.dataset.tursec; if (a) { turSec(a, e.target.value); e.target.blur(); } });
 function hakListe() {                                                  // C'nin hakları (sınıf, seviye ve yeteneklere göre)
   const cl = findClass(), ad = cl ? cl.name : '', v = SINIF_OZ[ad], l = int(C.level);
   const m = k => Math.floor((int(C.abilities[k]) - 10) / 2), en1 = k => Math.max(1, m(k));
@@ -3762,6 +3915,7 @@ function hakListe() {                                                  // C'nin 
   if (ad === 'Sorcerer') { h('dogustan', 'Innate Sorcery', 'Doğuştan büyü', 2); if (l >= 2) h('puan', 'Sorcery Points', 'Büyü puanı', l, 0, true); if (l >= 5) h('tazelen', 'Sorcerous Restoration', 'Büyü tazelenmesi', 1); if (alt && l >= 14) h('kanat', 'Dragon Wings', 'Ejder kanatları', 1); if (alt && l >= 18) h('ejder', 'Dragon Companion', 'Yuvasız Summon Dragon', 1); }
   if (ad === 'Warlock') { if (l >= 2) h('kurnaz', 'Magical Cunning', 'Büyü kurnazlığı', 1); if (l >= 9) h('hami', 'Contact Patron', 'Hamiyle konuşma', 1); [[11, 6], [13, 7], [15, 8], [17, 9]].forEach(([s, b]) => { if (l >= s) h('sir' + b, 'Mystic Arcanum', `Gizemli sır (${b}. seviye)`, 1); }); if (alt && l >= 6) h('sans', 'Dark One’s Own Luck', 'Karanlığın şansı', en1('cha')); if (alt && l >= 14) h('cehennem', 'Hurl Through Hell', 'Cehenneme fırlat', 1); }
   if (ad === 'Wizard') { h('toparlan', 'Arcane Recovery', 'Büyü toparlanması', 1); if (l >= 20) h('imza', 'Signature Spells', 'İmza büyüleri', 2, 'hepsi'); }
+  turHaklar(h);                                                       // türün günlük kullanımları (2026-11-12)
   return H;
 }
 const hakKalan = h => h.max - clamp(int((C.hak || {})[h.k]), 0, h.max);
@@ -3797,7 +3951,7 @@ function hakCiz() {                                                   // refresh
   const el = $('#haklar'); if (!el) return;
   const html = hakHtml();
   el.hidden = !html;
-  if (html && !el.contains(document.activeElement)) el.innerHTML = `<h3 class="hk-bas">Class resources<em>Sınıf hakları: harcadıkça dokun</em></h3>${html}`;
+  if (html && !el.contains(document.activeElement)) el.innerHTML = `<h3 class="hk-bas">Resources<em>Sınıf ve tür hakların: harcadıkça dokun</em></h3>${html}`;
 }
 // Kısa dinlenme: kısa dinlenmede dolan haklar (Warlock'ta antlaşma yuvaları da) + canın eksikse bir can zarı
 function kisaDinlen() {
@@ -4306,7 +4460,7 @@ function blankChar() {
     saves:{ str:0, dex:0, con:0, int:0, wis:0, cha:0 },
     skills: Object.fromEntries(SKILLS.map(s => [s.k, 0])),          // 0 yok, 1 yetkin, 2 uzman
     ac:10, armorType:'', shield:false, acOto:false, initBonus:0, speed:30,
-    hp:{ cur:10, max:10, temp:0 }, hitDie:'d8', hdUsed:0, ds:{ s:0, f:0 }, hak:{}, secim:{}, gun:0,
+    hp:{ cur:10, max:10, temp:0 }, hitDie:'d8', hdUsed:0, ds:{ s:0, f:0 }, hak:{}, secim:{}, turSecim:{}, gun:0,
     conds:[], exh:0,
     spellAbility:'', slots: Array.from({ length:9 }, () => ({ t:0, u:0 })),   // t toplam, u harcanan
     attacks:[], spells:[], items:[], feats:[],
@@ -4346,6 +4500,7 @@ function normalize(c) {
   c.xp = Math.max(int(c.xp), XP_ESIK[c.level - 1]);                     // XP en az seviyenin alt sınırı (XP'siz eski kayıtlar)
   if (!c.hak || typeof c.hak !== 'object' || Array.isArray(c.hak)) c.hak = {};
   if (!c.secim || typeof c.secim !== 'object' || Array.isArray(c.secim)) c.secim = {};
+  if (!c.turSecim || typeof c.turSecim !== 'object' || Array.isArray(c.turSecim)) c.turSecim = {};   // tür seçimleri (turSec)
   c.slots = Array.from({ length:9 }, (_, i) => { const s = c.slots[i] || {}; const t = clamp(int(s.t), 0, 9); return { t, u: clamp(int(s.u), 0, t) }; });
   c.attune = [0, 1, 2].map(i => String(c.attune[i] ?? ''));
   for (const list in NEW_ROW) c[list] = c[list].filter(r => r && typeof r === 'object').map(r => Object.assign(NEW_ROW[list](), r));
@@ -5243,6 +5398,7 @@ const ACTIONS = {
     C.slots.forEach(s => { s.u = 0; });
     C.exh = Math.max(0, int(C.exh) - 1);
     const hak = hakDinlen('uzun');
+    if (turKey() === 'Human') C.insp = true;                          // Resourceful: her uzun dinlenmede ilham
     fillInputs(); changed(); if (mode === 'table') renderMe();
     notify('Uzun dinlenme tamamlandı', `Can, can zarları ve büyü yuvaları${hak.length ? ', sınıf hakların' : ''} yenilendi.`);
   },
@@ -5466,26 +5622,16 @@ const OL_SINIF = {
               ozellik:'Eldritch Invocations: bir gizemli yetenek seç (ör. Pact of the Tome).\nPact Magic: CHA ile büyü yaparsın; yuvaların kısa dinlenmede dolar.' },
 };
 const OL_TUR = {
-  Human:     { tr:'İnsan', d:'Her işe uyar: fazladan bir beceri ve bir başlangıç hüneri.', hiz:30, boy:'Medium', ekBeceri:1,
-               ozellik:'Resourceful: her uzun dinlenmeden sonra Heroic Inspiration (ilham) kazanırsın.\nSkillful: bir beceride fazladan yetkinlik.\nVersatile: bir başlangıç hüneri (ör. Skilled).' },
-  Elf:       { tr:'Elf', d:'Uzun ömürlü, keskin duyulu. Karanlıkta görür, uyumaz, transa girer.', hiz:30, boy:'Medium', turBeceri:'perception',
-               ozellik:'Darkvision 60 ft: karanlıkta görürsün.\nFey Ancestry: Charmed durumuna karşı kurtarma zarında avantaj.\nKeen Senses: Perception yetkinliği.\nTrance: 4 saat transla uzun dinlenmeyi tamamlarsın.\nElven Lineage: soyundan küçük bir büyü.' },
-  Dwarf:     { tr:'Cüce', d:'Dayanıklı ve inatçı. Zehre dirençli, fazladan canlı, karanlıkta çok iyi görür.', hiz:30, boy:'Medium', canEk:1,
-               ozellik:'Darkvision 120 ft.\nDwarven Resilience: zehir hasarına direnç, Poisoned durumuna karşı avantaj.\nDwarven Toughness: her seviyede +1 can.\nStonecunning: bonus aksiyonla taşın içindeki gizli şeyleri sezersin.' },
-  Halfling:  { tr:'Buçukluk', d:'Küçük ve şanslı. Doğal 1 atınca zarı yeniden atar, kolay korkmaz.', hiz:30, boy:'Small',
-               ozellik:'Luck: d20\'de doğal 1 atınca zarı yeniden at.\nBrave: Frightened durumuna karşı avantaj.\nHalfling Nimbleness: senden büyüklerin arasından geçebilirsin.\nNaturally Stealthy: senden büyük birinin arkasına saklanabilirsin.' },
-  Dragonborn:{ tr:'Ejderdoğan', d:'Ejder soyundan. Nefesiyle hasar verir, bir hasar türüne dirençlidir.', hiz:30, boy:'Medium',
-               ozellik:'Draconic Ancestry: bir ejder türü seç (hasar türünü belirler).\nBreath Weapon: saldırılarından birinin yerine nefes (1d10, DEX kurtarma).\nDamage Resistance: soyunun hasar türüne direnç.\nDarkvision 60 ft.' },
-  Gnome:     { tr:'Gnom', d:'Küçük ve meraklı. Zihni büyüye karşı güçlü.', hiz:30, boy:'Small',
-               ozellik:'Darkvision 60 ft.\nGnomish Cunning: INT, WIS ve CHA kurtarma zarlarında avantaj.\nGnomish Lineage: soyundan küçük bir büyü.' },
-  Goliath:   { tr:'Golyat', d:'Dev soyundan. İri, güçlü ve hızlı.', hiz:35, boy:'Medium',
-               ozellik:'Giant Ancestry: dev soyundan bir güç seç (günde PB kez).\nPowerful Build: taşıma kapasiten iki kat sayılır.\nLarge Form: 5. seviyede bir süreliğine büyürsün.' },
-  Orc:       { tr:'Ork', d:'Güçlü ve dayanıklı. Canı bitince bir kez 1 canla ayakta kalır.', hiz:30, boy:'Medium',
-               ozellik:'Adrenaline Rush: bonus aksiyonla Dash ve geçici can.\nDarkvision 120 ft.\nRelentless Endurance: can 0\'a inince bir kez 1 canla ayakta kalırsın (uzun dinlenmede yenilenir).' },
-  Tiefling:  { tr:'Tiefling', d:'Cehennem soyundan. Şeytani bir miras ve birkaç küçük büyü.', hiz:30, boy:'Medium',
-               ozellik:'Darkvision 60 ft.\nFiendish Legacy: soyundan bir direnç ve küçük büyüler.\nOtherworldly Presence: Thaumaturgy cantrip\'ini bilirsin.' },
-  Aasimar:   { tr:'Aasimar', d:'Göksel soy. Elleriyle iyileştirir, ışık saçar.', hiz:30, boy:'Medium',
-               ozellik:'Celestial Resistance: necrotic ve radiant hasara direnç.\nHealing Hands: dokunarak PB d4 can verirsin (uzun dinlenmede bir kez).\nLight Bearer: Light cantrip\'ini bilirsin.\nDarkvision 60 ft.' },
+  Human:     { tr:'İnsan', d:'Her işe uyar: fazladan bir beceri ve bir başlangıç hüneri.', hiz:30, boy:'Medium', ekBeceri:1 },
+  Elf:       { tr:'Elf', d:'Uzun ömürlü, keskin duyulu. Karanlıkta görür, uyumaz, transa girer.', hiz:30, boy:'Medium', turBeceri:'perception' },
+  Dwarf:     { tr:'Cüce', d:'Dayanıklı ve inatçı. Zehre dirençli, fazladan canlı, karanlıkta çok iyi görür.', hiz:30, boy:'Medium', canEk:1 },
+  Halfling:  { tr:'Buçukluk', d:'Küçük ve şanslı. Doğal 1 atınca zarı yeniden atar, kolay korkmaz.', hiz:30, boy:'Small' },
+  Dragonborn:{ tr:'Ejderdoğan', d:'Ejder soyundan. Nefesiyle hasar verir, bir hasar türüne dirençlidir.', hiz:30, boy:'Medium' },
+  Gnome:     { tr:'Gnom', d:'Küçük ve meraklı. Zihni büyüye karşı güçlü.', hiz:30, boy:'Small' },
+  Goliath:   { tr:'Golyat', d:'Dev soyundan. İri, güçlü ve hızlı.', hiz:35, boy:'Medium' },
+  Orc:       { tr:'Ork', d:'Güçlü ve dayanıklı. Canı bitince bir kez 1 canla ayakta kalır.', hiz:30, boy:'Medium' },
+  Tiefling:  { tr:'Tiefling', d:'Cehennem soyundan. Şeytani bir miras ve birkaç küçük büyü.', hiz:30, boy:'Medium' },
+  Aasimar:   { tr:'Aasimar', d:'SRD\'de yok: özelliklerini kağıda kendin yazarsın.', hiz:30, boy:'Medium' },
 };
 const OL_GECMIS = {   // ab: +2 / +1 verilebilen üç yetenek; beceri: iki yetkinlik; huner: başlangıç hüneri
   Acolyte:    { tr:'Rahip yamağı', ab:['int','wis','cha'], beceri:['insight','religion'],     alet:"Calligrapher's Supplies", huner:'Magic Initiate (Cleric)', d:'Bir tapınakta hizmet ederek yetiştin.' },
@@ -5819,7 +5965,9 @@ function olKur() {
   const kalan = Math.max(0, olKalan()); c.coins.gp = Math.floor(kalan / 100); c.coins.sp = Math.floor(kalan % 100 / 10); c.coins.cp = kalan % 10;
   c.spells = (OL_BUYU[OL.sinif] || []).map(x => Object.assign({ c:false, r:false, m:false, prep:true }, x));
   c.features = s.ozellik + (z.not ? '\n' + z.not : '');
-  c.traits = t.ozellik;
+  c.traits = '';                                                      // tür özellikleri artık panelde (turOzCiz)
+  if (OL.tur === 'Elf') c.turSecim.duyu = 'perception';
+  if (OL.tur === 'Human' && OL.ekBeceri[0]) c.turSecim.beceri = OL.ekBeceri[0];
   c.feats = [{ name: huner, desc: OL_HUNER[huner] || '' }];
   return c;
 }
