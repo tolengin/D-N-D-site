@@ -644,6 +644,51 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
   .kat-satir>.kat-fiyat{grid-column:2;grid-row:2;text-align:left}
   .kat-satir>:last-child{grid-column:3;grid-row:1/3}
 }
+/* Büyü seçme penceresi ve kağıttaki büyü satırları (2026-11-12, BÖLÜM 8e). Pencere katalog penceresinin kalıbını kullanır. */
+.by-say{display:flex;flex-wrap:wrap;gap:6px}
+.by-say>span{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;border:1px solid var(--line);background:var(--surface-2);font:600 13px var(--font-ui);color:var(--muted)}
+.by-say b{color:var(--text);font-variant-numeric:tabular-nums}
+.by-say .eksik{border-color:var(--accent)}
+.by-say .eksik b{color:var(--accent)}
+.by-say .tasti{border-color:var(--bad)}
+.by-say .tasti b{color:var(--bad)}
+.by-say .tam b{color:var(--good)}
+.by-ozet{margin:2px 0 10px}
+.by-ozet .hint{margin-top:6px}
+.by-ara{display:flex;flex-wrap:wrap;gap:8px}
+.by-ara>input{flex:1 1 220px;min-width:0}
+.by-ara>select{flex:0 1 auto;width:auto}
+.kat-sekme.uzak{opacity:.6}
+.by-satir{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:start;padding:8px 10px;border:1px solid var(--line);background:var(--surface-2)}
+.by-satir.sec{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface-2))}
+.by-satir.uzak{opacity:.6}
+.by-sv{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--line);font:700 14px var(--font-display);color:var(--muted)}
+.by-ad{min-width:0;font-size:14px}
+.by-ad i{font-style:normal;color:var(--muted)}
+.by-bilgi{display:block;margin-top:2px;font-size:12px;line-height:1.4;color:var(--muted)}
+.by-bilgi em,.sp-acik em{font-style:normal;color:var(--accent-2)}
+.by-acik{margin:4px 0 0;font-size:13px;line-height:1.45;color:var(--text);cursor:pointer;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.by-acik.acik{display:block}
+.by-mat{display:block;margin-top:4px;font-size:12px;color:var(--muted)}
+.by-sag{align-self:center;flex-wrap:wrap}
+.by-sag .btn:disabled{background:var(--surface-2);border-color:var(--line);color:var(--muted)}   /* dolu liste: mavi kalmasın */
+.by-rozet{display:inline-flex;flex-direction:column;align-items:flex-end;font:700 13px var(--font-ui);color:var(--good)}
+.by-rozet small{font-weight:600;font-size:11px;color:var(--muted)}
+.by-yok{font-size:12px;color:var(--muted);white-space:nowrap}
+#byAlt{margin-right:auto;display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);max-width:560px}
+.by-serbest{display:inline-flex;align-items:center;gap:6px;font-size:12px;cursor:pointer}
+.sp-acik{grid-column:1/-1;margin:-2px 0 0;font-size:12.5px;line-height:1.45;color:var(--muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-acik.acik{white-space:normal}
+.sp-acik b{color:var(--text)}
+.sp-acik .by-mat{display:none}
+.sp-acik.acik .by-mat{display:block}
+.sp-kay{margin-right:8px;padding:1px 6px;border:1px solid var(--good);font:700 11px var(--font-ui);color:var(--good)}
+.tg.sp-hep{display:inline-grid;place-items:center;cursor:default;border-color:var(--good);color:var(--good)}
+@media (max-width:760px){ .li.spell>.sp-acik{flex:1 1 100%} }
+@media (max-width:560px){
+  .by-satir{grid-template-columns:26px minmax(0,1fr)}
+  .by-sag{grid-column:2;justify-content:flex-start}
+}
 /* Envanter satırında katalog eşyasının ikonu (adın solunda) */
 .it-ad{position:relative;display:block;min-width:0}
 .it-ad>.esya-ic{position:absolute;left:6px;top:50%;width:22px;height:22px;transform:translateY(-50%);pointer-events:none}
@@ -844,7 +889,7 @@ body.peek #sheet [data-act="kisa-dinlen"]{display:none}
 .feed li.secret{border:1px dashed var(--line)}
 
 /* DM bir oyuncunun kağıdını izlerken: kutular kilitli, düzenleme düğmeleri gizli */
-body.peek #sheet :is([data-act="add"],[data-act="row-del"],[data-act="longrest"],[data-act="hitdie"],[data-act="hp-adim"],[data-act="sort-spells"],[data-act="fill-slots"],
+body.peek #sheet :is([data-act="add"],[data-act="row-del"],[data-act="longrest"],[data-act="hitdie"],[data-act="hp-adim"],[data-act="sort-spells"],[data-act="fill-slots"],[data-act="by-ac"],
   [data-act="portrait-remove"],[data-act="hp"],[data-roll="death"],#hpAmount,.class-hint,.stepper button,.welcome){display:none!important}
 body.peek #sheet :is(input,select,textarea):disabled{opacity:1;-webkit-text-fill-color:currentColor;cursor:default}
 body.peek #sheet :is(.prof,.pip,.chip,.tg,.align-btn,.insp,.portrait,.check){pointer-events:none}
@@ -2906,9 +2951,11 @@ body.tv-full #tableView{height:100dvh}
             <h3>Spells<em>Büyüler</em></h3>
             <div class="btns">
               <button class="btn sm" data-act="sort-spells" data-tam>Seviyeye göre sırala</button>
-              <button class="btn accent sm" data-act="add" data-list="spells"><svg class="ic"><use href="#i-plus"/></svg>Büyü ekle</button>
+              <button class="btn sm" data-act="add" data-list="spells" title="SRD'de olmayan ya da kendi yazacağın bir büyü"><svg class="ic"><use href="#i-pencil"/></svg>Elle ekle</button>
+              <button class="btn accent sm" data-act="by-ac"><svg class="ic"><use href="#i-book"/></svg>Büyü seç</button>
             </div>
           </div>
+          <div class="by-ozet" id="byOzet" hidden></div><!-- Büyüler (BÖLÜM 8e): sayılar ve değiştirme kuralı -->
           <div class="list" id="spells"></div>
         </div>
 
@@ -3189,6 +3236,21 @@ body.tv-full #tableView{height:100dvh}
     <div class="modal-act"><span id="katAlt"></span><button class="btn" data-act="kat-kapa">Kapat</button></div>
   </div>
 </div>
+<!-- Büyü seçme penceresi (2026-11-12, BÖLÜM 8e): sınıfın listesi, seviye sekmeleri, sayılar, değiştirme hakkı -->
+<div class="modal kat-modal" id="byModal" hidden>
+  <div class="card modal-box kat-box by-box" role="dialog" aria-modal="true" aria-labelledby="byBaslik">
+    <h2 id="byBaslik"></h2>
+    <div class="by-say" id="bySay"></div>
+    <div class="by-ara">
+      <input type="search" id="byAra" placeholder="Ara: fireball, ateş, iyileş…" aria-label="Büyü ara" autocomplete="off">
+      <select id="byKapsam" aria-label="Hangi liste"></select>
+      <select id="byToprak" aria-label="Toprak türü" hidden></select>
+    </div>
+    <div class="kat-sek" id="bySek" role="tablist" aria-label="Büyü seviyeleri"></div>
+    <div class="kat-liste" id="byIc"></div>
+    <div class="modal-act"><span id="byAlt"></span><button class="btn" data-act="by-kapa">Kapat</button></div>
+  </div>
+</div>
 <div class="modal" id="modal" hidden>
   <div class="card modal-box" role="dialog" aria-modal="true">
     <p id="modalText"></p>
@@ -3199,6 +3261,7 @@ body.tv-full #tableView{height:100dvh}
   </div>
 </div>
 
+<script src="masa/buyuler.js"></script><!-- SRD 5.2.1 büyüleri (window.SRD_BUYU; BÖLÜM 8e) -->
 <script>
 (() => {
 'use strict';
@@ -3686,7 +3749,7 @@ function lvCiz() {
     ? `<ul class="lv-oz">${liste.map(x => `<li${x.alt ? ' class="alt"' : ''}><b>${esc(x.o[1])}</b> <i>${esc(x.o[2])}</i>${x.alt ? `<small>${esc(b.altAd)}</small>` : ''}${OZ_SECIM[x.o[1]] ? '<small>seçim: Özellikler\'de</small>' : ''}<p>${esc(x.o[3])}</p></li>`).join('')}</ul>`
     : b.cl ? '<p class="lv-not">Bu seviyede yeni bir sınıf özelliği yok; can ve sayılar artar.</p>' : ''}${liste.length ? '<p class="lv-not">Bunlar kağıdındaki Özellikler sekmesinde, sınıf özelliklerinin arasında görünür; seçmeli olanları (ör. dövüş stili, silahlar) orada seçersin.</p>' : ''}</section>`);
   if (b.asi) h.push(lvAsiHtml());
-  if (b.kay.length) h.push(`<section class="lv-sek"><h3>Havuzlar ve sayılar</h3><ul class="lv-kay">${b.kay.map(k => `<li>${esc(k.s)}${k.once ? `<small>önce: ${esc(k.once)}</small>` : ''}</li>`).join('')}</ul>${BUYU_SAY[b.ad] ? '<p class="lv-not">Yeni büyülerini kağıttaki Büyüler bölümünden seç.</p>' : ''}</section>`);
+  if (b.kay.length) h.push(`<section class="lv-sek"><h3>Havuzlar ve sayılar</h3><ul class="lv-kay">${b.kay.map(k => `<li>${esc(k.s)}${k.once ? `<small>önce: ${esc(k.once)}</small>` : ''}</li>`).join('')}</ul>${BUYU_SAY[b.ad] ? `<p class="lv-not">Büyü yuvaların yeni seviyeye göre dolar. Yeni büyülerini kağıttaki Büyüler sekmesinde "Büyü seç" ile seç.${BY_DEGIS[b.ad] && BY_DEGIS[b.ad].p === 'seviye' ? ' Hazırladığın bir büyüyü de değiştirebilirsin.' : ''}${BY_DEGIS[b.ad] && BY_DEGIS[b.ad].c === 'seviye' && BUYU_SAY[b.ad].c ? ' Bir cantrip\'ini değiştirebilirsin.' : ''}</p>` : ''}</section>`);
   $('#lvIc').innerHTML = h.join('');
   if (b.asi) {
     $$('#lvIc [name="lvAsi"]').forEach(r => { r.checked = r.value === LV.asi.tur; });
@@ -3721,6 +3784,11 @@ function lvUygula() {
   if (asi) Object.entries(asi.deg).forEach(([k, n]) => { C.abilities[k] = Math.min(20, int(C.abilities[k]) + n); });
   if (l === 20 && (b.ad === 'Barbarian' || b.ad === 'Monk')) (b.ad === 'Barbarian' ? ['str', 'con'] : ['dex', 'wis']).forEach(k => { C.abilities[k] = Math.min(25, int(C.abilities[k]) + 4); });
   if (b.v && l >= 3 && !deger(C.subclass)) C.subclass = b.altAd;
+  if (b.cl && b.cl.cast) {                                             // büyü yuvaları yeni seviyenin tablosuna; büyü değiştirme hakkı (BÖLÜM 8e)
+    slotsFor(b.cl, l).forEach((t, i) => { C.slots[i].t = t; C.slots[i].u = clamp(C.slots[i].u, 0, t); });
+    if (!C.spellAbility && b.cl.sp) C.spellAbility = b.cl.sp;
+    byHakVer('seviye');
+  }
   const ekle = (en, tr, acik) => {                                     // aynı özellik daha önce geldiyse altına yeni satır
     const ad = `${en} (${tr})`, satir = `${b.ad ? b.ad + ' ' : ''}${l}. seviye: ${acik}`, f = C.feats.find(x => x.name === ad);
     if (f) f.desc = (f.desc ? f.desc + '\n' : '') + satir; else C.feats.push({ name: ad, desc: satir });
@@ -4510,6 +4578,7 @@ function blankChar() {
     hp:{ cur:10, max:10, temp:0 }, hitDie:'d8', hdUsed:0, ds:{ s:0, f:0 }, hak:{}, secim:{}, turSecim:{}, gun:0,
     conds:[], exh:0,
     spellAbility:'', slots: Array.from({ length:9 }, () => ({ t:0, u:0 })),   // t toplam, u harcanan
+    byHak:{ c:0, p:0 }, byToprak:'',                                // büyü değiştirme hakkı, Circle of the Land toprağı (BÖLÜM 8e); byKur: ilk seçim bitti
     attacks:[], spells:[], items:[], feats:[],
     coins:{ cp:0, sp:0, ep:0, gp:0, pp:0 }, attune:['','',''], equipmentNotes:'',
     features:'', traits:'', personality:'', ideals:'', bonds:'', flaws:'', backstory:'',
@@ -4522,7 +4591,7 @@ function blankChar() {
 }
 const NEW_ROW = {
   attacks: () => ({ name:'', ab:'str', prof:true, bonus:0, dmg:'', note:'' }),
-  spells:  () => ({ lvl:1, name:'', cast:'', range:'', c:false, r:false, m:false, prep:true, note:'' }),
+  spells:  () => ({ lvl:1, name:'', cast:'', range:'', c:false, r:false, m:false, prep:true, note:'', kay:'' }),
   items:   () => ({ qty:1, name:'', wt:0, eq:false }),
   feats:   () => ({ name:'', desc:'' }),
 };
@@ -4950,11 +5019,13 @@ function renderLists() {
       <input data-f="cast" value="${esc(s.cast)}" placeholder="1 action" aria-label="Yapılış süresi">
       <input data-f="range" value="${esc(s.range)}" placeholder="60 ft" aria-label="Menzil">
       <span class="tgs">${TG('c', s.c, 'C', 'Concentration: büyü sürerken konsantrasyon gerekir, hasar alırsan bozulabilir')}${TG('r', s.r, 'R', 'Ritual: 10 dakika fazladan harcarsan yuva tüketmeden yapılır')}${TG('m', s.m, 'M', 'Material: bir malzeme ya da büyü odağı gerekir')}</span>
-      ${TG('prep', s.prep, 'Hazır', 'Bugün kullanmak üzere hazırladığın büyü')}
+      ${s.kay === 'hep' ? `<span class="tg sp-hep" title="Her zaman hazır (${esc(s.kayAd || '')}); hazırladığın büyülerin sayısına girmez">Hep</span>` : TG('prep', s.prep, 'Hazır', 'Bugün kullanmak üzere hazırladığın büyü')}
       <input data-f="note" value="${esc(s.note)}" placeholder="Etkisi, hasarı…" aria-label="Not">
       ${DEL}
+      ${bySatirAcik(s)}
     </div>`).join('')
-    : '<p class="empty">Henüz büyü yok. Karakterin büyü kullanıyorsa “Büyü ekle” ile listeni oluştur.</p>';
+    : '<p class="empty">Henüz büyü yok. Karakterin büyü kullanıyorsa “Büyü seç” ile sınıfının listesinden seç; SRD\'de olmayanı “Elle ekle” ile yaz.</p>';
+  byOzetCiz();
 
   $('#items').innerHTML = C.items.length ? `
     <div class="li-head item"><span>Adet</span><span>Eşya</span><span>Ağırlık (lb)</span><span>Durum</span><span></span></div>` +
@@ -5000,6 +5071,7 @@ const pipRow = (act, n, k = 3) => Array.from({ length: k }, (_, i) => i).map(i =
 
 function refresh() {
   const P = pb();
+  if (byHepSenk()) { renderLists(); save(); }                         // her zaman hazır büyüler sınıfa / seviyeye uysun (BÖLÜM 8e)
 
   // Başlık
   const cl = findClass();
@@ -5447,8 +5519,9 @@ const ACTIONS = {
     C.exh = Math.max(0, int(C.exh) - 1);
     const hak = hakDinlen('uzun');
     if (turKey() === 'Human') C.insp = true;                          // Resourceful: her uzun dinlenmede ilham
-    fillInputs(); changed(); if (mode === 'table') renderMe();
-    notify('Uzun dinlenme tamamlandı', `Can, can zarları ve büyü yuvaları${hak.length ? ', sınıf hakların' : ''} yenilendi.`);
+    const byh = byHakVer('uzun');                                     // büyü değiştirme (BÖLÜM 8e)
+    fillInputs(); renderLists(); changed(); if (mode === 'table') renderMe();
+    notify('Uzun dinlenme tamamlandı', `Can, can zarları ve büyü yuvaları${hak.length ? ', sınıf hakların' : ''} yenilendi.${byh ? ' Büyülerini değiştirebilirsin: Büyüler > Büyü seç.' : ''}`);
   },
   'ds-s': b => { const n = int(b.dataset.n) + 1, once = int(C.ds.s); C.ds.s = once === n ? n - 1 : n; if (C.ds.s > once && int(C.hp.cur) <= 0 && C.ds.f < 3) reviveAtOne(true); changed(); },
   'ds-f': b => { const n = int(b.dataset.n) + 1; C.ds.f = C.ds.f === n ? n - 1 : n; changed(); },
@@ -5456,7 +5529,11 @@ const ACTIONS = {
   exh: b => { C.exh = clamp(int(C.exh) + int(b.dataset.d), 0, 6); changed(); },
 
   'slot-total': b => { const s = C.slots[int(b.dataset.i)]; s.t = clamp(s.t + int(b.dataset.d), 0, 9); s.u = clamp(s.u, 0, s.t); changed(); },
-  'slot-pip': b => { const s = C.slots[int(b.dataset.i)]; s.u = clamp(s.u + (int(b.dataset.n) < s.t - s.u ? 1 : -1), 0, s.t); changed(); },
+  'slot-pip': b => {
+    const s = C.slots[int(b.dataset.i)], once = s.u; s.u = clamp(s.u + (int(b.dataset.n) < s.t - s.u ? 1 : -1), 0, s.t);
+    if (s.u > once && C.byHak && C.byHak.p === 'hepsi') C.byHak = Object.assign({}, C.byHak, { p: 0 });   // ilk yuva harcandı: uzun dinlenmenin "baştan seç" hakkı biter (BÖLÜM 8e)
+    changed();
+  },
   'fill-slots': () => {
     const cl = findClass(); if (!cl || !cl.cast) return;
     slotsFor(cl, C.level).forEach((t, i) => { C.slots[i].t = t; C.slots[i].u = clamp(C.slots[i].u, 0, t); });
@@ -5534,7 +5611,7 @@ const ACTIONS = {
 };
 
 // DM bir oyuncunun kağıdını izlerken yalnızca bu düğmeler çalışır (kağıt değiştirilemez)
-const PEEK_OK = new Set(['el', 'guide', 'tab', 'roll', 'dice-toggle', 'dice-mode', 'dice-quick', 'history-clear', 'chars-open', 'drawers-close', 'mode-dm', 'mode-sheet', 'table-open', 'table-close', 'copy-code']);
+const PEEK_OK = new Set(['el', 'guide', 'tab', 'roll', 'sp-acik', 'dice-toggle', 'dice-mode', 'dice-quick', 'history-clear', 'chars-open', 'drawers-close', 'mode-dm', 'mode-sheet', 'table-open', 'table-close', 'copy-code']);
 Object.assign(ACTIONS, {                                              // silah ustalığı seçici (ssCiz)
   'ss-ac': b => {
     const l = b.nextElementSibling, ac = l.hidden;
@@ -6294,6 +6371,299 @@ Object.assign(ACTIONS, {
     const s = SKILL[e.kitap.x];
     rollD20(`${s.en} (${s.tr}) · kitaba bakarak`, [[s.ab.toUpperCase(), mod(s.ab)], [C.skills[e.kitap.x] === 2 ? 'uzmanlık' : 'yetkinlik', int(C.skills[e.kitap.x]) * pb()], ['kitap', 5]]);
   },
+});
+/* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 8e — Büyüler (2026-11-12, yol haritası R2 madde 14; kural SRD 5.2.1, 2024)
+   Veri: masa/buyuler.js (window.SRD_BUYU, 339 büyü; araclar/buyu_yaz.py üretir; açıklamalar kendi Türkçe sözlerimiz).
+   Kağıttaki "Büyü seç" penceresi: sınıfın listesi (Bard 10. seviyeden Cleric / Druid / Wizard da), yuva tablosuna göre en yüksek
+   büyü seviyesi, sayılar BUYU_SAY (cantrip c, hazırlanan p; Thaumaturge / Magician +1 cantrip; Wizard kitabı 6 + 2 / seviye).
+   Satır: C.spells[i].kay: '' sınıf büyüsü (sayılır) · 'hep' her zaman hazır (alt sınıf, Favored Enemy, Paladin's Smite…;
+   sayılmaz, byHepSenk kendiliğinden ekler / çıkarır; kayAd kaynağı) · 'ek' başka yerden (hüner, tür; sayılmaz).
+   Değiştirme hakkı C.byHak = { c, p } (sayı ya da 'hepsi'), BY_DEGIS'e göre: seviye atlayınca (Bard, Sorcerer, Warlock bir büyü;
+   cantrip'li sınıflar bir cantrip), uzun dinlenmede (Cleric, Druid, Wizard hepsi; Paladin, Ranger bir büyü; Wizard bir cantrip).
+   'hepsi' ilk yuva harcanınca biter. İlk seçimde (C.byKur yokken, liste dolup pencere kapanana kadar), boş yer varken eklemek,
+   pencerede az önce eklediğini çıkarmak ve "Kuralları uygulama" (DM izin verince) serbest. Satırdaki × her zaman siler (elle düzeltme).
+   ═══════════════════════════════════════════════════════════════════ */
+const SRD_BUYU = Array.isArray(window.SRD_BUYU) ? window.SRD_BUYU : [];
+const BUYU = {};
+SRD_BUYU.forEach(b => { BUYU[b.a.toLowerCase()] = b; const t = b.t.toLocaleLowerCase('tr'); if (!BUYU[t]) BUYU[t] = b; });
+const buyuBul = s => {                                                 // satırın (ya da adın) SRD büyüsü; İngilizce ya da Türkçe ad
+  const n = String(s && typeof s === 'object' ? s.name : s || '').trim().replace(/[’`]/g, "'");
+  return n ? BUYU[n.toLowerCase()] || BUYU[n.toLocaleLowerCase('tr')] || null : null;
+};
+const BY_SINIF = { Bard: 'B', Cleric: 'C', Druid: 'D', Paladin: 'P', Ranger: 'R', Sorcerer: 'S', Warlock: 'W', Wizard: 'Z' };
+const BY_HARF = Object.fromEntries(Object.entries(BY_SINIF).map(([k, v]) => [v, k]));
+const BY_OKUL = { abj: ['Abjuration', 'Koruma'], con: ['Conjuration', 'Çağırma'], div: ['Divination', 'Kehanet'], enc: ['Enchantment', 'Büyüleme'],
+  evo: ['Evocation', 'Enerji'], ill: ['Illusion', 'Yanılsama'], nec: ['Necromancy', 'Ölüm'], tra: ['Transmutation', 'Dönüşüm'] };
+const BY_HT = { acid: 'asit', bludgeoning: 'ezici', cold: 'soğuk', fire: 'ateş', force: 'güç', lightning: 'yıldırım', necrotic: 'çürüten', piercing: 'delici',
+  poison: 'zehir', psychic: 'psişik', radiant: 'ışıyan', slashing: 'kesici', thunder: 'gök gürültüsü' };
+// Ne zaman değiştirilir (SRD "Changing Your Prepared Spells" ve cantrip kuralı): seviye = seviye atlayınca bir tane, uzun = uzun dinlenmede hepsi, uzun1 = uzun dinlenmede bir tane
+const BY_DEGIS = { Bard: { p: 'seviye', c: 'seviye' }, Cleric: { p: 'uzun', c: 'seviye' }, Druid: { p: 'uzun', c: 'seviye' }, Paladin: { p: 'uzun1' }, Ranger: { p: 'uzun1' },
+  Sorcerer: { p: 'seviye', c: 'seviye' }, Warlock: { p: 'seviye', c: 'seviye' }, Wizard: { p: 'uzun', c: 'uzun1' } };
+const BY_KURAL = {
+  seviye: 'Seviye atlayınca hazırladığın bir büyüyü ve bir cantrip\'ini aynı listeden başkasıyla değiştirebilirsin.',
+  uzun: 'Uzun dinlenmeden sonra hazırladığın büyüleri baştan seçebilirsin. Seviye atlayınca bir cantrip\'ini değiştirebilirsin.',
+  uzun1: 'Uzun dinlenmeden sonra hazırladığın bir büyüyü aynı listeden başkasıyla değiştirebilirsin.',
+  Wizard: 'Büyü kitabındakilerden hazırlarsın: uzun dinlenmeden sonra hazırladıklarını baştan seçer, bir cantrip\'ini değiştirebilirsin. Her seviye atlayışta kitabına iki büyü yazarsın; bulduğun tomarları da kopyalayabilirsin (DM\'e sor).',
+};
+const byKural = ad => BY_KURAL[ad] || (BY_DEGIS[ad] ? BY_KURAL[BY_DEGIS[ad].p] : '');
+// Her zaman hazır büyüler (sayıya girmez): [sınıf, alt sınıf ('' = sınıfın kendisi), seviye, büyüler, kaynak]
+const BY_HEP = [
+  ['Druid', '', 1, ['Speak with Animals'], 'Druidic'],
+  ['Paladin', '', 2, ['Divine Smite'], 'Paladin\'s Smite'], ['Paladin', '', 5, ['Find Steed'], 'Faithful Steed'],
+  ['Ranger', '', 1, ['Hunter\'s Mark'], 'Favored Enemy'],
+  ['Warlock', '', 9, ['Contact Other Plane'], 'Contact Patron'],
+  ['Cleric', 1, 3, ['Aid', 'Bless', 'Cure Wounds', 'Lesser Restoration']], ['Cleric', 1, 5, ['Mass Healing Word', 'Revivify']],
+  ['Cleric', 1, 7, ['Aura of Life', 'Death Ward']], ['Cleric', 1, 9, ['Greater Restoration', 'Mass Cure Wounds']],
+  ['Paladin', 1, 3, ['Protection from Evil and Good', 'Shield of Faith']], ['Paladin', 1, 5, ['Aid', 'Zone of Truth']], ['Paladin', 1, 9, ['Beacon of Hope', 'Dispel Magic']],
+  ['Paladin', 1, 13, ['Freedom of Movement', 'Guardian of Faith']], ['Paladin', 1, 17, ['Commune', 'Flame Strike']],
+  ['Sorcerer', 1, 3, ['Alter Self', 'Chromatic Orb', 'Command', 'Dragon\'s Breath']], ['Sorcerer', 1, 5, ['Fear', 'Fly']],
+  ['Sorcerer', 1, 7, ['Arcane Eye', 'Charm Monster']], ['Sorcerer', 1, 9, ['Legend Lore', 'Summon Dragon']],
+  ['Warlock', 1, 3, ['Burning Hands', 'Command', 'Scorching Ray', 'Suggestion']], ['Warlock', 1, 5, ['Fireball', 'Stinking Cloud']],
+  ['Warlock', 1, 7, ['Fire Shield', 'Wall of Fire']], ['Warlock', 1, 9, ['Geas', 'Insect Plague']],
+];
+// Circle of the Land: uzun dinlenmede seçilen toprak türünün büyüleri (druid seviyesine göre) hazırdır
+const BY_TOPRAK = {
+  arid: ['Kurak (arid)', { 3: ['Blur', 'Burning Hands', 'Fire Bolt'], 5: ['Fireball'], 7: ['Blight'], 9: ['Wall of Stone'] }],
+  polar: ['Kutup (polar)', { 3: ['Fog Cloud', 'Hold Person', 'Ray of Frost'], 5: ['Sleet Storm'], 7: ['Ice Storm'], 9: ['Cone of Cold'] }],
+  temperate: ['Ilıman (temperate)', { 3: ['Misty Step', 'Shocking Grasp', 'Sleep'], 5: ['Lightning Bolt'], 7: ['Freedom of Movement'], 9: ['Tree Stride'] }],
+  tropical: ['Tropik (tropical)', { 3: ['Acid Splash', 'Ray of Sickness', 'Web'], 5: ['Stinking Cloud'], 7: ['Polymorph'], 9: ['Insect Plague'] }],
+};
+const byAltSrd = ad => { const v = SINIF_OZ[ad], benim = deger(C.subclass); return !!v && int(C.level) >= 3 && (!benim || benim.toLowerCase() === v.alt.toLowerCase()); };
+const byYeniSatir = (b, ek = {}) => Object.assign({ lvl: b.s, name: b.a, cast: b.sr, range: b.mz, c: !!b.c, r: !!b.r, m: /M/.test(b.b), prep: true, note: '', kay: '' }, ek);
+const byHasar = h => String(h || '').split(' + ').map(x => { const [z, t] = x.split(' '); return `${z.replace('+mod', ' + büyü bonusu')} ${BY_HT[t] || t}`; }).join(' + ');
+const bySv = s => s ? `${s}. seviye` : 'Cantrip';
+
+function byDurum() {                                                   // sınıf, en yüksek büyü seviyesi, sınırlar ve sayılar
+  const cl = findClass(), ad = cl ? cl.name : '', l = clamp(int(C.level), 1, 20), say = BUYU_SAY[ad], harf = BY_SINIF[ad] || '';
+  const ust = !cl || !cl.cast ? 0 : ad === 'Warlock' ? WL_YSV[l - 1] : (cl.cast === 'full' ? SLOTS_FULL : SLOTS_HALF)[l - 1].length;
+  const listeler = harf ? [harf].concat(ad === 'Bard' && l >= 10 ? ['C', 'D', 'Z'] : []) : [];   // Bard: Magical Secrets
+  const sec = k => ((C.secim || {})[k] || []);
+  const ekC = (ad === 'Cleric' && sec('Divine Order@1').includes('Thaumaturge')) || (ad === 'Druid' && sec('Primal Order@1').includes('Magician')) ? 1 : 0;
+  const lim = { c: say && say.c ? say.c[l - 1] + ekC : 0, p: say ? say.p[l - 1] : 0, kitap: ad === 'Wizard' ? 6 + 2 * (l - 1) : 0 };
+  const listede = b => !!b && listeler.some(h => b.k.includes(h));
+  const n = { c: 0, p: 0, kitap: 0 };
+  C.spells.forEach(s => {
+    const b = buyuBul(s); if (s.kay || !listede(b)) return;
+    if (b.s === 0) n.c++; else { n.kitap++; if (ad !== 'Wizard' || s.prep) n.p++; }
+  });
+  const hak = Object.assign({ c: 0, p: 0 }, C.byHak);
+  return { cl, ad, l, harf, ust, listeler, lim, n, listede, hak, wiz: ad === 'Wizard', kur: !C.byKur };
+}
+function byHepListe() {                                                // { büyü adı: kaynak } bu sınıf / alt sınıf / seviyede her zaman hazır olanlar
+  const cl = findClass(), ad = cl ? cl.name : '', l = int(C.level), alt = byAltSrd(ad), out = {};
+  BY_HEP.forEach(([s, a, lv, adlar, kay]) => { if (s === ad && l >= lv && (!a || alt)) adlar.forEach(x => { out[x] = kay || SINIF_OZ[ad].alt; }); });
+  if (ad === 'Druid' && alt && BY_TOPRAK[C.byToprak]) Object.entries(BY_TOPRAK[C.byToprak][1]).forEach(([lv, adlar]) => { if (l >= int(lv)) adlar.forEach(x => { out[x] = 'Circle of the Land'; }); });
+  return out;
+}
+function byHepSenk() {                                                 // 'hep' satırlarını sınıfa / seviyeye uydurur; değiştiyse true
+  if (mode === 'peek' || !Array.isArray(C.spells)) return false;
+  const hep = byHepListe(); let deg = false;
+  C.spells = C.spells.filter(s => {
+    if (s.kay !== 'hep' || hep[s.name]) return true;
+    deg = true;
+    if (s.eskiKay === undefined) return false;                         // kendiliğinden eklenmişti: kalkar
+    s.kay = s.eskiKay; delete s.eskiKay; delete s.kayAd; return true;  // oyuncu önceden seçmişti: eski hâline döner
+  });
+  Object.entries(hep).forEach(([ad, kay]) => {
+    const b = BUYU[ad.toLowerCase()]; if (!b) return;
+    const s = C.spells.find(x => buyuBul(x) === b);
+    if (!s) { C.spells.push(byYeniSatir(b, { kay: 'hep', kayAd: kay })); deg = true; }
+    else if (s.kay !== 'hep' || s.kayAd !== kay || !s.prep) { if (s.kay !== 'hep') s.eskiKay = s.kay || ''; s.kay = 'hep'; s.kayAd = kay; s.prep = true; deg = true; }
+  });
+  if (deg) byYerles();
+  return deg;
+}
+function byYerles() {                                                  // seviyeye göre sırala (aynı seviyede eski sıra kalır)
+  C.spells = C.spells.map((s, i) => [s, i]).sort((a, b) => int(a[0].lvl) - int(b[0].lvl) || a[1] - b[1]).map(x => x[0]);
+}
+function byHakVer(tur) {                                               // 'seviye' | 'uzun': kazanılan değiştirme hakları; bir şey verildiyse true
+  const cl = findClass(), d = cl && BY_DEGIS[cl.name]; if (!d) return false;
+  const h = Object.assign({ c: 0, p: 0 }, C.byHak), once = JSON.stringify(h);
+  ['c', 'p'].forEach(k => {
+    if (k === 'c' && !(BUYU_SAY[cl.name] || {}).c) return;
+    if (tur === 'seviye' && d[k] === 'seviye' && h[k] !== 'hepsi') h[k] = int(h[k]) + 1;
+    if (tur === 'uzun' && d[k] === 'uzun') h[k] = 'hepsi';
+    if (tur === 'uzun' && d[k] === 'uzun1' && h[k] !== 'hepsi') h[k] = Math.max(1, int(h[k]));
+  });
+  C.byHak = h;
+  return JSON.stringify(h) !== once;
+}
+function byHakYaz(d) {                                                 // pencerenin altındaki değiştirme durumu
+  if (d.kur) return 'İlk seçim: listeni doldurana kadar dilediğin gibi ekleyip çıkarabilirsin.';
+  const h = d.hak, parca = [];
+  if (h.p === 'hepsi') parca.push('uzun dinlendin: hazırladığın büyüleri baştan seçebilirsin (ilk büyü yuvanı harcayınca kapanır)');
+  else if (int(h.p)) parca.push(`${int(h.p)} büyünü değiştirebilirsin`);
+  if (h.c === 'hepsi' || int(h.c)) parca.push(`${h.c === 'hepsi' ? 'cantrip\'lerini' : int(h.c) + ' cantrip\'ini'} değiştirebilirsin`);
+  return parca.length ? parca.join('; ').replace(/^./, x => x.toLocaleUpperCase('tr')) + '.' : `Şu an değiştirme hakkın yok. ${byKural(d.ad)}`;
+}
+function bySayHtml(d) {                                                // Cantrip 2 / 3 · Hazırlanan 4 / 5 (Wizard: kitap da)
+  if (!d.lim.c && !d.lim.p) return '';
+  const k = (ad, n, lim, ip) => `<span class="${n > lim ? 'tasti' : n < lim ? 'eksik' : 'tam'}" title="${esc(ip)}">${ad} <b>${n} / ${lim}</b></span>`;
+  return [d.lim.c ? k('Cantrip', d.n.c, d.lim.c, 'Bildiğin cantrip sayısı') : '',
+    d.wiz ? k('Kitapta', d.n.kitap, d.lim.kitap, 'Büyü kitabındaki 1. seviye ve üstü büyüler (seviye atladıkça 2 artar)') : '',
+    k(d.wiz ? 'Hazır' : 'Hazırlanan', d.n.p, d.lim.p, 'Hazırladığın büyü sayısı (her zaman hazır olanlar sayılmaz)'),
+    d.ust ? `<span class="ust" title="Yuvan olan en yüksek büyü seviyesi">en çok <b>${d.ust}. seviye</b></span>` : ''].join('');
+}
+function byOzetCiz() {                                                 // kağıttaki Büyüler bölümünün başı
+  const el = $('#byOzet'); if (!el) return;
+  const d = byDurum(), say = bySayHtml(d);
+  el.innerHTML = say ? `<div class="by-say">${say}</div><p class="hint">${esc(byKural(d.ad))}</p>` : '';
+  el.hidden = !say;
+}
+
+/* ── Seçme penceresi ── */
+const BY = { sek: 1, ara: '', kapsam: 'sinif', serbest: false, yeni: new Set(), ac: new Set() };
+function byAc() {
+  if (mode === 'peek') return;
+  const cl = findClass(), d = byDurum();
+  if (cl && cl.sp && !C.spellAbility) { C.spellAbility = cl.sp; setInput('spellAbility'); changed(); }   // büyü yeteneği boşsa sınıftan
+  BY.ara = ''; BY.yeni = new Set(); BY.ac = new Set(); BY.serbest = false;
+  BY.kapsam = d.listeler.length ? 'sinif' : 'hepsi';
+  BY.sek = d.lim.c && d.n.c < d.lim.c ? 0 : 1;
+  $('#byAra').value = ''; $('#byModal').hidden = false; byCiz();
+  setTimeout(() => $('#byAra').focus(), 30);
+}
+function byKapa() {
+  $('#byModal').hidden = true;
+  const d = byDurum();
+  if (!C.byKur && d.n.c >= d.lim.c && d.n.p >= d.lim.p && (d.lim.c || d.lim.p)) { C.byKur = true; save(); }   // ilk seçim bitti
+  BY.yeni.clear();
+}
+function byListe(d) {                                                  // görünen büyüler (kapsam + sekme + arama)
+  const ara = BY.ara.trim().toLocaleLowerCase('tr');
+  let l = SRD_BUYU;
+  if (BY.kapsam === 'sinif') l = l.filter(d.listede);
+  else if (BY_HARF[BY.kapsam]) l = l.filter(b => b.k.includes(BY.kapsam));
+  if (ara) return l.filter(b => (b.a + ' ' + b.t + ' ' + b.x).toLocaleLowerCase('tr').includes(ara));
+  if (BY.sek === 'sec') return SRD_BUYU.filter(b => C.spells.some(s => buyuBul(s) === b));   // kapsamdan bağımsız: hepsi
+  return l.filter(b => b.s === BY.sek);
+}
+function byCikabilir(d, s, t) {                                        // bu sınıf büyüsünü listeden çıkarmak (ya da hazırdan almak) kurala uyuyor mu
+  return BY.serbest || d.kur || BY.yeni.has(s.name) || d.n[t] > d.lim[t] || d.hak[t] === 'hepsi' || int(d.hak[t]) > 0;
+}
+function byDugme(b, d) {
+  const s = C.spells.find(x => buyuBul(x) === b), D = (act, metin, ayar = {}) =>
+    `<button class="btn sm${ayar.acc ? ' accent' : ''}" data-act="${act}" data-a="${esc(b.a)}"${ayar.off ? ' disabled' : ''}${ayar.basili !== undefined ? ` aria-pressed="${ayar.basili}"` : ''} title="${esc(ayar.ip || '')}">${ayar.ic ? `<svg class="ic"><use href="#i-${ayar.ic}"/></svg>` : ''}${metin}</button>`;
+  if (s && s.kay === 'hep') return `<span class="by-rozet" title="Her zaman hazır; sayıya girmez">Hep hazır<small>${esc(s.kayAd || '')}</small></span>`;
+  if (s && s.kay === 'ek') return `<span class="by-rozet">Ek büyü<small>sayıya girmez</small></span>${D('by-cikar', 'Çıkar', { ic: 'x' })}`;
+  const listede = d.listede(b), yuva = b.s === 0 || b.s <= d.ust;
+  if (!listede) return s ? D('by-cikar', 'Çıkar', { ic: 'x' }) : D('by-ek', 'Ek olarak ekle', { ic: 'plus', ip: 'Hünerden, türden ya da başka yerden gelen büyü (ör. Magic Initiate): listende durur, sayıya girmez.' });
+  const t = b.s === 0 ? 'c' : 'p', dolu = n => !BY.serbest && n >= (t === 'c' ? d.lim.c : d.lim.p);
+  if (!s && !yuva && !BY.serbest) return `<span class="by-yok">${b.s}. seviye yuvan yok</span>`;
+  if (t === 'c' && !d.lim.c && !BY.serbest) return s ? D('by-cikar', 'Çıkar', { ic: 'x' }) : `<span class="by-yok">Cantrip öğrenmezsin</span>`;
+  const kural = 'Değiştirme hakkın yok. ' + byKural(d.ad);
+  if (d.wiz && t === 'p') {
+    if (!s) return D('by-ekle', 'Kitaba yaz', { ic: 'book', acc: true, off: !BY.serbest && d.n.kitap >= d.lim.kitap, ip: d.n.kitap >= d.lim.kitap ? 'Kitabın bu seviye için dolu. Bulduğun bir tomarı kopyalamak için DM\'e sor ("Kuralları uygulama").' : 'Büyü kitabına yaz; sonra hazırla.' });
+    const cik = BY.serbest || d.kur || BY.yeni.has(s.name) ? D('by-cikar', '', { ic: 'x', ip: 'Kitaptan sil' }) : '';
+    return (s.prep ? D('by-hazir', 'Hazır', { ic: 'check', basili: true, off: !byCikabilir(d, s, 'p'), ip: byCikabilir(d, s, 'p') ? 'Hazırdan çıkar' : kural })
+      : D('by-hazir', 'Hazırla', { basili: false, off: dolu(d.n.p), ip: dolu(d.n.p) ? 'Hazırladığın büyüler dolu: önce birini hazırdan çıkar.' : 'Bugün kullanmak üzere hazırla' })) + cik;
+  }
+  if (!s) return D('by-ekle', 'Ekle', { ic: 'plus', acc: true, off: dolu(d.n[t]), ip: dolu(d.n[t]) ? `${t === 'c' ? 'Cantrip\'lerin' : 'Hazırladığın büyüler'} dolu: önce birini çıkar.` : '' });
+  return D('by-cikar', 'Çıkar', { ic: 'x', off: !byCikabilir(d, s, t), ip: byCikabilir(d, s, t) ? '' : kural });
+}
+function byBilgi(b) {                                                  // okul · süre · menzil · bileşen · zar
+  const p = [`${BY_OKUL[b.o][1]} (${BY_OKUL[b.o][0]})`, b.sr, b.mz, b.c ? `Konsantrasyon, ${b.d}` : b.d, b.r ? 'Ritüel' : '', b.b + (b.mp ? ' (değerli malzeme)' : '')];
+  const z = [b.sv ? `${b.sv.toUpperCase()} kurtarması` : b.at ? (b.at === 'y' ? 'Yakın büyü saldırısı' : 'Menzilli büyü saldırısı') : '', b.h ? byHasar(b.h) : b.iy ? `${b.iy.replace('+mod', ' + büyü bonusu')} can` : ''];
+  return { p: p.filter(Boolean), z: z.filter(Boolean) };
+}
+function bySatir(b, d) {
+  const s = C.spells.find(x => buyuBul(x) === b), bi = byBilgi(b), ac = BY.ac.has(b.a);
+  const siniflar = BY.kapsam !== 'sinif' ? b.k.split('').map(h => BY_HARF[h]).join(', ') : '';
+  return `<div class="by-satir${s ? ' sec' : ''}${!(b.s === 0 || b.s <= d.ust) && d.listede(b) ? ' uzak' : ''}">
+    <span class="by-sv" title="${bySv(b.s)}">${b.s || 'C'}</span>
+    <div class="by-ad"><b>${esc(b.a)}</b> <i>${esc(b.t)}</i>
+      <small class="by-bilgi">${bi.p.map(esc).join(' · ')}${bi.z.length ? ` · <em>${bi.z.map(esc).join(' · ')}</em>` : ''}${siniflar ? ` · ${esc(siniflar)}` : ''}</small>
+      <p class="by-acik${ac ? ' acik' : ''}" data-act="by-acik" data-a="${esc(b.a)}" title="${ac ? 'Kısalt' : 'Tamamını göster'}">${esc(b.x)}${ac && b.m ? `<span class="by-mat">Malzeme (SRD): ${esc(b.m)}</span>` : ''}</p></div>
+    <span class="kat-sag by-sag">${byDugme(b, d)}</span></div>`;
+}
+function byCiz() {
+  if ($('#byModal').hidden) return;
+  const d = byDurum();
+  $('#byBaslik').innerHTML = `Büyülerini seç<small>${esc([d.ad ? `${d.ad}, ${d.l}. seviye` : '', d.listeler.length ? (d.ust ? `${d.ust}. seviyeye kadar büyü` : '') : `${d.ad ? 'Sınıfın' : 'Kağıdında sınıf yok:'} büyü yapmıyor. Hünerden ya da türden gelen büyüleri "Ek olarak ekle" ile ekle`].filter(Boolean).join(' · '))}</small>`;
+  $('#bySay').innerHTML = bySayHtml(d);
+  const ks = $('#byKapsam');
+  ks.innerHTML = (d.listeler.length ? `<option value="sinif">${esc(d.ad)} listesi${d.listeler.length > 1 ? ' (+ büyü sırları)' : ''}</option>` : '') + '<option value="hepsi">Bütün büyüler</option>' + Object.entries(BY_SINIF).map(([ad, h]) => `<option value="${h}">${ad} listesi</option>`).join('');
+  ks.value = BY.kapsam;
+  const tp = $('#byToprak'), toprak = d.ad === 'Druid' && byAltSrd('Druid');
+  tp.hidden = !toprak;
+  if (toprak) { tp.innerHTML = '<option value="">Toprak türü seç…</option>' + Object.entries(BY_TOPRAK).map(([k, v]) => `<option value="${k}"${C.byToprak === k ? ' selected' : ''}>${esc(v[0])}</option>`).join(''); tp.title = 'Circle of the Land: uzun dinlenmede seçtiğin toprağın büyüleri her zaman hazırdır'; }
+  const say = sv => (BY.kapsam === 'sinif' ? SRD_BUYU.filter(d.listede) : BY_HARF[BY.kapsam] ? SRD_BUYU.filter(b => b.k.includes(BY.kapsam)) : SRD_BUYU).filter(b => b.s === sv).length;
+  const secSay = C.spells.filter(s => buyuBul(s)).length;
+  $('#bySek').innerHTML = Array.from({ length: 10 }, (_, sv) => sv).filter(sv => say(sv)).map(sv =>
+    `<button class="kat-sekme${d.ust && sv > d.ust ? ' uzak' : ''}" role="tab" data-act="by-sek" data-k="${sv}" aria-selected="${!BY.ara && BY.sek === sv}"><span>${sv ? sv + '. sv' : 'Cantrip'}</span></button>`).join('')
+    + `<button class="kat-sekme" role="tab" data-act="by-sek" data-k="sec" aria-selected="${!BY.ara && BY.sek === 'sec'}"><span>Seçtiklerim (${secSay})</span></button>`;
+  const l = byListe(d);
+  $('#byIc').innerHTML = l.map(b => bySatir(b, d)).join('') || `<p class="empty">${BY.ara ? `"${esc(BY.ara)}" bulunamadı. İngilizce ya da Türkçe adıyla, ya da açıklamadaki bir sözle ara.` : BY.sek === 'sec' ? 'Henüz büyü seçmedin.' : 'Bu seviyede büyü yok.'}</p>`;
+  $('#byAlt').innerHTML = `<span class="by-hak">${esc(byHakYaz(d))}</span><label class="by-serbest" title="DM izin verdiyse (ör. tomardan kopyalama, ödül): sayı ve değiştirme kurallarına bakmadan ekler, çıkarırsın"><input type="checkbox" id="bySerbest"${BY.serbest ? ' checked' : ''}> Kuralları uygulama</label>`;
+}
+function byDegisti() { renderLists(); changed(); byCiz(); if (mode === 'table') renderMe(); }
+function byHakKullan(d, s, t) {                                        // kurala bağlı bir çıkarma: hak harca
+  if (BY.serbest || d.kur || BY.yeni.has(s.name) || d.n[t] > d.lim[t] || d.hak[t] === 'hepsi') return;
+  C.byHak = Object.assign({ c: 0, p: 0 }, C.byHak, { [t]: Math.max(0, int(d.hak[t]) - 1) });
+}
+function byEkle(a, kay) {
+  const b = BUYU[String(a).toLowerCase()]; if (!b || mode === 'peek') return;
+  if (C.spells.some(s => buyuBul(s) === b)) return;
+  const d = byDurum();
+  if (!kay && !BY.serbest) {                                           // düğme kapalıysa buraya gelinmez; yine de kural
+    if (!d.listede(b) || (b.s > d.ust && b.s > 0)) return;
+    if (b.s === 0 ? d.n.c >= d.lim.c : d.wiz ? d.n.kitap >= d.lim.kitap : d.n.p >= d.lim.p) return;
+  }
+  C.spells.push(byYeniSatir(b, { kay: kay || '', prep: !(d.wiz && b.s > 0 && !kay && d.n.p >= d.lim.p) })); byYerles();
+  if (!kay) BY.yeni.add(b.a);
+  byDegisti();
+}
+function byCikar(a) {
+  const b = BUYU[String(a).toLowerCase()], i = C.spells.findIndex(s => buyuBul(s) === b); if (i < 0 || mode === 'peek') return;
+  const s = C.spells[i], d = byDurum();
+  if (!s.kay && d.listede(b)) { const t = b.s === 0 ? 'c' : 'p'; if (!byCikabilir(d, s, t)) return; if (!(d.wiz && t === 'p' && !s.prep)) byHakKullan(d, s, t); }
+  C.spells.splice(i, 1); BY.yeni.delete(b.a);
+  byDegisti();
+}
+function byHazir(a) {                                                  // Wizard: kitaptaki büyüyü hazırla / hazırdan çıkar
+  const b = BUYU[String(a).toLowerCase()], s = C.spells.find(x => buyuBul(x) === b); if (!s || mode === 'peek') return;
+  const d = byDurum();
+  if (s.prep) { if (!byCikabilir(d, s, 'p')) return; byHakKullan(d, s, 'p'); s.prep = false; }
+  else { if (!BY.serbest && d.n.p >= d.lim.p) return; s.prep = true; BY.yeni.add(s.name); }
+  byDegisti();
+}
+function bySatirDoldur(i) {                                            // kağıtta elle yazılan ad SRD'deyse boş kutular dolar
+  const s = C.spells[i], b = buyuBul(s); if (!s || !b) return false;
+  s.name = b.a; s.lvl = b.s;
+  if (!String(s.cast || '').trim()) s.cast = b.sr;
+  if (!String(s.range || '').trim()) s.range = b.mz;
+  s.c = !!b.c; s.r = !!b.r; s.m = /M/.test(b.b);
+  return true;
+}
+function bySatirAcik(s) {                                              // kağıttaki satırın altındaki Türkçe açıklama
+  const b = buyuBul(s); if (!b) return '';
+  const bi = byBilgi(b), kay = s.kay === 'hep' ? `Hep hazır · ${s.kayAd || ''}` : s.kay === 'ek' ? 'Ek büyü' : '';
+  return `<p class="sp-acik" data-act="sp-acik" title="Tamamını göster / kısalt">${kay ? `<span class="sp-kay">${esc(kay)}</span>` : ''}<b>${esc(b.t)}</b> · ${esc(BY_OKUL[b.o][1])}${bi.z.length ? ` · <em>${bi.z.map(esc).join(' · ')}</em>` : ''} · ${esc(b.x)}${b.m ? ` <span class="by-mat">Malzeme (SRD): ${esc(b.m)}</span>` : ''}</p>`;
+}
+Object.assign(ACTIONS, {
+  'by-ac': () => byAc(),
+  'by-kapa': () => byKapa(),
+  'by-sek': b => { BY.sek = b.dataset.k === 'sec' ? 'sec' : int(b.dataset.k); BY.ara = ''; $('#byAra').value = ''; byCiz(); $('#byIc').scrollTop = 0; },
+  'by-ekle': b => byEkle(b.dataset.a, ''),
+  'by-ek': b => byEkle(b.dataset.a, 'ek'),
+  'by-cikar': b => byCikar(b.dataset.a),
+  'by-hazir': b => byHazir(b.dataset.a),
+  'by-acik': b => { const a = b.dataset.a; BY.ac.has(a) ? BY.ac.delete(a) : BY.ac.add(a); byCiz(); },
+  'sp-acik': b => b.classList.toggle('acik'),
+});
+$('#byAra').addEventListener('input', e => { BY.ara = e.target.value; byCiz(); });
+$('#byModal').addEventListener('change', e => {
+  if (e.target.id === 'byKapsam') { BY.kapsam = e.target.value; byCiz(); }
+  else if (e.target.id === 'bySerbest') { BY.serbest = e.target.checked; byCiz(); }
+  else if (e.target.id === 'byToprak' && mode !== 'peek') { C.byToprak = e.target.value; byHepSenk(); byDegisti(); }
+});
+$('#byModal').addEventListener('click', e => { if (e.target.id === 'byModal') byKapa(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#byModal').hidden) { e.stopPropagation(); byKapa(); } }, true);
+document.addEventListener('change', e => {                             // kağıtta büyü adı elle yazılınca: SRD'deyse süre, menzil, seviye dolar
+  const el = e.target; if (mode === 'peek' || el.dataset.f !== 'name') return;
+  const r = rowOf(el); if (!r || r.list !== 'spells') return;
+  if (bySatirDoldur(r.i)) { renderLists(); changed(); }
 });
 /* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 10g — Dükkanlar: pazar ve kütüphane (2026-11-10, kullanıcının isteği)
