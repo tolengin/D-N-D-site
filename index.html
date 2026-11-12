@@ -1898,8 +1898,11 @@ body:not(.guide) .mc-rehber{display:none}
 .mc-izgara>*{background:var(--surface)}
 /* Üst sıra: saldırılar, Kağıdım, ayrıntı aç / kapa */
 .mc-ust{align-self:flex-start}
-.mc-atk{display:grid;grid-template-columns:auto auto auto;align-items:center;gap:6px;padding:5px 6px 5px 12px;min-width:0}
-.mc-atk span{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:14px}
+/* Saldırılar (2026-11-12, kullanıcı: "3 ve daha fazla silahta bozuluyor"): eskiden düğmelerle aynı satırdaydı, sığmayınca kartlar
+   eziliyordu ("G..", "2d"). Artık kendi satırında, ana camın genişliğinde (contain: satır camı genişletmez) ve sığmayınca alta geçer. */
+.mc-atklar{align-self:stretch;flex-wrap:wrap;contain:inline-size}
+.mc-atk{flex:1 1 210px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:6px;padding:5px 6px 5px 12px;min-width:0}
+.mc-atk span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:14px}
 .mc-atk span small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
 .mc-atk .roll{min-width:44px;padding:6px 8px;font-size:15px}
 .mc-ust>.btn{border:0;min-height:44px}
@@ -2050,8 +2053,8 @@ body.tv-full #tableView{height:100dvh}
   .tv-me>*{zoom:1}
   body.tv-on .app{padding-bottom:300px}                    /* sabit duran kendi camın son atışları örtmesin */
   .mc-rehber{font-size:14px;padding:8px 12px}
-  .mc-ust{align-self:stretch;flex-wrap:wrap}                            /* saldırılar yan yana, Kağıdım ve ayrıntı altta */
-  .mc-atk{flex:1 1 45%;grid-template-columns:minmax(0,1fr) auto auto}
+  .mc-ust{align-self:stretch;flex-wrap:wrap}                            /* Beceriler, Envanter, Kağıdım… sığmayınca alta */
+  .mc-atk{flex:1 1 45%}
   .mc-ust>.btn:not(.icon){flex:1}
   .mc-cam{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}   /* üstte ben / can / AC, altta altı yetenek */
   .mc-ben{grid-column:span 3;width:auto}
@@ -9420,7 +9423,7 @@ function renderMe() {
   const av = c.portrait ? `<img src="${esc(c.portrait)}" alt="">` : esc((c.name.trim()[0] || '?').toUpperCase());
   const kalkan = '<svg viewBox="0 0 100 110" aria-hidden="true"><path d="M50 5 91 19v34c0 25-17 41-41 51C26 94 9 78 9 53V19z"/></svg>';
   const rehber = rehberMetni(c);
-  const atk = c.attacks.slice(0, 3).map((a, i) => `<div class="mc-atk" data-row data-i="${i}"><span title="${esc(a.dmg)}">${esc(a.name || 'Saldırı')}<small>${esc(String(a.dmg).split(' ')[0] || 'hasar')}</small></span>
+  const atk = c.attacks.slice(0, 6).map((a, i) => `<div class="mc-atk" data-row data-i="${i}"><span title="${esc(a.name || 'Saldırı')} · ${esc(a.dmg)}">${esc(a.name || 'Saldırı')}<small>${esc(String(a.dmg).split(' ')[0] || 'hasar')}</small></span>
       <button class="roll" data-act="roll" data-roll="attack" title="Vuruş zarı at: ${esc(a.name || 'saldırı')}">${sign(attackBonus(a))}</button>
       <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(a.dmg)}" aria-label="Hasar zarı at">${HASAR_IC}</button></div>`).join('')
     + (u => `<div class="mc-atk" data-row data-i="-1"><span title="Silahsız vuruş · tutma / itme: hedef ZD ${u.zd}">Yumruk / tekme<small>${esc(u.dmg)}</small></span>
@@ -9470,12 +9473,13 @@ function renderMe() {
     </div>`;
   }
   box.innerHTML = `${rehber && min && !sek ? `<p class="mc-rehber" role="status">${rehber}</p>` : ''}${sekCam}${detay}
-    <div class="mc-izgara mc-ust">${atk}
+    <div class="mc-izgara mc-ust">
       <button class="btn${sek === 'beceri' ? ' on' : ''}" data-act="me-sek" data-k="beceri" aria-expanded="${sek === 'beceri'}" title="Beceri zarları: kağıda dönmeden at"><svg class="ic"><use href="#i-d20"/></svg>Beceriler</button>
       ${calc(c, () => hakListe().length) ? `<button class="btn${sek === 'hak' ? ' on' : ''}" data-act="me-sek" data-k="hak" aria-expanded="${sek === 'hak'}" title="Sınıf hakların: Öfke, İkinci soluk… harcadıkça dokun"><svg class="ic"><use href="#i-flame"/></svg>Haklar</button>` : ''}
       <button class="btn${sek === 'envanter' ? ' on' : ''}" data-act="me-sek" data-k="envanter" aria-expanded="${sek === 'envanter'}" title="Envanterin: eşyalar ve paralar"><svg class="ic"><use href="#i-canta"/></svg>Envanter</button>
       <button class="btn" data-act="mode-sheet" title="Karakter kağıdının tamamı"><svg class="ic"><use href="#i-scroll"/></svg>Kağıdım</button>
       <button class="btn icon" data-act="me-min" aria-expanded="${!min}" title="${min ? 'Ayrıntıları aç: kurtarma zarları, can, inisiyatif' : 'Ayrıntıları kapat'}" aria-label="${min ? 'Ayrıntıları aç' : 'Ayrıntıları kapat'}"><svg class="ic"><use href="#i-yukari"/></svg></button></div>
+    <div class="mc-izgara mc-atklar" aria-label="Saldırılar">${atk}</div>
     <div class="mc-izgara mc-cam">
       <button class="mc-ben" data-act="me-min" title="${min ? 'Ayrıntıları aç' : 'Ayrıntıları kapat'}"><span class="mc-pencere">${av}</span>
         <span class="mc-ad"><b>${esc(c.name.trim() || 'İsimsiz karakter')}</b><small${who ? ' lang="en"' : ''}>${int(c.level)}. seviye ${esc(who || '· sınıfını kağıda yaz')}</small></span></button>
