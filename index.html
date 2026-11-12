@@ -1770,6 +1770,10 @@ button.mz-sec:hover{background:var(--lit)}
 .tv-wrap.pov-tek .tv-scene{visibility:hidden}                        /* ölçüsü kalsın (3D çizimi ona bakar), görünmesin */
 .tv-wrap.pov-tek :is(.tv-zoom,.tv-pov .buyut,#tvAll,#tvSahne){display:none!important}
 .tv-wrap.pov-tek .pov-name{top:auto;bottom:calc(.8 * var(--u))}      /* ad sol altta: sol üst araç çubuğunun */
+/* 2026-11-12 (kullanıcı: "POV'da harita büyümüyor"): POV paneli de 8. katta ve sayfada haritadan sonra geldiği için haritayı örtüyordu,
+   büyütme düğmesine basılamıyordu. POV'da harita bir kat yukarıda; kendi camın yine onun üstünde (zar düğmeleri hep basılır). */
+.tv-wrap.pov-tek .hr-pano:not(.buyuk){z-index:9}
+.tv-wrap.pov-tek .tv-me{z-index:10}
 /* Savaş sahnesi (BÖLÜM 10c): savaş açıkken taverna yerine 2D orman açıklığı. Solda oyuncular, sağda düşmanlar; ayakta
    duran kare kart figürler. Zarlar iki tarafın arasına, havaya iner. Taverna arkada durur ama görünmez ve çizilmez. */
 .sv-sahne{position:absolute;inset:0;overflow:hidden;border-radius:inherit;background:#26332a center / cover no-repeat;-webkit-user-select:none;user-select:none}
