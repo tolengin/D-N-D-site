@@ -718,6 +718,29 @@ body.peek #sheet [data-act="kisa-dinlen"]{display:none}
 .so-sec-i{display:grid;gap:3px}
 .so-sec-i select{max-width:360px;padding:6px 8px}
 .so-sec-i small{margin:0;font-size:13px;color:var(--text);opacity:.85}
+/* Silah ustalığı seçici (ssCiz, 2026-11-12): ikonlu düğme + açılır liste; liste düğmenin altında, sayfanın üstünde yüzer */
+.ss{position:relative;max-width:420px}
+.ss-dug,.ss-sec{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:6px 10px;border:1px solid var(--line);background:var(--field);
+  color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.ss-dug:hover,.ss-sec:hover:not([disabled]),.ss-sec:focus-visible{border-color:var(--accent)}
+.ss-dug[aria-expanded="true"]{border-color:var(--accent)}
+.ss-dug .esya-ic,.ss-sec .esya-ic{width:24px;height:24px;flex:none;color:var(--accent)}
+.ss-ad{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.25}
+.ss-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ss-n b{font-weight:700}
+.ss-n span{color:var(--muted);font-weight:500}
+.ss-ad small{font-size:12.5px;color:var(--muted);opacity:1}
+.ss-bos{color:var(--muted)}
+.ss-ok{flex:none;rotate:180deg;transition:rotate .15s}
+.ss-dug[aria-expanded="true"] .ss-ok{rotate:0deg}
+.ss-liste{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);max-height:340px;overflow:auto;margin:0;padding:4px;list-style:none;
+  background:var(--surface);border:var(--lw) solid var(--lead);box-shadow:var(--shadow)}
+.ss-liste[hidden]{display:none}
+.ss-liste .ss-sec{border-color:transparent;background:none;min-height:40px}
+.ss-liste .ss-sec[aria-selected="true"]{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.ss-liste .ss-sec[disabled]{opacity:.4;cursor:not-allowed}
+.ss-grup{padding:10px 10px 4px;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.ss-kaldir{color:var(--muted)}
 .so-gelecek{margin-top:10px}
 .mc-dinlen .btn{flex:1;border:0}
 .xp-ver{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
@@ -4172,7 +4195,10 @@ const TERIMLER = [
 function sinifOzSatir(x, cls, l, gelecek) {
   const [lv, en, tr, acik] = x.o, s = !gelecek && OZ_SECIM[en] ? OZ_SECIM[en](cls, l) : null, key = `${en}@${lv}`;
   let sec = '';
-  if (s) {
+  if (s && s.set === 'silah') {                                       // Silah ustalığı: ikonlu kendi listemiz (ssCiz)
+    const secili = (C.secim && C.secim[key]) || [];
+    sec = `<div class="so-sec">${Array.from({ length: s.n }, (_, i) => ssCiz(key, i, secili)).join('')}</div>`;
+  } else if (s) {
     const liste = SECENEK[s.set], secili = (C.secim && C.secim[key]) || [];
     sec = `<div class="so-sec">${Array.from({ length: s.n }, (_, i) => {
       const v = secili[i] || '', o = liste.find(z => z[0] === v);
@@ -4182,9 +4208,40 @@ function sinifOzSatir(x, cls, l, gelecek) {
   const not = !gelecek && OZ_NOT[en] ? `<p class="so-not">${esc(OZ_NOT[en])}</p>` : '';
   return `<li class="so${x.alt ? ' alt' : ''}${gelecek ? ' gelecek' : ''}"><span class="so-sv" title="${lv}. seviye">${lv}</span><div><b>${esc(tr)}</b> <i>${esc(en)}</i>${x.alt ? `<small class="so-alt">${esc(x.altAd)}</small>` : ''}${gelecek ? `<small class="so-gel">${lv}. seviyede gelecek</small>` : ''}<p>${esc(acik)}</p>${not}${sec}</div></li>`;
 }
+/* Silah ustalığı seçici (2026-11-12, kullanıcı: "silah seçerken ikonlar da çıksın, önce İngilizce, parantez içinde Türkçe"):
+   tarayıcının seçim kutusu ikon gösteremediği için düğme + açılır liste. Satır: ikon · "Greatsword (Büyük kılıç)" · "Graze (Sıyırma)".
+   Silahlar kurallardaki dört gruba ayrılır; öbür kutularda seçili olan silah yeniden seçilemez (soluk). Esc ya da dışarı basınca kapanır. */
+function ssCiz(key, i, secili) {
+  const v = secili[i] || '', e = ESYA[v], u = e && USTALIK[e.silah.u];
+  const ad = x => `<span class="ss-n"><b lang="en">${esc(x.k)}</b> <span>(${esc(x.tr)})</span></span>`;
+  const usta = x => `<small><span lang="en">${esc(x.silah.u)}</span> (${esc(USTALIK[x.silah.u][0])})</small>`;
+  let grup = '';
+  const satirlar = SILAHLAR.map(([en]) => ESYA[en]).map(x => {
+    const bas = x.alt !== grup ? `<li class="ss-grup" role="presentation">${esc(ESYA_ALT[x.alt])}</li>` : '';
+    grup = x.alt;
+    const baska = x.k !== v && secili.includes(x.k);
+    return bas + `<li role="presentation"><button type="button" role="option" class="ss-sec" data-act="ss-sec" data-v="${esc(x.k)}" aria-selected="${x.k === v}"${baska ? ' disabled title="Başka bir kutuda seçili"' : ''}>${ESYA_IC(x)}<span class="ss-ad">${ad(x)}${usta(x)}</span></button></li>`;
+  }).join('');
+  return `<div class="so-sec-i ss" data-ss="${esc(key)}" data-i="${i}">
+      <button type="button" class="ss-dug" data-act="ss-ac" aria-haspopup="listbox" aria-expanded="false" aria-label="Silah ustalığı: ${i + 1}. seçim${e ? ', ' + esc(e.k) : ''}">${e ? ESYA_IC(e) + `<span class="ss-ad">${ad(e)}${usta(e)}</span>` : '<span class="ss-ad ss-bos">Silah seç…</span>'}<svg class="ic ss-ok"><use href="#i-yukari"/></svg></button>
+      <ul class="ss-liste" role="listbox" hidden>${v ? '<li role="presentation"><button type="button" role="option" class="ss-sec ss-kaldir" data-act="ss-sec" data-v="">Seçimi kaldır</button></li>' : ''}${satirlar}</ul>
+      ${u ? `<small>${esc(e.tr)}: ${esc(u[0])}. ${esc(u[1])}</small>` : ''}</div>`;
+}
+function ssKapa(haric) { $$('.ss-liste:not([hidden])').forEach(l => { if (l !== haric) { l.hidden = true; l.previousElementSibling.setAttribute('aria-expanded', 'false'); } }); }
+// Düğmeleri (ss-ac, ss-sec) ACTIONS tanımlandıktan sonra eklenir (BÖLÜM "DAVRANIŞ", ssEylem)
+document.addEventListener('click', e => { if (!e.target.closest('.ss')) ssKapa(); });
+document.addEventListener('keydown', e => {
+  const l = e.target.closest && e.target.closest('.ss-liste');
+  if (e.key === 'Escape' && $('.ss-liste:not([hidden])')) { const d = (l || $('.ss-liste:not([hidden])')).previousElementSibling; ssKapa(); d.focus(); e.stopImmediatePropagation(); return; }   // kağıt kapanmasın
+  if (l && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {             // liste içinde ok tuşlarıyla gezinme
+    const s = $$('.ss-sec:not([disabled])', l), k = s.indexOf(e.target);
+    const n = s[clamp(k + (e.key === 'ArrowDown' ? 1 : -1), 0, s.length - 1)]; if (n) n.focus(); e.preventDefault();
+  }
+}, true);
 function sinifOzCiz() {                                               // refresh'ten (lvDugmeler)
   const el = $('#sinifOz'); if (!el) return;
   if (el.contains(document.activeElement) && document.activeElement.tagName === 'SELECT') return;   // seçerken yeniden çizme
+  if (el.querySelector('.ss-liste:not([hidden])')) return;                                            // silah listesi açıkken yeniden çizme
   const cl = findClass(), v = cl && SINIF_OZ[cl.name];
   if (!v) { el.innerHTML = '<p class="hint">Sınıfını kağıdın başına yazınca (ör. Fighter) o sınıfın bütün özellikleri burada görünür: aldıkların ve sonraki seviyelerde gelecekler.</p>'; return; }
   const l = int(C.level), benim = deger(C.subclass), altBaska = !!benim && benim.toLowerCase() !== v.alt.toLowerCase();
@@ -5274,6 +5331,19 @@ const ACTIONS = {
 
 // DM bir oyuncunun kağıdını izlerken yalnızca bu düğmeler çalışır (kağıt değiştirilemez)
 const PEEK_OK = new Set(['el', 'guide', 'tab', 'roll', 'dice-toggle', 'dice-mode', 'dice-quick', 'history-clear', 'chars-open', 'drawers-close', 'mode-dm', 'mode-sheet', 'table-open', 'table-close', 'copy-code']);
+Object.assign(ACTIONS, {                                              // silah ustalığı seçici (ssCiz)
+  'ss-ac': b => {
+    const l = b.nextElementSibling, ac = l.hidden;
+    ssKapa(l); l.hidden = !ac; b.setAttribute('aria-expanded', String(ac));
+    if (ac) { const s = $('[aria-selected="true"]', l) || $('.ss-sec:not([disabled])', l); if (s) { s.scrollIntoView({ block: 'nearest' }); s.focus(); } }
+  },
+  'ss-sec': b => {
+    const w = b.closest('.ss'), key = w.dataset.ss, i = int(w.dataset.i);
+    const arr = ((C.secim || {})[key] || []).slice(); arr[i] = short(b.dataset.v, 40);
+    ssKapa(); C.secim = Object.assign({}, C.secim, { [key]: arr }); changed();
+    const yeni = $(`.ss[data-ss="${CSS.escape(key)}"][data-i="${i}"] .ss-dug`); if (yeni) yeni.focus();
+  },
+});
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]');
   if (!b) return;
