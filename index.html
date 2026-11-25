@@ -8398,7 +8398,7 @@ function siraAl(gelen, savas) {
     else if (d === 'izle') notify('Masada bir savaş başladı', 'Bu savaşta yoksun ama izleyebilirsin.');
     else notify('Masada bir savaş başladı', 'Bu savaşta yoksun. DM seni savaşa alırsa haber gelir.');
   }
-  else if (!d && onceD) notify('Savaş bitti');
+  else if (!d && onceD) { notify('Savaş bitti'); hedefBirak(); }
   if (s && me && d === 'katil' && s.simdi === me && (!once || once.simdi !== me)) { notify('Sıra sende!', 'Hamleni yap; bitince DM sıradakine geçer.'); ses('katildi'); }
 }
 function koltukGorsel(id) {                                          // sıra şeridindeki oyuncu resmi
@@ -8444,7 +8444,9 @@ function savasBaslat() {
   });
   notify('Savaş başladı', 'Oyuncular inisiyatif zarını atınca sıra kendiliğinden dizilir. Hazır olunca "Sırayı başlat"a bas.');
 }
-function savasBitir() { store.sira = null; store.atan = ''; siraYay(); notify('Savaş bitti'); }
+function savasBitir() { store.sira = null; store.atan = ''; hedefBirak(); siraYay(); notify('Savaş bitti'); }
+// Savaş bitince seçili hedef bırakılır (bir sonraki savaşta eski hedefe yanlışlıkla vurulmasın)
+function hedefBirak() { if (!store.hedef && !SAVAS.hasarSecili) return; store.hedef = ''; SAVAS.hasarSecili = false; save(); hedefUI(); }
 function siraIleri() {
   const s = store.sira;
   if (!s || !s.aktif) return;
