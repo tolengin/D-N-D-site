@@ -539,7 +539,15 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .li-head{padding:0 11px;font-size:12px;font-weight:700;color:var(--muted)}
 .atk{grid-template-columns:minmax(110px,1.2fr) 84px 40px 54px 60px minmax(100px,1fr) 38px minmax(90px,1.3fr) var(--del)}
 .spell{grid-template-columns:96px minmax(120px,1.1fr) 116px 78px 108px 62px minmax(90px,1.2fr) var(--del)}
-.item{grid-template-columns:62px minmax(140px,1fr) 78px 96px var(--del)}
+.item{grid-template-columns:22px 62px minmax(140px,1fr) 78px 96px var(--del)}
+/* Sürükleyerek sıralama (2026-11-26, R4 madde 31): satırın başındaki tutamak; sürüklenen satır kesikli, imleç "tut" */
+.it-tut{display:grid;place-items:center;width:22px;height:32px;padding:0;border:0;border-radius:0;background:none;color:var(--muted);cursor:grab;touch-action:none}
+.it-tut:hover,.it-tut:focus-visible{color:var(--text);background:var(--lit)}
+.it-tut .ic{width:16px;height:16px}
+[data-sirala]{touch-action:none}
+.suruk{outline:2px dashed var(--accent);outline-offset:-2px;opacity:.85}
+body.suruklen,body.suruklen *{cursor:grabbing!important;-webkit-user-select:none;user-select:none}
+.it-ad .it-buyu{width:16px;height:16px;color:var(--accent)}
 .li input,.li select{padding:7px 8px}
 .li input[type=number]{text-align:center;padding-left:4px;padding-right:4px}
 .tgs{display:flex;gap:4px}
@@ -970,6 +978,7 @@ body.peek .tablebar{position:sticky;top:calc(var(--topbar-h,66px) + 8px);z-index
   .li.item{display:flex;flex-wrap:wrap}
   .li.item>input:not([type=number]),.li.item>.it-ad{flex:1 1 150px}
   .li.item>input[type=number]{flex:0 0 62px}
+  .li.item>.it-tut{flex:0 0 22px}
   .slots{grid-template-columns:minmax(0,1fr)}
 }
 
@@ -1059,7 +1068,7 @@ body.sade .hd select{display:none}                                       /* zar 
 .vitals2:has(#haklar[hidden]){grid-template-columns:minmax(0,1fr)}
 body.sade .tabs-card .panel[data-panel="inventory"] .panel-h .hint{display:none}   /* ağırlıktan söz ediyor; ağırlık Tam'da */
 body.sade :is(.li,.li-head).item>:nth-child(3),body.sade :is(.li,.li-head).item>:nth-child(4),body.sade [data-out="carry"]{display:none}
-body.sade .item{grid-template-columns:62px minmax(140px,1fr) var(--del)}
+body.sade .item{grid-template-columns:22px 62px minmax(140px,1fr) var(--del)}
 body.sade :is([data-bind="features"],[data-bind="traits"]){min-height:5.5em!important;field-sizing:content}   /* boşken küçük, yazdıkça uzar */
 body.sade #conds.acik ~ .exh{display:flex}                                 /* "Durum ekle" açılınca bitkinlik de görünür */
 body.sade #beceriAc{margin-top:10px}
@@ -2355,6 +2364,21 @@ button.mc-el:hover{color:var(--text);border-color:var(--accent)}
 .mc-esya li{display:grid;grid-template-columns:18px minmax(0,1fr) auto 2.2em auto;   /* 2026-11-12: ikonun kendi sütunu (yoksa "+" alt satırın ikonuna kayıyordu) */
 align-items:center;gap:4px;min-height:36px;border-bottom:1px solid var(--line)}
 .mc-esya li>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.mc-esya li>[data-sirala]{cursor:grab}
+.mc-esya li>.esya-ic.buyu{color:var(--accent)}
+/* Masada eşya ekleme (2026-11-26, R4 madde 32): bulduğun eşyayı yaz, Ekle; ya da katalogdan */
+.mc-ekle{display:flex;gap:6px;margin:8px 0 0}
+.mc-ekle input{flex:1;min-width:0;padding:6px 9px}
+/* DM'in katalog dışı eşyası (2026-11-26): "Eşya ver" penceresinin "Kendi eşyan" sekmesi */
+.oz-form{display:grid;gap:10px;padding:12px;border:1px solid var(--line);background:var(--surface-2)}
+.oz-form>label{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--muted)}
+.oz-form input,.oz-form textarea,.oz-form select{font-size:14px;padding:6px 8px}
+.oz-form textarea{min-height:64px}
+.oz-sira{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;font-size:13px;font-weight:600;color:var(--muted)}
+.oz-sira label{display:inline-flex;align-items:center;gap:6px}
+.oz-sira input[type=number]{width:76px}
+.oz-form>.btn{justify-self:start}
+.ver-n input{width:52px}
 .mc-esya li>b{text-align:center;font-family:var(--font-display);font-size:18px;font-variant-numeric:lining-nums}
 .mc-esya li.sifir>span{color:var(--muted);text-decoration:line-through}
 .mc-para{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;font-size:13px;color:var(--muted)}
@@ -2362,7 +2386,7 @@ align-items:center;gap:4px;min-height:36px;border-bottom:1px solid var(--line)}
 .mc-para .sifir{opacity:.55}
 .mc-kese{display:flex;gap:6px}
 .mc-kese input{flex:1 1 64px;min-width:0;padding:5px 8px;text-align:center}
-.mc-kese select{flex:0 1 auto;min-width:0;padding:4px 6px}
+.mc-kese select{flex:0 1 auto;width:auto;min-width:0;padding:4px 6px}
 .mc-dn{margin:0;font-size:13px;line-height:1.4;color:var(--muted)}
 .mc-dn b{color:var(--text)}
 .mc-bos{margin:0;color:var(--muted)}
@@ -2554,6 +2578,7 @@ body.tv-full #tableView{height:100dvh}
   <symbol id="i-duraklat" viewBox="0 0 24 24"><path d="M8 5.5v13M16 5.5v13"/></symbol>
   <symbol id="i-gonder" viewBox="0 0 24 24"><path d="M4 11.6 20 4l-5.6 16-3.1-6.7zM11.3 13.3 20 4"/></symbol>
   <!-- Emote'lar (2026-11-26, R4 madde 29): sohbetteki emote düğmesi ve 12 emote; hepsi aynı çizgi kalınlığında, dolgu yarı saydam -->
+  <symbol id="i-tut" viewBox="0 0 24 24"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" stroke-width="3"/></symbol>
   <symbol id="i-konus" viewBox="0 0 24 24"><path d="M4 5h16v10.5h-8.6L6.8 19.4v-3.9H4z"/><path d="M8 9h8M8 12h5"/></symbol>
   <symbol id="i-emote" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M8.6 14.2q3.4 3.4 6.8 0"/><path d="M9.2 9.6v.6M14.8 9.6v.6" stroke-width="2.2"/></symbol>
   <symbol id="em-selam" viewBox="0 0 24 24"><path d="M8.2 12.8V6.2a1.3 1.3 0 0 1 2.6 0v5M10.8 11V4.6a1.3 1.3 0 0 1 2.6 0V11M13.4 11V5.6a1.3 1.3 0 0 1 2.6 0V12M16 12.2V8.8a1.3 1.3 0 0 1 2.6 0v6.4c0 3.6-2.6 6.3-6.1 6.3h-.9c-1.7 0-2.9-.8-3.8-2.1L4.9 15.2c-.6-1 0-2 1.1-2 .8 0 1.4.5 2.2 1.4"/><path d="M3.4 7.2q-1 2.2.2 4.4M20.6 3.4q1.3 2 .6 4.4"/></symbol>
@@ -5453,11 +5478,12 @@ function renderLists() {
   byOzetCiz();
 
   $('#items').innerHTML = C.items.length ? `
-    <div class="li-head item"><span>Adet</span><span>Eşya</span><span>Ağırlık (lb)</span><span>Durum</span><span></span></div>` +
+    <div class="li-head item"><span></span><span>Adet</span><span>Eşya</span><span>Ağırlık (lb)</span><span>Durum</span><span></span></div>` +
     C.items.map((it, i) => `
     <div class="li item" data-list="items" data-i="${i}">
+      <button class="it-tut" type="button" data-sirala="items" title="Sürükleyerek sırala (klavyeyle: Alt ile yukarı / aşağı ok)" aria-label="${esc(it.name || 'Eşya')}: sırasını değiştir (Alt ile yukarı ya da aşağı ok)"><svg class="ic"><use href="#i-tut"/></svg></button>
       <input type="number" min="0" data-f="qty" value="${int(it.qty)}" aria-label="Adet">
-      ${(e => `<span class="it-ad${e ? ' ikonlu' : ''}"${e ? ` title="${esc(e.tr + ': ' + esyaOzet(e))}"` : ''}>${e ? ESYA_IC(e) : ''}<input data-f="name" value="${esc(it.name)}" placeholder="Rope, 50 ft" aria-label="Eşya adı"></span>`)(esyaBul(it))}
+      ${(e => { const ip = esyaAciklama(it, e); return `<span class="it-ad${e || it.buyu ? ' ikonlu' : ''}"${ip ? ` title="${esc(ip)}"` : ''}>${e ? ESYA_IC(e) : it.buyu ? '<svg class="ic esya-ic it-buyu" aria-label="büyülü"><use href="#i-star"/></svg>' : ''}<input data-f="name" value="${esc(it.name)}" placeholder="Rope, 50 ft" aria-label="Eşya adı"></span>`; })(esyaBul(it))}
       <input type="number" min="0" step="0.5" data-f="wt" value="${num(it.wt)}" title="Tek bir tanesinin ağırlığı" aria-label="Ağırlık">
       ${TG('eq', it.eq, it.eq ? 'Kuşanıldı' : 'Çantada', 'Üzerinde mi, çantada mı?')}
       ${DEL}
@@ -6836,6 +6862,162 @@ $('#katAra').addEventListener('input', e => { KAT.ara = e.target.value; katCiz()
 $('#katModal').addEventListener('change', e => { if (e.target.dataset.pz && KAT.degis) KAT.degis(e.target); });   // pazar: satışta, fiyat, adet, ad
 $('#katModal').addEventListener('click', e => { if (e.target.id === 'katModal') katKapa(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#katModal').hidden) { e.stopPropagation(); katKapa(); } }, true);
+/* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 8c-2 — Envanter: sıralama, bulunan eşya, DM'in verdiği eşya (2026-11-26, R4 madde 31, 32 ve eskiden kalan "DM'in katalog
+   dışı eşyası, büyülü eşyalar")
+   • Sürükleyerek sıralama: kağıtta satırın başındaki tutamak, masada eşyanın ikonu ya da adı (data-sirala). Fareyle ve parmakla;
+     başka bir satırın üstüne gelince yer değiştirir, bırakınca dizi o sırayı alır. Kağıtta tutamağa odaklanıp Alt + yukarı / aşağı ok.
+     Masada adı boş satırlar görünmez: yalnızca görünenler kendi aralarında yer değiştirir.
+   • Masada "Bulduğun eşyayı yaz": katalogdaki bir adsa katalog eşyası gibi girer (ağırlık, silahsa saldırı), değilse kendi satırı.
+   • DM "Eşya ver" (isimlik menüsü, DM ekranındaki kart): katalogdan ya da "Kendi eşyan" sekmesinde katalog dışı bir eşya (ad, açıklama,
+     ağırlık, değer, büyülü mü, nadirliği, uyum). DM'in yazdıkları store.ozelEsya'da kalır (tekrar vermek, dükkana koymak için).
+     Ağda {t:'esya-ver', k, n} ya da {t:'esya-ver', o:{ name, d, wt, cp, buyu, uyum }, n}; oyuncu çantasına koyar.
+   ═══════════════════════════════════════════════════════════════════ */
+// Büyülü eşyaların nadirliği; değer SRD 5.2.1 "Magic Item Rarities and Values" (tüketilen eşyada yarısı)
+const NADIR = { yaygin: ['Common', 'Yaygın', 10000], az: ['Uncommon', 'Az bulunur', 40000], nadir: ['Rare', 'Nadir', 400000], cok: ['Very Rare', 'Çok nadir', 4000000], efsane: ['Legendary', 'Efsanevi', 20000000] };
+function esyaAciklama(it, e) {                                        // üstüne gelince okunan açıklama
+  if (e) return `${e.tr}: ${esyaOzet(e)}`;
+  const n = NADIR[it.buyu];
+  return [n ? `Büyülü · ${n[1]} (${n[0]})${it.uyum ? ' · uyum gerekir' : ''}` : '', String(it.d || '').trim()].filter(Boolean).join('\n');
+}
+// ── Sürükleyerek sıralama ──
+const SURUK = { d: null };
+function siralaUygula(liste, sira) {                                  // sira: görünen satırların eski yerleri, yeni sırasıyla
+  const c = liste === 'me' ? ownChar() : C;
+  const yerler = sira.slice().sort((a, b) => a - b), eski = c.items.slice();
+  if (sira.some(i => !eski[i])) return;
+  yerler.forEach((yer, n) => { c.items[yer] = eski[sira[n]]; });
+  if (liste === 'me') ownYenile(c); else { renderLists(); changed(); if (mode === 'table') renderMe(); }
+}
+document.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  const tut = e.target.closest('[data-sirala]');
+  if (!tut || mode === 'peek' || e.target.closest('input, select, textarea')) return;
+  const satir = tut.closest('[data-i]'); if (!satir) return;
+  SURUK.d = { satir, kap: satir.parentNode, liste: tut.dataset.sirala, id: e.pointerId, x: e.clientX, y: e.clientY, oynadi: false };
+  e.preventDefault();
+});
+document.addEventListener('pointermove', e => {
+  const d = SURUK.d; if (!d || e.pointerId !== d.id) return;
+  if (!d.oynadi) {
+    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 5) return;
+    d.oynadi = true; d.satir.classList.add('suruk'); document.body.classList.add('suruklen');
+  }
+  const el = document.elementFromPoint(e.clientX, e.clientY), hedef = el && el.closest('[data-i]');
+  if (!hedef || hedef === d.satir || hedef.parentNode !== d.kap) return;
+  const l = [...d.kap.children], a = l.indexOf(d.satir), b = l.indexOf(hedef);
+  d.kap.insertBefore(d.satir, a < b ? hedef.nextSibling : hedef);
+});
+function surukBit(e) {
+  const d = SURUK.d; if (!d || e.pointerId !== d.id) return;
+  SURUK.d = null; d.satir.classList.remove('suruk'); document.body.classList.remove('suruklen');
+  if (d.oynadi) siralaUygula(d.liste, [...d.kap.children].filter(x => x.matches('[data-i]')).map(x => int(x.dataset.i)));
+}
+document.addEventListener('pointerup', surukBit); document.addEventListener('pointercancel', surukBit);
+document.addEventListener('keydown', e => {                           // kağıtta: tutamakta Alt + yukarı / aşağı
+  if (!e.altKey || !['ArrowUp', 'ArrowDown'].includes(e.key) || !e.target.matches('.it-tut') || mode === 'peek') return;
+  e.preventDefault();
+  const i = int(e.target.closest('[data-i]').dataset.i), j = i + (e.key === 'ArrowUp' ? -1 : 1);
+  if (j < 0 || j >= C.items.length) return;
+  const sira = C.items.map((_, n) => n); sira[i] = j; sira[j] = i;
+  siralaUygula('items', sira);
+  const b = $(`#items [data-i="${j}"] .it-tut`); if (b) b.focus();
+});
+// ── Masada bulunan eşya ──
+function meEsyaEkle() {
+  const inp = $('#meEsyaIn'), ad = short(String(inp.value || '').trim(), 60), own = ownChar();
+  if (!ad) { inp.focus(); return; }
+  const e = esyaBul({ name: ad });
+  if (e) esyaKoy(own, e.k);
+  else {
+    const eski = own.items.find(x => !x.k && String(x.name || '').trim().toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr'));
+    if (eski) eski.qty = int(eski.qty) + 1; else own.items.push(Object.assign(NEW_ROW.items(), { qty: 1, name: ad }));
+  }
+  inp.value = ''; ownYenile(own); ses('kupa');
+  notify(`${e ? e.k : ad} çantanda`, e ? `${e.tr}${e.silah ? ' · saldırılarına da eklendi' : ''}` : 'Ağırlığını ve açıklamasını kağıttan yazabilirsin.');
+  setTimeout(() => { const f = $('#meEsyaIn'); if (f) f.focus(); }, 0);
+}
+function esyaAdlariKur() {                                            // yazarken öneri: katalogdaki adlar (Türkçesiyle)
+  if ($('#esyaAdlar')) return;
+  const dl = document.createElement('datalist'); dl.id = 'esyaAdlar';
+  dl.innerHTML = Object.values(ESYA).filter(e => e.kat !== 'paket').map(e => `<option value="${esc(e.k)}">${esc(e.tr)}</option>`).join('');
+  document.body.appendChild(dl);
+}
+// ── DM: eşya ver ──
+const ozelY = () => { if (!Array.isArray(store.ozelEsya)) store.ozelEsya = []; return store.ozelEsya; };
+function ozelTemiz(o) {                                                // ağdan ya da formdan gelen katalog dışı eşya
+  if (!o || typeof o !== 'object') return null;
+  const name = short(String(o.name || '').trim(), 60); if (!name) return null;
+  return { name, d: notTemiz(o.d), wt: clamp(Math.round(num(o.wt) * 100) / 100, 0, 1000), cp: clamp(int(o.cp), 0, 100000000), buyu: NADIR[o.buyu] ? o.buyu : '', uyum: !!o.uyum };
+}
+const VER = { pid: '' };
+function verKim(pid) { const p = net.players.get(pid); return p ? ((p.char && p.char.name.trim()) || p.name) : ''; }
+function esyaVerAc(pid) {
+  const p = net.players.get(pid); if (!p) return;
+  VER.pid = pid;
+  katAc('ver', KAT.sek === 'ozel' ? 'ozel' : 'macera', {
+    baslik: [`${verKim(pid)} için eşya`, 'Katalogdan seç ya da "Kendi eşyan" sekmesinde katalog dışı bir eşya yaz (büyülü olabilir). "Ver"e basınca oyuncunun çantasına girer, parası düşülmez.'],
+    sag: e => `<label class="pz-say ver-n" title="Kaç tane"><input type="number" data-ver="n" min="1" max="99" value="1" aria-label="${esc(e.k)}: adet"><small>adet</small></label><button class="btn sm accent" data-act="kat-ekle" data-k="${esc(e.k)}">Ver</button>`,
+    ekle: (k, b) => { const row = b && b.closest('.kat-satir'), n = clamp(int(row && $('[data-ver="n"]', row) ? $('[data-ver="n"]', row).value : 1) || 1, 1, 99); esyaVer({ k, n }); },
+    ozelSek: { k: 'ozel', ad: 'Kendi eşyan', ic: 'kese', liste: () => ozelY(), ciz: ozelCiz },
+    altYazi: () => `<span>Kime: <b>${esc(verKim(VER.pid))}</b>${net.players.get(VER.pid) && net.players.get(VER.pid).online ? '' : ' (bağlı değil)'}</span>`,
+  });
+}
+function ozelCiz() {
+  const l = ozelY();
+  return `<div class="oz-form"><label>Adı <input id="ozAd" maxlength="60" placeholder="ör. Kuzgun mührü, gümüş anahtar" autocomplete="off"></label>
+      <label>Açıklama <textarea id="ozD" maxlength="400" rows="3" placeholder="Ne işe yarar? Oyuncu eşyanın üstüne gelince okur."></textarea></label>
+      <div class="oz-sira"><label>Adet <input type="number" id="ozN" min="1" max="99" value="1"></label><label>Ağırlık <input type="number" id="ozLb" min="0" step="0.5" value="0"> lb</label>
+        <label>Değeri <input type="number" id="ozDeger" min="0" step="any" value="0"><select id="ozPara" aria-label="Para türü">${PARA_AD.map(([k, ad]) => `<option value="${k}"${k === 'gp' ? ' selected' : ''}>${ad}</option>`).join('')}</select></label></div>
+      <div class="oz-sira"><label><input type="checkbox" id="ozBuyu"> Büyülü</label><label>Nadirliği <select id="ozNadir">${Object.entries(NADIR).map(([k, n]) => `<option value="${k}">${n[1]} (${n[0]})</option>`).join('')}</select></label><label><input type="checkbox" id="ozUyum"> Uyum gerekir</label></div>
+      <button class="btn accent" data-act="oz-ver"><svg class="ic"><use href="#i-canta"/></svg>Ver</button></div>
+    ${l.length ? `<h3 class="kat-grup">Daha önce yazdıkların</h3>${l.map((o, i) => `<div class="kat-satir">${o.buyu ? '<svg class="ic esya-ic" style="color:var(--accent)"><use href="#i-star"/></svg>' : '<svg class="ic esya-ic"><use href="#e-kese"/></svg>'}
+        <div class="kat-ad" title="${esc(esyaAciklama(o))}"><b>${esc(o.name)}</b>${o.buyu ? ` <i>${NADIR[o.buyu][1]}${o.uyum ? ' · uyum' : ''}</i>` : ''}${o.d ? `<small>${esc(o.d)}</small>` : ''}</div>
+        <span class="kat-fiyat">${fiyatYaz(o.cp)}</span><span class="kat-lb">${lbYaz(o.wt)}</span>
+        <span class="kat-sag"><button class="btn sm accent" data-act="oz-tekrar" data-i="${i}">Ver</button><button class="btn sm" data-act="oz-sil" data-i="${i}" title="Listeden sil (oyuncuların çantasındakine dokunmaz)">Sil</button></span></div>`).join('')}` : ''}`;
+}
+function esyaVer(x) {                                                 // x: { k, n } katalog; { o, n } katalog dışı
+  const p = net.players.get(VER.pid), kim = verKim(VER.pid);
+  if (!p || !p.online) { notify(`${kim || 'Oyuncu'} bağlı değil`, 'Bağlanınca yeniden dene.'); return false; }
+  const ad = x.k ? x.k : x.o.name;
+  if (!send(p.conn, x.k ? { t: 'esya-ver', k: x.k, n: x.n } : { t: 'esya-ver', o: x.o, n: x.n })) { notify('Gönderilemedi', 'Bağlantı kopmuş olabilir.'); return false; }
+  notify(`${kim}: ${ad}${x.n > 1 ? ' × ' + x.n : ''} verildi`, 'Çantasına girdi.');
+  return true;
+}
+function esyaAl(msg) {                                                // oyuncu: DM bir eşya verdi
+  const own = ownChar(), n = clamp(int(msg.n) || 1, 1, 99);
+  let ad = '';
+  if (msg.k && ESYA[msg.k]) { esyaKoy(own, msg.k, n); ad = msg.k; }
+  else {
+    const o = ozelTemiz(msg.o); if (!o) return;
+    const eski = own.items.find(x => !x.k && x.name === o.name && (x.d || '') === o.d);
+    if (eski) eski.qty = int(eski.qty) + n;
+    else own.items.push(Object.assign(NEW_ROW.items(), { qty: n, name: o.name, wt: o.wt, eq: false, d: o.d, buyu: o.buyu, uyum: o.uyum, cp: o.cp }));
+    ad = o.name;
+  }
+  ownYenile(own); ses('kupa');
+  notify(`${net.dmName || 'DM'} sana ${ad}${n > 1 ? ' × ' + n : ''} verdi`, 'Çantanda: masadaki Envanter ya da kağıdın.');
+}
+Object.assign(ACTIONS, {
+  'me-esya-ekle': () => meEsyaEkle(),
+  'me-katalog': () => katAc('kagit', 'macera', { ekle: k => { const own = ownChar(), e = ESYA[k]; esyaKoy(own, k); ownYenile(own); ses('kupa'); notify(`${e.k} çantanda`, e.kat === 'paket' ? 'Paket açıldı.' : e.silah ? 'Saldırılarına da eklendi.' : e.tr); } }),
+  'esya-ver-ac': b => { const pid = b.dataset.pid || (seated().find(p => p.seat === b.dataset.id) || {}).pid; koltukKapa(); if (pid) esyaVerAc(pid); },
+  'oz-ver': () => {
+    const o = ozelTemiz({ name: $('#ozAd').value, d: $('#ozD').value, wt: $('#ozLb').value, cp: Math.round(num($('#ozDeger').value) * PARA_DEGER[$('#ozPara').value]), buyu: $('#ozBuyu').checked ? $('#ozNadir').value : '', uyum: $('#ozBuyu').checked && $('#ozUyum').checked });
+    if (!o) { notify('Önce eşyanın adını yaz'); $('#ozAd').focus(); return; }
+    const n = clamp(int($('#ozN').value) || 1, 1, 99);
+    if (!esyaVer({ o, n })) return;
+    const l = ozelY(), i = l.findIndex(x => x.name === o.name && x.d === o.d);
+    if (i >= 0) l.splice(i, 1);
+    l.unshift(o); if (l.length > 60) l.length = 60;
+    save(); katCiz();
+  },
+  'oz-tekrar': b => { const o = ozelY()[int(b.dataset.i)]; if (o) esyaVer({ o, n: 1 }); },
+  'oz-sil': b => { ozelY().splice(int(b.dataset.i), 1); save(); katCiz(); },
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'meEsyaIn') { e.preventDefault(); meEsyaEkle(); } });
+esyaAdlariKur();
+
 /* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 8d — Kitap okuma (2026-11-10, kullanıcının isteği; kural SRD 5.2.1: Manual / Tome)
    Büyülü kitap: 6 gün içinde 48 saat okuyup çalışınca yetenek +2 (en çok 30), sonra büyüsü tükenir. Sitede: günde bir "Bugün oku"
@@ -8332,6 +8514,7 @@ function playerReceive(conn, msg) {
   else if (msg.t === 'soz-gecmis') sozGecmisAl(msg);
   else if (msg.t === 'notlar') notAl(msg);                           // ortak notlar (BÖLÜM 10e-2)
   else if (msg.t === 'konus') ksAl(msg);                             // konuşulan NPC (BÖLÜM 10g-2)
+  else if (msg.t === 'esya-ver') esyaAl(msg);                        // DM bir eşya verdi (BÖLÜM 8c-2)
   else if (msg.t === 'gif-k') { const k = gifAnahtarGecerli(msg.k) ? String(msg.k) : ''; if (k !== net.gifK) { net.gifK = k; GIF.on.clear(); GIF.liste = []; GIF.hata = ''; $('#sozGif').dataset.kip = ''; gifCiz(); } }
   else if (msg.t === 'yaz') { const k = cleanSeat(msg.kim); if (k && k !== net.mySeat) yazGoster(k, !!msg.on); }
   else if (msg.t === 'mz') mzAl(msg);                                // müzik (BÖLÜM 10f)
@@ -8586,7 +8769,7 @@ function pcCard(p) {
       <div class="pc-saves" title="Kurtarma zarı bonusları. Renkli olanlarda yetkin.">${ABIL.map(a => `<span class="${c.saves[a.k] ? 'p' : ''}">${a.k.toUpperCase()} <b>${sign(saveBonus(a.k))}</b></span>`).join('')}</div>
       ${tags ? `<div class="tags">${tags}</div>` : ''}
       ${p.lastRoll ? `<p class="pc-last">Son zar: ${esc(p.lastRoll.label)} <b>${esc(p.lastRoll.total)}</b></p>` : ''}
-      <footer class="pc-act"><button class="btn sm" data-act="peek" data-pid="${esc(p.pid)}"><svg class="ic"><use href="#i-scroll"/></svg>Kağıdı</button><button class="btn sm" data-act="give-insp" data-pid="${esc(p.pid)}" title="Heroic Inspiration: oyuncu bir d20 zarını yeniden atabilir">${c.insp ? 'İlhamı geri al' : 'İlham ver'}</button><button class="btn sm bad" data-act="kick" data-pid="${esc(p.pid)}">Çıkar</button></footer>
+      <footer class="pc-act"><button class="btn sm" data-act="peek" data-pid="${esc(p.pid)}"><svg class="ic"><use href="#i-scroll"/></svg>Kağıdı</button><button class="btn sm" data-act="give-insp" data-pid="${esc(p.pid)}" title="Heroic Inspiration: oyuncu bir d20 zarını yeniden atabilir">${c.insp ? 'İlhamı geri al' : 'İlham ver'}</button><button class="btn sm" data-act="esya-ver-ac" data-pid="${esc(p.pid)}" title="Çantasına eşya koy: katalogdan ya da kendi yazdığın (büyülü olabilir)">Eşya ver</button><button class="btn sm bad" data-act="kick" data-pid="${esc(p.pid)}">Çıkar</button></footer>
     </article>`;
   });
 }
@@ -9263,7 +9446,8 @@ function koltukAc(el, tag) {
   if (!s || store.net.role !== 'dm' || s.dm || s.me) return;         // oyuncular isimlikten bir şey seçmez
   const h = hedefListe().includes(s.id);
   pop.innerHTML = `<div class="kp-ad">${esc(s.char || s.name)}<small>${esc(s.char ? s.name : '')}</small></div>
-    <div class="kp-btn"><button class="btn sm${h ? '' : ' accent'}" data-act="hedef-yap" data-id="${s.id}"><svg class="ic"><use href="#i-hedef"/></svg>${h ? 'Hedefi kaldır' : 'Hedef yap'}</button></div>
+    <div class="kp-btn"><button class="btn sm${h ? '' : ' accent'}" data-act="hedef-yap" data-id="${s.id}"><svg class="ic"><use href="#i-hedef"/></svg>${h ? 'Hedefi kaldır' : 'Hedef yap'}</button>
+      ${seated().some(p => p.seat === s.id) ? `<button class="btn sm" data-act="esya-ver-ac" data-id="${s.id}" title="Çantasına eşya koy: katalogdan ya da kendi yazdığın (büyülü olabilir)"><svg class="ic"><use href="#i-canta"/></svg>Eşya ver</button>` : ''}</div>
     <div class="kp-xp"><input type="number" id="kpXp" min="1" max="100000" placeholder="XP" aria-label="Verilecek XP"><button class="btn sm" data-act="xp-ver" data-id="${s.id}">XP ver</button></div>`;
   pop.hidden = false; pop.dataset.id = s.id;
   pop.setAttribute('aria-label', s.char || s.name);
@@ -11488,12 +11672,16 @@ function renderMe() {
     const kese = `<div class="mc-kese"><input type="number" id="meKese" min="1" placeholder="Miktar" aria-label="Para miktarı" value="${esc(kv)}">
       <select id="meKeseTur" aria-label="Para türü">${PARA_AD.map(([k, ad]) => `<option value="${k}"${k === kt ? ' selected' : ''}>${ad}</option>`).join('')}</select>
       <button class="btn sm good" data-act="me-kese" data-d="1" title="Keseye koy (bulduğun, kazandığın)">Ekle</button><button class="btn sm" data-act="me-kese" data-d="-1" title="Keseden harca (yetmezse büyük para bozulur, üstü gelir)">Harca</button></div>`;
-    const satir = c.items.map((x, i) => String(x.name || '').trim() ? `<li data-row data-i="${i}"${int(x.qty) ? '' : ' class="sifir"'}>${esyaBul(x) ? ESYA_IC(esyaBul(x)) : '<i class="esya-ic" aria-hidden="true"></i>'}<span title="${esc(esyaBul(x) ? esyaBul(x).tr : x.name)}">${esc(x.name)}</span>
+    const satir = c.items.map((x, i) => { if (!String(x.name || '').trim()) return ''; const e = esyaBul(x), ip = esyaAciklama(x, e);
+      return `<li data-row data-i="${i}"${int(x.qty) ? '' : ' class="sifir"'}>${e ? ESYA_IC(e).replace('<svg ', '<svg data-sirala="me" ') : x.buyu ? '<svg class="ic esya-ic buyu" data-sirala="me" aria-label="büyülü"><use href="#i-star"/></svg>' : '<i class="esya-ic" data-sirala="me" aria-hidden="true"></i>'}<span data-sirala="me" title="${esc((ip || x.name) + ' · sürükleyerek sırala')}">${esc(x.name)}</span>
         <button class="icon-btn" data-act="me-adet" data-d="-1" title="Bir azalt (kullandın, harcadın)" aria-label="${esc(x.name)}: bir azalt"><svg class="ic"><use href="#i-minus"/></svg></button><b>${int(x.qty)}</b>
-        <button class="icon-btn" data-act="me-adet" data-d="1" title="Bir artır" aria-label="${esc(x.name)}: bir artır"><svg class="ic"><use href="#i-plus"/></svg></button></li>` : '').join('');
+        <button class="icon-btn" data-act="me-adet" data-d="1" title="Bir artır" aria-label="${esc(x.name)}: bir artır"><svg class="ic"><use href="#i-plus"/></svg></button></li>`; }).join('');
+    const ev = document.activeElement && document.activeElement.id === 'meEsyaIn' ? document.activeElement.value : '';
+    const ekle = `<div class="mc-ekle"><input id="meEsyaIn" list="esyaAdlar" maxlength="60" placeholder="Bulduğun eşyayı yaz (ör. gümüş yüzük)" aria-label="Çantana eklenecek eşya" value="${esc(ev)}">
+      <button class="btn sm good" data-act="me-esya-ekle" title="Çantana koy">Ekle</button><button class="btn sm" data-act="me-katalog" title="Kurallardaki eşyalardan seç"><svg class="ic"><use href="#i-canta"/></svg>Katalog</button></div>`;
     const kit = c.items.map((it, i) => kitapSatiri(c, it, i, true)).join('');
-    sekCam = `<section class="mc-sek" aria-label="Envanter"><h3>Envanter<em>adet − / + · eşya eklemek için Kağıdım</em></h3>${kit ? `<div class="kitaplar">${kit}</div>` : ''}
-      ${satir ? `<ul class="mc-esya">${satir}</ul>` : '<p class="mc-bos">Envanterin boş. Eşya eklemek için <b>Kağıdım</b>.</p>'}<p class="mc-para">${para}</p>${kese}</section>`;
+    sekCam = `<section class="mc-sek" aria-label="Envanter"><h3>Envanter<em>adından tutup sürükle: sırala · adet − / +</em></h3>${kit ? `<div class="kitaplar">${kit}</div>` : ''}
+      ${satir ? `<ul class="mc-esya">${satir}</ul>` : '<p class="mc-bos">Envanterin boş. Bulduğun eşyayı aşağıya yaz.</p>'}${ekle}<p class="mc-para">${para}</p>${kese}</section>`;
   }
   let detay = '';
   if (!min) {
