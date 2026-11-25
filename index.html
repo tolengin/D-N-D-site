@@ -160,6 +160,8 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .npc-say{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;grid-column:1 / -1}
 .npc-say .f{width:74px}
 .npc-say .f input{text-align:center}
+.npc-say .f.npc-silah{width:150px}
+.npc-say .f.npc-hasar{width:120px}
 .npc-say .btns{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
 .npc-bos{margin:0;color:var(--muted);font-size:13.5px}
 .npc-bas{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
@@ -1697,6 +1699,12 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 .dus-i{--g:var(--g-dus);display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:calc(.8 * var(--u));width:100%;padding:calc(.5 * var(--u)) calc(.9 * var(--u));
   border:0;border-radius:0;background:var(--surface);color:inherit;text-align:left;cursor:pointer;font:inherit}
 .dus-i:hover{background:var(--lit)}
+.dus-sld{display:flex;align-items:center;gap:6px;padding:4px 6px 6px calc(.9 * var(--u));background:var(--surface);font-size:13px}
+.dus-sld>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.dus-sld>span.bos{font-weight:500;color:var(--muted)}
+.dus-sld .roll{min-width:40px;padding:4px 6px;font-size:14px}
+.dus-ekle{display:flex;flex-wrap:wrap;align-items:center;gap:4px;width:100%;margin-top:4px}
+.dus-ekle>span{font-size:12px;color:var(--muted);margin-right:2px}
 .dus-i.hedef{outline:2px dashed var(--text);outline-offset:-4px}
 .dus-i.simdi{background:color-mix(in srgb,var(--g) 45%,var(--surface))}
 .dus-i.olu{opacity:.5}
@@ -8270,9 +8278,9 @@ const readNpcs = list => (Array.isArray(list) ? list : []).slice(0, 30).filter(n
     max: n.max === undefined ? null : clamp(int(n.max), 0, 9999), ac: n.ac === undefined ? null : clamp(int(n.ac), 0, 99) }));
 // Hazır düşmanlar: görselleri masa/npc/<k>.webp (Nano Banana 2). Sayılar yalnızca başlangıç içindir; DM değiştirir.
 const NPC_HAZIR = [
-  { k:'goblin', ad:'Goblin', max:10, ac:15, ini:2 }, { k:'ork', ad:'Ork', max:15, ac:13, ini:1 },
-  { k:'iskelet', ad:'İskelet', max:13, ac:14, ini:3 }, { k:'haydut', ad:'Haydut', max:11, ac:12, ini:1 },
-  { k:'kurt', ad:'Kurt', max:11, ac:12, ini:2 },
+  { k:'goblin', ad:'Goblin', max:10, ac:15, ini:2, silah:'Scimitar', vur:4, hasar:'1d6+2 slashing' }, { k:'ork', ad:'Ork', max:15, ac:13, ini:1, silah:'Greataxe', vur:5, hasar:'1d12+3 slashing' },
+  { k:'iskelet', ad:'İskelet', max:13, ac:14, ini:3, silah:'Shortsword', vur:5, hasar:'1d6+3 piercing' }, { k:'haydut', ad:'Haydut', max:11, ac:12, ini:1, silah:'Scimitar', vur:3, hasar:'1d6+1 slashing' },
+  { k:'kurt', ad:'Kurt', max:11, ac:12, ini:2, silah:'Isırık', vur:4, hasar:'2d4+2 piercing' },
 ];
 const cleanNpcImg = v => (NPC_HAZIR.some(h => h.k === v) ? v : cleanImg(v));
 const npcSrc = img => (!img ? '' : img.startsWith('data:') ? img : `${ART}npc/${img}.webp`);
@@ -8446,6 +8454,7 @@ function renderNpcs() {
   npcSavasUI();
   const secenek = n => '<option value="">Görselsiz</option>' + NPC_HAZIR.map(h => `<option value="${h.k}"${n.img === h.k ? ' selected' : ''}>${h.ad}</option>`).join('')
     + (n.img && n.img.startsWith('data:') ? '<option value="__data" selected>Yüklenen görsel</option>' : '') + '<option value="__yukle">Kendi görselim…</option>';
+  npcSilahListe();
   box.innerHTML = list.length ? list.map(n => {
     const dus = int(n.max) > 0 && int(n.can) <= 0;
     return `<div class="npc${dus ? ' dustu' : ''}" data-id="${n.id}">
@@ -8456,6 +8465,9 @@ function renderNpcs() {
         <label class="f"><span class="f-l">En çok</span><input type="number" data-npc="max" value="${int(n.max)}" min="0"></label>
         <label class="f"><span class="f-l">AC</span><input type="number" data-npc="ac" value="${int(n.ac)}" min="0"></label>
         <label class="f" title="İnisiyatif bonusu: savaş başlayınca d20'ye eklenir"><span class="f-l">İnis.</span><input type="number" data-npc="ini" value="${int(n.ini)}"></label>
+        <label class="f npc-silah" title="Düşmanın silahı (2026-11-25): katalogdan seçersen hasar zarı da gelir"><span class="f-l">Silah</span><input data-npc="silah" list="npcSilahList" value="${esc(n.silah || '')}" maxlength="40" placeholder="Scimitar"></label>
+        <label class="f" title="Vuruş bonusu: d20'ye eklenir"><span class="f-l">Vuruş</span><input type="number" data-npc="vur" value="${int(n.vur)}"></label>
+        <label class="f npc-hasar" title="Hasar zarı: 1d6+2 slashing gibi"><span class="f-l">Hasar</span><input data-npc="hasar" value="${esc(n.hasar || '')}" maxlength="30" placeholder="1d6+2"></label>
         <label class="f npc-gorsel"><span class="f-l">Görsel</span><select data-npc="img">${secenek(n)}</select></label>
         <div class="btns">
           <button class="btn sm" data-act="npc-gor" data-id="${n.id}" aria-pressed="${!!n.gor}" title="Açıksa oyuncular onu görür ve hedef seçebilir"><svg class="ic"><use href="#i-eye"/></svg>Masada</button>
@@ -8466,6 +8478,12 @@ function renderNpcs() {
   }).join('') : '<p class="npc-bos">Henüz düşman yok. "Ekle" ile bir düşman ya da NPC ekle.</p>';
 }
 // Düşmanlar değişti: oyunculara bildir (yazarken her harfte değil, biraz bekleyip), tepsiyi yenile
+function npcSilahListe() {                                           // DM'in düşman silahı kutusu için katalogdaki silahlar
+  if ($('#npcSilahList')) return;
+  const d = document.createElement('datalist'); d.id = 'npcSilahList';
+  d.innerHTML = Object.keys(ESYA).filter(k => ESYA[k].silah).map(k => `<option value="${esc(k)}">${esc(ESYA[k].tr)}</option>`).join('');
+  document.body.appendChild(d);
+}
 function npcDegisti(hemen) {
   hedefUI();
   clearTimeout(SAVAS.npcT);
@@ -8474,7 +8492,8 @@ function npcDegisti(hemen) {
 $('#npcList').addEventListener('input', e => {
   const k = e.target.dataset.npc, row = e.target.closest('.npc'), n = row && npcler().find(x => x.id === row.dataset.id);
   if (!k || !n || k === 'img') return;
-  n[k] = k === 'ad' ? short(e.target.value, 40) : k === 'ini' ? clamp(int(e.target.value), -10, 20) : clamp(int(e.target.value), k === 'can' ? -999 : 0, 9999);
+  n[k] = k === 'ad' || k === 'silah' ? short(e.target.value, 40) : k === 'hasar' ? short(e.target.value, 30) : k === 'ini' || k === 'vur' ? clamp(int(e.target.value), -10, 30) : clamp(int(e.target.value), k === 'can' ? -999 : 0, 9999);
+  if (k === 'silah' && !String(n.hasar || '').trim()) { const w = ESYA[ESYA_KUCUK[n.silah.trim().toLowerCase()]]; if (w && w.silah) { n.hasar = `${w.silah.zar} ${HASAR_TR[w.silah.h][0]}`; const h = $('input[data-npc="hasar"]', row); if (h) h.value = n.hasar; } }
   row.classList.toggle('dustu', int(n.max) > 0 && int(n.can) <= 0);
   save(); npcDegisti();
 });
@@ -8514,7 +8533,7 @@ function panoUI() {
 }
 function renderDus() {
   const box = $('#tvDus'), role = store.net.role, dm = role === 'dm';
-  const list = dm ? npcler().map(n => ({ id: n.id, ad: n.ad, img: n.img, can: int(n.can), max: int(n.max), ac: int(n.ac), gizli: !n.gor }))
+  const list = dm ? npcler().map(n => ({ id: n.id, ad: n.ad, img: n.img, can: int(n.can), max: int(n.max), ac: int(n.ac), gizli: !n.gor, silah: n.silah, vur: int(n.vur), hasar: n.hasar }))
     : role === 'player' ? net.npcs : [];
   box.hidden = !dm && !list.length;
   panoUI();
@@ -8526,7 +8545,11 @@ function renderDus() {
     return `<li><button class="dus-i${n.id === h ? ' hedef' : ''}${n.id === simdi ? ' simdi' : ''}${olu ? ' olu' : ''}" data-act="hedef-yap" data-id="${n.id}"
       title="${n.id === h ? 'Hedefi kaldır' : 'Hedef yap'}${olu ? ' (yere düştü)' : ''}"><span class="dus-av">${avHTML(npcSrc(n.img), n.ad)}</span>
       <span class="dus-ad"><b>${esc(n.ad || 'İsimsiz düşman')}</b>${bilgi ? `<small>${esc(bilgi)}</small>` : ''}${n.max
-        ? `<span class="dus-can"><span class="hp-fill" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span></span>` : ''}</span></button></li>`;
+        ? `<span class="dus-can"><span class="hp-fill" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span></span>` : ''}</span></button>
+      ${dm ? `<div class="dus-sld">${n.hasar ? `<span title="${esc(n.ad || 'Düşman')} adına saldırır; hedefi tepsiden ya da karta basarak seç">${esc(n.silah || 'Saldırı')}</span>
+        <button class="roll" data-act="npc-vur" data-id="${n.id}" title="${esc(n.ad || 'Düşman')}: vuruş zarı (d20 ${sign(n.vur)})">${sign(n.vur)}</button>
+        <button class="roll die" data-act="npc-hasar" data-id="${n.id}" title="${esc(n.ad || 'Düşman')}: hasar ${esc(n.hasar)}" aria-label="Hasar zarı">${HASAR_IC}</button>`
+        : '<span class="bos">Silahı yok: DM ekranında yaz</span>'}<button class="icon-btn" data-act="npc-sil" data-id="${n.id}" title="Düşmanı kaldır" aria-label="${esc(n.ad || 'Düşmanı')} kaldır"><svg class="ic"><use href="#i-x"/></svg></button></div>` : ''}</li>`;
   }).join('') : '<li class="bos">Henüz düşman yok.</li>';
   const kb = $('#tvKatil'), oy = dm ? seated() : [];
   kb.hidden = !oy.length;
@@ -8537,7 +8560,7 @@ function renderDus() {
   }).join('')}</div>`;
   svRender();
   $('#tvDusAlt').innerHTML = dm ? (list.length ? `<button class="btn sm${siraAktif() ? '' : ' accent'}" data-act="savas">${siraAktif() ? 'Savaşı bitir' : 'Savaşı başlat'}</button>` : '')
-    + '<button class="btn sm" data-act="mode-dm">Düşman ekle</button>' : '';
+    + `<div class="dus-ekle"><span>Ekle:</span>${NPC_HAZIR.map(h => `<button class="btn sm" data-act="npc-hazir" data-k="${h.k}" title="${h.ad}: ${h.max} can, AC ${h.ac}, ${h.silah} ${sign(h.vur)} (${h.hasar})">${h.ad}</button>`).join('')}<button class="btn sm" data-act="mode-dm" title="DM ekranında düşmanı baştan yaz (ad, can, AC, silah, görsel)">Diğer…</button></div>` : '';
 }
 
 /* ───────── Savaş sırası (inisiyatif) ───────── */
@@ -8728,7 +8751,9 @@ Object.assign(ACTIONS, {
   'npc-hazir': b => {
     const h = NPC_HAZIR.find(x => x.k === b.dataset.k); if (!h) return;
     const ayni = npcler().filter(n => n.img === h.k).length;           // ikinci goblin "Goblin 2" olur
-    npcler().push({ id: 'n' + newCode().toLowerCase(), ad: ayni ? `${h.ad} ${ayni + 1}` : h.ad, can: h.max, max: h.max, ac: h.ac, ini: h.ini, img: h.k, gor: true, canGor: false });
+    npcler().push({ id: 'n' + newCode().toLowerCase(), ad: ayni ? `${h.ad} ${ayni + 1}` : h.ad, can: h.max, max: h.max, ac: h.ac, ini: h.ini, img: h.k, gor: true, canGor: false,
+      silah: h.silah || '', vur: h.vur || 0, hasar: h.hasar || '' });
+    if (siraAktif()) notify(`${h.ad} eklendi`, 'Savaş sürüyor: sıraya girmesi için savaşı yeniden başlat ya da sıranın sonunda yerini söyle.');
     save(); renderNpcs(); npcDegisti(true);
   },
   'savas': () => (siraAktif() ? savasBitir() : savasBaslat()),
@@ -8754,6 +8779,18 @@ Object.assign(ACTIONS, {
     if (store.hedef === b.dataset.id) store.hedef = '';
     if (store.atan === b.dataset.id) store.atan = '';
     save(); renderNpcs(); npcDegisti(true);
+  },
+  'npc-vur': b => {                                                   // DM: düşman adına vuruş (2026-11-25, R3 madde 46)
+    const n = npcler().find(x => x.id === b.dataset.id); if (!n) return;
+    store.atan = n.id; save(); hedefUI();
+    rollD20(`${n.silah || 'Saldırı'}: vuruş zarı`, [['vuruş bonusu', int(n.vur)]], { free: true, saldiri: true, on20: 'Kritik vuruş! Şimdi hasar zarına bas, zarlar iki kez atılır.', on1: 'Doğal 1: saldırı ıskalar.' });
+    SV.sonNpc = n.id;
+  },
+  'npc-hasar': b => {
+    const n = npcler().find(x => x.id === b.dataset.id); if (!n || !String(n.hasar || '').trim()) return;
+    store.atan = n.id; save(); hedefUI();
+    rollExpr(n.hasar, `${n.silah || 'Saldırı'}: hasar`, { hasar: true, crit: !!SV.sonKrit && SV.sonNpc === n.id });
+    SV.sonKrit = false;
   },
   'npc-gor': b => { const n = npcler().find(x => x.id === b.dataset.id); if (n) { n.gor = !n.gor; save(); renderNpcs(); npcDegisti(true); } },
   'npc-can': b => { const n = npcler().find(x => x.id === b.dataset.id); if (n) { n.canGor = !n.canGor; save(); renderNpcs(); npcDegisti(true); } },
