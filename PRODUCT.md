@@ -46,7 +46,7 @@ Yayılma planı: önce arkadaş grubu, sonra Reddit ve LinkedIn'de paylaşım.
   - Masa bağlantısı PeerJS ile kurulur (ücretsiz aracı sunucu).
   - 3D sahne three.js ile gelir (CDN).
   - Yayın: GitHub Pages.
-- **Masa:** en çok 8 oyuncu. Bir oyuncuya diğer oyuncular hakkında yalnızca ad, karakter adı, bağlantı durumu, küçük portre, sınıf ve figür seçimi gider. Can, AC, eşya ve notlar yalnızca DM'de kalır. DM koltuğunda her zaman zar simgesi görünür (NPC portresi sızmasın).
+- **Masa:** en çok 8 oyuncu. Bir oyuncuya diğer oyuncular hakkında yalnızca ad, karakter adı, bağlantı durumu, küçük portre, sınıf, figür seçimi ve (2026-11-25'ten beri, sahibinin kararıyla) can, geçici can, AC, seviye ve ölüm durumu gider. Eşya, notlar ve kağıdın geri kalanı yalnızca DM'de kalır. DM koltuğunda her zaman zar simgesi görünür (NPC portresi sızmasın).
 - **Zar:** sonucu atanın tarayıcısı hesaplar; animasyon yalnızca gösterimdir. Sonuç, zar yere inmeden hiçbir yerde görünmez.
 - **Dil:** şu an Türkçe arayüz, terimlerde İngilizce karşılık. **Açık karar:** başka dillere (önce İngilizce) açılış planlanıyor; yöntemi (dil seçimi, çeviri dosyaları) henüz belirlenmedi.
 - **Ücret:** şu an ücretsiz.
