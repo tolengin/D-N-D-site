@@ -58,7 +58,7 @@ const KUT_CDN = location.protocol === 'file:';
   --on-good:#03170d; --on-bad:#26050a;
   --star:#f2b33d;                                 /* ilham: kehribar cam */
   /* Koltuk camları: kırmızı ve yeşil yok (onlar yalnızca durum anlatır: tehlike / iyi). DM sedef (açık süt cam), düşmanlar lal. */
-  --g-dm:#ddd5ea; --g-dus:#c8465f; --g-kobalt:#4b7bec; --g-kehribar:#f2b33d; --g-mor:#9a6ae3; --g-turkuaz:#25b4c6;
+  --g-dm:#ddd5ea; --g-dus:#c8465f; --g-dost:#4faf72; --g-kobalt:#4b7bec; --g-kehribar:#f2b33d; --g-mor:#9a6ae3; --g-turkuaz:#25b4c6;
   --g-gul:#e46aa4; --g-bakir:#e07d43; --g-limon:#e2d35a; --g-buz:#9cc3ea;
   --lit:color-mix(in srgb,var(--accent) 34%,var(--surface));   /* ışık alan cam */
   --metal:var(--line); --metal-line:transparent;                 /* eski çerçeve değişkenleri (artık çizilmiyor) */
@@ -1716,6 +1716,8 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 .dus-i{--g:var(--g-dus);display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:calc(.8 * var(--u));width:100%;padding:calc(.5 * var(--u)) calc(.9 * var(--u));
   border:0;border-radius:0;background:var(--surface);color:inherit;text-align:left;cursor:pointer;font:inherit}
 .dus-i:hover{background:var(--lit)}
+.dus-i.dost{--g:var(--g-dost)}
+.tv-dus li.dus-bas{padding:4px calc(.9 * var(--u)) 2px;font-size:12px;font-weight:700;color:var(--g-dost);letter-spacing:.02em}
 .dus-sld{display:flex;align-items:center;gap:6px;padding:4px 6px 6px calc(.9 * var(--u));background:var(--surface);font-size:13px}
 .dus-sld>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
 .dus-sld>span.bos{font-weight:500;color:var(--muted)}
@@ -2561,7 +2563,7 @@ body.tv-full #tableView{height:100dvh}
         <div class="party" id="party"></div>
         <!-- Düşmanlar ve NPC'ler: DM ekler, canını ve görünürlüğünü belirler; oyuncular hedef seçip hasar verir (BÖLÜM 10b) -->
         <section class="card npc-kart">
-          <div class="card-h"><h2>Enemies &amp; NPCs<em>Düşmanlar</em></h2><div class="npc-bas"><button class="btn sm" data-act="savas" id="npcSavas"></button><button class="btn sm" data-act="npc-ekle"><svg class="ic"><use href="#i-plus"/></svg>Boş ekle</button></div></div>
+          <div class="card-h"><h2>Enemies &amp; NPCs<em>Düşmanlar</em></h2><div class="npc-bas"><button class="btn sm" data-act="savas" id="npcSavas"></button><button class="btn sm" data-act="npc-ekle"><svg class="ic"><use href="#i-plus"/></svg>Boş ekle</button><button class="btn sm" data-act="npc-ekle" data-dost="1" title="Müttefik NPC: oyuncuların yanında savaşır, sen yönetirsin"><svg class="ic"><use href="#i-users"/></svg>Dost ekle</button></div></div>
           <div class="npc-hazir" id="npcHazir"><span class="f-l">Hazır düşmanlar</span></div>
           <p class="hint always" style="margin:0 0 12px"><b>Masada</b> açıksa oyuncular onu görür, hedef seçip hasar verebilir; savaşa yalnızca masadakiler girer. <b>Can görünsün</b> açıksa oyuncular canını ve AC'sini de görür. <b>İnis.</b> inisiyatif bonusudur: savaş başlayınca zarı site atar. Bir düşman adına zar atmak için zar tepsisinde "Atan"dan onu seç (savaşta sırası gelince kendiliğinden seçilir).</p>
           <div class="npc-list" id="npcList"></div>
@@ -8328,11 +8330,12 @@ const SAVAS = { gecikme: 1500, hasarSecili: false, npcT: 0 };
 const cleanHedef = v => (/^[sn][a-z0-9]{4,10}$/.test(String(v || '')) ? String(v) : '');   // 's…' oyuncu koltuğu, 'n…' düşman
 const npcler = () => (Array.isArray(store.npcs) ? store.npcs : (store.npcs = []));
 // Oyunculara giden düşman listesi: yalnızca masadakiler; can ve AC yalnızca DM izin verdiyse
-const npcRoster = () => npcler().filter(n => n.gor).map(n => Object.assign({ id: n.id, ad: n.ad, img: n.img || '' },
-  n.canGor ? { can: int(n.can), max: int(n.max), ac: int(n.ac) } : {}));
+// dost (2026-11-25, R3 madde 21): DM'in yönettiği müttefik NPC; oyuncuların yanında durur, canı ve AC'si herkese görünür
+const npcRoster = () => npcler().filter(n => n.gor).map(n => Object.assign({ id: n.id, ad: n.ad, img: n.img || '', dost: n.dost ? 1 : 0 },
+  n.canGor || n.dost ? { can: int(n.can), max: int(n.max), ac: int(n.ac) } : {}));
 const readNpcs = list => (Array.isArray(list) ? list : []).slice(0, 30).filter(n => n && typeof n === 'object' && cleanHedef(n.id).startsWith('n'))
   .map(n => ({ id: n.id, ad: short(n.ad, 40), img: cleanNpcImg(n.img), can: n.can === undefined ? null : clamp(int(n.can), -999, 9999),
-    max: n.max === undefined ? null : clamp(int(n.max), 0, 9999), ac: n.ac === undefined ? null : clamp(int(n.ac), 0, 99) }));
+    max: n.max === undefined ? null : clamp(int(n.max), 0, 9999), ac: n.ac === undefined ? null : clamp(int(n.ac), 0, 99), dost: !!n.dost }));
 // Hazır düşmanlar: görselleri masa/npc/<k>.webp (Nano Banana 2). Sayılar yalnızca başlangıç içindir; DM değiştirir.
 const NPC_HAZIR = [
   { k:'goblin', ad:'Goblin', max:10, ac:15, ini:2, silah:'Scimitar', vur:4, hasar:'1d6+2 slashing', kz:{ str:-1, dex:2, con:0, int:0, wis:-1, cha:-1 } },
@@ -8352,9 +8355,9 @@ function hedefler() {
   // ek: düşmanın canı ve AC'si (DM her zaman görür; oyuncu yalnızca DM "Can görünsün" dediyse)
   const ek = n => (n.max ? `${Math.max(0, int(n.can))}/${int(n.max)} can` : '') + (n.ac ? `${n.max ? ', ' : ''}AC ${int(n.ac)}` : '');
   if (role === 'dm') return seated().map(p => ({ id: p.seat, ad: (p.char && p.char.name.trim()) || p.name, tur: 'Oyuncular' }))
-    .concat(npcler().map(n => ({ id: n.id, ad: n.ad || 'İsimsiz düşman', tur: 'Düşmanlar', ek: ek(n) })));
+    .concat(npcler().map(n => ({ id: n.id, ad: n.ad || (n.dost ? 'İsimsiz dost' : 'İsimsiz düşman'), tur: n.dost ? 'Dostlar' : 'Düşmanlar', ek: ek(n) })));
   if (role === 'player') return net.savas === 'izle' || net.savas === 'dis' ? []                 // savaşı izleyen ya da dışarıdaki vuramaz
-    : net.npcs.map(n => ({ id: n.id, ad: n.ad || 'İsimsiz düşman', tur: 'Düşmanlar', ek: ek(n) }))
+    : net.npcs.map(n => ({ id: n.id, ad: n.ad || (n.dost ? 'İsimsiz dost' : 'İsimsiz düşman'), tur: n.dost ? 'Takım' : 'Düşmanlar', ek: ek(n) }))
       // 2026-11-25 (R3 madde 43, 44): takım arkadaşı da hedef olur: iyileştirmek için ya da hikâye gereği vurmak için
       .concat(net.roster.filter(r => r.id && r.id !== net.mySeat).map(r => ({ id: r.id, ad: r.char || r.name, tur: 'Takım',
         ek: (r.hp ? `${Math.max(0, r.hp.cur)}/${r.hp.max} can` : '') + (r.ac ? `${r.hp ? ', ' : ''}AC ${r.ac}` : '') })));
@@ -8605,7 +8608,7 @@ function renderNpcs() {
   box.innerHTML = list.length ? list.map(n => {
     const dus = int(n.max) > 0 && int(n.can) <= 0;
     return `<div class="npc${dus ? ' dustu' : ''}" data-id="${n.id}">
-      <div class="npc-ust"><span class="dus-av npc-av">${avHTML(npcSrc(n.img), n.ad)}</span><input data-npc="ad" value="${esc(n.ad)}" placeholder="Adı: Goblin, Kurt, Han sahibi…" aria-label="Adı" maxlength="40"></div>
+      <div class="npc-ust"><span class="dus-av npc-av"${n.dost ? ' style="--g:var(--g-dost)"' : ''}>${avHTML(npcSrc(n.img), n.ad)}</span><input data-npc="ad" value="${esc(n.ad)}" placeholder="${n.dost ? 'Dostun adı: Muhafız, Rehber…' : 'Adı: Goblin, Kurt, Han sahibi…'}" aria-label="Adı" maxlength="40"></div>
       <button class="icon-btn del" data-act="npc-sil" data-id="${n.id}" title="Sil" aria-label="${esc(n.ad || 'Düşmanı')} sil"><svg class="ic"><use href="#i-x"/></svg></button>
       <div class="npc-say">
         <label class="f"><span class="f-l">Can</span><input type="number" data-npc="can" value="${int(n.can)}"></label>
@@ -8619,7 +8622,8 @@ function renderNpcs() {
         <label class="f npc-gorsel"><span class="f-l">Görsel</span><select data-npc="img">${secenek(n)}</select></label>
         <div class="btns">
           <button class="btn sm" data-act="npc-gor" data-id="${n.id}" aria-pressed="${!!n.gor}" title="Açıksa oyuncular onu görür ve hedef seçebilir"><svg class="ic"><use href="#i-eye"/></svg>Masada</button>
-          <button class="btn sm" data-act="npc-can" data-id="${n.id}" aria-pressed="${!!n.canGor}" title="Açıksa oyuncular canını ve AC'sini de görür"><svg class="ic"><use href="#i-kalkan"/></svg>Can görünsün</button>
+          <button class="btn sm" data-act="npc-can" data-id="${n.id}" aria-pressed="${!!n.canGor || !!n.dost}" ${n.dost ? 'disabled' : ''} title="Açıksa oyuncular canını ve AC'sini de görür (dostlarda hep görünür)"><svg class="ic"><use href="#i-kalkan"/></svg>Can görünsün</button>
+          <button class="btn sm" data-act="npc-dost" data-id="${n.id}" aria-pressed="${!!n.dost}" title="Açıksa müttefiktir: savaşta oyuncuların yanında durur, oyuncular onu iyileştirebilir; sen yönetirsin"><svg class="ic"><use href="#i-users"/></svg>Dost</button>
         </div>
       </div>
     </div>`;
@@ -8682,8 +8686,9 @@ function panoUI() {
 }
 function renderDus() {
   const box = $('#tvDus'), role = store.net.role, dm = role === 'dm';
-  const list = dm ? npcler().map(n => ({ id: n.id, ad: n.ad, img: n.img, can: int(n.can), max: int(n.max), ac: int(n.ac), gizli: !n.gor, silah: n.silah, vur: int(n.vur), hasar: n.hasar }))
+  const ham = dm ? npcler().map(n => ({ id: n.id, ad: n.ad, img: n.img, can: int(n.can), max: int(n.max), ac: int(n.ac), gizli: !n.gor, silah: n.silah, vur: int(n.vur), hasar: n.hasar, dost: !!n.dost }))
     : role === 'player' ? net.npcs : [];
+  const list = ham.filter(n => !n.dost).concat(ham.filter(n => n.dost));   // önce düşmanlar, sonra dostlar
   box.hidden = !dm && !list.length;
   panoUI();
   if (box.hidden) return;
@@ -8691,7 +8696,8 @@ function renderDus() {
   $('#tvDusList').innerHTML = list.length ? list.map(n => {
     const olu = n.max > 0 && n.can <= 0, pct = n.max ? clamp(n.can / n.max, 0, 1) : 0;
     const bilgi = [n.max ? `${Math.max(0, n.can)}/${n.max} can` : '', n.ac ? `AC ${n.ac}` : '', n.gizli ? 'gizli' : ''].filter(Boolean).join(' · ');
-    return `<li><button class="dus-i${hs.has(n.id) ? ' hedef' : ''}${n.id === simdi ? ' simdi' : ''}${olu ? ' olu' : ''}" data-act="hedef-yap" data-id="${n.id}"
+    const bas = n.dost && list.findIndex(x => x.dost) === list.indexOf(n) ? '<li class="dus-bas">Dostlar</li>' : '';
+    return `${bas}<li><button class="dus-i${n.dost ? ' dost' : ''}${hs.has(n.id) ? ' hedef' : ''}${n.id === simdi ? ' simdi' : ''}${olu ? ' olu' : ''}" data-act="hedef-yap" data-id="${n.id}"
       title="${hs.has(n.id) ? 'Hedefi kaldır' : store.hedefCok ? 'Hedeflere ekle' : 'Hedef yap'}${olu ? ' (yere düştü)' : ''}"><span class="dus-av">${avHTML(npcSrc(n.img), n.ad)}</span>
       <span class="dus-ad"><b>${esc(n.ad || 'İsimsiz düşman')}</b>${bilgi ? `<small>${esc(bilgi)}</small>` : ''}${n.max
         ? `<span class="dus-can"><span class="hp-fill" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span></span>` : ''}</span></button>
@@ -8928,8 +8934,8 @@ Object.assign(ACTIONS, {
     panoUI();
     if (k === 'soz') { SOZ.dibe = true; sozCiz(); }                  // açılınca okunmamışlar sıfırlanır, en alttan
   },
-  'npc-ekle': () => {
-    npcler().push({ id: 'n' + newCode().toLowerCase(), ad: '', can: 10, max: 10, ac: 12, ini: 0, img: '', gor: true, canGor: false });
+  'npc-ekle': b => {
+    npcler().push({ id: 'n' + newCode().toLowerCase(), ad: '', can: 10, max: 10, ac: 12, ini: 0, img: '', gor: true, canGor: false, dost: !!(b && b.dataset && b.dataset.dost) });
     save(); renderNpcs(); npcDegisti(true);
     const inp = $$('#npcList .npc input[data-npc="ad"]').pop(); if (inp) inp.focus();
   },
@@ -8954,6 +8960,7 @@ Object.assign(ACTIONS, {
     SV.sonKrit = false;
   },
   'npc-gor': b => { const n = npcler().find(x => x.id === b.dataset.id); if (n) { n.gor = !n.gor; save(); renderNpcs(); npcDegisti(true); } },
+  'npc-dost': b => { const n = npcler().find(x => x.id === b.dataset.id); if (n) { n.dost = !n.dost; save(); renderNpcs(); npcDegisti(true); } },
   'npc-can': b => { const n = npcler().find(x => x.id === b.dataset.id); if (n) { n.canGor = !n.canGor; save(); renderNpcs(); npcDegisti(true); } },
 });
 
@@ -8983,11 +8990,11 @@ function svListe() {
     return { id: s.id, tip: 'oyuncu', ad: s.char || s.name, img: s.img || '', me: !!s.me, off: !s.on, ac: s.me ? int(ownChar().ac) : int(s.ac), olu: !!s.olu,
       can: hp && int(hp.max) ? int(hp.cur) : null, max: hp && int(hp.max) ? int(hp.max) : null };
   });
-  const kaynak = dm ? npcler().map(n => ({ id: n.id, ad: n.ad, img: n.img, can: n.can, max: n.max, ac: n.ac, gizli: !n.gor }))
+  const kaynak = dm ? npcler().map(n => ({ id: n.id, ad: n.ad, img: n.img, can: n.can, max: n.max, ac: n.ac, gizli: !n.gor, dost: !!n.dost }))
     : role === 'player' ? net.npcs : [];
-  const dus = kaynak.map(n => ({ id: n.id, tip: 'npc', ad: n.ad || 'Düşman', img: npcSrc(n.img), gizli: !!n.gizli, ac: int(n.ac),
+  const dus = kaynak.map(n => ({ id: n.id, tip: 'npc', ad: n.ad || (n.dost ? 'Dost' : 'Düşman'), img: npcSrc(n.img), gizli: !!n.gizli, ac: int(n.ac), dost: !!n.dost,
     can: int(n.max) ? int(n.can) : null, max: int(n.max) ? int(n.max) : null }));
-  return { oyuncu, dus };
+  return { oyuncu: oyuncu.concat(dus.filter(n => n.dost)), dus: dus.filter(n => !n.dost) };
 }
 // Bir tarafın kartları (l…r arası, piksel): az kişide tek sıra; çoksa ön sıra (aşağıda) ve arasına düşen arka sıra.
 // alt: ön sıranın ayaklarının en aşağısı (alttaki kendi camın varsa onun üstü)
@@ -9018,12 +9025,12 @@ function svRender() {
   const hs = new Set(hedefListe()), simdi = siraSimdi(), secilir = new Set(hedefler().map(x => x.id));
   const kart = (o, p, i) => {
     const olu = o.max !== null && o.can <= 0, pct = o.max ? clamp(o.can / o.max, 0, 1) : 0;
-    const bilgi = o.max !== null ? `${Math.max(0, o.can)}/${o.max} can${o.ac ? ` · AC ${o.ac}` : ''}` : o.ac && (o.tip === 'oyuncu' || store.net.role === 'dm') ? `AC ${o.ac}` : '';
+    const bilgi = (o.dost ? 'dost · ' : '') + (o.max !== null ? `${Math.max(0, o.can)}/${o.max} can${o.ac ? ` · AC ${o.ac}` : ''}` : o.ac && (o.tip === 'oyuncu' || store.net.role === 'dm') ? `AC ${o.ac}` : '');
     const alt = olu ? (o.tip === 'npc' ? 'yere düştü' : o.olu ? 'öldü' : 'baygın · ölüm zarı atıyor') : o.me ? `sen${o.ac ? ` · AC ${o.ac}` : ''}` : o.gizli ? 'gizli' : bilgi;
     const tag = secilir.has(o.id) ? 'button' : 'div';
-    const cls = `sv-kisi t-${o.tip}${o.id === simdi ? ' simdi' : ''}${hs.has(o.id) ? ' hedef' : ''}${olu ? ' olu' : ''}${o.me ? ' ben' : ''}${o.gizli || o.off ? ' gizli' : ''}`;
+    const cls = `sv-kisi t-${o.tip}${o.dost ? ' t-dost' : ''}${o.id === simdi ? ' simdi' : ''}${hs.has(o.id) ? ' hedef' : ''}${olu ? ' olu' : ''}${o.me ? ' ben' : ''}${o.gizli || o.off ? ' gizli' : ''}`;
     return `<${tag} class="${cls}" data-id="${o.id}"${tag === 'button' ? ` data-act="hedef-yap" title="${hs.has(o.id) ? 'Hedefi kaldır' : store.hedefCok ? 'Hedeflere ekle' : 'Hedef yap'}: ${esc(o.ad)}"` : ` title="${esc(o.ad)}"`}
-      style="left:${p.x.toFixed(1)}px;top:${p.y.toFixed(1)}px;--k:${p.k.toFixed(3)};z-index:${Math.round(p.y)};--gec:${(-i * 0.73 % 3.4).toFixed(2)}s;--g:${o.tip === 'npc' ? 'var(--g-dus)' : camOf(o.id)}">
+      style="left:${p.x.toFixed(1)}px;top:${p.y.toFixed(1)}px;--k:${p.k.toFixed(3)};z-index:${Math.round(p.y)};--gec:${(-i * 0.73 % 3.4).toFixed(2)}s;--g:${o.tip === 'npc' ? (o.dost ? 'var(--g-dost)' : 'var(--g-dus)') : camOf(o.id)}">
       <span class="sv-golge"></span><span class="sv-kart"><span class="sv-res">${avHTML(o.img, o.ad)}</span></span>
       <span class="sv-ad"><b>${esc(o.ad)}</b>${alt ? `<small>${esc(alt)}</small>` : ''}</span>
       ${o.max !== null ? `<span class="sv-can"><span class="hp-fill" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span></span>` : ''}
