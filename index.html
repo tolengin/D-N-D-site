@@ -58,7 +58,7 @@ const KUT_CDN = location.protocol === 'file:';
   --on-good:#03170d; --on-bad:#26050a;
   --star:#f2b33d;                                 /* ilham: kehribar cam */
   /* Koltuk camları: kırmızı ve yeşil yok (onlar yalnızca durum anlatır: tehlike / iyi). DM sedef (açık süt cam), düşmanlar lal. */
-  --g-dm:#ddd5ea; --g-dus:#c8465f; --g-dost:#4faf72; --g-kobalt:#4b7bec; --g-kehribar:#f2b33d; --g-mor:#9a6ae3; --g-turkuaz:#25b4c6;
+  --g-dm:#ddd5ea; --g-dus:#c8465f; --g-dost:var(--g-dm); --g-kobalt:#4b7bec; --g-kehribar:#f2b33d; --g-mor:#9a6ae3; --g-turkuaz:#25b4c6;
   --g-gul:#e46aa4; --g-bakir:#e07d43; --g-limon:#e2d35a; --g-buz:#9cc3ea;
   --lit:color-mix(in srgb,var(--accent) 34%,var(--surface));   /* ışık alan cam */
   --metal:var(--line); --metal-line:transparent;                 /* eski çerçeve değişkenleri (artık çizilmiyor) */
@@ -772,8 +772,6 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .hk-kul{display:flex;gap:4px;flex:none}
 .hk-kul input{width:58px;text-align:center;padding:4px}
 .hk-liste .hk-kullan,.hk-kul .btn{flex:none}
-.mc-atk.mc-hak{grid-template-columns:minmax(0,1fr) auto}
-.mc-atk.mc-hak.bos span{opacity:.55}
 .hk-pip{flex:none;gap:2px}
 body.peek #haklar{pointer-events:none}
 body.peek #sheet [data-act="kisa-dinlen"]{display:none}
@@ -1961,7 +1959,14 @@ button.sv-kisi{cursor:pointer}
   background:var(--bar);color:var(--text);border:2px solid var(--lead);border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,.45);text-align:center;line-height:1.1;
   font-family:var(--font-display);font-weight:700;font-size:clamp(12px,calc(1.3 * var(--u) * var(--k,1)),21px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sv-ad small{display:block;font-family:var(--font-ui);font-weight:600;font-size:max(12px,.7em);color:var(--muted)}
-.sv-can{width:78%;height:max(5px,calc(.5 * var(--u) * var(--k,1)));margin-top:calc(.3 * var(--u));background:var(--lead);border:1px solid var(--lead);overflow:hidden}
+.sv-can{position:relative;width:100%;height:max(8px,calc(.85 * var(--u) * var(--k,1)));margin-top:calc(.3 * var(--u));background:var(--field);border:2px solid var(--lead);overflow:hidden;box-sizing:border-box}
+.sv-can>span{position:absolute;top:0;bottom:0;left:0}
+/* AC kalkanı: kartın sağ üst köşesinde (2026-11-25, R3 madde 23) */
+.sv-ac{position:absolute;z-index:2;top:calc(-.7 * var(--u) * var(--k,1));right:calc(-.7 * var(--u) * var(--k,1));display:grid;place-items:center;
+  width:calc(2.6 * var(--u) * var(--k,1));height:calc(2.85 * var(--u) * var(--k,1));min-width:26px;min-height:28px}
+.sv-ac svg{position:absolute;inset:0;width:100%;height:100%;fill:var(--bar);stroke:var(--lead);stroke-width:8}
+.sv-ac b{position:relative;margin-top:-10%;font:700 max(12px,calc(1.15 * var(--u) * var(--k,1)))/1 var(--font-display);font-variant-numeric:lining-nums;color:var(--text)}
+.sv-kisi.olu .sv-ac{display:none}
 .sv-kisi.ben .sv-ad{background:color-mix(in srgb,var(--g) 30%,var(--bar))}
 button.sv-kisi:hover .sv-kart{filter:brightness(1.12)}
 button.sv-kisi:focus-visible{outline:none}
@@ -2039,47 +2044,119 @@ body:not(.guide) .mc-rehber{display:none}
 .mc-izgara>*{background:var(--surface)}
 /* Üst sıra: saldırılar, Kağıdım, ayrıntı aç / kapa */
 .mc-ust{align-self:flex-start}
-/* Saldırılar (2026-11-12, kullanıcı: "3 ve daha fazla silahta bozuluyor"): eskiden düğmelerle aynı satırdaydı, sığmayınca kartlar
-   eziliyordu ("G..", "2d"). Artık kendi satırında, ana camın genişliğinde (contain: satır camı genişletmez) ve sığmayınca alta geçer. */
-.mc-atklar{align-self:stretch;flex-wrap:wrap;contain:inline-size}
-.mc-atk{flex:1 1 210px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:6px;padding:5px 6px 5px 12px;min-width:0}
-.mc-atk span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:14px}
-.mc-atk span small{display:block;font-weight:500;font-size:12px;color:var(--muted);white-space:normal;line-height:1.25}
-.mc-atk .roll{min-width:44px;padding:6px 8px;font-size:15px}
-.mc-el{display:inline-block;margin:1px 5px 1px 0;padding:0 5px;border:1px dashed var(--line);background:none;color:var(--muted);font:inherit;font-size:11px;font-weight:700;line-height:1.5;vertical-align:baseline}
-.mc-el.on{border-style:solid;border-color:var(--accent);color:var(--text);background:color-mix(in srgb,var(--accent) 22%,transparent)}
-.mc-el:hover{color:var(--text);border-color:var(--accent)}
-.mc-atk.mc-ek{border-left:3px solid var(--accent)}
+/* ── Kendi camın: tek sıra HUD (2026-11-25, R3 madde 0 ve 25; kullanıcının LoL örneği, "Tek sıra HUD" seçimi) ──
+   Tek kurşun ızgara: solda kare portre (köşede seviye), ortada üstte ad + AC kalkanı + vitray dilimli can çubuğu (+ büyü yuvaları),
+   ortada altta yetenek kutuları (6 sütun, boş yuvalar kuyu), sağda altı yetenek 3×2. Eskisi: ben / can / AC / yetenek sırası ve
+   satır satır saldırılar (3+ silahta kalabalıktı). */
 .mc-ust>.btn{border:0;min-height:44px}
 .mc-ust>.btn.icon{width:44px}
 .mc-ust>.btn.icon .ic{transition:rotate .2s}
 .tv-wrap:not(.me-min) .mc-ust>.btn.icon .ic{rotate:180deg}
-/* Ana sıra: ben, can, AC, altı yetenek */
-.mc-ben{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px;width:224px;padding:8px 14px 8px 10px;border:0;
-  background:color-mix(in srgb,var(--accent) 30%,var(--surface))!important;color:inherit;text-align:left;cursor:pointer;font:inherit}
-.mc-ben:hover{background:color-mix(in srgb,var(--accent) 42%,var(--surface))!important}
-.mc-pencere{display:grid;place-items:center;width:46px;height:56px;overflow:hidden;border-radius:0;border:2px solid var(--lead);
-  background:color-mix(in srgb,var(--accent) 45%,var(--lead));font-family:var(--font-display);font-weight:700;font-size:22px}
-.mc-pencere img{width:100%;height:100%;object-fit:cover;object-position:50% 20%}
-.mc-ad{min-width:0;line-height:1.15}
-.mc-ad b{display:block;font-family:var(--font-display);font-size:21px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mc-hud{position:relative;display:grid;grid-template-columns:124px auto auto;grid-template-rows:auto 1fr;gap:var(--lw);padding:var(--lw);
+  background:var(--lead);box-shadow:var(--shadow)}
+.mc-hud>*{background:var(--surface)}
+/* Portre: kendi camının rengiyle dolu kare pencere; basınca ayrıntılar */
+.mc-por{grid-row:1 / 3;position:relative;display:grid;place-items:center;padding:0;border:0;overflow:hidden;cursor:pointer;color:var(--text);
+  background:color-mix(in srgb,var(--accent) 34%,var(--surface))!important;font:700 52px/1 var(--font-display)}
+.mc-por-res{position:absolute;inset:0;display:grid;place-items:center}
+.mc-por img{width:100%;height:100%;object-fit:cover;object-position:50% 18%}
+.mc-por:hover{background:color-mix(in srgb,var(--accent) 48%,var(--surface))!important}
+.mc-por:hover img{filter:brightness(1.08)}
+.mc-sv{position:absolute;left:0;bottom:0;min-width:34px;padding:5px 7px 3px;background:var(--accent);color:var(--on-accent);
+  font:700 20px/1 var(--font-display);font-variant-numeric:lining-nums;text-align:center;border-top:var(--lw) solid var(--lead);border-right:var(--lw) solid var(--lead)}
+.mc-insp{position:absolute;top:6px;right:6px;width:22px;height:22px;color:var(--star);fill:var(--star)}
+/* Ad, AC ve can */
+.mc-kim{display:grid;align-content:center;gap:7px;min-width:0;padding:10px 14px 11px}
+.mc-kim-ust{display:flex;align-items:center;gap:12px;min-width:0}
+.mc-ad{flex:1;min-width:0;line-height:1.15}
+.mc-ad b{display:block;font:700 22px/1.1 var(--font-display);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mc-ad small{display:block;font-size:12.5px;font-weight:600;color:color-mix(in srgb,var(--accent) 25%,var(--muted));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mc-can{display:grid;align-content:center;gap:6px;width:128px;padding:8px 14px}
-.mc-can .n{font-family:var(--font-display);font-weight:700;line-height:1;font-variant-numeric:lining-nums}
-.mc-can .n b{font-size:36px}
-.mc-can .n span{font-size:17px;color:var(--muted)}
-.mc-can small{font-size:12px;font-weight:700;color:var(--muted)}
-.mc-can .hp-bar{margin:0;height:8px;border:0;background:var(--lead)}
-.mc-ac{display:grid;place-items:center;width:78px;padding:6px 4px;position:relative}
-.mc-ac svg{position:absolute;inset:0;margin:auto;height:64px;width:auto;fill:var(--surface-2);stroke:var(--line);stroke-width:4}
-.mc-ac b{position:relative;font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;margin-top:-6px}
-.mc-ac small{position:absolute;bottom:10px;font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--muted)}
-.mc-y.roll{display:grid;justify-items:center;align-content:center;gap:1px;width:72px;min-width:0;padding:8px 2px;border:0;line-height:1.1;background:var(--surface)}
+.mc-ac{position:relative;flex:none;display:grid;place-items:center;width:46px;height:50px}
+.mc-ac svg{position:absolute;inset:0;width:100%;height:100%;fill:var(--surface-2);stroke:var(--line);stroke-width:5}
+.mc-ac b{position:relative;margin-top:-7px;font:700 21px/1 var(--font-display);font-variant-numeric:lining-nums}
+.mc-ac small{position:absolute;bottom:7px;font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--muted)}
+.mc-cb{display:flex;align-items:center;gap:12px}
+.cb-bar{position:relative;flex:1;height:20px;background:var(--field);border:1px solid var(--line);overflow:hidden}
+.cb-bar>span{position:absolute;top:0;bottom:0;left:0}
+.cb-iz{background:color-mix(in srgb,var(--bad) 80%,var(--text));transition:width .7s cubic-bezier(.2,.7,.2,1) .45s}
+.cb-dol{background:var(--good);transition:width .35s cubic-bezier(.2,.7,.2,1),background-color .35s}
+.cb-dol[data-s="mid"]{background:var(--warn)}
+.cb-dol[data-s="low"]{background:var(--bad)}
+.cb-gec{background:color-mix(in srgb,var(--text) 72%,var(--surface))}
+/* Vitray dilimleri: her 10 can bir cam, aralarında kurşun */
+.cb-kurs{inset:0;width:100%;background:repeating-linear-gradient(90deg,transparent 0 calc(var(--dilim) - 2px),var(--lead) calc(var(--dilim) - 2px) var(--dilim))}
+.cb-n{flex:none;display:flex;align-items:baseline;gap:4px;font-family:var(--font-display);font-weight:700;line-height:1;font-variant-numeric:lining-nums}
+.cb-n b{font-size:30px}
+.cb-n span{font-size:15px;color:var(--muted)}
+.cb-n em{font:800 13px var(--font-ui);font-style:normal;color:var(--text);padding:2px 5px;background:color-mix(in srgb,var(--text) 16%,var(--surface))}
+.mc-olum{justify-self:start;margin:0;font-size:13px;color:var(--bad)}
+/* Büyü yuvaları: dolu elmas = kalan */
+.mc-yl{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:12px;color:var(--muted)}
+.mc-yl>span{display:inline-flex;align-items:center;gap:4px}
+.mc-yl small{font:700 12px var(--font-display);color:var(--muted);margin-right:1px}
+.mc-yl i{width:8px;height:8px;rotate:45deg;border:1.5px solid var(--muted)}
+.mc-yl i.on{background:var(--accent);border-color:var(--accent)}
+.yl-kons{padding:1px 7px;border:1px solid var(--accent-2);color:var(--text)}
+.yl-kons b{font-weight:700}
+/* Yetenek kutuları */
+.mc-kut{grid-column:2;grid-row:2;display:grid;grid-template-columns:repeat(6,88px);gap:var(--lw);background:var(--lead)!important}
+.mc-kt{position:relative;display:grid;grid-template-rows:1fr auto;min-height:104px;background:var(--surface)}
+.mc-kt.kt-yer{background:var(--field)}
+.kt-ust{position:relative;display:grid;justify-items:center;align-content:center;gap:5px;padding:27px 5px 7px;border:0;border-bottom:1px solid var(--line);
+  background:var(--field);color:var(--text);font:inherit;cursor:pointer;transition:background-color .15s,color .15s}
+.kt-ust::after{content:"";position:absolute;right:2px;bottom:2px;width:6px;height:6px;pointer-events:none;
+  background:linear-gradient(135deg,transparent 50%,color-mix(in srgb,var(--accent) 75%,var(--muted)) 50%)}
+.kt-ic{position:absolute;top:6px;left:6px;width:18px;height:18px;color:color-mix(in srgb,var(--accent) 70%,var(--muted))}
+.kt-n{font:700 26px/1 var(--font-display);font-variant-numeric:lining-nums;white-space:nowrap}
+.kt-n small{font-size:13px;font-weight:700;color:var(--muted);margin:0 1px}
+.kt-ad{max-width:100%;font-size:12px;font-weight:700;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kt-alt{display:flex;align-items:center;justify-content:center;gap:4px;min-height:30px;padding:2px 4px;border:0;background:none;
+  color:var(--text);font:700 12.5px var(--font-ui);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
+span.kt-alt{display:block;line-height:30px;text-align:center;text-overflow:ellipsis;color:var(--muted);font-weight:600;font-size:12px}
+.kt-alt .ic{width:14px;height:14px;flex:none}
+button.kt-alt{cursor:pointer;transition:background-color .15s,color .15s}
+.kt-ust:hover,button.kt-alt:hover{background:var(--accent);color:var(--on-accent)}
+.kt-ust:hover :is(.kt-ad,.kt-ic,.kt-n small){color:inherit}
+.kt-ust:hover::after{background:linear-gradient(135deg,transparent 50%,var(--on-accent) 50%)}
+.kt-ust:active,button.kt-alt:active{filter:brightness(.92)}
+.kt-ust:disabled{cursor:default;opacity:.45}
+.kt-ust:disabled:hover{background:var(--field);color:var(--text)}
+.kt-ust:disabled:hover::after{display:none}
+.mc-kt.kt-bos .kt-ust{opacity:.45}
+/* Büyü ve haklarda kutunun ışığı kehribar değil, senin camın; hak ve büyü kutusunun üst kenarı ince çizgiyle ayrılır */
+.mc-kt.kt-buyu .kt-ic{color:var(--accent-2)}
+.mc-kt.kt-hak .kt-ic{color:var(--accent-2)}
+/* El etiketi: kutunun sağ üst köşesinde */
+.mc-el{position:absolute;top:4px;right:4px;z-index:1;min-width:30px;padding:1px 5px;border:1px dashed var(--line);background:var(--surface);color:var(--muted);
+  font:700 12px/1.35 var(--font-ui);cursor:pointer}
+.mc-el.on{border-style:solid;border-color:var(--accent);color:var(--text);background:color-mix(in srgb,var(--accent) 26%,var(--surface))}
+span.mc-el{cursor:default}
+button.mc-el:hover{color:var(--text);border-color:var(--accent)}
+/* Açıklama camı: kutunun üstünde (üstüne gelince ya da klavyeyle içine girince) */
+.kt-ip{position:absolute;z-index:30;bottom:calc(100% + 10px);left:50%;translate:-50% 0;width:270px;display:none;padding:11px 13px 12px;
+  background:var(--bar);border:var(--lw) solid var(--lead);box-shadow:var(--shadow);font-size:13px;line-height:1.4;text-align:left;pointer-events:none}
+.mc-kt:is(:hover,:focus-within) .kt-ip{display:block}
+.kt-ip b{font:700 16px/1.2 var(--font-display)}
+.kt-ip i{font-style:normal;color:var(--muted)}
+.kt-ip p{margin:5px 0 0}
+.kt-ip ul{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:3px;color:var(--muted)}
+.kt-ip li{padding-left:10px;position:relative}
+.kt-ip li::before{content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;rotate:45deg;background:var(--accent)}
+.kt-ip small{display:block;margin-top:6px;font-size:12px;color:var(--muted)}
+/* Altı yetenek: 3×2 */
+.mc-yet{grid-column:3;grid-row:1 / 3;display:grid;grid-template-columns:repeat(3,66px);grid-auto-rows:1fr;gap:var(--lw);background:var(--lead)!important}
+.mc-y{position:relative;display:grid;justify-items:center;align-content:center;gap:2px;padding:6px 2px;border:0;background:var(--surface);color:var(--text);font:inherit;cursor:pointer;line-height:1.1;transition:background-color .15s,color .15s}
+.mc-y::after{content:"";position:absolute;right:2px;bottom:2px;width:6px;height:6px;pointer-events:none;
+  background:linear-gradient(135deg,transparent 50%,color-mix(in srgb,var(--accent) 75%,var(--muted)) 50%)}
 .mc-y small{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--muted)}
-.mc-y b{font-family:var(--font-display);font-size:36px;font-weight:700;line-height:1}
+.mc-y b{font:700 28px/1 var(--font-display);font-variant-numeric:lining-nums}
 .mc-y i{font-style:normal;font-size:12px;font-weight:700;color:var(--muted)}
-.mc-y.roll:hover{background:var(--accent)}
-.mc-y.roll:hover :is(small,i){color:inherit}
+.mc-y:hover{background:var(--accent);color:var(--on-accent)}
+.mc-y:hover :is(small,i){color:inherit}
+.mc-y:hover::after{background:linear-gradient(135deg,transparent 50%,var(--on-accent) 50%)}
+:is(.kt-ust,.kt-alt,.mc-y,.mc-por,.mc-el):focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+@media (pointer:coarse){ .kt-alt{min-height:40px} .mc-kt{min-height:112px} }
+@media (prefers-reduced-motion:reduce){ .cb-iz,.cb-dol,.kt-ust,.kt-alt,.mc-y{transition:none} }
 /* Harita camı (BÖLÜM 10d, 2026-10-29): DM'in yüklediği ülke ve şehir haritaları, noktalar (kilitli / açık), piyonlar.
    Başlığından sürüklenir, sağ alt köşesinden büyür; başlıktaki düğmeyle ekran boyunda açılır (.buyuk). Harita tekerlekle ve
    sol alttaki + / − ile yakınlaşır, yakınken sürükleyip kaydırılır (.yakin). Kendi camının (alt ortada) altında kalır: zar
@@ -2178,7 +2255,6 @@ align-items:center;gap:4px;min-height:36px;border-bottom:1px solid var(--line)}
 .mc-by .mc-bygrup:first-child{margin-top:0}
 .mc-by .roll.die{width:34px;height:34px}
 .mc-yuva{width:auto;padding:4px 6px;font-size:12px}
-.mc-batk small{color:color-mix(in srgb,var(--accent-2) 70%,var(--muted))}
 /* Ayrıntı camı (açılınca, ana sıranın üstünde) */
 .mc-detay{display:grid;grid-template-columns:auto auto;gap:var(--lw);padding:var(--lw);background:var(--lead);box-shadow:var(--shadow)}
 .mc-detay>section{display:grid;align-content:start;gap:8px;padding:12px 14px;background:var(--surface)}
@@ -2223,13 +2299,15 @@ body.tv-full #tableView{height:100dvh}
   body.tv-on .app{padding-bottom:300px}                    /* sabit duran kendi camın son atışları örtmesin */
   .mc-rehber{font-size:14px;padding:8px 12px}
   .mc-ust{align-self:stretch;flex-wrap:wrap}                            /* Beceriler, Envanter, Kağıdım… sığmayınca alta */
-  .mc-atk{flex:1 1 45%}
   .mc-ust>.btn:not(.icon){flex:1}
-  .mc-cam{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}   /* üstte ben / can / AC, altta altı yetenek */
-  .mc-ben{grid-column:span 3;width:auto}
-  .mc-can{grid-column:span 2;width:auto;padding:8px 10px}
-  .mc-ac{width:auto}
-  .mc-y.roll{width:auto}
+  /* Telefonda HUD: üstte portre + ad / can, altında kutular (sığdığı kadar sütun), en altta altı yetenek tek sırada */
+  .mc-hud{grid-template-columns:72px minmax(0,1fr);grid-template-rows:auto}
+  .mc-por{grid-row:auto;font-size:34px}
+  .mc-kim{padding:8px 10px}
+  .mc-kut{grid-column:1 / -1;grid-row:auto;grid-template-columns:repeat(4,minmax(0,1fr))}
+  .mc-yet{grid-column:1 / -1;grid-row:auto;grid-template-columns:repeat(6,minmax(0,1fr))}
+  .mc-y b{font-size:22px}
+  .kt-ip{display:none!important}
   .mc-detay{grid-template-columns:minmax(0,1fr)}
   .mc-bc{grid-template-columns:repeat(2,minmax(0,1fr))}                  /* telefonda beceriler iki sütun, eşyalar tek */
   .mc-esya,.mc-by{grid-template-columns:minmax(0,1fr)}
@@ -2333,6 +2411,7 @@ body.tv-full #tableView{height:100dvh}
   <symbol id="i-ses-yok" viewBox="0 0 24 24"><path d="M3.5 9.5h3.6L12 5.3v13.4l-4.9-4.2H3.5zM16 9.5l5 5M21 9.5l-5 5"/></symbol>
   <symbol id="i-hedef" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="M12 1.8v4M12 18.2v4M1.8 12h4M18.2 12h4"/></symbol>
   <symbol id="i-kalkan" viewBox="0 0 24 24"><path d="M12 2.8 19.5 5.6v6c0 4.6-3.2 8-7.5 9.6-4.3-1.6-7.5-5-7.5-9.6v-6z"/><path d="M8.6 12.1l2.4 2.4 4.4-4.6"/></symbol>
+  <symbol id="i-yumruk" viewBox="0 0 24 24"><path d="M7.5 10.5V7.8a1.6 1.6 0 0 1 3.2 0v2.4M10.7 10V6.6a1.6 1.6 0 0 1 3.2 0V10M13.9 10V7.4a1.6 1.6 0 0 1 3.2 0V11M17.1 10.4a1.6 1.6 0 0 1 3.2 0v3.4c0 4-2.8 6.7-6.8 6.7h-1.8c-3 0-5.6-2.4-5.6-5.5v-1.4c0-1.7 1.3-3 3-3h2.6a1.7 1.7 0 0 1 0 3.4H9.6"/></symbol>
   <symbol id="i-hancer" viewBox="0 0 24 24"><path d="M14.5 3.5h6v6L10.8 19.2 4.8 13.2zM8 16l-3.3 3.3M5.6 13.9l4.5 4.5M3.4 18.3l2.3 2.3"/></symbol>
   <symbol id="i-kapi" viewBox="0 0 24 24"><path d="M6 21V10.5a6 6 0 0 1 12 0V21M3.5 21h17M14.6 14.2v1.6M12 4.5V21"/></symbol>
   <symbol id="i-gec" viewBox="0 0 24 24"><path d="M5 6.5l6.5 5.5L5 17.5zM12.5 6.5 19 12l-6.5 5.5z"/></symbol>
@@ -5634,6 +5713,7 @@ const ACTIONS = {
   'hak-kullan': b => hakKullan(b.dataset.k, b),
   'el-degis': b => elDegis(int(b.closest('[data-row]').dataset.i)),
   smite: () => smiteVur(),
+  'smite-sv': () => { const l = byYuvalar(1).map(v => v.sv), i = l.indexOf(SV.smiteSv); SV.smiteSv = l[(i + 1) % l.length]; if (mode === 'table') renderMe(); },
   'kisa-dinlen': () => kisaDinlen(),
   'lv-kapa': () => lvKapa(),
   'lv-zar': () => lvCan(true),
@@ -6387,6 +6467,7 @@ const esyaOzet = e => e.silah ? silahOzet(e, true) : e.zirh ? zirhOzet(e) : e.d;
    ustalığını biliyorsan Saldırı eyleminin içinde); bu saldırının hasarına yetenek bonusu eklenmez (eksiyse eklenir; Two-Weapon Fighting
    dövüş stili varsa eklenir). Versatile silah iki elle tutulunca büyük zarı atar. */
 const EL_AD = { '': 'Ele al', sag: 'Sağ elde', sol: 'Sol elde', iki: 'İki elle', ikisi: 'İki elde' };
+const EL_KISA = { '': 'el', sag: 'Sağ', sol: 'Sol', iki: '2 el', ikisi: 'Çift' };   // kutudaki küçük etiket
 const atkSilah = a => { const e = esyaBul({ name: a.name }); return e && e.silah ? e : null; };
 const silahOzSet = e => new Set(e ? e.silah.oz.map(o => o[0]) : []);
 const secimVar = (c, v) => Object.values(c.secim || {}).some(l => Array.isArray(l) && l.includes(v));
@@ -6422,6 +6503,47 @@ function ekSaldiri(c = C) {                                            // öbür
   const ek = stil || m < 0 ? m : 0;
   return { a, i: c.attacks.indexOf(a), dmg: `${e.silah.zar}${ek ? (ek > 0 ? '+' : '') + ek : ''} ${HASAR_TR[e.silah.h][0]}`, nick, stil,
     ne: nick ? 'Saldırı eyleminin içinde (Nick)' : 'Bonus eylem', not: stil ? 'Two-Weapon Fighting: yetenek bonusu hasara eklenir' : 'yetenek bonusu hasara eklenmez' };
+}
+/* Yetenek kutusu (2026-11-25, R3 madde 0; kullanıcının LoL örneği): kendi camında silah, cantrip, ilahi vuruş, sinsi saldırı ve sınıf
+   hakları kare kutular. Üstte zar atan büyük sayı (vuruş ya da hak sayısı) ve küçük ad; altta hasar zarı. Üstüne gelince (ya da klavyeyle
+   içine girince) kutunun üstünde açıklama camı: özellikler, ne yaptığı. Kutu boşsa (kt-yer) yalnızca kuyu. */
+function kutuHTML(o) {
+  return `<div class="mc-kt${o.cls || ''}"${o.row !== undefined ? ` data-row data-i="${o.row}"` : ''}>
+    <button class="kt-ust" ${o.ust}><svg class="ic kt-ic" aria-hidden="true"><use href="#${o.ic}"/></svg><b class="kt-n">${o.n}</b><span class="kt-ad">${esc(o.ad)}</span></button>${o.chip || ''}
+    ${o.alt}${o.ip ? `<div class="kt-ip" role="tooltip">${o.ip}</div>` : ''}</div>`;
+}
+const HAK_IC = { soluk: 'i-plus', atilim: 'i-gec', yilmaz: 'i-kalkan', ofke: 'i-flame', ilham: 'i-nota', ilahi: 'i-star', vahsi: 'i-eye', butunluk: 'i-plus', smite: 'i-star', gozde: 'i-hedef' };
+function meKutular(c) {                                                 // kendi camının yetenek kutuları (sırayla)
+  const ekS = ekSaldiri(c), l = [];
+  c.attacks.slice(0, 6).forEach((a, i) => {
+    const o = atkOz(a), el = a.el || '', e = atkSilah(a), dmg = atkHasar(a), yan = dmg !== String(a.dmg);
+    l.push(kutuHTML({ row: i, cls: ' kt-silah', ic: e ? 'e-' + e.ic : 'i-hancer', n: sign(calc(c, () => attackBonus(a))), ad: a.name || 'Saldırı',
+      ust: `data-act="roll" data-roll="attack" title="${esc(a.name || 'Saldırı')}: vuruş zarı at"`,
+      chip: `<button class="mc-el${el ? ' on' : ''}" data-act="el-degis" title="Hangi elinde? Basınca değişir: ${elSecenek(a).map(k => EL_AD[k]).join(' → ')}">${EL_KISA[el]}</button>`,
+      alt: `<button class="kt-alt" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(dmg)}">${HASAR_IC}${esc(dmg.split(' ')[0] || 'hasar')}</button>`,
+      ip: `<b>${esc(a.name || 'Saldırı')}</b>${e ? ` <i>${esc(e.tr)}</i>` : ''}<p>Vuruş ${sign(calc(c, () => attackBonus(a)))} · hasar ${esc(dmg)}${yan ? ' (iki elle)' : ''} · ${EL_AD[el] === 'Ele al' ? 'elinde değil' : EL_AD[el].toLowerCase()}</p>${o.ipucu ? `<ul>${o.ipucu.split('\n').map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : o.kisa ? `<small>${esc(o.kisa)}</small>` : ''}` }));
+  });
+  if (ekS) l.push(kutuHTML({ cls: ' kt-silah', ic: 'e-' + atkSilah(ekS.a).ic, n: sign(calc(c, () => attackBonus(ekS.a))), ad: 'Öbür el',
+    ust: `data-act="roll" data-roll="ek-vurus" title="Öbür eldeki ${esc(ekS.a.name)}: ek saldırı, vuruş zarı"`, chip: '<span class="mc-el on">Ek</span>',
+    alt: `<button class="kt-alt" data-act="roll" data-roll="ek-hasar" title="Ek saldırının hasarı: ${esc(ekS.dmg)} (${esc(ekS.not)})">${HASAR_IC}${esc(ekS.dmg.split(' ')[0])}</button>`,
+    ip: `<b>${esc(ekS.a.name)} · öbür el</b><p>İki hafif silahla saldırınca öbür elindekiyle bir ek saldırı. ${esc(ekS.ne)}; ${esc(ekS.not)}.</p>` }));
+  const u = silahsiz(c);
+  l.push(kutuHTML({ row: -1, ic: 'i-yumruk', n: sign(u.vurus), ad: 'Yumruk', ust: 'data-act="roll" data-roll="silahsiz" title="Yumruk ya da tekme: vuruş zarı at"',
+    alt: `<button class="kt-alt" data-act="roll" data-roll="silahsiz-hasar" title="Hasar: ${esc(u.dmg)} ezici">${HASAR_IC}${esc(u.dmg)}</button>`,
+    ip: `<b>Unarmed Strike</b> <i>Yumruk / tekme</i><p>Silahsız vuruş: ${esc(u.dmg)} ezici hasar. Tutmak ya da itmek için hedef ZD ${u.zd} kurtarması atar.</p>` }));
+  l.push(smiteSatir(c));
+  if (sinsiZar(c)) l.push(kutuHTML({ ic: 'i-hedef', n: `${sinsiZar(c)}d6`, ad: 'Sinsi saldırı', cls: ' kt-buyu',
+    ust: `data-act="roll" data-roll="sinsi" title="Sinsi saldırı hasarı: ${sinsiZar(c)}d6"`, alt: '<span class="kt-alt">turda bir kez</span>',
+    ip: '<b>Sneak Attack</b> <i>Sinsi saldırı</i><p>Turda bir kez, avantajlıyken ya da hedefin 5 ft yanında bir dostun varken (dezavantajlı değilken) ince (Finesse) ya da menzilli silahla vurunca. Önce silahının hasarını at, sonra buna bas. Kritik vuruştan sonra zarlar iki kez.</p>' }));
+  l.push(byCamSatir(c));
+  calc(c, () => hakListe().filter(h => hakEtki(h.k)).slice(0, 3).forEach(h => {
+    const e = hakEtki(h.k), k = hakKalan(h);
+    l.push(kutuHTML({ cls: ` kt-hak${k ? '' : ' kt-bos'}`, ic: HAK_IC[h.k] || 'i-star', n: `${k}<small>/${h.max}</small>`, ad: h.tr,
+      ust: `data-act="hak-kullan" data-k="${h.k}" ${k ? '' : 'disabled'} title="${esc(h.tr)}: kullan (${esc(e.e)})"`, alt: `<span class="kt-alt">${esc(/^Vurduktan/.test(e.e) ? 'Vurunca' : /^Eylem ya da/.test(e.e) ? 'Eylem / bonus' : e.e)}</span>`,
+      ip: `<b>${esc(h.en)}</b> <i>${esc(h.tr)}</i><p>${esc(e.x)}</p><small>${esc(e.e)} · ${k}/${h.max} hak · ${hakDinlenYazi(h)}</small>` }));
+  }));
+  const n = matchMedia('(max-width:640px) and (orientation:portrait)').matches ? 4 : 6, dolu = l.filter(Boolean), bos = (n - dolu.length % n) % n;   // telefonda 4 sütun
+  return dolu.join('') + '<div class="mc-kt kt-yer" aria-hidden="true"></div>'.repeat(bos);   // boş yuvalar: ızgara hep tam
 }
 function atkOz(a) {
   const e = esyaBul({ name: a.name });
@@ -6990,14 +7112,16 @@ const byYuvalar = sv => C.slots.map((s, i) => ({ sv: i + 1, kalan: int(s.t) - in
    seviye için +1d8; iblis ya da ölümsüzse +1d8 daha. Son saldırı kritikse zarlar ikiye katlanır (SV.sonKrit). */
 function smiteSatir(c) {
   const x = byKullan(c).find(y => y.b && y.b.a === 'Divine Smite'); if (!x) return '';
-  const yv = calc(c, () => byYuvalar(1));
-  const sec = yv.length > 1 ? `<select class="mc-yuva" id="smiteYuva" aria-label="Hangi yuvayla" title="Üst yuvayla daha çok hasar">${yv.map(v => `<option value="${v.sv}">${v.sv}. sv · ${v.sv + 1}d8</option>`).join('')}</select>` : '';
-  return `<div class="mc-atk mc-ek${sec ? '' : ' mc-hak'}"><span title="Divine Smite: yakın dövüş silahıyla ya da yumrukla vurduktan hemen sonra bonus eylemle. Önce silahının hasarını at, sonra bunu. Hedef iblis (Fiend) ya da ölümsüzse (Undead) DM +1d8 ekler.">İlahi vuruş<small>${yv.length ? `${yv[0].sv + 1}d8 ışıyan · vurunca, yuva harcar` : 'büyü yuvan kalmadı'}</small></span>${sec}
-    <button class="roll die" data-act="smite" ${yv.length ? '' : 'disabled'} title="${yv.length ? 'Yuva harcanır, hasar zarı hedefe atılır' : 'Uzun dinlenmede dolar'}" aria-label="İlahi vuruş hasarı">${HASAR_IC}</button></div>`;
+  const yv = calc(c, () => byYuvalar(1)), sv = yv.some(v => v.sv === SV.smiteSv) ? SV.smiteSv : (yv[0] || {}).sv || 1;
+  return kutuHTML({ cls: yv.length ? ' kt-buyu' : ' kt-bos', ic: 'i-star', n: `${sv + 1}d8`, ad: 'İlahi vuruş',
+    ust: `data-act="smite" ${yv.length ? '' : 'disabled'} title="İlahi vuruş: ${sv}. seviye yuva harcanır, ${sv + 1}d8 ışıyan hasar hedefe"`,
+    alt: yv.length > 1 ? `<button class="kt-alt" data-act="smite-sv" title="Hangi yuvayla? Basınca değişir (${yv.map(v => v.sv + '. sv').join(', ')})">${sv}. sv yuva</button>`
+      : `<span class="kt-alt">${yv.length ? `${sv}. sv yuva` : 'yuva yok'}</span>`,
+    ip: `<b>Divine Smite</b> <i>İlahi vuruş</i><p>Yakın dövüş silahıyla ya da yumrukla vurduktan hemen sonra, bonus eylemle. Önce silahının hasarını at, sonra buna bas: yuva harcanır, hedef ${sv + 1}d8 ışıyan hasar alır (yuva seviyesi 1'in üstündeki her seviye için +1d8). İblis ya da ölümsüzse DM +1d8 ekler. Kritik vuruştan sonra zarlar iki kez.</p>` });
 }
 function smiteVur() {
   if (mode === 'peek') return;
-  const l = byYuvalar(1), sel = $('#smiteYuva'), yuva = l.some(x => x.sv === int(sel && sel.value)) ? int(sel.value) : (l[0] || {}).sv;
+  const l = byYuvalar(1), yuva = l.some(x => x.sv === SV.smiteSv) ? SV.smiteSv : (l[0] || {}).sv;
   if (!yuva) { notify('Büyü yuvan kalmadı', 'Uzun dinlenmede dolar.'); return; }
   C.slots[yuva - 1].u = int(C.slots[yuva - 1].u) + 1;
   if (C.byHak && C.byHak.p === 'hepsi') C.byHak = Object.assign({}, C.byHak, { p: 0 });
@@ -7044,12 +7168,13 @@ function byZarAt(i, tur) {
   if (tur === 'iy') rollExpr(expr, `${b.a}: iyileştirme (can)`, { iyi: true });
   else { rollExpr(expr, `${b.a}: hasar (${b.h.split(' + ').map(x => BY_HT[x.split(' ')[1]] || x.split(' ')[1]).join(' + ')})`, { hasar: true, crit: BY.krit === b.a, kurt: b.sv ? byKurt(b) : null }); BY.krit = ''; }
 }
-function byCamSatir(c) {                                               // saldırı satırına: hasar veren cantrip'ler
+function byCamSatir(c) {                                               // yetenek kutuları: hasar veren cantrip'ler
   return byKullan(c).filter(x => x.b && x.b.s === 0 && x.b.h && (x.b.at || x.b.sv)).slice(0, 4).map(({ i, b }) => {
     const zar = calc(c, () => byZarIfade(b, 0, 'h'));
-    return `<div class="mc-atk mc-batk" data-row data-i="${i}"><span title="${esc(b.t)}: ${esc(b.x)}">${esc(b.a)}<small>${esc(zar)} · cantrip</small></span>
-      <button class="roll" data-act="by-yap" data-i="${i}" title="${b.at ? 'Büyü saldırısı: vuruş zarı at' : `Hedef ${b.sv.toUpperCase()} kurtarması atar`}">${b.at ? sign(calc(c, bySld)) : `ZD ${calc(c, byZd)}`}</button>
-      <button class="roll die" data-act="by-zar" data-i="${i}" title="Hasar zarı at: ${esc(zar)}" aria-label="${esc(b.a)}: hasar zarı">${HASAR_IC}</button></div>`;
+    return kutuHTML({ cls: ' kt-buyu', ic: 'i-flame', n: b.at ? sign(calc(c, bySld)) : `<small>ZD</small>${calc(c, byZd)}`, ad: b.t || b.a,
+      ust: `data-act="by-yap" data-i="${i}" title="${esc(b.a)}: ${b.at ? 'büyü saldırısı, vuruş zarı at' : `hedef ${b.sv.toUpperCase()} kurtarması atar`}"`,
+      alt: `<button class="kt-alt" data-act="by-zar" data-i="${i}" title="Hasar zarı at: ${esc(zar)}">${HASAR_IC}${esc(zar)}</button>`,
+      ip: `<b>${esc(b.a)}</b> <i>${esc(b.t)}</i><p>${esc(b.x)}</p><small>Cantrip · ${esc(byHedef(b).k || b.mz)} · ${b.at ? 'büyü saldırısı' : `${b.sv.toUpperCase()} kurtarması, ZD ${calc(c, byZd)}`}</small>` });
   }).join('');
 }
 function byCamSek(c) {                                                 // "Büyüler" sekmesi
@@ -9025,15 +9150,17 @@ function svRender() {
   const hs = new Set(hedefListe()), simdi = siraSimdi(), secilir = new Set(hedefler().map(x => x.id));
   const kart = (o, p, i) => {
     const olu = o.max !== null && o.can <= 0, pct = o.max ? clamp(o.can / o.max, 0, 1) : 0;
-    const bilgi = (o.dost ? 'dost · ' : '') + (o.max !== null ? `${Math.max(0, o.can)}/${o.max} can${o.ac ? ` · AC ${o.ac}` : ''}` : o.ac && (o.tip === 'oyuncu' || store.net.role === 'dm') ? `AC ${o.ac}` : '');
-    const alt = olu ? (o.tip === 'npc' ? 'yere düştü' : o.olu ? 'öldü' : 'baygın · ölüm zarı atıyor') : o.me ? `sen${o.ac ? ` · AC ${o.ac}` : ''}` : o.gizli ? 'gizli' : bilgi;
+    const acGor = o.ac && (o.tip === 'oyuncu' || o.dost || store.net.role === 'dm' || o.max !== null);    // AC kalkanı (2026-11-25, R3 madde 23)
+    const bilgi = (o.dost ? 'dost · ' : '') + (o.max !== null ? `${Math.max(0, o.can)} / ${o.max} can` : '');
+    const alt = olu ? (o.tip === 'npc' ? 'yere düştü' : o.olu ? 'öldü' : 'baygın · ölüm zarı atıyor') : o.me ? `sen${o.max !== null ? ` · ${Math.max(0, o.can)} / ${o.max}` : ''}` : o.gizli ? 'gizli' : bilgi;
+    const dilim = o.max >= 20 && o.max <= 300 ? 1000 / o.max : 0;
     const tag = secilir.has(o.id) ? 'button' : 'div';
     const cls = `sv-kisi t-${o.tip}${o.dost ? ' t-dost' : ''}${o.id === simdi ? ' simdi' : ''}${hs.has(o.id) ? ' hedef' : ''}${olu ? ' olu' : ''}${o.me ? ' ben' : ''}${o.gizli || o.off ? ' gizli' : ''}`;
     return `<${tag} class="${cls}" data-id="${o.id}"${tag === 'button' ? ` data-act="hedef-yap" title="${hs.has(o.id) ? 'Hedefi kaldır' : store.hedefCok ? 'Hedeflere ekle' : 'Hedef yap'}: ${esc(o.ad)}"` : ` title="${esc(o.ad)}"`}
       style="left:${p.x.toFixed(1)}px;top:${p.y.toFixed(1)}px;--k:${p.k.toFixed(3)};z-index:${Math.round(p.y)};--gec:${(-i * 0.73 % 3.4).toFixed(2)}s;--g:${o.tip === 'npc' ? (o.dost ? 'var(--g-dost)' : 'var(--g-dus)') : camOf(o.id)}">
-      <span class="sv-golge"></span><span class="sv-kart"><span class="sv-res">${avHTML(o.img, o.ad)}</span></span>
+      <span class="sv-golge"></span><span class="sv-kart"><span class="sv-res">${avHTML(o.img, o.ad)}</span>${acGor ? `<span class="sv-ac" title="AC (zırh sınıfı) ${o.ac}"><svg viewBox="0 0 100 110" aria-hidden="true"><path d="M50 5 91 19v34c0 25-17 41-41 51C26 94 9 78 9 53V19z"/></svg><b>${o.ac}</b></span>` : ''}</span>
       <span class="sv-ad"><b>${esc(o.ad)}</b>${alt ? `<small>${esc(alt)}</small>` : ''}</span>
-      ${o.max !== null ? `<span class="sv-can"><span class="hp-fill" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span></span>` : ''}
+      ${o.max !== null ? `<span class="sv-can" data-id="${o.id}"><span class="cb-iz" style="width:${pct * 100}%"></span><span class="cb-dol" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span>${dilim ? `<span class="cb-kurs" style="--dilim:${dilim.toFixed(3)}%"></span>` : ''}</span>` : ''}
     </${tag}>`;
   };
   const html = oyuncu.map((o, i) => kart(o, yo[i], i)).join('') + dus.map((o, i) => kart(o, yd[i], i + oyuncu.length)).join('');
@@ -9041,11 +9168,16 @@ function svRender() {
   oyuncu.concat(dus).forEach(o => {
     if (o.max === null) { SV.can.delete(o.id); return; }
     const once = SV.can.get(o.id);
-    if (once !== undefined && once !== o.can) vurulan.push([o.id, o.can - once]);
+    if (once !== undefined && once !== o.can) vurulan.push([o.id, o.can - once, once / o.max]);
     SV.can.set(o.id, o.can);
   });
   if (html !== SV.html) { SV.html = html; $('#svKisiler').innerHTML = html; }
-  vurulan.forEach(([id, fark]) => svVurus(id, fark));
+  vurulan.forEach(([id, fark, oncePct]) => {
+    svVurus(id, fark);
+    const bar = $(`#svKisiler .sv-can[data-id="${id}"]`), el = bar && $(fark < 0 ? '.cb-iz' : '.cb-dol', bar);   // can çubuğu: hasarda kırmızı iz gecikmeyle çekilir
+    if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const son = el.style.width; el.style.transition = 'none'; el.style.width = (clamp(oncePct, 0, 1) * 100) + '%'; void el.offsetWidth; el.style.transition = ''; el.style.width = son;
+  });
   svMerkez();
 }
 function svVurus(id, fark) {
@@ -10758,29 +10890,17 @@ function renderMe() {
   if (!show) return;
   const c = ownChar(), min = !!store.meMin;
   const max = Math.max(0, int(c.hp.max)), cur = int(c.hp.cur), temp = int(c.hp.temp), pct = max ? clamp(cur / max, 0, 1) : 0;
-  const bar = `<div class="hp-bar"><span class="hp-fill" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span></div>`;
+  // Can çubuğu (2026-11-25, R3 madde 25): her 10 can bir cam dilimi (aralarında kurşun), geçici can açık dilim, hasarda kırmızı iz
+  const gec = max ? clamp(temp / max, 0, 1 - pct) : 0, dilim = max >= 20 && max <= 300 ? 1000 / max : 0;
+  const bar = `<div class="cb-bar" role="meter" aria-label="Can" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${Math.max(0, cur)}">
+    <span class="cb-iz" style="width:${pct * 100}%"></span><span class="cb-dol" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span>
+    ${gec ? `<span class="cb-gec" style="left:${pct * 100}%;width:${gec * 100}%"></span>` : ''}${dilim ? `<span class="cb-kurs" style="--dilim:${dilim.toFixed(3)}%"></span>` : ''}</div>`;
+  const yuvalar = c.slots.map((s, k) => ({ k: k + 1, t: int(s.t), kalan: int(s.t) - int(s.u) })).filter(x => x.t > 0);
+  const down = cur <= 0;
   const who = [deger(c.species), deger(c.cls)].filter(Boolean).join(' ');
   const av = c.portrait ? `<img src="${esc(c.portrait)}" alt="">` : esc((c.name.trim()[0] || '?').toUpperCase());
   const kalkan = '<svg viewBox="0 0 100 110" aria-hidden="true"><path d="M50 5 91 19v34c0 25-17 41-41 51C26 94 9 78 9 53V19z"/></svg>';
   const rehber = rehberMetni(c);
-  const ekS = ekSaldiri(c);
-  const atk = c.attacks.slice(0, 6).map((a, i) => { const o = atkOz(a), el = a.el || '', yan = atkHasar(a) !== String(a.dmg) ? atkHasar(a) : '';
-    return `<div class="mc-atk" data-row data-i="${i}"><span title="${esc(a.name || 'Saldırı')} · ${esc(a.dmg)}${o.ipucu ? '\n\n' + esc(o.ipucu) : ''}">${esc(a.name || 'Saldırı')}<small><button class="mc-el${el ? ' on' : ''}" data-act="el-degis" title="Hangi elinde? Basınca değişir: ${elSecenek(a).map(k => EL_AD[k]).join(' → ')}">${EL_AD[el]}</button>${esc((yan || String(a.dmg)).split(' ')[0] || 'hasar')}${yan ? ' (iki elle)' : ''}${o.kisa ? ` · ${esc(o.kisa)}` : ''}</small></span>
-      <button class="roll" data-act="roll" data-roll="attack" title="Vuruş zarı at: ${esc(a.name || 'saldırı')}">${sign(attackBonus(a))}</button>
-      <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(atkHasar(a))}" aria-label="Hasar zarı at">${HASAR_IC}</button></div>`; }).join('')
-    + smiteSatir(c)
-    + (sinsiZar(c) ? `<div class="mc-atk mc-ek mc-hak"><span title="Sneak Attack: turda bir kez, avantajlıyken ya da hedefin 5 ft yanında bir dostun varken (dezavantajlı değilken) ince (Finesse) ya da menzilli silahla vurunca. Önce silahının hasarını at, sonra bunu.">Sinsi saldırı<small>${sinsiZar(c)}d6 · vurunca, turda bir kez</small></span>
-      <button class="roll die" data-act="roll" data-roll="sinsi" title="Sinsi saldırı hasarı: ${sinsiZar(c)}d6 (kritik vuruştan sonra zarlar iki kez)" aria-label="Sinsi saldırı hasarı">${HASAR_IC}</button></div>` : '')
-    + (ekS ? `<div class="mc-atk mc-ek"><span title="SRD: iki hafif silahla saldırınca öbür elindekiyle bir ek saldırı. ${esc(ekS.ne)}; ${esc(ekS.not)}.">${esc(ekS.a.name)} · öbür el<small>${esc(ekS.dmg.split(' ')[0])} · ek saldırı, ${esc(ekS.ne.toLowerCase())}</small></span>
-      <button class="roll" data-act="roll" data-roll="ek-vurus" title="Ek saldırı: vuruş zarı at">${sign(attackBonus(ekS.a))}</button>
-      <button class="roll die" data-act="roll" data-roll="ek-hasar" title="Ek saldırının hasarı: ${esc(ekS.dmg)} (${esc(ekS.not)})" aria-label="Ek saldırı hasarı">${HASAR_IC}</button></div>` : '')
-    + (u => `<div class="mc-atk" data-row data-i="-1"><span title="Silahsız vuruş · tutma / itme: hedef ZD ${u.zd}">Yumruk / tekme<small>${esc(u.dmg)}</small></span>
-      <button class="roll" data-act="roll" data-roll="silahsiz" title="Yumruk ya da tekme: vuruş zarı at">${sign(u.vurus)}</button>
-      <button class="roll die" data-act="roll" data-roll="silahsiz-hasar" title="Hasar: ${esc(u.dmg)} ezici" aria-label="Yumruk / tekme hasarı">${HASAR_IC}</button></div>`)(silahsiz(c))
-    + byCamSatir(c)                                                     // hasar veren cantrip'ler (BÖLÜM 8e)
-    + calc(c, () => hakListe().filter(h => hakEtki(h.k)).slice(0, 3).map(h => { const u = hakEtki(h.k), k = hakKalan(h);   // 2026-11-25: Second Wind, Öfke… tek tıkla
-      return `<div class="mc-atk mc-hak${k ? '' : ' bos'}"><span title="${esc(`${h.en}: ${u.e}. ${u.x}`)}">${esc(h.tr)}<small>${esc(u.e)} · ${k}/${h.max} hak</small></span>
-        <button class="btn sm accent" data-act="hak-kullan" data-k="${h.k}" ${k ? '' : 'disabled'} title="${esc(u.x)}">Kullan</button></div>`; }).join(''));
   // Beceriler / envanter camı (store.meSek: '' | 'beceri' | 'envanter')
   const sek = store.meSek || '';
   let sekCam = '';
@@ -10816,7 +10936,6 @@ function renderMe() {
   }
   let detay = '';
   if (!min) {
-    const down = cur <= 0;
     const amount = document.activeElement && document.activeElement.id === 'meAmount' ? document.activeElement.value : '';
     detay = `<div class="mc-detay">
       <section><h3 lang="en">Saving Throws<em lang="tr">Kurtarma zarları</em></h3>
@@ -10846,14 +10965,27 @@ function renderMe() {
       <button class="btn${sek === 'dinlen' ? ' on' : ''}" data-act="me-sek" data-k="dinlen" aria-expanded="${sek === 'dinlen'}" title="Kısa ve uzun dinlenme"><svg class="ic"><use href="#i-moon"/></svg>Dinlen</button>
       <button class="btn" data-act="mode-sheet" title="Karakter kağıdının tamamı"><svg class="ic"><use href="#i-scroll"/></svg>Kağıdım</button>
       <button class="btn icon" data-act="me-min" aria-expanded="${!min}" title="${min ? 'Ayrıntıları aç: kurtarma zarları, can, inisiyatif' : 'Ayrıntıları kapat'}" aria-label="${min ? 'Ayrıntıları aç' : 'Ayrıntıları kapat'}"><svg class="ic"><use href="#i-yukari"/></svg></button></div>
-    <div class="mc-izgara mc-atklar" aria-label="Saldırılar">${atk}</div>
-    <div class="mc-izgara mc-cam">
-      <button class="mc-ben" data-act="me-min" title="${min ? 'Ayrıntıları aç' : 'Ayrıntıları kapat'}"><span class="mc-pencere">${av}</span>
-        <span class="mc-ad"><b>${esc(c.name.trim() || 'İsimsiz karakter')}</b><small${who ? ' lang="en"' : ''}>${int(c.level)}. seviye ${esc(who || '· sınıfını kağıda yaz')}</small></span></button>
-      <div class="mc-can" title="Hit Points: can puanı"><div class="n"><b>${cur}</b><span> / ${max}</span></div>${bar}${temp ? `<small>+${temp} geçici can</small>` : ''}</div>
-      <div class="mc-ac" title="Armor Class (zırh sınıfı): sana vurmak için tutturulması gereken sayı">${kalkan}<b>${int(c.ac)}</b><small>AC</small></div>
-      ${ABIL.map(a => `<button class="mc-y roll" data-act="roll" data-roll="ability" data-k="${a.k}" title="${a.en} (${a.tr}) zarı at · skor ${int(c.abilities[a.k])}"><small>${a.k.toUpperCase()}</small><b>${sign(mod(a.k))}</b><i>${int(c.abilities[a.k])}</i></button>`).join('')}
+    <div class="mc-hud">
+      <button class="mc-por" data-act="me-min" title="${min ? 'Ayrıntıları aç: kurtarma zarları, can işlemleri, inisiyatif' : 'Ayrıntıları kapat'}" aria-label="${esc(c.name.trim() || 'Karakterim')}: ${min ? 'ayrıntıları aç' : 'ayrıntıları kapat'}">
+        <span class="mc-por-res">${av}</span><span class="mc-sv" title="Seviye">${int(c.level)}</span>${c.insp ? '<svg class="ic mc-insp" aria-label="İlhamın var"><use href="#i-star"/></svg>' : ''}</button>
+      <div class="mc-kim">
+        <div class="mc-kim-ust"><span class="mc-ad"><b>${esc(c.name.trim() || 'İsimsiz karakter')}</b><small${who ? ' lang="en"' : ''}>${int(c.level)}. seviye ${esc(who || '· sınıfını kağıda yaz')}</small></span>
+          <span class="mc-ac" title="Armor Class (zırh sınıfı): sana vurmak için tutturulması gereken sayı">${kalkan}<b>${int(c.ac)}</b><small>AC</small></span></div>
+        <div class="mc-cb" title="Hit Points: can puanı${temp ? ` · ${temp} geçici can (önce o düşer)` : ''}">${bar}<span class="cb-n"><b>${Math.max(0, cur)}</b><span>/ ${max}</span>${temp ? `<em>+${temp}</em>` : ''}</span></div>
+        ${down && !olu(c) ? `<button class="btn sm bad mc-olum" data-act="roll" data-roll="death" title="Kalkma hakkı ${3 - int(c.ds.s)}/3 · başarısızlık ${int(c.ds.f)}/3">Baygınsın: ölüm zarı at (${3 - int(c.ds.f)} hakkın kaldı)</button>`
+          : olu(c) ? `<p class="mc-olum">${oluNeden(c)}</p>`
+          : yuvalar.length || c.kons ? `<div class="mc-yl">${yuvalar.map(y => `<span title="${y.k}. seviye büyü yuvaları: ${y.kalan} / ${y.t} kaldı"><small>${y.k}</small>${Array.from({ length: y.t }, (_, n) => `<i class="${n < y.kalan ? 'on' : ''}"></i>`).join('')}</span>`).join('')}${c.kons ? `<span class="yl-kons" title="Konsantrasyon: hasar alınca CON kurtarması atarsın">Konsantrasyon: <b>${esc(c.kons)}</b></span>` : ''}</div>` : ''}
+      </div>
+      <div class="mc-kut" aria-label="Saldırılar ve yetenekler">${meKutular(c)}</div>
+      <div class="mc-yet" aria-label="Yetenek zarları">${ABIL.map(a => `<button class="mc-y" data-act="roll" data-roll="ability" data-k="${a.k}" title="${a.en} (${a.tr}) zarı at · skor ${int(c.abilities[a.k])}"><small>${a.k.toUpperCase()}</small><b>${sign(mod(a.k))}</b><i>${int(c.abilities[a.k])}</i></button>`).join('')}</div>
     </div>`;
+  // Can çubuğu: değişince hasar izi (kırmızı) gecikmeyle çekilir, iyileşmede dolgu büyür
+  const cbOnce = SV.meCan, iz = $('.cb-iz', box), dol = $('.cb-dol', box);
+  SV.meCan = pct;
+  if (iz && cbOnce !== undefined && cbOnce !== pct && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const [el, w] = pct < cbOnce ? [iz, cbOnce] : [dol, cbOnce];
+    el.style.transition = 'none'; el.style.width = (w * 100) + '%'; void el.offsetWidth; el.style.transition = ''; el.style.width = (pct * 100) + '%';
+  }
   ['.mc-esya', '.mc-by', '.mc-bc'].forEach((s, i) => { const el = $(s, box); if (el && kay[i]) el.scrollTop = kay[i]; });
 }
 
@@ -10870,7 +11002,7 @@ function rehberMetni(c) {
     if (s.simdi === me) {
       const a = c.attacks[0], dus = net.npcs.length && !gecerliHedef();
       if (dus) return `Sıra sende. Önce sağdaki <b>Düşmanlar</b>dan hedefini seç, sonra <b>${esc(a ? a.name || 'saldırı' : 'Yumruk / tekme')}</b> zarına bas.`;
-      return `Sıra sende. Saldırmak için <b>${esc(a ? a.name || 'saldırı' : 'Yumruk / tekme')}</b> yanındaki sayıya bas; vurursan hasar zarını at. Başka bir şey yapacaksan DM'e söyle.`;
+      return `Sıra sende. Saldırmak için <b>${esc(a ? a.name || 'saldırı' : 'Yumruk / tekme')}</b> kutusuna bas; vurursan altındaki hasar zarına bas. Başka bir şey yapacaksan DM'e söyle.`;
     }
     return simdi ? `Sıradaki: <b>${esc(simdi.ad)}</b>. Sıran gelince burada yazar.` : 'İnisiyatif zarları bekleniyor.';
   }
