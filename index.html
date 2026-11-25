@@ -4890,6 +4890,8 @@ function rollD20(label, parts, opt = {}) {
   let flag = '', note = '';
   if (kept === 20) { flag = 'crit-hit'; note = opt.on20 || 'Doğal 20!'; }
   else if (kept === 1) { flag = 'crit-miss'; note = opt.on1 || 'Doğal 1!'; }
+  // SRD 5.2.1: saldırıda doğal 1 bonusa bakmadan ıskalar; sonuç "1" yazar. Yetenek ve kurtarma zarında bonus yine eklenir.
+  if (opt.saldiri && kept === 1 && total !== 1) { total = 1; detail = `d20 (${!b ? a : `${a} ve ${b}`}) · doğal 1, bonus eklenmez`; }
   const tag = mode === 'adv' ? ' (avantaj)' : mode === 'dis' ? ' (dezavantaj)' : '';
   const dice = [{ s:20, v:a }];
   if (b) { dice.push({ s:20, v:b }); dice[(mode === 'adv' ? a < b : a > b) ? 0 : 1].x = 1; }   // atılan (düşük ya da yüksek) zarı işaretle
@@ -4944,18 +4946,18 @@ function doRoll(btn) {
   else if (kind === 'init') rollD20('İnisiyatif', [['DEX', mod('dex')], ['ek bonus', C.initBonus]], { ini: true });
   else if (kind === 'spellatk') {
     if (!C.spellAbility) { notify('Önce büyü yeteneğini seç', 'Büyüler sekmesinin en üstündeki listeden.'); return; }
-    rollD20('Büyü saldırısı', [[C.spellAbility.toUpperCase(), mod(C.spellAbility)], ['yetkinlik', pb()]], { on20:'Kritik vuruş! Hasar zarlarını iki kez at.', on1:'Doğal 1: saldırı ıskalar.' });
+    rollD20('Büyü saldırısı', [[C.spellAbility.toUpperCase(), mod(C.spellAbility)], ['yetkinlik', pb()]], { on20:'Kritik vuruş! Hasar zarlarını iki kez at.', on1:'Doğal 1: saldırı ıskalar.', saldiri: true });
   }
   else if (kind === 'attack') {
     const a = C.attacks[i]; if (!a) return;
     const r = rollD20(`${a.name || 'Saldırı'}: vuruş zarı`, [[a.ab.toUpperCase(), mod(a.ab)], ['yetkinlik', a.prof ? pb() : 0], ['ek bonus', a.bonus]],
-      { on20:'Kritik vuruş! Şimdi hasar zarına bas, zarlar iki kez atılır.', on1:'Doğal 1: saldırı ıskalar.' });
+      { on20:'Kritik vuruş! Şimdi hasar zarına bas, zarlar iki kez atılır.', on1:'Doğal 1: saldırı ıskalar.', saldiri: true });
     critRow = r.kept === 20 ? i : -1;
   }
   else if (kind === 'silahsiz') {                                     // yumruk / tekme (masada kendi camımdan da: C her zaman benim kağıdım ya da DM'in baktığı)
     const u = silahsiz();
     const r = rollD20('Yumruk / tekme: vuruş zarı', [[u.ab.toUpperCase(), u.am], ['yetkinlik', u.p]],
-      { on20:'Kritik vuruş! Şimdi hasar zarına bas.', on1:'Doğal 1: saldırı ıskalar.' });
+      { on20:'Kritik vuruş! Şimdi hasar zarına bas.', on1:'Doğal 1: saldırı ıskalar.', saldiri: true });
     critRow = r && r.kept === 20 ? 'silahsiz' : -1;
   }
   else if (kind === 'silahsiz-hasar') {
@@ -6802,7 +6804,7 @@ function byYap(i, yuvaSec) {
   const kons = b.c && once && once !== b.a ? ` Konsantrasyonun ${once} büyüsünden buna geçti.` : '';
   if (b.at) {
     const r = rollD20(`${ad}: büyü saldırısı${isin > 1 ? ` (${isin} ışından biri)` : ''}`, [[C.spellAbility.toUpperCase(), mod(C.spellAbility)], ['yetkinlik', pb()]],
-      { on20: 'Kritik vuruş! Şimdi hasar zarına bas, zarlar iki kez atılır.', on1: 'Doğal 1: büyü ıskalar.' });
+      { on20: 'Kritik vuruş! Şimdi hasar zarına bas, zarlar iki kez atılır.', on1: 'Doğal 1: büyü ıskalar.', saldiri: true });
     BY.krit = r && r.kept === 20 ? b.a : '';
     if (kons) notify('Konsantrasyon', kons.trim());
   } else if (b.sv) notify(`${ad}: hedef ${b.sv.toUpperCase()} kurtarması atar`, `Büyü zorluğun (ZD) ${byZd()}.${b.h ? ' Hasar zarına bas; kurtarmayı geçenin ne alacağını açıklama söyler.' : ''}${kons}`);
