@@ -1642,7 +1642,7 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
   pointer-events:none}
 /* Sütun sağ alttaki "Zar at"ın (.fab, 72 px) üstünde biter; sığmazsa düşman listesi ve sohbet kendi içinde kayar (2026-10-30) */
 .tv-sag{max-height:calc(100% - 12px - 84px)}
-@media not ((max-width:640px) and (orientation:portrait)){body.hedef-var .tv-sag{max-height:calc(100% - 12px - 84px - 44px)}}   /* "Zar at"ın üstündeki hedef şeridi görünürken (telefonda sütun sahnenin altında) */
+@media not ((max-width:640px) and (orientation:portrait)){body.hedef-var .tv-sag{max-height:calc(100% - 12px - 84px - 52px)}}   /* "Zar at"ın üstündeki hedef şeridi görünürken (telefonda sütun sahnenin altında) */
 /* Yüzen camlar (2026-10-30, BÖLÜM 11 camYerlestir): her cam başlığından taşınır, köşesinden büyür. Taşınmamışlar sağ sütunda
    (rıhtım) alt alta; taşınan cam sahnenin üstünde yüzer (.yuzer, yeri tavernanın yüzdesi). --cw genişlik, --ch liste boyu (birim). */
 .tv-camlar{position:absolute;inset:0;z-index:8;pointer-events:none}
@@ -1913,6 +1913,39 @@ button.mz-sec:hover{background:var(--lit)}
 .emo-i .ic{width:34px;height:34px;stroke-width:1.6}
 .emo-i:hover,.emo-i:focus-visible{background:color-mix(in srgb,var(--accent) 24%,var(--surface));outline:none}
 .emo-pop .gif-alt{justify-content:flex-start}
+/* Ortak notlar (2026-11-26, R4 madde 28; kullanıcı: "sol altta ortak not / ipucu panosu, grup notları"). Sohbetle aynı koyu cam;
+   varsayılan yeri sol alt köşe (yakınlaştırma düğmelerinin yanı), başlığından taşınır. Her not yazanın camıyla boyanmış satır: üstte
+   küçük ad ve saat, altında not. DM'in ipucu yaptığı notlar en üstte, yıldızlı ve accent kenarlı. Yazı kutusu altta. */
+.tv-not{position:relative;box-sizing:border-box;width:calc(var(--cw,18) * var(--u));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);
+  box-shadow:var(--shadow);font-family:var(--font-ui);display:flex;flex-direction:column;min-height:0}
+.tv-not[hidden]{display:none}
+.tv-camlar>.tv-not.varsayilan{left:calc(var(--povw) + 72px);bottom:16px;top:auto}
+.tv-not.varsayilan .cam-boy{display:none}
+.tv-not>:not(ol){flex:none}
+.tv-not h2{position:relative;margin:0;padding:calc(.7 * var(--u)) calc(2.6 * var(--u)) calc(.6 * var(--u)) calc(1 * var(--u));background:var(--bar);
+  font-family:var(--font-display);font-weight:700;font-size:clamp(14px,calc(1.45 * var(--u)),21px);line-height:1.1}
+.tv-not h2 em{margin-left:.45em;font-family:var(--font-ui);font-style:normal;font-weight:600;font-size:.62em;color:var(--muted)}
+.tv-not.kapali :is(.not-liste,.not-yaz){display:none}
+.not-liste{list-style:none;margin:var(--lw) 0 0;padding:0;display:grid;align-content:start;gap:var(--lw);max-height:calc(16 * var(--u));min-height:calc(3 * var(--u));overflow:auto;overscroll-behavior:contain}
+.tv-not.boyutlu .not-liste{max-height:none;height:calc(var(--ch) * var(--u))}
+.not-liste li{--g:var(--g-kobalt);position:relative;padding:calc(.4 * var(--u)) calc(1 * var(--u)) calc(.5 * var(--u));background:color-mix(in srgb,var(--g) 14%,var(--surface));
+  font-size:clamp(12px,calc(1.02 * var(--u)),15px);line-height:1.4;overflow-wrap:anywhere;white-space:pre-wrap}
+.not-liste li small{display:flex;align-items:center;gap:4px;white-space:normal;color:var(--muted);font-size:.84em;font-weight:600;line-height:1.5}
+.not-liste li small b{color:color-mix(in srgb,var(--g) 45%,var(--text))}
+.not-liste li small .ic{width:13px;height:13px;color:var(--accent)}
+.not-liste li.ipucu{box-shadow:inset 3px 0 0 var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
+.not-liste li.duz{outline:2px dashed var(--accent);outline-offset:-4px}
+.not-liste li.bos{background:var(--surface);color:var(--muted);white-space:normal}
+.not-is{position:absolute;right:4px;top:2px;display:flex;gap:2px;opacity:0;transition:opacity .15s}
+.not-liste li:is(:hover,:focus-within) .not-is{opacity:1}
+.not-is .icon-btn{--h:26px;background:var(--surface)}
+.not-is .icon-btn.on{color:var(--accent)}
+@media (hover:none){.not-is{opacity:.85}}
+.not-yaz{display:flex;gap:var(--lw);margin:var(--lw) 0 0}
+.not-yaz textarea{flex:1;min-width:0;resize:none;border:0;padding:6px 9px;font:inherit;font-size:clamp(13px,calc(1.02 * var(--u)),15px);line-height:1.35;height:3.1em;min-height:0}
+.not-yaz .btn{border:0;flex:none;height:auto}
+.not-yaz.duz textarea{outline:2px dashed var(--accent);outline-offset:-4px}
+@media (max-width:640px) and (orientation:portrait){.tv-not{width:auto;margin-top:12px}.tv-not h2{font-size:20px}.not-liste{max-height:30vh}.not-yaz textarea{font-size:16px}}
 /* Şeffaf sohbet (2026-11-26, R4 madde 27; kullanıcı: "LoL oyun içi sohbeti gibi sade ve şeffaf"). Dokunulmayan sohbetin camı yok
    olur: yalnızca yazılar tavernanın üstünde, koyu gölgeli; 20 sn'den eski mesajlar söner. Üstüne gelince, içine yazarken ya da
    masada Enter'a basınca cam geri gelir, eskiler de görünür. Düzen kutusundan kapatılır (store.sozSeffaf). Telefonda yok. */
@@ -2868,6 +2901,15 @@ body.tv-full #tableView{height:100dvh}
         </div>
         <!-- Yüzen camlar: başlığından sürüklenip sağ sütundan çıkarılan camlar burada, tavernanın üstünde durur (camYerlestir) -->
         <div class="tv-camlar" id="tvCamlar">
+          <!-- Ortak notlar (2026-11-26, R4 madde 28): herkes yazar, herkes görür; DM'de kalıcı (BÖLÜM 10e-2). Varsayılan yeri sol alt -->
+          <aside class="tv-not cam" data-cam="not" id="tvNot" aria-label="Ortak notlar" hidden>
+            <h2>Notlar<span class="soz-yeni" id="notYeni" hidden></span><em id="notSay"></em><button class="tv-kapa" data-act="pano-kapa" data-p="not" aria-expanded="true" title="Kapat" aria-label="Notları kapat"><svg class="ic"><use href="#i-minus"/></svg></button></h2>
+            <ol class="not-liste" id="notListe" aria-live="polite"></ol>
+            <form class="not-yaz" id="notYaz" autocomplete="off">
+              <textarea id="notIn" maxlength="400" rows="2" spellcheck="true" aria-label="Ortak not"></textarea>
+              <button class="btn icon" type="submit" title="Ekle (Enter; yeni satır için Shift+Enter)" aria-label="Notu ekle"><svg class="ic"><use href="#i-plus"/></svg></button>
+            </form>
+          </aside>
           <!-- Sahne panosu (BÖLÜM 10f, 2026-11-07): hanın ozan sahnesine iğneli. Link buraya yazılıp başlatılır, sıra burada durur -->
           <section class="sa-pano" id="saPano" aria-label="Sahne: YouTube linkiyle müzik başlat" hidden>
             <h2><svg class="ic"><use href="#i-nota"/></svg>Sahne<span class="mz-isaret" id="saIsaret" title="Çalıyor" hidden><i></i><i></i><i></i></span>
@@ -7837,6 +7879,7 @@ function stopNet(clearRole = true) {
   HR.resim.clear(); HR.parca.clear(); net.harita = null; HR.goster = ''; HR.menu = ''; HR.yeni = null;   // harita (BÖLÜM 10d); DM'inki kalıcı depoda durur
   sozSifirla();                                                      // sohbet (BÖLÜM 10e): hiçbir yere kaydedilmez
   net.gifK = ''; GIF.liste = []; GIF.on.clear(); sozPopAc('gif', false); sozPopAc('emo', false);   // GIF anahtarı yalnızca bellekteydi
+  net.notlar = []; net.notIlk = false; NOT.duz = ''; NOT.yeni = 0;   // ortak notlar: DM'inkiler store.notlar'da kalır
   net.muzik = null;                                                  // müzik (BÖLÜM 10f): oyuncunun DM'den aldığı sıra
   TK.gelen = []; TK.benim = []; tkCiz();                             // satış teklifleri (BÖLÜM 10h)
   net.dukkan = null; PZ.bekle = ''; if (!$('#katModal').hidden && /^(pazar|dukkan-sec)/.test(KAT.mod) && store.net.role !== 'dm') katKapa();   // dükkanlar (BÖLÜM 10g); DM'inkiler store.dukkanlar'da kalır
@@ -7931,11 +7974,13 @@ function dmReceive(pid, conn, msg) {
     hrHosgeldin(p, msg.hr);                                          // harita: yapı, piyonlar, oyuncuda olmayan açık resimler (BÖLÜM 10d)
     sozGecmisYolla(p);                                               // sohbetin son mesajları (BÖLÜM 10e)
     if (gifAnahtar()) gifYay(p);                                     // GIF anahtarı (KLIPY): yalnızca bellekte tutulur
+    notYay(p);                                                       // ortak notlar (BÖLÜM 10e-2)
     mzYay(p);                                                        // müzik: sıra ve çalan (BÖLÜM 10f)
     if (dkY().some(d => d.acik)) dkYay(p);                            // dükkanlar (BÖLÜM 10g)
   }
   else if (msg.t === 'piyon' || msg.t === 'hresim-iste') hrDmAl(p, msg);
   else if (msg.t === 'soz') sozDmAl(p, msg);                         // sohbet (BÖLÜM 10e)
+  else if (msg.t === 'not') notDmAl(p, msg);                         // ortak notlar (BÖLÜM 10e-2)
   else if (msg.t === 'yaz') yazDmAl(p, msg);
   else if (msg.t === 'mz-ekle') mzDmEkle(p, msg);                    // müzik: oyuncu link ekledi / başlattı (BÖLÜM 10f)
   else if (msg.t === 'mz-is') mzDmIs(p, msg);                        // müzik: oyuncu çal / durdur / sonraki / seç
@@ -8147,6 +8192,7 @@ function playerReceive(conn, msg) {
   else if (msg.t === 'hresim') hrParcaAl(msg);
   else if (msg.t === 'soz') sozEkle(sozKayit(msg));                  // sohbet (BÖLÜM 10e)
   else if (msg.t === 'soz-gecmis') sozGecmisAl(msg);
+  else if (msg.t === 'notlar') notAl(msg);                           // ortak notlar (BÖLÜM 10e-2)
   else if (msg.t === 'gif-k') { const k = gifAnahtarGecerli(msg.k) ? String(msg.k) : ''; if (k !== net.gifK) { net.gifK = k; GIF.on.clear(); GIF.liste = []; GIF.hata = ''; $('#sozGif').dataset.kip = ''; gifCiz(); } }
   else if (msg.t === 'yaz') { const k = cleanSeat(msg.kim); if (k && k !== net.mySeat) yazGoster(k, !!msg.on); }
   else if (msg.t === 'mz') mzAl(msg);                                // müzik (BÖLÜM 10f)
@@ -8294,6 +8340,7 @@ function renderNetUI() {
   renderTable();
   hrCiz();                                                           // harita düğmesi ve camı (BÖLÜM 10d)
   sozCiz();                                                          // sohbet camı (BÖLÜM 10e)
+  notCiz();                                                          // ortak notlar (BÖLÜM 10e-2)
   mzCiz(); mzUygula();                                               // müzik camı ve oynatıcı (BÖLÜM 10f): rol değişince de
 }
 
@@ -8890,7 +8937,7 @@ $('#npcGorselInput').addEventListener('change', e => {
 /* ───────── Masada sağ sütun: kara tahta ve düşmanlar panosu (açılır / kapanır) ───────── */
 const panoAcik = k => !store.pano || store.pano[k] !== false;
 function panoUI() {
-  [['log', '#tvLogBox', 'Son atışları'], ['dus', '#tvDus', 'Düşmanlar panosunu'], ['soz', '#tvSoz', 'Sohbeti']].forEach(([k, sel, ad]) => {
+  [['log', '#tvLogBox', 'Son atışları'], ['dus', '#tvDus', 'Düşmanlar panosunu'], ['soz', '#tvSoz', 'Sohbeti'], ['not', '#tvNot', 'Notları']].forEach(([k, sel, ad]) => {
     const box = $(sel), ac = panoAcik(k), b = $('.tv-kapa', box);
     box.classList.toggle('kapali', !ac);
     b.setAttribute('aria-expanded', String(ac)); $('use', b).setAttribute('href', ac ? '#i-minus' : '#i-plus');
@@ -9146,6 +9193,7 @@ Object.assign(ACTIONS, {
     if (k === 'log') $('#tvLogBox').classList.remove('open');
     panoUI();
     if (k === 'soz') { SOZ.dibe = true; sozCiz(); }                  // açılınca okunmamışlar sıfırlanır, en alttan
+    if (k === 'not') notCiz();
   },
   'npc-ekle': b => {
     npcler().push({ id: 'n' + newCode().toLowerCase(), ad: '', can: 10, max: 10, ac: 12, ini: 0, img: '', gor: true, canGor: false, dost: !!(b && b.dataset && b.dataset.dost) });
@@ -10291,6 +10339,103 @@ $('#sozIn').addEventListener('input', e => {
 $('#sozIn').addEventListener('blur', () => yazGonder(false));
 $('#sozIn').addEventListener('keydown', e => { if (e.key === 'Escape') e.target.blur(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) sozCiz(); });
+
+/* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 10e-2 — ORTAK NOTLAR (2026-11-26, R4 madde 28; kullanıcı: "sol altta ortak not / ipucu panosu, grup notları")
+   • Masadaki herkes yazar, herkes görür. DM'in tarayıcısında kalıcı (store.notlar, en çok 60): sonraki oturumda da durur.
+   • Oyuncunun isteği DM'e gider ({t:'not', is:'ekle'|'duz'|'sil', id, m}); yazanın koltuğunu DM kendisi ekler, listeyi herkese yollar
+     ({t:'notlar', l}). Oyuncu yalnızca kendi notunu düzeltir ya da siler; DM hepsini, ayrıca bir notu ipucu yapar (en üstte, yıldızlı).
+   • Masaya bağlı değilken görünmez. Cam taşınmamışken sol altta (camYerlestir: varsayilan).
+   ═══════════════════════════════════════════════════════════════════ */
+const NOT = { uzun: 400, tut: 60, duz: '', yeni: 0 };
+const notTemiz = v => String(v ?? '').replace(/\r\n?/g, '\n').split('\n').map(sozTemiz).join('\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, NOT.uzun);   // satır satır sohbetteki gibi temizlenir
+const notlarY = () => { if (!Array.isArray(store.notlar)) store.notlar = []; return store.notlar; };
+const notGorunen = () => store.net.role === 'dm' ? notlarY() : (net.notlar || []);
+const notKayit = n => ({ id: String(n.id || '').replace(/[^a-z0-9]/g, '').slice(0, 12), kim: cleanSeat(n.kim), ad: short(n.ad, 40), m: notTemiz(n.m), ts: int(n.ts) || Date.now(), ipucu: !!n.ipucu });
+const notSirali = () => { const l = notGorunen(); return l.filter(n => n.ipucu).concat(l.filter(n => !n.ipucu)); };
+function notZaman(ts) {                                               // bugünse saat, değilse gün ve saat
+  const d = new Date(ts), b = new Date();
+  return d.toDateString() === b.toDateString() ? hhmm(ts) : `${d.getDate()}.${d.getMonth() + 1} ${hhmm(ts)}`;
+}
+function notYay(p) {
+  if (store.net.role !== 'dm') return;
+  const m = { t: 'notlar', l: notlarY().map(n => ({ id: n.id, kim: n.kim, ad: n.ad, m: n.m, ts: n.ts, ipucu: n.ipucu ? 1 : 0 })) };
+  if (p) send(p.conn, m); else net.players.forEach(o => send(o.conn, m));
+}
+function notDegisti() { save(); notYay(); notCiz(); }
+function notIs(kim, ad, is, id, m) {                                  // DM uygular (kendi ya da oyuncunun isteği); kim: isteyenin koltuğu
+  const l = notlarY(), dm = kim === 'dm', n = id ? l.find(x => x.id === id) : null;
+  if (is === 'ekle') {
+    m = notTemiz(m); if (!m) return false;
+    if (l.length >= NOT.tut) { const i = l.findIndex(x => !x.ipucu); l.splice(i < 0 ? 0 : i, 1); }   // dolunca ipucu olmayan en eskisi gider
+    l.push({ id: sozKimlik(), kim, ad: short(ad, 40), m, ts: Date.now(), ipucu: false });
+    return true;
+  }
+  if (!n || (!dm && n.kim !== kim)) return false;                     // oyuncu yalnızca kendi notunu
+  if (is === 'duz') { m = notTemiz(m); if (!m) return false; n.m = m; return true; }
+  if (is === 'sil') { l.splice(l.indexOf(n), 1); return true; }
+  if (is === 'ipucu' && dm) { n.ipucu = !n.ipucu; return true; }
+  return false;
+}
+function notDmAl(p, msg) {                                            // DM: bir oyuncunun isteği
+  const now = Date.now(); if (now - (p.notT || 0) < 400) return; p.notT = now;   // peş peşe basmalar masayı doldurmasın
+  const is = String(msg.is || '');
+  if (!notIs(p.seat, (p.char && p.char.name.trim()) || p.name, is, String(msg.id || ''), msg.m)) return;
+  notDegisti();
+  if (is === 'ekle') { if (!panoAcik('not')) NOT.yeni++; uyandir($('#tvNot')); notCiz(); }
+}
+function notAl(msg) {                                                 // oyuncu: DM'in listesi (yerine geçer)
+  const once = new Set((net.notlar || []).map(n => n.id));
+  net.notlar = (Array.isArray(msg.l) ? msg.l : []).slice(0, NOT.tut).filter(x => x && typeof x === 'object').map(notKayit).filter(n => n.id && n.m);
+  const yeni = net.notlar.filter(n => !once.has(n.id) && n.kim !== meSeat()).length;
+  if (yeni && net.notIlk) { if (!panoAcik('not')) NOT.yeni += yeni; uyandir($('#tvNot')); }
+  net.notIlk = true;
+  if (NOT.duz && !net.notlar.some(n => n.id === NOT.duz)) NOT.duz = '';
+  notCiz();
+}
+function notGonder() {
+  const inp = $('#notIn'), m = notTemiz(inp.value), role = store.net.role;
+  if (!m || !role) return;
+  const is = NOT.duz ? 'duz' : 'ekle';
+  if (role === 'player') { if (!send(net.conn, { t: 'not', is, id: NOT.duz, m })) { notify('Notun gitmedi', 'Masayla bağlantı yok. Bağlanınca yeniden dene.'); return; } }
+  else if (notIs('dm', myName(), is, NOT.duz, m)) notDegisti();
+  inp.value = ''; NOT.duz = ''; notCiz();
+}
+function notCiz() {
+  const box = $('#tvNot'), role = store.net.role; if (!box) return;
+  box.hidden = !role;
+  if (!role) return;
+  if (panoAcik('not')) NOT.yeni = 0;
+  const y = $('#notYeni'); y.hidden = !NOT.yeni; y.textContent = NOT.yeni > 99 ? '99+' : String(NOT.yeni);
+  const l = notSirali(), ben = meSeat(), dm = role === 'dm', ol = $('#notListe'), kay = ol.scrollTop;
+  ol.innerHTML = l.length ? l.map(n => {
+    const benim = n.kim === ben, is = (dm ? `<button class="icon-btn${n.ipucu ? ' on' : ''}" type="button" data-act="not-ipucu" data-id="${n.id}" aria-pressed="${n.ipucu}" title="${n.ipucu ? 'İpucu olmaktan çıkar' : 'İpucu yap: en üstte, yıldızlı'}" aria-label="${n.ipucu ? 'İpucu olmaktan çıkar' : 'İpucu yap'}"><svg class="ic"><use href="#i-star"/></svg></button>` : '')
+      + (benim || dm ? `<button class="icon-btn" type="button" data-act="not-duz" data-id="${n.id}" title="Düzelt" aria-label="Notu düzelt"><svg class="ic"><use href="#i-pencil"/></svg></button>
+        <button class="icon-btn" type="button" data-act="not-sil" data-id="${n.id}" title="Sil" aria-label="Notu sil"><svg class="ic"><use href="#i-x"/></svg></button>` : '');
+    return `<li class="${n.ipucu ? 'ipucu' : ''}${NOT.duz === n.id ? ' duz' : ''}" style="--g:${camOf(n.kim)}"><small>${n.ipucu ? '<svg class="ic" aria-hidden="true"><use href="#i-star"/></svg>İpucu · ' : ''}<b>${esc(sozAd(n.kim, n.ad))}</b>· ${notZaman(n.ts)}</small>${esc(n.m)}${is ? `<span class="not-is">${is}</span>` : ''}</li>`;
+  }).join('') : `<li class="bos">Grubun ortak notları: ipuçları, adlar, yerler. Herkes yazar, herkes görür.${dm ? ' Bir notu yıldızla ipucu yap: en üste çıkar.' : ''}</li>`;
+  ol.scrollTop = kay;
+  $('#notSay').textContent = l.length ? String(l.length) : '';
+  $('#notYaz').classList.toggle('duz', !!NOT.duz);
+  const inp = $('#notIn'), bagli = role === 'dm' || net.status === 'open';
+  inp.disabled = !bagli;
+  inp.placeholder = !bagli ? 'Bağlantı bekleniyor…' : NOT.duz ? 'Notu düzelt, Enter ile kaydet (Esc: vazgeç)' : 'Not ekle: ipucu, ad, yer… (Enter)';
+}
+Object.assign(ACTIONS, {
+  'not-ipucu': b => { if (store.net.role === 'dm' && notIs('dm', myName(), 'ipucu', b.dataset.id)) notDegisti(); },
+  'not-duz': b => { const n = notGorunen().find(x => x.id === b.dataset.id); if (!n) return; NOT.duz = n.id; notCiz(); const inp = $('#notIn'); inp.value = n.m; inp.focus(); },
+  'not-sil': b => {
+    const id = b.dataset.id; if (NOT.duz === id) { NOT.duz = ''; $('#notIn').value = ''; }
+    if (store.net.role === 'player') send(net.conn, { t: 'not', is: 'sil', id });
+    else if (notIs('dm', myName(), 'sil', id)) notDegisti();
+    notCiz();
+  },
+});
+$('#notYaz').addEventListener('submit', e => { e.preventDefault(); notGonder(); });
+$('#notIn').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); notGonder(); }
+  else if (e.key === 'Escape') { e.stopPropagation(); if (NOT.duz) { NOT.duz = ''; e.target.value = ''; notCiz(); } else e.target.blur(); }
+});
 
 /* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 10f — MÜZİK: YouTube (2026-10-30, kullanıcının isteği)
@@ -11670,8 +11815,8 @@ function buyutUI() {
    listenin boyu, birim cinsinden: ekranla birlikte ölçeklenir). Taşınmamış camlar sağ sütunda alt alta durur (rıhtım); taşınan
    cam tavernanın üstünde yüzer (yeri tavernanın yüzdesi). Hepsi bu tarayıcıda saklanır (store.cam). Araç şeridindeki "Düzen":
    varsayılan düzene dön, kullanılmayan camlar solsun. Telefonda camlar her zaman sahnenin altında alt alta. */
-const CAM = { sira: ['log', 'dus', 'soz', 'muzik'], el: { log: '#tvLogBox', dus: '#tvDus', soz: '#tvSoz', muzik: '#tvMuzik' },
-  liste: { log: '#tvLog', dus: '#tvDusList', soz: '#sozListe' }, w: [13, 60], h: [4, 60], yut: false };
+const CAM = { sira: ['log', 'dus', 'soz', 'muzik', 'not'], el: { log: '#tvLogBox', dus: '#tvDus', soz: '#tvSoz', muzik: '#tvMuzik', not: '#tvNot' },
+  liste: { log: '#tvLog', dus: '#tvDusList', soz: '#sozListe', not: '#notListe' }, w: [13, 60], h: [4, 60], yut: false };
 const telefonDik = matchMedia('(max-width:640px) and (orientation:portrait)');
 const camAyar = k => (store.cam && store.cam[k]) || {};
 function camKaydet(k, deg) { store.cam = Object.assign({}, store.cam, { [k]: Object.assign({}, camAyar(k), deg) }); }
@@ -11682,12 +11827,13 @@ function camYerlestir() {
   CAM.sira.forEach(k => {
     const el = $(CAM.el[k]); if (!el) return;
     if (!$(':scope > .cam-boy', el)) el.insertAdjacentHTML('beforeend', '<span class="cam-boy" title="Sürükleyerek büyüt ya da küçült" aria-hidden="true"></span>');
-    const a = camAyar(k), yuzer = !tel && a.x != null;
+    const a = camAyar(k), yuzer = !tel && a.x != null, varsay = k === 'not' && !tel && a.x == null;   // notlar taşınmamışken sol altta
     if (!tel && a.w > 0) el.style.setProperty('--cw', a.w); else el.style.removeProperty('--cw');
     if (!tel && a.h > 0) el.style.setProperty('--ch', a.h); else el.style.removeProperty('--ch');
     // Yalnızca yeri değişecekse taşınır (taşınan öğe odağı kaybeder: sohbete yazarken pencere büyüse yazı kutusu kapanmasın)
     let sagda = false;
-    if (yuzer) {
+    if (varsay) { if (el.parentNode !== yuz) yuz.appendChild(el); el.style.left = el.style.top = el.style.right = ''; }
+    else if (yuzer) {
       if (el.parentNode !== yuz) { yuz.appendChild(el); if (k === 'muzik') mzYeniden(); }
       // 2026-11-10: ekranın sağ yarısındaki cam sağ kenarından tutulur: "Son atışlar" açılınca ve köşeden büyütülünce sola doğru açılır
       const W = yuz.clientWidth || 1, gen = camGen(el) / W * 100;
@@ -11698,6 +11844,7 @@ function camYerlestir() {
     }
     else { if (sag.children[i] !== el) { sag.insertBefore(el, sag.children[i] || null); if (k === 'muzik') mzYeniden(); } i++; el.style.left = el.style.top = el.style.right = ''; }
     el.classList.toggle('yuzer', yuzer);
+    el.classList.toggle('varsayilan', varsay);
     el.classList.toggle('sagda', sagda);
     el.classList.toggle('boyutlu', !tel && a.h > 0);
   });
