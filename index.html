@@ -7565,7 +7565,7 @@ function dmReceive(pid, conn, msg) {
   else if (msg.t === 'sheet' && msg.char && typeof msg.char === 'object') {
     const portrait = typeof msg.portrait === 'string' ? guvenliPortre(msg.portrait) : (p.char ? p.char.portrait : '');
     const c = normalize(Object.assign({}, msg.char, { portrait }));
-    const renamed = seatSig(p.char) !== seatSig(c);          // ad, sınıf ya da figür değiştiyse masadakilere bildir
+    const renamed = seatSig(p.char) !== seatSig(c);          // ad, sınıf, figür, can, AC ya da seviye değiştiyse masadakilere bildir
     p.char = c;
     updateFace(p);                                                    // portre değiştiyse küçük kopyasını öbürlerine yolla
     if (renamed) broadcastRoster();
@@ -7611,8 +7611,11 @@ const classKey = c => {      // figür için sınıf anahtarı. Türkçe yazıla
   }
   return '';
 };
-const rosterList = () => seated().map(p => ({ id: p.seat, name: p.name, char: p.char ? short(p.char.name.trim(), 40) : '', on: !!p.online, cls: classKey(p.char), look: p.char ? p.char.look : '' }));
-const seatSig = c => (c ? [c.name, classKey(c), c.look].join('|') : '');
+// 2026-11-25 (R3 madde 24, 26, 41; kullanıcı: "takım arkadaşlarımızın canını ve AC'sini görelim"): can, geçici can, AC, seviye ve
+// ölüm durumu da herkese gider (karakterin geri kalanı gitmez). Biri değişince liste yeniden yollanır (seatSig).
+const kamuBilgi = c => c ? { hp: [int(c.hp.cur), Math.max(0, int(c.hp.max)), Math.max(0, int(c.hp.temp))], ac: int(c.ac), lvl: int(c.level), olu: olu(c) } : {};
+const rosterList = () => seated().map(p => Object.assign({ id: p.seat, name: p.name, char: p.char ? short(p.char.name.trim(), 40) : '', on: !!p.online, cls: classKey(p.char), look: p.char ? p.char.look : '' }, kamuBilgi(p.char)));
+const seatSig = c => (c ? [c.name, classKey(c), c.look, int(c.hp.cur), int(c.hp.max), int(c.hp.temp), int(c.ac), int(c.level), olu(c)].join('|') : '');
 function broadcastRoster() {
   const roster = rosterList(), dm = short(store.net.name || 'DM', 30);
   const npcs = npcRoster();                                           // masadaki düşmanlar (BÖLÜM 10b)
@@ -7703,7 +7706,9 @@ function playerReceive(conn, msg) {
   net.lastPong = Date.now();
   // Masadakiler: koltuk kimliği, ad, karakter adı, bağlı mı. Başka hiçbir alan okunmaz.
   const readRoster = list => (Array.isArray(list) ? list : []).slice(0, 12).filter(r => r && typeof r === 'object')
-    .map(r => ({ id: cleanSeat(r.id), name: short(r.name, 30), char: short(r.char, 40), on: r.on !== false, cls: FIG_CLASSES.includes(r.cls) ? r.cls : '', look: ['f', 'm'].includes(r.look) ? r.look : '' }));
+    .map(r => ({ id: cleanSeat(r.id), name: short(r.name, 30), char: short(r.char, 40), on: r.on !== false, cls: FIG_CLASSES.includes(r.cls) ? r.cls : '', look: ['f', 'm'].includes(r.look) ? r.look : '',
+      hp: Array.isArray(r.hp) && int(r.hp[1]) > 0 ? { cur: clamp(int(r.hp[0]), -999, 9999), max: clamp(int(r.hp[1]), 0, 9999), temp: clamp(int(r.hp[2]), 0, 999) } : null,
+      ac: clamp(int(r.ac), 0, 99), lvl: clamp(int(r.lvl), 0, 20), olu: !!r.olu }));
   if (msg.you) net.mySeat = cleanSeat(msg.you);
   if (msg.t === 'welcome') {
     net.dmName = short(msg.dm, 30); net.publicRolls = !!msg.publicRolls;
@@ -8331,7 +8336,13 @@ $('#npcList').addEventListener('input', e => {
 
 // Görsel seçimi: hazır düşmanlardan biri, görselsiz ya da kendi resmin (küçültülüp saklanır, oyunculara da gider)
 $('#npcList').addEventListener('change', e => {
-  if (e.target.dataset.npc !== 'img') return;
+  const k = e.target.dataset.npc;
+  if (k === 'can' || k === 'max') {                                   // 2026-11-25 (R3 madde 23, "20/11 can"): yazmayı bitirince can en çoğu geçmesin
+    const n = npcler().find(x => x.id === e.target.closest('.npc').dataset.id);
+    if (n && int(n.max) > 0 && int(n.can) > int(n.max)) { if (k === 'can') n.max = int(n.can); else n.can = int(n.max); save(); renderNpcs(); npcDegisti(true); }
+    return;
+  }
+  if (k !== 'img') return;
   const id = e.target.closest('.npc').dataset.id, n = npcler().find(x => x.id === id), v = e.target.value;
   if (!n || v === '__data') return;
   if (v === '__yukle') { SAVAS.gorselId = id; $('#npcGorselInput').click(); renderNpcs(); return; }
@@ -8625,8 +8636,8 @@ function svListe() {
   const role = store.net.role, dm = role === 'dm';
   const icerde = new Set((dm ? siraSirali(false) : net.sira ? net.sira.liste : []).map(e => e.id));   // savaştaki oyuncular (izleyen ve dışarıdaki yok)
   const oyuncu = seatList().filter(s => !s.dm && icerde.has(s.id)).map(s => {
-    const hp = s.me ? ownChar().hp : dm ? s.hp : null;
-    return { id: s.id, tip: 'oyuncu', ad: s.char || s.name, img: s.img || '', me: !!s.me, off: !s.on,
+    const hp = s.me ? ownChar().hp : s.hp || null;                    // 2026-11-25: oyuncular da birbirinin canını görür (masa listesinden)
+    return { id: s.id, tip: 'oyuncu', ad: s.char || s.name, img: s.img || '', me: !!s.me, off: !s.on, ac: s.me ? int(ownChar().ac) : int(s.ac), olu: !!s.olu,
       can: hp && int(hp.max) ? int(hp.cur) : null, max: hp && int(hp.max) ? int(hp.max) : null };
   });
   const kaynak = dm ? npcler().map(n => ({ id: n.id, ad: n.ad, img: n.img, can: n.can, max: n.max, ac: n.ac, gizli: !n.gor }))
@@ -8664,8 +8675,8 @@ function svRender() {
   const h = gecerliHedef(), simdi = siraSimdi(), secilir = new Set(hedefler().map(x => x.id));
   const kart = (o, p, i) => {
     const olu = o.max !== null && o.can <= 0, pct = o.max ? clamp(o.can / o.max, 0, 1) : 0;
-    const bilgi = o.max !== null ? `${Math.max(0, o.can)}/${o.max} can${o.ac ? ` · AC ${o.ac}` : ''}` : o.ac && o.tip === 'npc' && store.net.role === 'dm' ? `AC ${o.ac}` : '';
-    const alt = olu ? (o.tip === 'npc' ? 'yere düştü' : 'baygın') : o.me ? 'sen' : o.gizli ? 'gizli' : bilgi;
+    const bilgi = o.max !== null ? `${Math.max(0, o.can)}/${o.max} can${o.ac ? ` · AC ${o.ac}` : ''}` : o.ac && (o.tip === 'oyuncu' || store.net.role === 'dm') ? `AC ${o.ac}` : '';
+    const alt = olu ? (o.tip === 'npc' ? 'yere düştü' : o.olu ? 'öldü' : 'baygın · ölüm zarı atıyor') : o.me ? `sen${o.ac ? ` · AC ${o.ac}` : ''}` : o.gizli ? 'gizli' : bilgi;
     const tag = secilir.has(o.id) ? 'button' : 'div';
     const cls = `sv-kisi t-${o.tip}${o.id === simdi ? ' simdi' : ''}${o.id === h ? ' hedef' : ''}${olu ? ' olu' : ''}${o.me ? ' ben' : ''}${o.gizli || o.off ? ' gizli' : ''}`;
     return `<${tag} class="${cls}" data-id="${o.id}"${tag === 'button' ? ` data-act="hedef-yap" title="${o.id === h ? 'Hedefi kaldır' : 'Hedef yap'}: ${esc(o.ad)}"` : ` title="${esc(o.ad)}"`}
@@ -10116,13 +10127,13 @@ function seatListHam() {
     return [{ id:'dm', dm:true, me:true, name: myName(), img: dmPortre(), on: live }]
       .concat(seated().map(p => ({ id: p.seat, name: p.name, char: p.char ? p.char.name.trim() : '', img: p.face, on: !!p.online,
         cls: classKey(p.char), look: p.char ? p.char.look : '',
-        hp: p.char ? p.char.hp : null, insp: !!(p.char && p.char.insp) })));   // can çubuğu ve ilham yıldızı yalnızca DM'in kendi ekranında, hiçbir yere gönderilmez
+        hp: p.char ? p.char.hp : null, insp: !!(p.char && p.char.insp), ac: p.char ? int(p.char.ac) : 0, lvl: p.char ? int(p.char.level) : 0, olu: p.char ? olu(p.char) : false })));   // ilham yıldızı yalnızca DM'in ekranında; can, AC, seviye masa listesiyle oyunculara da gider (rosterList)
   }
   const list = [{ id:'dm', dm:true, name: net.dmName || 'DM', img: dmPortre(), on: live }]
     .concat(net.roster.map((r, i) => {
       const mine = !!r.id && r.id === me;
       return { id: r.id || 'x' + i, me: mine, name: r.name, char: r.char, on: mine ? live : r.on, img: mine ? own.portrait : net.faces.get(r.id) || '',
-        cls: mine ? classKey(own) : r.cls, look: mine ? own.look : r.look };
+        cls: mine ? classKey(own) : r.cls, look: mine ? own.look : r.look, hp: mine ? null : r.hp, ac: mine ? int(own.ac) : r.ac, lvl: mine ? int(own.level) : r.lvl, olu: mine ? olu(own) : r.olu };
     }));
   if (!list.some(s => s.me)) list.push({ id: me, me:true, name: myName(), char: own.name.trim(), img: own.portrait, on: live, cls: classKey(own), look: own.look });   // liste gelmeden de kendi koltuğum görünsün
   return list;
