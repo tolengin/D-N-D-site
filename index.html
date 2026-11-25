@@ -4946,7 +4946,7 @@ function rollExpr(expr, label, opt = {}) {
       detail += `${op}${n}d${t.s} (${r.join(', ')})`;
     } else { total += t.neg ? -t.k : t.k; detail += op + t.k; }
   });
-  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : (opt.note || ''), dice, hasar: !!opt.hasar, hedefsiz: !!opt.hedefsiz });
+  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : (opt.note || ''), dice, hasar: !!opt.hasar, hedefsiz: !!opt.hedefsiz, iyi: !!opt.iyi });
   return total;
 }
 
@@ -6873,7 +6873,7 @@ function byYap(i, yuvaSec) {
 function byZarAt(i, tur) {
   const s = C.spells[i], b = s && buyuBul(s); if (!b) return;
   const yuva = BY.son && BY.son.a === b.a ? BY.son.yuva : b.s, expr = byZarIfade(b, yuva, tur); if (!expr) return;
-  if (tur === 'iy') rollExpr(expr, `${b.a}: iyileştirme (can)`, { hedefsiz: true });
+  if (tur === 'iy') rollExpr(expr, `${b.a}: iyileştirme (can)`, { iyi: true });
   else { rollExpr(expr, `${b.a}: hasar (${b.h.split(' + ').map(x => BY_HT[x.split(' ')[1]] || x.split(' ')[1]).join(' + ')})`, { hasar: true, crit: BY.krit === b.a }); BY.krit = ''; }
 }
 function byCamSatir(c) {                                               // saldırı satırına: hasar veren cantrip'ler
@@ -6901,7 +6901,7 @@ function byCamSek(c) {                                                 // "Büy�
     return `${bas}<li data-row data-i="${i}"${sv > 0 && !yv.length ? ' class="yuvasiz"' : ''}><span title="${esc(b ? `${b.t}: ${b.x}${hd.k ? `\n\nHedef: ${hd.k}. ${hd.d}` : ''}` : s.note || '')}">${esc(s.name)}<small>${esc([b && b.t !== b.a ? b.t : '', etiket, s.kay === 'hep' ? 'hep hazır' : ''].filter(Boolean).join(' · '))}</small></span>
       ${sec}<button class="btn sm" data-act="by-yap" data-i="${i}"${sv > 0 && !yv.length ? ' disabled title="Bu seviyede yuvan kalmadı"' : ''}>Yap</button>
       ${zar ? `<button class="roll die" data-act="by-zar" data-i="${i}" title="Hasar zarı at: ${esc(zar)}" aria-label="Hasar zarı">${HASAR_IC}</button>` : ''}
-      ${iy ? `<button class="btn sm good" data-act="by-iyi" data-i="${i}" title="İyileştirme zarı at: ${esc(iy)}">+can</button>` : ''}</li>`;
+      ${iy ? `<button class="btn sm good" data-act="by-iyi" data-i="${i}" title="İyileştirme zarı at: ${esc(iy)}. Hedef seçtiysen (ör. bir arkadaşın) ona, seçmediysen sana can gelir.">+can</button>` : ''}</li>`;
   }).join('');
   return `<section class="mc-sek" aria-label="Büyüler"><h3>Büyüler<em>Yap: yuva harcanır · hasar ve iyileştirme zarları yanında</em></h3>${ust}
     ${satir ? `<ul class="mc-by">${satir}</ul>` : '<p class="mc-bos">Hazır büyün yok. <b>Kağıdım</b> → Büyüler → "Büyü seç".</p>'}</section>`;
@@ -7580,6 +7580,7 @@ function dmReceive(pid, conn, msg) {
     const hedef = cleanHedef(msg.hedef);
     const savasDisi = siraAktif() && savasDurum(p.seat) !== 'katil';  // savaşı izleyen ya da dışarıdaki oyuncu vuramaz
     if (hedef && msg.hasar && !savasDisi && (npcler().some(n => n.id === hedef && n.gor) || seated().some(o => o.seat === hedef && o.pid !== pid))) hasarUygula(hedef, roll.total, entry.char.trim() || p.name);
+    if (hedef && msg.iyi && !msg.hasar && !savasDisi && (npcler().some(n => n.id === hedef && n.gor) || seated().some(o => o.seat === hedef && o.pid !== pid))) iyiUygula(hedef, roll.total, entry.char.trim() || p.name);
     // İnisiyatif zarı savaş sırasına yazılır (zar yere indikten sonra; sonuç zardan önce görünmesin)
     if (msg.ini && store.sira && store.sira.aktif && !savasDisi) setTimeout(() => {
       const s = store.sira; if (!s || !s.aktif) return;
@@ -7742,6 +7743,7 @@ function playerReceive(conn, msg) {
   }
   else if (msg.t === 'roster') { net.roster = readRoster(msg.roster); net.npcs = readNpcs(msg.npcs); siraAl(msg.sira, msg.savas); if (msg.dm) net.dmName = short(msg.dm, 30); net.dmPortre = DM_PORTRE.includes(msg.dmp) ? msg.dmp : ''; renderNetUI(); renderTable(); }
   else if (msg.t === 'hasar') hasarAl(clamp(int(msg.miktar), 0, 9999), short(msg.kimden, 40), !!msg.dogrudan);   // DM'in uyguladığı hasar (BÖLÜM 10b)
+  else if (msg.t === 'iyi') iyiAl(clamp(int(msg.miktar), 0, 9999), short(msg.kimden, 40));                          // arkadaşın iyileştirdi (R3 madde 43)
   else if (msg.t === 'face') {                                       // bir koltuğun küçük portresi (yalnızca değişince gelir)
     const id = cleanSeat(msg.id), img = cleanImg(msg.img);
     if (id && id !== 'dm') {
@@ -7780,7 +7782,7 @@ function queueSheet() { if (store.net.role !== 'player') return; clearTimeout(ne
 
 /* ───────── Zarların paylaşılması ───────── */
 function shareRoll(r) {
-  if (store.net.role === 'player') send(net.conn, { t:'roll', roll: cleanRoll(r), hedef: r.hedef || '', hasar: !!r.hasar, ini: !!r.ini });
+  if (store.net.role === 'player') send(net.conn, { t:'roll', roll: cleanRoll(r), hedef: r.hedef || '', hasar: !!r.hasar, ini: !!r.ini, iyi: !!r.iyi });
   else if (store.net.role === 'dm' && net.peer) {
     const secret = mode === 'peek' || !!store.net.dmSecret;
     pushFeed(Object.assign(cleanRoll(r), { who: r.kim || 'DM', char: mode === 'peek' ? `${C.name.trim() || 'oyuncu'} adına` : '', ts: Date.now(), secret }));
@@ -8174,7 +8176,10 @@ function hedefler() {
   if (role === 'dm') return seated().map(p => ({ id: p.seat, ad: (p.char && p.char.name.trim()) || p.name, tur: 'Oyuncular' }))
     .concat(npcler().map(n => ({ id: n.id, ad: n.ad || 'İsimsiz düşman', tur: 'Düşmanlar', ek: ek(n) })));
   if (role === 'player') return net.savas === 'izle' || net.savas === 'dis' ? []                 // savaşı izleyen ya da dışarıdaki vuramaz
-    : net.npcs.map(n => ({ id: n.id, ad: n.ad || 'İsimsiz düşman', tur: 'Düşmanlar', ek: ek(n) }));
+    : net.npcs.map(n => ({ id: n.id, ad: n.ad || 'İsimsiz düşman', tur: 'Düşmanlar', ek: ek(n) }))
+      // 2026-11-25 (R3 madde 43, 44): takım arkadaşı da hedef olur: iyileştirmek için ya da hikâye gereği vurmak için
+      .concat(net.roster.filter(r => r.id && r.id !== net.mySeat).map(r => ({ id: r.id, ad: r.char || r.name, tur: 'Takım',
+        ek: (r.hp ? `${Math.max(0, r.hp.cur)}/${r.hp.max} can` : '') + (r.ac ? `${r.hp ? ', ' : ''}AC ${r.ac}` : '') })));
   return [];
 }
 const hedefAd = id => (hedefler().find(h => h.id === id) || {}).ad || '';
@@ -8185,6 +8190,13 @@ const atanNpc = () => (store.net.role === 'dm' ? npcler().find(n => n.id === sto
 function zarHedefle(r) {
   if (r.sistem || r.ini || r.hedefsiz) return;                      // düşmanların inisiyatifi, inisiyatif zarı, seviye atlama can zarı: hedefsiz
   const h = gecerliHedef(), a = atanNpc();
+  if (r.iyi) {                                                       // iyileştirme (2026-11-25, R3 madde 43): hedef seçiliyse ona, değilse sana
+    if (a) { r.kim = a.ad || 'Düşman'; r.npc = a.id; }
+    r.hasar = false;
+    if (h) { r.hedef = h; r.label += ` → ${hedefAd(h)}`; if (store.net.role === 'dm') iyiUygula(h, r.total, r.kim || myName()); }
+    else if (store.net.role !== 'dm') { r.label += ' → kendin'; const m = int(r.total); setTimeout(() => iyiAl(m, ''), SAVAS.gecikme); }
+    return;
+  }
   if (a) { r.kim = a.ad || 'Düşman'; r.npc = a.id; }                 // tahtada, bildirimde ve oyuncularda düşmanın adı yazar; zar onun kartından çıkar (10c)
   r.hasar = !!h && !!(r.hasar || (SAVAS.hasarSecili && !r.d20));
   if (h) { r.hedef = h; r.label += ` → ${hedefAd(h)}`; }
@@ -8206,6 +8218,28 @@ function hasarUygula(hedef, miktar, kimden, hemen, dogrudan) {
     if (p && !send(p.conn, { t:'hasar', miktar, kimden: short(kimden, 40), dogrudan: dogrudan ? 1 : 0 })) notify(`${p.name} şu an bağlı değil`, `${miktar} hasarı kağıdından elle düş.`);
     else if (p && hemen) notify(`${(p.char && p.char.name.trim()) || p.name} ${miktar} hasar aldı`, `${kimden || 'Düşman'} vurdu.${dogrudan ? ' Doğrudan canından.' : ''}`);
   }, hemen ? 0 : SAVAS.gecikme);
+}
+
+// DM'de: iyileştirmeyi uygular (zar yere indikten sonra). Düşmansa canı artar (en çoğu geçmez), oyuncuysa oyuncuya gider.
+function iyiUygula(hedef, miktar, kimden) {
+  miktar = clamp(int(miktar), 0, 9999);
+  if (!miktar || store.net.role !== 'dm') return;
+  setTimeout(() => {
+    const n = npcler().find(x => x.id === hedef);
+    if (n) { if (int(n.max)) { n.can = Math.min(int(n.max), Math.max(0, int(n.can)) + miktar); save(); renderNpcs(); npcDegisti(true); } return; }
+    const p = seated().find(x => x.seat === hedef);
+    if (p && !send(p.conn, { t:'iyi', miktar, kimden: short(kimden, 40) })) notify(`${p.name} şu an bağlı değil`, `${miktar} canı kağıdına elle ekle.`);
+  }, SAVAS.gecikme);
+}
+// Oyuncuda: can kazanır (en çok canı geçmez). 0 candaysa ayağa kalkar.
+function iyiAl(miktar, kimden) {
+  if (!miktar) return;
+  const c = ownChar(), once = Math.max(0, int(c.hp.cur));
+  c.hp.cur = Math.min(Math.max(0, int(c.hp.max)), once + miktar);
+  if (C === c) setInput('hp.cur');
+  changed();
+  if (mode === 'table') { renderMe(); renderTable(); }
+  notify(kimden ? `${kimden} seni ${c.hp.cur - once} can iyileştirdi` : `${c.hp.cur - once} can yeniledin`, (once <= 0 && c.hp.cur > 0 ? 'Ayağa kalktın. ' : '') + `Şimdiki can: ${c.hp.cur} / ${int(c.hp.max)}`);
 }
 
 /* ───────── Bekleyen hasar (DM): DM'in kendi (ya da bir düşman adına attığı) hasar zarı kendiliğinden vurulmaz.
