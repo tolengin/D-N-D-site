@@ -1819,6 +1819,12 @@ button.mz-sec:hover{background:var(--lit)}
 .sa-pano.uzak{width:calc(15 * var(--u))}
 .sa-pano.uzak:not(:hover,:focus-within) .mz-liste{display:none}
 .tv-sag .sa-pano{position:relative;transform:none!important;width:calc(var(--cw,17) * var(--u));min-width:0}
+/* Savaşta / sağ sütunda: başlıkta küçült ve kapat (sahneye iğneliyken yok). Küçükken yalnızca başlık kalır */
+.sa-pano .sa-dug{display:none;gap:2px;margin:-4px -6px -4px auto}
+.tv-sag .sa-pano .sa-dug{display:flex}
+.tv-sag .sa-pano .mz-isaret{margin-left:.4em}
+.sa-pano .sa-dug .btn{width:28px;height:28px;min-height:0;padding:0}
+.tv-sag .sa-pano.kucuk :is(.mz-ekle,.mz-liste){display:none}
 .tv-wrap:is(.pov-tek,.inis) .sa-pano{display:none}
 #tvSahne[hidden]{display:none}
 .tv-balon.git{opacity:0}
@@ -2566,6 +2572,8 @@ body.tv-full #tableView{height:100dvh}
         <button class="btn sm" id="tvHarita" data-act="hr-ac" aria-pressed="false" hidden><svg class="ic"><use href="#i-konum"/></svg><span>Harita</span></button>
         <!-- Pazar (2026-11-10, BÖLÜM 10g): DM'de hep (pazarı kurar), oyuncuda DM pazarı açınca görünür -->
         <button class="btn sm" id="tvPazar" data-act="pazar" aria-pressed="false" hidden><svg class="ic"><use href="#e-kese"/></svg><span>Pazar</span></button>
+        <!-- Sahne (2026-11-17): savaşta kapatılan sahne panosunu (müzik linki, sıra) geri açar; yalnızca pano kapalıyken görünür -->
+        <button class="btn sm" id="tvSahneAc" data-act="sa-ac" title="Sahneyi aç: müzik linki ve sıradaki şarkılar" hidden><svg class="ic"><use href="#i-nota"/></svg><span>Sahne</span></button>
         <!-- Düzen (2026-10-30): camları varsayılan yerine al, kullanılmayan camlar solsun (camlar her zaman başlığından taşınır) -->
         <button class="btn sm" id="tvDuzen" data-act="duzen" aria-expanded="false" aria-controls="duzenPop" title="Düzen: camları taşı ve büyüt, varsayılana dön, solma"><svg class="ic"><use href="#i-duzen"/></svg><span>Düzen</span></button>
         <!-- NPR taverna yüklenince görünür: bütün tavernaya bakmak / masaya dönmek -->
@@ -2658,7 +2666,9 @@ body.tv-full #tableView{height:100dvh}
         <div class="tv-camlar" id="tvCamlar">
           <!-- Sahne panosu (BÖLÜM 10f, 2026-11-07): hanın ozan sahnesine iğneli. Link buraya yazılıp başlatılır, sıra burada durur -->
           <section class="sa-pano" id="saPano" aria-label="Sahne: YouTube linkiyle müzik başlat" hidden>
-            <h2><svg class="ic"><use href="#i-nota"/></svg>Sahne<span class="mz-isaret" id="saIsaret" title="Çalıyor" hidden><i></i><i></i><i></i></span></h2>
+            <h2><svg class="ic"><use href="#i-nota"/></svg>Sahne<span class="mz-isaret" id="saIsaret" title="Çalıyor" hidden><i></i><i></i><i></i></span>
+              <!-- Savaşta (sağ sütunda) küçültülür ya da kapanır; kapanınca sol şeritteki "Sahne" düğmesi geri açar (2026-11-17, saPanoYer) -->
+              <span class="sa-dug"><button class="btn icon sm" id="saKucult" data-act="sa-kucult" title="Küçült" aria-label="Küçült" aria-expanded="true"><svg class="ic"><use href="#i-minus"/></svg></button><button class="btn icon sm" data-act="sa-kapat" title="Kapat (sol şeritteki Sahne düğmesi geri açar)" aria-label="Sahneyi kapat"><svg class="ic"><use href="#i-x"/></svg></button></span></h2>
             <form class="mz-ekle" id="mzEkleForm" autocomplete="off">
               <input id="mzLink" inputmode="url" spellcheck="false" aria-label="YouTube linki">
               <button class="btn sm accent" id="mzBaslat" type="submit">Başlat</button>
@@ -9763,8 +9773,14 @@ function saPanoYer(sc) {
   if (telefonDik.matches || tav.state === 'fail' || !SAHNE.ozan || (svAcik() && mode === 'table')) {
     if (el.parentNode !== sag) sag.appendChild(el);
     el.classList.remove('uzak');
-    el.hidden = false; el.style.transform = ''; return;
+    const k = store.saPano || '';                                       // '' açık · 'kucuk' yalnızca başlık · 'kapali' sol şeritten açılır
+    el.classList.toggle('kucuk', k === 'kucuk');
+    const kb = $('#saKucult'); kb.setAttribute('aria-expanded', k !== 'kucuk'); kb.title = k === 'kucuk' ? 'Büyüt' : 'Küçült'; kb.setAttribute('aria-label', kb.title);
+    kb.firstChild.firstChild.setAttribute('href', k === 'kucuk' ? '#i-plus' : '#i-minus');
+    el.hidden = k === 'kapali'; $('#tvSahneAc').hidden = k !== 'kapali' || mode !== 'table'; el.style.transform = ''; return;
   }
+  $('#tvSahneAc').hidden = true;
+  el.classList.remove('kucuk');
   if (el.parentNode !== yuz) yuz.prepend(el);
   if (tav.state !== 'on' || mode !== 'table' || svAcik()) { el.hidden = true; return; }
   const A = yuz.getBoundingClientRect(), S = sc || $('#tvScene').getBoundingClientRect(), u = S.width / 100, [x, y] = tavProj(...SAHNE.ozan);
@@ -9777,6 +9793,9 @@ function saPanoYer(sc) {
   el.style.transform = `translate(${Math.round(clamp(px, sol, Math.max(sol, sagSin - w)))}px,${Math.round(clamp(py - h / 2, 8, Math.max(8, A.height - h - 8)))}px)`;
 }
 Object.assign(ACTIONS, {
+  'sa-kucult': () => { store.saPano = store.saPano === 'kucuk' ? '' : 'kucuk'; save(); saPanoYer(); camYerlestir(); },
+  'sa-kapat': () => { store.saPano = 'kapali'; save(); saPanoYer(); camYerlestir(); },
+  'sa-ac': () => { store.saPano = ''; save(); saPanoYer(); camYerlestir(); const i = $('#mzLink'); if (i) i.focus(); },
   'mz-cal': () => mzIs('cal'),
   'mz-sonraki': () => mzIs('sonraki'),
   'mz-sec': b => mzIs('sec', b.dataset.id),
