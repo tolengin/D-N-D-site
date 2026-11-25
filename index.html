@@ -1642,6 +1642,7 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
   pointer-events:none}
 /* Sütun sağ alttaki "Zar at"ın (.fab, 72 px) üstünde biter; sığmazsa düşman listesi ve sohbet kendi içinde kayar (2026-10-30) */
 .tv-sag{max-height:calc(100% - 12px - 84px)}
+@media not ((max-width:640px) and (orientation:portrait)){body.hedef-var .tv-sag{max-height:calc(100% - 12px - 84px - 44px)}}   /* "Zar at"ın üstündeki hedef şeridi görünürken (telefonda sütun sahnenin altında) */
 /* Yüzen camlar (2026-10-30, BÖLÜM 11 camYerlestir): her cam başlığından taşınır, köşesinden büyür. Taşınmamışlar sağ sütunda
    (rıhtım) alt alta; taşınan cam sahnenin üstünde yüzer (.yuzer, yeri tavernanın yüzdesi). --cw genişlik, --ch liste boyu (birim). */
 .tv-camlar{position:absolute;inset:0;z-index:8;pointer-events:none}
@@ -1869,6 +1870,68 @@ button.mz-sec:hover{background:var(--lit)}
 .tv-balon.alt{translate:calc(-50% + var(--bx,0px)) calc(clamp(84px,10.4cqw,160px) * .157 + 12px);transform-origin:50% 0}   /* üst kenara taşacaksa isimliğin altında */
 .tv-balon.alt::after{top:auto;bottom:100%;border:7px solid transparent;border-bottom-color:var(--lead);border-top:0}
 @keyframes balonGel{from{opacity:0;scale:.9}}
+/* Emote (2026-11-26, R4 madde 29): isimliğin üstünde büyük cam; içinde emotenin çizgi ikonu, yazanın renginde. Zıplayarak gelir. */
+.tv-balon.emo{padding:6px 8px;animation:emoGel .5s cubic-bezier(.2,1.6,.4,1)}
+.tv-balon.emo .ic{display:block;width:clamp(40px,3.6cqw,64px);height:clamp(40px,3.6cqw,64px);stroke-width:1.6;color:var(--text)}
+.tv-balon.emo small{display:block;margin-top:2px;text-align:center;font-size:clamp(11px,.9cqw,13px);font-weight:700;color:color-mix(in srgb,var(--g) 40%,var(--text))}
+@keyframes emoGel{0%{opacity:0;scale:.4}60%{opacity:1;scale:1.12}100%{scale:1}}
+.tv-balon .b-gif{display:block;max-width:min(100%,180px);height:clamp(70px,7cqw,120px);width:auto;object-fit:contain}
+@media (prefers-reduced-motion:reduce){.tv-balon.emo{animation:none}}
+/* GIF ve emote sohbette (2026-11-26): GIF yazanın satırında küçük bir pencere (KLIPY'den, en çok 10 birim boy); emote ikon + adı */
+.soz-gif{display:block;margin-top:4px}
+.soz-gif img{display:block;height:clamp(80px,calc(10 * var(--u)),160px);width:auto;max-width:100%;object-fit:contain;background:var(--lead)}
+.soz-emo{display:inline-flex;align-items:center;gap:6px;font-weight:700}
+.soz-emo .ic{width:clamp(22px,calc(2 * var(--u)),30px);height:clamp(22px,calc(2 * var(--u)),30px)}
+/* Yazı satırındaki GIF ve emote düğmeleri; açılan küçük camlar yazı satırının üstünde (yer yoksa altında) */
+.soz-yaz{position:relative}
+.soz-satir .soz-gifb{font-family:var(--font-ui);font-size:12px;font-weight:800;letter-spacing:.04em}
+.soz-satir .btn[aria-expanded="true"]{background:var(--lit)}
+.soz-pop{position:absolute;z-index:6;right:0;bottom:calc(100% + 6px);width:max(100%,320px);max-width:min(420px,calc(100vw - 24px));box-sizing:border-box;
+  border:var(--lw) solid var(--lead);background:var(--lead);box-shadow:var(--shadow);display:grid;gap:var(--lw)}
+.soz-pop[hidden]{display:none}
+.soz-pop.sola{right:auto;left:0}
+.soz-pop.asagi{bottom:auto;top:calc(100% + 6px)}
+.gif-ust{display:flex;gap:var(--lw);background:var(--bar)}
+.gif-ust input{flex:1;min-width:0;border:0;padding:8px 10px;font-size:14px}
+.gif-ust .btn{border:0;flex:none}
+.gif-izgara{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--lw);max-height:300px;overflow:auto;overscroll-behavior:contain;background:var(--lead);align-content:start}
+.gif-i{display:block;padding:0;border:0;border-radius:0;aspect-ratio:1;background:var(--surface);cursor:pointer;overflow:hidden}
+.gif-i img{display:block;width:100%;height:100%;object-fit:cover}
+.gif-i:hover,.gif-i:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.gif-izgara>p,.gif-kur{grid-column:1/-1;margin:0;padding:12px;background:var(--surface);color:var(--muted);font-size:14px;line-height:1.45}
+.gif-izgara>.btn{grid-column:1/-1;border:0}
+.gif-kur b{color:var(--text)}
+.gif-kur-f{display:flex;gap:var(--lw);margin:10px 0 6px}
+.gif-kur small{display:block;font-size:12px;line-height:1.4}
+.gif-kur input{flex:1;min-width:0;border:0;padding:7px 9px;font-size:14px}
+.gif-kur a{color:var(--accent)}
+.gif-alt{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0;padding:5px 10px;background:var(--bar);color:var(--muted);font-size:12px}
+.gif-alt b{color:var(--text);letter-spacing:.03em}
+.gif-alt .btn{min-height:0;padding:2px 8px;font-size:12px}
+.emo-izgara{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--lw);background:var(--lead)}
+.emo-i{display:grid;justify-items:center;gap:3px;padding:8px 4px 6px;border:0;border-radius:0;background:var(--surface);color:var(--text);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.emo-i .ic{width:34px;height:34px;stroke-width:1.6}
+.emo-i:hover,.emo-i:focus-visible{background:color-mix(in srgb,var(--accent) 24%,var(--surface));outline:none}
+.emo-pop .gif-alt{justify-content:flex-start}
+/* Şeffaf sohbet (2026-11-26, R4 madde 27; kullanıcı: "LoL oyun içi sohbeti gibi sade ve şeffaf"). Dokunulmayan sohbetin camı yok
+   olur: yalnızca yazılar tavernanın üstünde, koyu gölgeli; 20 sn'den eski mesajlar söner. Üstüne gelince, içine yazarken ya da
+   masada Enter'a basınca cam geri gelir, eskiler de görünür. Düzen kutusundan kapatılır (store.sozSeffaf). Telefonda yok. */
+@media (hover:hover){
+  .tv-soz,.tv-soz h2,.soz-liste li,.soz-kime,.soz-satir input,.soz-satir .btn,.soz-durum{transition:background-color .25s,border-color .25s,box-shadow .25s,opacity .45s,color .25s}
+  .tv-soz.seffaf.bos-dur:not(.kapali){background:transparent;border-color:transparent;box-shadow:none}
+  .tv-soz.seffaf.uyku{opacity:1}
+  .tv-soz.seffaf.bos-dur:not(.kapali) h2{background:transparent;opacity:0}
+  .tv-soz.seffaf.bos-dur .soz-liste{scrollbar-width:none}
+  .tv-soz.seffaf.bos-dur .soz-liste li{background:transparent;text-shadow:0 1px 2px #000,0 0 6px #000,0 0 2px #000;outline-color:transparent}
+  .tv-soz.seffaf.bos-dur .soz-liste li:not(.taze){opacity:0}
+  .tv-soz.seffaf.bos-dur .soz-liste li.bos{opacity:0}
+  .tv-soz.seffaf.bos-dur .soz-kime{opacity:0}
+  .tv-soz.seffaf.bos-dur .soz-satir input{background:color-mix(in srgb,var(--field) 35%,transparent);box-shadow:none}
+  .tv-soz.seffaf.bos-dur .soz-satir input::placeholder{color:color-mix(in srgb,var(--text) 70%,transparent)}
+  .tv-soz.seffaf.bos-dur .soz-satir .btn{background:color-mix(in srgb,var(--surface) 35%,transparent);border-color:transparent;opacity:.75}
+  .tv-soz.seffaf.bos-dur .soz-durum{background:transparent;color:var(--text);text-shadow:0 1px 2px #000,0 0 6px #000}
+  .tv-soz.seffaf.bos-dur .soz-liste li.yeni{animation:none}
+}
 /* Savaş sırası (2026-10-21, vitray): üst ortada bir sıra kemerli pencere (lansetler). Her pencere bir kişi: oyuncular kendi
    cam renginde, düşmanlar lal. Sırası gelenin penceresi arkadan ışık alır (camın kendi rengiyle dolar), hafifçe uzar. */
 .tv-sira{position:absolute;z-index:9;left:calc(var(--povw) + (100% - var(--povw)) / 2);translate:-50% 0;top:12px;max-width:calc(100% - var(--povw) - 2 * 19 * var(--u));
@@ -2426,6 +2489,20 @@ body.tv-full #tableView{height:100dvh}
   <symbol id="i-oynat" viewBox="0 0 24 24"><path d="M7.5 5v14l11-7z"/></symbol>
   <symbol id="i-duraklat" viewBox="0 0 24 24"><path d="M8 5.5v13M16 5.5v13"/></symbol>
   <symbol id="i-gonder" viewBox="0 0 24 24"><path d="M4 11.6 20 4l-5.6 16-3.1-6.7zM11.3 13.3 20 4"/></symbol>
+  <!-- Emote'lar (2026-11-26, R4 madde 29): sohbetteki emote düğmesi ve 12 emote; hepsi aynı çizgi kalınlığında, dolgu yarı saydam -->
+  <symbol id="i-emote" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M8.6 14.2q3.4 3.4 6.8 0"/><path d="M9.2 9.6v.6M14.8 9.6v.6" stroke-width="2.2"/></symbol>
+  <symbol id="em-selam" viewBox="0 0 24 24"><path d="M8.2 12.8V6.2a1.3 1.3 0 0 1 2.6 0v5M10.8 11V4.6a1.3 1.3 0 0 1 2.6 0V11M13.4 11V5.6a1.3 1.3 0 0 1 2.6 0V12M16 12.2V8.8a1.3 1.3 0 0 1 2.6 0v6.4c0 3.6-2.6 6.3-6.1 6.3h-.9c-1.7 0-2.9-.8-3.8-2.1L4.9 15.2c-.6-1 0-2 1.1-2 .8 0 1.4.5 2.2 1.4"/><path d="M3.4 7.2q-1 2.2.2 4.4M20.6 3.4q1.3 2 .6 4.4"/></symbol>
+  <symbol id="em-kahkaha" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7.6 9.6q1.2-1.5 2.4 0M14 9.6q1.2-1.5 2.4 0"/><path d="M7.4 13h9.2q-.6 4.6-4.6 4.6T7.4 13z" fill="currentColor" fill-opacity=".3"/></symbol>
+  <symbol id="em-harika" viewBox="0 0 24 24"><path d="M11 3l1.9 5.3 5.3 1.9-5.3 1.9L11 17.4l-1.9-5.3-5.3-1.9 5.3-1.9z" fill="currentColor" fill-opacity=".3"/><path d="M18.4 14.6l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8zM5 15.6l.6 1.5 1.5.6-1.5.6-.6 1.5-.6-1.5-1.5-.6 1.5-.6z"/></symbol>
+  <symbol id="em-tamam" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity=".18"/><path d="M7.6 12.4l3 3 5.8-6.4"/></symbol>
+  <symbol id="em-saskin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="8.9" cy="9.6" r="1.3"/><circle cx="15.1" cy="9.6" r="1.3"/><circle cx="12" cy="15.6" r="2" fill="currentColor" fill-opacity=".3"/><path d="M7.4 6.6l2.4-.8M16.6 6.6l-2.4-.8"/></symbol>
+  <symbol id="em-dusun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9.8v.5M15 9.8v.5" stroke-width="2.2"/><path d="M9.2 15.8l5.4-1.2M13.6 7l2.8-1.1"/></symbol>
+  <symbol id="em-uzgun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 10v.5M15 10v.5" stroke-width="2.2"/><path d="M8.6 16.6q3.4-3 6.8 0"/><path d="M16.4 12.6q.9 1.6 0 2.4-.9-.8 0-2.4z" fill="currentColor" fill-opacity=".4"/></symbol>
+  <symbol id="em-kizgin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity=".14"/><path d="M7.4 8.2l3 1.4M16.6 8.2l-3 1.4"/><path d="M9.3 11.2v.4M14.7 11.2v.4" stroke-width="2.2"/><path d="M8.8 16.4q3.2-2.2 6.4 0"/></symbol>
+  <symbol id="em-korku" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="8.9" cy="9.8" r="1.4"/><circle cx="15.1" cy="9.8" r="1.4"/><path d="M7.8 15.8q1.05-1.2 2.1 0t2.1 0 2.1 0 2.1 0"/></symbol>
+  <symbol id="em-uyku" viewBox="0 0 24 24"><circle cx="11" cy="13" r="8"/><path d="M7.2 12.2h2.6M12.2 12.2h2.6"/><circle cx="11" cy="16.4" r="1.1"/><path d="M16.4 2.8h3.4l-3.4 3.8h3.4"/></symbol>
+  <symbol id="em-sans" viewBox="0 0 24 24"><path d="M12 2.2l8.6 4.9v9.8L12 21.8l-8.6-4.9V7.1z"/><path d="M12 7.3l4.7 8.1H7.3z" fill="currentColor" fill-opacity=".3"/><path d="M12 2.2v5.1M12 7.3 3.4 7.1M12 7.3l8.6-.2M7.3 15.4 3.4 7.1M16.7 15.4l3.9-8.3M7.3 15.4 12 21.8l4.7-6.4"/></symbol>
+  <symbol id="em-kalp" viewBox="0 0 24 24"><path d="M12 20.2s-8-4.8-8-10.4A4.4 4.4 0 0 1 12 7.4a4.4 4.4 0 0 1 8 2.4c0 5.6-8 10.4-8 10.4z" fill="currentColor" fill-opacity=".3"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
   <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
@@ -2670,6 +2747,7 @@ body.tv-full #tableView{height:100dvh}
         <!-- Yapışma (2026-11-10, kullanıcının isteği): taşırken kenara, köşeye ya da başka bir cama yaklaşınca yerine oturur (camYapistir) -->
         <label class="duzen-sec"><input type="checkbox" id="duzenYapis"><span>Camlar kenarlara ve köşelere yapışsın</span><small>Taşırken ekranın kenarına ya da başka bir cama yaklaşınca yerine oturur. O an istemezsen Alt'a basılı tut.</small></label>
         <label class="duzen-sec"><input type="checkbox" id="duzenSolma"><span>Kullanmadığım camlar solsun</span><small>12 sn dokunulmayınca; üstüne gelince ya da yeni bir şey olunca geri gelir</small></label>
+        <label class="duzen-sec"><input type="checkbox" id="duzenSozSeffaf"><span>Sohbet şeffaf olsun</span><small>Yalnızca yazılar görünür, eski mesajlar söner; üstüne gelince ya da Enter'a basınca cam geri gelir</small></label>
         <button class="btn sm" data-act="duzen-sifirla">Varsayılan düzene dön</button>
       </div>
       <div class="duzen-pop gor-pop" id="gorPop" role="dialog" aria-label="Görünüm" hidden>
@@ -2766,8 +2844,13 @@ body.tv-full #tableView{height:100dvh}
               <label class="soz-kime" id="sozKimeBox"><span>Kime</span><select id="sozKime"></select></label>
               <div class="soz-satir">
                 <input id="sozIn" maxlength="300" enterkeyhint="send" spellcheck="true" aria-label="Mesaj">
+                <!-- Emote ve GIF (2026-11-26, R4): GIF'ler KLIPY'den aranır, bilgisayardan yüklenmez (gifAc, emoAc) -->
+                <button class="btn icon" type="button" id="sozEmoBtn" data-act="soz-emo" aria-expanded="false" aria-controls="sozEmo" title="Emote: isimliğinin üstünde belirir" aria-label="Emote gönder"><svg class="ic"><use href="#i-emote"/></svg></button>
+                <button class="btn icon soz-gifb" type="button" id="sozGifBtn" data-act="soz-gif" aria-expanded="false" aria-controls="sozGif" title="GIF gönder (KLIPY'den ara)" aria-label="GIF gönder">GIF</button>
                 <button class="btn icon" type="submit" title="Gönder (Enter)" aria-label="Gönder"><svg class="ic"><use href="#i-gonder"/></svg></button>
               </div>
+              <div class="soz-pop gif-pop" id="sozGif" role="dialog" aria-label="GIF seç" hidden></div>
+              <div class="soz-pop emo-pop" id="sozEmo" role="dialog" aria-label="Emote seç" hidden></div>
             </form>
           </aside>
           <!-- Müzik (BÖLÜM 10f): şarkı seçiliyken görünür. Video + ad + çal / sonraki. Link ve sıra sahnedeki panoda (#saPano), ses üstteki ses panelinde -->
@@ -3276,7 +3359,8 @@ body.tv-full #tableView{height:100dvh}
       Öbür 3D karakterler (DM, hancı, garsonlar, sınıflar) aşağıdaki Sketchfab modellerinden yararlanılarak yapıldı: yeniden boyandı, parçalar alındı, eklendi ve çıkarıldı, iskelet ve poz verildi.
       Ses efektleri: <a href="https://freesound.org" target="_blank" rel="noopener">Freesound</a> kullanıcıları, CC0.
       Müzik: “Mead and Moonlight”, sitenin yapımcısı (Suno ile).
-      Yazı tipleri: Eczar (Rosetta Type), Figtree (Erik Kennedy), SIL Open Font License 1.1. Kütüphaneler: three.js, PeerJS, cannon-es (MIT; lisansları kutuphaneler/ içinde).</p>
+      Yazı tipleri: Eczar (Rosetta Type), Figtree (Erik Kennedy), SIL Open Font License 1.1. Kütüphaneler: three.js, PeerJS, cannon-es (MIT; lisansları kutuphaneler/ içinde).
+      Sohbetteki GIF'ler: Powered by <a href="https://klipy.com" target="_blank" rel="noopener">KLIPY</a>. GIF panelini açınca arama KLIPY'ye gider, GIF'ler KLIPY'nin sunucusundan yüklenir.</p>
     <!-- Kaynak: "3D karakter referans modelleri/referanslar.txt" (kullanıcı Sketchfab'den topladı, 2026-10-28). Yeni model gelince oraya ve buraya -->
     <details class="emek"><summary>3D karakter modelleri (Sketchfab)</summary>
       <ul>
@@ -7752,6 +7836,7 @@ function stopNet(clearRole = true) {
   net.mySeat = ''; net.faces.clear(); net.dropped = false; net.npcs = []; net.sira = null; net.savas = '';
   HR.resim.clear(); HR.parca.clear(); net.harita = null; HR.goster = ''; HR.menu = ''; HR.yeni = null;   // harita (BÖLÜM 10d); DM'inki kalıcı depoda durur
   sozSifirla();                                                      // sohbet (BÖLÜM 10e): hiçbir yere kaydedilmez
+  net.gifK = ''; GIF.liste = []; GIF.on.clear(); sozPopAc('gif', false); sozPopAc('emo', false);   // GIF anahtarı yalnızca bellekteydi
   net.muzik = null;                                                  // müzik (BÖLÜM 10f): oyuncunun DM'den aldığı sıra
   TK.gelen = []; TK.benim = []; tkCiz();                             // satış teklifleri (BÖLÜM 10h)
   net.dukkan = null; PZ.bekle = ''; if (!$('#katModal').hidden && /^(pazar|dukkan-sec)/.test(KAT.mod) && store.net.role !== 'dm') katKapa();   // dükkanlar (BÖLÜM 10g); DM'inkiler store.dukkanlar'da kalır
@@ -7845,6 +7930,7 @@ function dmReceive(pid, conn, msg) {
     send(conn, Object.assign({ t:'welcome', dm: store.net.name || 'DM', publicRolls: !!store.net.publicRolls, roster: rosterList(), you: p.seat, npcs: npcRoster() }, siraIcin(p)));
     hrHosgeldin(p, msg.hr);                                          // harita: yapı, piyonlar, oyuncuda olmayan açık resimler (BÖLÜM 10d)
     sozGecmisYolla(p);                                               // sohbetin son mesajları (BÖLÜM 10e)
+    if (gifAnahtar()) gifYay(p);                                     // GIF anahtarı (KLIPY): yalnızca bellekte tutulur
     mzYay(p);                                                        // müzik: sıra ve çalan (BÖLÜM 10f)
     if (dkY().some(d => d.acik)) dkYay(p);                            // dükkanlar (BÖLÜM 10g)
   }
@@ -8061,6 +8147,7 @@ function playerReceive(conn, msg) {
   else if (msg.t === 'hresim') hrParcaAl(msg);
   else if (msg.t === 'soz') sozEkle(sozKayit(msg));                  // sohbet (BÖLÜM 10e)
   else if (msg.t === 'soz-gecmis') sozGecmisAl(msg);
+  else if (msg.t === 'gif-k') { const k = gifAnahtarGecerli(msg.k) ? String(msg.k) : ''; if (k !== net.gifK) { net.gifK = k; GIF.on.clear(); GIF.liste = []; GIF.hata = ''; $('#sozGif').dataset.kip = ''; gifCiz(); } }
   else if (msg.t === 'yaz') { const k = cleanSeat(msg.kim); if (k && k !== net.mySeat) yazGoster(k, !!msg.on); }
   else if (msg.t === 'mz') mzAl(msg);                                // müzik (BÖLÜM 10f)
   else if (msg.t === 'dukkan') dkAl(msg);                            // dükkanlar (BÖLÜM 10g)
@@ -8706,6 +8793,7 @@ function hedefUI() {
   $('#hedefCokBtn').setAttribute('aria-pressed', String(!!store.hedefCok));
   const hl = hedefListe();
   $('#hedefChip').hidden = !h && !a && !store.hedefCok;
+  document.body.classList.toggle('hedef-var', !$('#hedefChip').hidden);   // sağ sütun (sohbetin yazı kutusu) şeridin altında kalmasın
   $('#hedefChipAd').innerHTML = (a ? `${esc(a.ad || 'Düşman')} ` : '') + (hl.length > 1 ? `<em>→</em> ${esc(hedefAdlar(hl))} <em>(${hl.length} hedef)</em>`
     : h ? `<em>→</em> ${esc(hedefAd(h))}${hx && hx.ek ? ` <em>(${esc(hx.ek)})</em>` : ''}` : store.hedefCok ? '<em>birden çok hedef: kartlara bas</em>' : '<em>adına atıyorsun</em>')
     + (h && SAVAS.hasarSecili ? ' <em>· sonraki zar hasar</em>' : '');
@@ -9818,13 +9906,14 @@ Object.assign(ACTIONS, {
    • Masaya bağlı değilken sohbet görünmez.
    ═══════════════════════════════════════════════════════════════════ */
 const SOZ = { liste: [], okunmadi: 0, uzun: 300, tut: 100, gecmis: 50, son: 0, sesSon: 0, sinir: new Map(), kirli: true, dibe: false,
-  yazanlar: new Map(), yaziyor: false, yazGitti: 0 };            // yazanlar: koltuk → üç noktanın kendiliğinden gitme zamanlayıcısı
+  yazanlar: new Map(), yaziyor: false, yazGitti: 0, taze: 20000, tazeT: 0 };   // taze: şeffaf sohbette mesaj kaç ms görünür            // yazanlar: koltuk → üç noktanın kendiliğinden gitme zamanlayıcısı
 const sozTemiz = v => String(v ?? '').replace(/[\u0000-\u001f\u007f\u2028\u2029]+/g, ' ').trim().slice(0, SOZ.uzun);
 const sozKimlik = () => Math.random().toString(36).slice(2, 10);
 // Ağdan gelen mesaj: yalnızca bu alanlar okunur, hepsi sınırlanır
 const sozKayit = m => ({ id: short(m.id, 12).replace(/[^a-z0-9]/g, ''), kim: cleanSeat(m.kim), ad: short(m.ad, 30), m: sozTemiz(m.m),
-  ts: int(m.ts) || Date.now(), gizli: !!m.gizli, kime: cleanSeat(m.kime) });
-const sozPaket = e => ({ id: e.id, kim: e.kim, ad: e.ad, m: e.m, ts: e.ts, gizli: e.gizli ? 1 : 0, kime: e.kime || '' });
+  g: gifTemiz(m.g), e: emoTemiz(m.e), ts: int(m.ts) || Date.now(), gizli: !!m.gizli, kime: cleanSeat(m.kime) });
+const sozPaket = e => ({ id: e.id, kim: e.kim, ad: e.ad, m: e.m, g: e.g || null, e: e.e || '', ts: e.ts, gizli: e.gizli ? 1 : 0, kime: e.kime || '' });
+const sozDolu = e => !!(e && (e.m || e.g || e.e));                   // yazı, GIF ya da emote'tan biri olmalı
 const sozBakiyor = () => panoAcik('soz') && mode === 'table' && !document.hidden;
 
 function sozAd(kim, yedek) {                                          // bir koltuğun bugünkü adı; masadan gittiyse mesajdaki ad
@@ -9838,7 +9927,9 @@ function sozSatir(e, yeni) {
     const ben = meSeat(), hedef = e.kime === ben ? 'sen' : e.kime === 'dm' ? 'DM' : sozAd(e.kime, '');
     etiket = `<small>gizli → ${esc(hedef)}</small>`;
   }
-  return `<li class="${e.gizli ? 'gizli' : ''}${yeni ? ' yeni' : ''}" style="--g:${camOf(e.kim)}" title="${hhmm(e.ts)}"><b>${esc(sozAd(e.kim, e.ad))}</b>${etiket}${esc(e.m)}</li>`;
+  const ic = e.e ? `<span class="soz-emo"><svg class="ic" aria-hidden="true"><use href="#em-${e.e}"/></svg>${esc(EMOTE[e.e].ad)}</span>`
+    : e.g ? `<span class="soz-gif">${gifImg(e.g)}</span>` : esc(e.m);
+  return `<li class="${e.gizli ? 'gizli' : ''}${yeni ? ' yeni' : ''}${Date.now() - e.ts < SOZ.taze ? ' taze' : ''}" data-ts="${e.ts}" style="--g:${camOf(e.kim)}" title="${hhmm(e.ts)}"><b>${esc(sozAd(e.kim, e.ad))}</b>${etiket}${ic}</li>`;
 }
 function sozListeCiz() {
   const ol = $('#sozListe');
@@ -9846,6 +9937,21 @@ function sozListeCiz() {
   ol.innerHTML = SOZ.liste.length ? SOZ.liste.map(e => sozSatir(e)).join('')
     : `<li class="bos">${store.net.role === 'dm' ? 'Masadakilere buradan yaz. Gizli mesaj için "Kime"den bir oyuncu seç.' : 'Masadakilere buradan yaz. "Kime"den DM\'i seçersen yalnızca o görür.'}</li>`;
   SOZ.dibe = true;
+  sozTazeKur();
+}
+/* Şeffaf sohbette yeni mesajlar 20 sn görünür kalır (li.taze), sonra söner; cama dokununca hepsi görünür. Tek zamanlayıcı:
+   en yakın sönme anında kurulur. */
+function sozTazeKur() {
+  clearTimeout(SOZ.tazeT);
+  const simdi = Date.now(); let yakin = Infinity;
+  $$('#sozListe > li[data-ts]').forEach(li => { const kalan = SOZ.taze - (simdi - int(li.dataset.ts)); li.classList.toggle('taze', kalan > 0); if (kalan > 0) yakin = Math.min(yakin, kalan); });
+  if (yakin < Infinity) SOZ.tazeT = setTimeout(sozTazeKur, yakin + 50);
+}
+// Şeffaf sohbet: cama dokunulmuyor mu (üstünde fare yok, içinde odak yok, GIF / emote camı kapalı)
+function sozBosDur() {
+  const box = $('#tvSoz'); if (!box) return;
+  box.classList.toggle('seffaf', store.sozSeffaf !== false);
+  box.classList.toggle('bos-dur', !box.matches(':hover, :focus-within') && $('#sozGif').hidden && $('#sozEmo').hidden);
 }
 // Camın kendisi: görünür mü, okunmamış sayısı, "Kime" seçenekleri, yazı kutusu (renderNetUI her seferinde çağırır)
 function sozCiz() {
@@ -9873,9 +9979,11 @@ function sozCiz() {
   if (SOZ.kirli) sozListeCiz();
   const ol = $('#sozListe');
   if (SOZ.dibe && ol.clientHeight) { ol.scrollTop = ol.scrollHeight; SOZ.dibe = false; }   // gizliyken gelenler: açılınca en alttan
+  sozBosDur();
+  $('#sozGifBtn').hidden = $('#sozEmoBtn').hidden = !bagli;
 }
 function sozEkle(e) {
-  if (!e.m) return;
+  if (!sozDolu(e)) return;
   SOZ.liste.push(e);
   if (SOZ.liste.length > SOZ.tut) SOZ.liste.splice(0, SOZ.liste.length - SOZ.tut);
   const ol = $('#sozListe');
@@ -9885,10 +9993,14 @@ function sozEkle(e) {
     ol.insertAdjacentHTML('beforeend', sozSatir(e, true));
     while (ol.children.length > SOZ.tut) ol.firstElementChild.remove();
     if (!ol.clientHeight) SOZ.dibe = true; else if (altta) ol.scrollTop = ol.scrollHeight;
+    if (e.g && altta) { const im = $('#sozListe > li:last-child img'); if (im) im.addEventListener('load', () => { ol.scrollTop = ol.scrollHeight; }, { once: true }); }
+    sozTazeKur();
   }
-  yazGoster(e.kim, false);                                            // yazıyordu, yazdı: üç nokta gider, yerine mesaj
+  if (!e.e) yazGoster(e.kim, false);                                  // yazıyordu, yazdı: üç nokta gider, yerine mesaj
   uyandir($('#tvSoz'));                                              // solmuşsa geri gelir
-  if (!e.gizli) balonTak(e.kim, `<span>${esc(e.m)}</span>`, clamp(3500 + e.m.length * 55, 3500, 9000));   // uzun mesaj biraz daha uzun durur
+  if (e.e) balonTak(e.kim, `<svg class="ic" aria-hidden="true"><use href="#em-${e.e}"/></svg><small>${esc(EMOTE[e.e].ad)}</small>`, 2800, 'emo');   // emote: büyük cam
+  else if (!e.gizli && e.g) balonTak(e.kim, gifImg(e.g, 'b-gif'), 4500);
+  else if (!e.gizli) balonTak(e.kim, `<span>${esc(e.m)}</span>`, clamp(3500 + e.m.length * 55, 3500, 9000));   // uzun mesaj biraz daha uzun durur
   if (e.kim !== meSeat() && !sozBakiyor()) { SOZ.okunmadi++; sozSes(); }
   sozCiz();
 }
@@ -9963,14 +10075,16 @@ function sozSes() {
     s.buffer = b; g.gain.value = SES.vol.soz; s.connect(g).connect(SES.kanal.efekt); s.start();
   });
 }
-function sozGonder() {
-  const inp = $('#sozIn'), role = store.net.role, kime = $('#sozKime').value, m = sozTemiz(inp.value);
-  if (!m || !role || Date.now() - SOZ.son < 700) return;              // çok hızlı: yazı kutuda kalır
-  const e = { id: sozKimlik(), kim: meSeat(), ad: myName(), m, ts: Date.now(), gizli: !!kime, kime };
-  if (role === 'player' && !send(net.conn, { t:'soz', m, kime: kime ? 'dm' : '' })) { notify('Mesajın gitmedi', 'Masayla bağlantı yok. Bağlanınca yeniden dene.'); return; }
+function sozGonder(ek) {                                              // ek: { g } GIF ya da { e } emote; yoksa yazı kutusundaki mesaj
+  const inp = $('#sozIn'), role = store.net.role, g = ek && ek.g ? gifTemiz(ek.g) : null, em = ek ? emoTemiz(ek.e) : '';
+  const kime = em ? '' : $('#sozKime').value, m = g || em ? '' : sozTemiz(inp.value);   // emote her zaman herkese (isimliğin üstünde görünür)
+  if ((!m && !g && !em) || !role) return;
+  if (Date.now() - SOZ.son < 700) { if (g || em) notify('Biraz yavaş', 'Peş peşe çok hızlı gönderdin.'); return; }   // çok hızlı: yazı kutuda kalır
+  const e = { id: sozKimlik(), kim: meSeat(), ad: myName(), m, g, e: em, ts: Date.now(), gizli: !!kime, kime };
+  if (role === 'player' && !send(net.conn, { t:'soz', m, g, e: em, kime: kime ? 'dm' : '' })) { notify('Mesajın gitmedi', 'Masayla bağlantı yok. Bağlanınca yeniden dene.'); return; }
   if (role === 'dm') sozDagit(e);
-  SOZ.son = Date.now(); inp.value = '';
-  SOZ.yaziyor = false; SOZ.yazGitti = 0;                              // mesajın kendisi "yazmayı bıraktı" sayılır (karşıda üç nokta gider)
+  SOZ.son = Date.now();
+  if (m) { inp.value = ''; SOZ.yaziyor = false; SOZ.yazGitti = 0; }  // mesajın kendisi "yazmayı bıraktı" sayılır (karşıda üç nokta gider)
   sozEkle(e);
 }
 function sozDagit(e) {                                                // DM: mesajı gitmesi gerekenlere yollar
@@ -9980,13 +10094,14 @@ function sozDagit(e) {                                                // DM: mes
     send(p.conn, paket);
   });
 }
-function sozDmAl(p, msg) {                                            // DM: bir oyuncu yazdı
-  const m = sozTemiz(msg.m), ts = Date.now();
-  if (!m) return;
+function sozDmAl(p, msg) {                                            // DM: bir oyuncu yazdı (yazı, GIF ya da emote)
+  const g = gifTemiz(msg.g), em = emoTemiz(msg.e), m = g || em ? '' : sozTemiz(msg.m), ts = Date.now();
+  if (!m && !g && !em) return;
   const son = (SOZ.sinir.get(p.pid) || []).filter(t => ts - t < 10000);
   if (son.length >= 6) { send(p.conn, { t:'soz-yavas' }); return; }  // 10 sn'de en çok 6 mesaj: masayı doldurmasın
   son.push(ts); SOZ.sinir.set(p.pid, son);
-  const e = { id: sozKimlik(), kim: p.seat, ad: p.name, m, ts, gizli: msg.kime === 'dm', kime: msg.kime === 'dm' ? 'dm' : '' };
+  const gizli = !em && msg.kime === 'dm';
+  const e = { id: sozKimlik(), kim: p.seat, ad: p.name, m, g, e: em, ts, gizli, kime: gizli ? 'dm' : '' };
   sozEkle(e); sozDagit(e);
 }
 function sozGecmisYolla(p) {                                          // DM: gelen oyuncuya son mesajlar (gizlilerden yalnızca kendisininkiler)
@@ -9994,13 +10109,173 @@ function sozGecmisYolla(p) {                                          // DM: gel
   send(p.conn, { t:'soz-gecmis', liste });
 }
 function sozGecmisAl(msg) {                                           // oyuncu: DM'in yolladığı son mesajlar, eldekinin yerine
-  SOZ.liste = (Array.isArray(msg.liste) ? msg.liste : []).slice(-SOZ.gecmis).filter(x => x && typeof x === 'object').map(sozKayit).filter(e => e.m);
+  SOZ.liste = (Array.isArray(msg.liste) ? msg.liste : []).slice(-SOZ.gecmis).filter(x => x && typeof x === 'object').map(sozKayit).filter(sozDolu);
   SOZ.kirli = true; sozCiz();
 }
 function sozSifirla() {
   SOZ.liste = []; SOZ.okunmadi = 0; SOZ.sinir.clear(); SOZ.kirli = true; SOZ.yaziyor = false;
   [...SOZ.yazanlar.keys()].forEach(k => yazGoster(k, false));
 }
+/* ───────── GIF ve emote (2026-11-26; R4 madde 29 ve kullanıcının isteği: "Discord'daki gibi GIF atalım, bilgisayardan almayalım") ─────────
+   • GIF'ler KLIPY'den. Tenor'un API'si 2026-06-30'da kapandı; Discord, X ve WhatsApp da KLIPY'ye geçti. Arama ve GIF'ler herkesin
+     kendi tarayıcısından doğrudan KLIPY'ye gider (KLIPY'nin kuralı: istek son kullanıcıdan, medya KLIPY'nin adresinden, sıra bozulmaz).
+   • Anahtar KODDA DEĞİL (site herkese açık, başkası harcamasın): DM GIF camında bir kez yazar, yalnızca onun tarayıcısında durur
+     (GIF_ANAHTAR); masaya gelen oyunculara ağdan gider ({t:'gif-k'}), oyuncuda yalnızca bellekte. Test anahtarı saatte 100 istek.
+   • İçerik süzgeci en sıkı (content_filter=high); KLIPY'nin panelinde ayrıca kelime engellenebilir. Reklam (type "ad") gösterilmez:
+     anahtarın reklamı KLIPY panelinde kapalı olmalı. Arama kutusunda "Search KLIPY" yazar (zorunlu atıf), altta "Powered by KLIPY".
+   • Mesajda yalnızca KLIPY'nin medya adresi gider (static*.klipy.com, GIF_URL); başka adres gelirse gösterilmez.
+   • Emote: yazanın isimliğinin üstünde büyük cam (2,8 sn) ve sohbette bir satır; her zaman herkese. Ağda sohbetle aynı yol. */
+const EMOTE = { selam: { ad: 'Selam' }, kahkaha: { ad: 'Kahkaha' }, harika: { ad: 'Harika' }, tamam: { ad: 'Tamam' }, saskin: { ad: 'Şaşkın' }, dusun: { ad: 'Hmm' },
+  uzgun: { ad: 'Üzgün' }, kizgin: { ad: 'Kızgın' }, korku: { ad: 'Korktum' }, uyku: { ad: 'Uykum geldi' }, sans: { ad: 'Bol şans' }, kalp: { ad: 'Sevgi' } };
+const emoTemiz = v => (Object.prototype.hasOwnProperty.call(EMOTE, v) ? v : '');
+const GIF_ANAHTAR = 'kervansaray-gif';
+const GIF_URL = /^https:\/\/static[0-9]?\.klipy\.com\/[A-Za-z0-9._~\/%-]{1,300}(\?[A-Za-z0-9._~=&%-]{0,300})?$/;
+const GIF = { ara: '', liste: [], sayfa: 1, devam: false, yuk: false, hata: '', on: new Map(), zt: 0, no: 0 };
+const gifAnahtarGecerli = k => /^[A-Za-z0-9_-]{8,128}$/.test(String(k || ''));
+function gifAnahtar() {
+  if (store.net.role === 'dm') { try { const k = localStorage.getItem(GIF_ANAHTAR) || ''; return gifAnahtarGecerli(k) ? k : ''; } catch (e) { return ''; } }
+  return net.gifK || '';
+}
+function gifAnahtarKaydet(k) {
+  try { if (k) localStorage.setItem(GIF_ANAHTAR, k); else localStorage.removeItem(GIF_ANAHTAR); } catch (e) { /* gizli pencere */ }
+  GIF.on.clear(); GIF.liste = []; GIF.hata = ''; gifYay();
+}
+function gifYay(p) { if (store.net.role !== 'dm') return; const m = { t: 'gif-k', k: gifAnahtar() }; if (p) send(p.conn, m); else net.players.forEach(o => send(o.conn, m)); }
+function gifTemiz(g) {                                                // ağdan ya da KLIPY'den gelen bir GIF: yalnızca KLIPY'nin adresi
+  if (!g || typeof g !== 'object') return null;
+  const u = String(g.u || ''), s = String(g.s || '');
+  if (u.length > 600 || !GIF_URL.test(u)) return null;
+  return { u, s: s.length <= 600 && GIF_URL.test(s) ? s : '', w: clamp(int(g.w), 1, 2000) || 220, h: clamp(int(g.h), 1, 2000) || 220, t: sozTemiz(g.t).slice(0, 80) };
+}
+function gifImg(g, cls = '') {                                        // hareket azaltılmışsa durağan kare (varsa)
+  const src = matchMedia('(prefers-reduced-motion: reduce)').matches && g.s ? g.s : g.u;
+  return `<img${cls ? ` class="${cls}"` : ''} src="${esc(src)}" alt="${esc(g.t ? 'GIF: ' + g.t : 'GIF')}" width="${g.w}" height="${g.h}" style="aspect-ratio:${g.w}/${g.h}" loading="lazy" decoding="async">`;
+}
+function gifKalem(x) {                                                // KLIPY sonucu → mesajdaki GIF (sm: ~220 px)
+  if (!x || typeof x !== 'object' || x.type === 'ad') return null;
+  const f = x.file || {}, b = f.sm || f.xs || f.md || {}, a = b.webp || b.gif;
+  return a ? gifTemiz({ u: a.url, s: b.jpg && b.jpg.url, w: a.width, h: a.height, t: x.title }) : null;
+}
+async function gifGetir(devam) {                                      // ara boşsa gündemdekiler (trending)
+  const k = gifAnahtar(); if (!k) return;
+  const ara = GIF.ara.trim(), sayfa = devam ? GIF.sayfa + 1 : 1, anah = `${ara.toLocaleLowerCase('tr')}|${sayfa}`, no = ++GIF.no;
+  const al = r => { GIF.liste = devam ? GIF.liste.concat(r.liste) : r.liste; GIF.sayfa = sayfa; GIF.devam = r.devam; GIF.yuk = false; GIF.hata = ''; gifCiz(); };
+  if (GIF.on.has(anah)) return al(GIF.on.get(anah));                  // aynı arama: KLIPY'ye yeniden gitmez (saatlik sınır)
+  GIF.yuk = true; GIF.hata = ''; if (!devam) GIF.liste = []; gifCiz();
+  const q = new URLSearchParams({ page: sayfa, per_page: 24, locale: 'tr', content_filter: 'high', format_filter: 'webp,gif,jpg' });
+  if (ara) q.set('q', ara);
+  try {
+    const r = await fetch(`https://api.klipy.com/api/v1/${encodeURIComponent(k)}/gifs/${ara ? 'search' : 'trending'}?${q}`, { credentials: 'omit' });
+    if (no !== GIF.no) return;                                         // bu arada yeni arama yazıldı
+    if (!r.ok) { const er = new Error('http'); er.durum = r.status; throw er; }
+    const j = await r.json(), d = j && j.data && typeof j.data === 'object' ? j.data : {};
+    const sonuc = { liste: (Array.isArray(d.data) ? d.data : []).slice(0, 50).map(gifKalem).filter(Boolean), devam: !!d.has_next };
+    GIF.on.set(anah, sonuc); while (GIF.on.size > 40) GIF.on.delete(GIF.on.keys().next().value);
+    al(sonuc);
+  } catch (e) {
+    if (no !== GIF.no) return;
+    GIF.yuk = false; GIF.hata = e.durum === 401 || e.durum === 403 || e.durum === 404 ? 'anahtar' : e.durum === 429 ? 'sinir' : 'ag'; gifCiz();
+  }
+}
+const GIF_HATA = { anahtar: 'KLIPY anahtarı kabul etmedi. DM anahtarı yeniden yazmalı.', sinir: 'Saatlik GIF sınırı doldu (test anahtarı saatte 100 arama yapar, masadakilerin hepsi birlikte). Biraz sonra yeniden dene.',
+  ag: 'KLIPY\'ye ulaşılamadı. İnternet bağlantına bak, biraz sonra yeniden dene.' };
+function gifCiz() {
+  const pop = $('#sozGif'); if (!pop || pop.hidden) return;
+  const k = gifAnahtar(), dm = store.net.role === 'dm';
+  if (!k) {
+    pop.dataset.kip = 'kur';
+    pop.innerHTML = dm ? `<div class="gif-kur"><b>GIF'ler için bir KLIPY anahtarı gerekir.</b> Ücretsiz: <a href="https://partner.klipy.com/api-keys" target="_blank" rel="noopener">partner.klipy.com</a>'da hesap aç, "API Keys"ten bir anahtar oluştur, buraya yapıştır.
+        <div class="gif-kur-f"><input id="gifKurIn" spellcheck="false" autocomplete="off" placeholder="KLIPY anahtarı" aria-label="KLIPY anahtarı"><button class="btn sm accent" type="button" data-act="gif-anahtar-yaz">Kaydet</button></div>
+        <small>Anahtar yalnızca bu tarayıcıda durur, sitenin koduna yazılmaz; masadakilere ağdan gider. KLIPY panelinde anahtarın reklamını kapalı tut.</small></div>`
+      : `<p class="gif-kur">GIF'ler henüz kapalı: ${esc(net.dmName || 'DM')} KLIPY anahtarını yazınca açılır.</p>`;
+    return;
+  }
+  if (pop.dataset.kip !== 'ara') {                                    // arama kutusu bir kez kurulur (yazarken odak kaybolmasın)
+    pop.dataset.kip = 'ara';
+    pop.innerHTML = `<div class="gif-ust"><input id="gifAra" type="search" placeholder="Search KLIPY" aria-label="GIF ara (KLIPY)" spellcheck="false" autocomplete="off" maxlength="60" value="${esc(GIF.ara)}">
+        <button class="btn icon" type="button" data-act="soz-gif" title="Kapat (Esc)" aria-label="GIF camını kapat"><svg class="ic"><use href="#i-x"/></svg></button></div>
+      <div class="gif-izgara" id="gifIzgara" aria-live="polite"></div>
+      <p class="gif-alt"><span>Powered by <b>KLIPY</b></span>${dm ? '<button class="btn sm" type="button" data-act="gif-anahtar-sil" title="Anahtarı bu tarayıcıdan sil ya da yenisini yaz">Anahtar</button>' : ''}</p>`;
+  }
+  const iz = $('#gifIzgara', pop);
+  iz.innerHTML = GIF.liste.map((g, i) => `<button class="gif-i" type="button" data-act="gif-gonder" data-n="${i}" title="${esc(g.t || 'GIF')}: gönder">${gifImg(g)}</button>`).join('')
+    + (GIF.yuk ? '<p>Aranıyor…</p>' : GIF.hata ? `<p>${GIF_HATA[GIF.hata]}</p>` : !GIF.liste.length ? `<p>${GIF.ara.trim() ? `"${esc(GIF.ara.trim())}" için GIF bulunamadı.` : 'GIF bulunamadı.'}</p>` : '')
+    + (GIF.devam && !GIF.yuk ? '<button class="btn sm" type="button" data-act="gif-devam">Daha fazla</button>' : '');
+}
+function sozPopYer(pop) {                                             // cam ekranın kenarındaysa: sola taşmasın, üstte yer yoksa altta
+  pop.classList.remove('sola', 'asagi');
+  const A = $('.tv-wrap').getBoundingClientRect(), r = pop.getBoundingClientRect();
+  if (r.left < A.left + 4) pop.classList.add('sola');
+  if (r.top < A.top + 4) pop.classList.add('asagi');
+}
+function sozPopAc(k, ac) {                                            // k: 'gif' | 'emo'; ikisi aynı anda açık olmaz
+  const pop = $(k === 'gif' ? '#sozGif' : '#sozEmo'), btn = $(k === 'gif' ? '#sozGifBtn' : '#sozEmoBtn');
+  if (ac === undefined) ac = pop.hidden;
+  if (ac) sozPopAc(k === 'gif' ? 'emo' : 'gif', false);
+  pop.hidden = !ac; btn.setAttribute('aria-expanded', String(ac));
+  if (ac && k === 'gif') {
+    gifCiz(); sozPopYer(pop);
+    if (gifAnahtar() && !GIF.liste.length && !GIF.yuk) gifGetir();
+    setTimeout(() => { const f = $('#gifAra') || $('#gifKurIn'); if (f) f.focus(); }, 20);
+  }
+  if (ac && k === 'emo') {
+    pop.innerHTML = `<div class="emo-izgara">${Object.entries(EMOTE).map(([e, o]) => `<button class="emo-i" type="button" data-act="emo-gonder" data-e="${e}" title="${esc(o.ad)}: isimliğinin üstünde belirir"><svg class="ic" aria-hidden="true"><use href="#em-${e}"/></svg>${esc(o.ad)}</button>`).join('')}</div>
+      <p class="gif-alt">Herkes görür: isimliğinin üstünde ve sohbette</p>`;
+    sozPopYer(pop);
+    setTimeout(() => { const b = $('.emo-i', pop); if (b) b.focus(); }, 20);
+  }
+  sozBosDur();
+}
+Object.assign(ACTIONS, {
+  'soz-gif': () => sozPopAc('gif'),
+  'soz-emo': () => sozPopAc('emo'),
+  'gif-devam': () => gifGetir(true),
+  'gif-gonder': b => { const g = GIF.liste[int(b.dataset.n)]; if (!g) return; sozPopAc('gif', false); sozGonder({ g }); $('#sozIn').focus(); },
+  'emo-gonder': b => { sozPopAc('emo', false); sozGonder({ e: b.dataset.e }); },
+  'gif-anahtar-sil': () => { gifAnahtarKaydet(''); $('#sozGif').dataset.kip = ''; gifCiz(); notify('GIF anahtarı silindi', 'Yenisini yazana kadar masada GIF aranamaz.'); },
+});
+document.addEventListener('input', e => {
+  if (e.target.id !== 'gifAra') return;
+  GIF.ara = e.target.value; clearTimeout(GIF.zt);
+  const v = GIF.ara.trim();
+  if (v && v.length < 2) return;
+  GIF.zt = setTimeout(() => gifGetir(), 450);                          // yazmayı bırakınca arar (her harfte değil: saatlik sınır)
+});
+function gifAnahtarYaz() {                                            // DM anahtarı yapıştırıp Kaydet'e (ya da Enter'a) bastı
+  const k = $('#gifKurIn').value.trim();
+  if (!gifAnahtarGecerli(k)) { notify('Bu bir KLIPY anahtarına benzemiyor', 'Partner panelindeki "API Keys" sayfasından anahtarı kopyalayıp yapıştır.'); return; }
+  gifAnahtarKaydet(k); $('#sozGif').dataset.kip = ''; gifCiz(); gifGetir();
+  setTimeout(() => { const f = $('#gifAra'); if (f) f.focus(); }, 20);
+  notify('GIF anahtarı kaydedildi', 'Masadakilere de gitti. Artık herkes GIF arayabilir.');
+}
+ACTIONS['gif-anahtar-yaz'] = () => gifAnahtarYaz();
+document.addEventListener('keydown', e => {                           // GIF camındaki kutularda Enter sohbet formunu göndermesin
+  if (e.key !== 'Enter' || !['gifAra', 'gifKurIn'].includes(e.target.id)) return;
+  e.preventDefault();
+  if (e.target.id === 'gifKurIn') gifAnahtarYaz(); else { clearTimeout(GIF.zt); gifGetir(); }
+}, true);
+document.addEventListener('keydown', e => {                           // Esc: açık GIF / emote camını kapatır
+  if (e.key !== 'Escape') return;
+  const ac = ['gif', 'emo'].find(k => !$(k === 'gif' ? '#sozGif' : '#sozEmo').hidden);
+  if (!ac) return;
+  e.stopPropagation(); sozPopAc(ac, false); $('#sozIn').focus();
+}, true);
+document.addEventListener('pointerdown', e => {                       // camın dışına basınca kapanır
+  if (e.target.closest('#sozGif, #sozEmo, #sozGifBtn, #sozEmoBtn')) return;
+  if (!$('#sozGif').hidden) sozPopAc('gif', false);
+  if (!$('#sozEmo').hidden) sozPopAc('emo', false);
+});
+/* Enter (LoL gibi): masadayken bir yazı kutusunda değilsen Enter sohbete yazdırır */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.ctrlKey || e.altKey || e.metaKey || mode !== 'table') return;
+  const t = e.target;
+  if (t.closest && t.closest('input, textarea, select, button, a, [contenteditable], .modal')) return;
+  if ($$('.modal').some(m => !m.hidden)) return;
+  const box = $('#tvSoz'), inp = $('#sozIn');
+  if (!box || box.hidden || !panoAcik('soz') || inp.disabled || !inp.offsetParent) return;
+  e.preventDefault(); inp.focus();
+});
+['pointerenter', 'pointerleave', 'focusin', 'focusout'].forEach(t => $('#tvSoz').addEventListener(t, () => setTimeout(sozBosDur, 0)));
 $('#sozYaz').addEventListener('submit', e => { e.preventDefault(); sozGonder(); });
 $('#sozKime').addEventListener('change', () => {                       // alıcı değişti: eski alıcıya "bıraktı", yenisine "yazıyor"
   if (SOZ.yaziyor) { const kime = $('#sozKime').value; $('#sozKime').value = SOZ.kimeOnce ?? ''; yazGonder(false); $('#sozKime').value = kime; }
@@ -11537,6 +11812,7 @@ function duzenAc(ac) {
   if (!ac) return;
   $('#duzenSolma').checked = store.solma !== false;
   $('#duzenYapis').checked = store.camYapis !== false;
+  $('#duzenSozSeffaf').checked = store.sozSeffaf !== false;
   const w = $('.tv-wrap').getBoundingClientRect(), r = b.getBoundingClientRect();
   pop.style.top = clamp(r.top - w.top - 10, 8, Math.max(8, w.height - pop.offsetHeight - 8)) + 'px';
 }
@@ -11574,6 +11850,7 @@ Object.assign(ACTIONS, {
 });
 $('#duzenSolma').addEventListener('change', e => { store.solma = e.target.checked; save(); solmaBasla(); });
 $('#duzenYapis').addEventListener('change', e => { store.camYapis = e.target.checked; save(); });
+$('#duzenSozSeffaf').addEventListener('change', e => { store.sozSeffaf = e.target.checked; save(); sozBosDur(); });
 document.addEventListener('pointerdown', e => { if (!$('#duzenPop').hidden && !e.target.closest('#duzenPop, #tvDuzen')) duzenAc(false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#duzenPop').hidden) duzenAc(false); });
 
