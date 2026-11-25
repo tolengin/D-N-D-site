@@ -1946,6 +1946,37 @@ button.mz-sec:hover{background:var(--lit)}
 .not-yaz .btn{border:0;flex:none;height:auto}
 .not-yaz.duz textarea{outline:2px dashed var(--accent);outline-offset:-4px}
 @media (max-width:640px) and (orientation:portrait){.tv-not{width:auto;margin-top:12px}.tv-not h2{font-size:20px}.not-liste{max-height:30vh}.not-yaz textarea{font-size:16px}}
+/* NPC'ler (2026-11-26, R4 madde 30): DM'in penceresinde her NPC bir kart (kare portre: basınca bilgisayardan resim, ad, iş,
+   çalıştığı dükkan, Konuş). Konuşma sürerken herkesin ekranında sol üstte kart: kare portre, "Şu an X ile konuşuyorsunuz", işi. */
+.ks-kart{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);background:var(--surface-2)}
+.ks-kart.konusuyor{box-shadow:inset 3px 0 0 var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface-2))}
+.ks-av{display:grid;place-items:center;width:64px;height:64px;padding:0;border:2px solid var(--lead);outline:2px solid var(--line);outline-offset:-4px;border-radius:0;background:var(--lead);
+  color:var(--muted);font-family:var(--font-display);font-size:26px;font-weight:700;cursor:pointer;overflow:hidden}
+.ks-av img{width:100%;height:100%;object-fit:cover;display:block}
+.ks-av:hover,.ks-av:focus-visible{outline-color:var(--accent)}
+.ks-av small{font-family:var(--font-ui);font-size:11px;font-weight:600;line-height:1.2;padding:2px}
+.ks-bil{display:grid;gap:6px;min-width:0}
+.ks-bil input{min-width:0;padding:5px 8px;font-size:14px}
+.ks-bil input[data-ks="ad"]{font-family:var(--font-display);font-size:18px;font-weight:600}
+.ks-bil label{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.ks-bil select{flex:1;min-width:0;padding:4px 6px;font-size:13px}
+@media (max-width:560px){.ks-kart{grid-template-columns:56px minmax(0,1fr)}.ks-av{width:56px;height:56px}.ks-kart .dk-is{grid-column:1/-1;justify-content:flex-start}}
+.tv-konus{position:absolute;z-index:9;left:calc(var(--povw) + 72px);top:12px;display:flex;align-items:center;gap:calc(1 * var(--u));max-width:min(440px,46%);
+  padding:var(--lw) calc(1.2 * var(--u)) var(--lw) var(--lw);background:var(--lead);border:var(--lw) solid var(--lead);box-shadow:var(--shadow);color:var(--text);
+  animation:konusGel .35s cubic-bezier(.2,.8,.3,1)}
+.tv-konus[hidden]{display:none}
+.kn-av{flex:none;display:grid;place-items:center;width:clamp(64px,calc(7 * var(--u)),112px);aspect-ratio:1;overflow:hidden;background:color-mix(in srgb,var(--g-dm) 30%,var(--lead));
+  outline:2px solid var(--g-dm);outline-offset:-4px;font-family:var(--font-display);font-size:clamp(24px,calc(3 * var(--u)),44px);font-weight:700}
+.kn-av img{width:100%;height:100%;object-fit:cover;display:block}
+.kn-yazi{display:grid;gap:2px;min-width:0;padding:calc(.6 * var(--u)) 0}
+.kn-yazi small{font-size:clamp(12px,calc(1 * var(--u)),14px);font-weight:600;color:var(--muted)}
+.kn-yazi b{font-family:var(--font-display);font-size:clamp(18px,calc(2 * var(--u)),30px);font-weight:700;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kn-yazi em{font-style:normal;font-size:clamp(12px,calc(1.05 * var(--u)),15px);color:color-mix(in srgb,var(--g-dm) 50%,var(--text))}
+.tv-konus .icon-btn{align-self:flex-start;margin-top:4px}
+@keyframes konusGel{from{opacity:0;translate:0 -12px}}
+@media (prefers-reduced-motion:reduce){.tv-konus{animation:none}}
+@media (max-width:640px) and (orientation:portrait){.tv-konus{left:8px;right:8px;top:8px;max-width:none}}
+body.hud-yok .tv-konus{display:none}
 /* Şeffaf sohbet (2026-11-26, R4 madde 27; kullanıcı: "LoL oyun içi sohbeti gibi sade ve şeffaf"). Dokunulmayan sohbetin camı yok
    olur: yalnızca yazılar tavernanın üstünde, koyu gölgeli; 20 sn'den eski mesajlar söner. Üstüne gelince, içine yazarken ya da
    masada Enter'a basınca cam geri gelir, eskiler de görünür. Düzen kutusundan kapatılır (store.sozSeffaf). Telefonda yok. */
@@ -2523,6 +2554,7 @@ body.tv-full #tableView{height:100dvh}
   <symbol id="i-duraklat" viewBox="0 0 24 24"><path d="M8 5.5v13M16 5.5v13"/></symbol>
   <symbol id="i-gonder" viewBox="0 0 24 24"><path d="M4 11.6 20 4l-5.6 16-3.1-6.7zM11.3 13.3 20 4"/></symbol>
   <!-- Emote'lar (2026-11-26, R4 madde 29): sohbetteki emote düğmesi ve 12 emote; hepsi aynı çizgi kalınlığında, dolgu yarı saydam -->
+  <symbol id="i-konus" viewBox="0 0 24 24"><path d="M4 5h16v10.5h-8.6L6.8 19.4v-3.9H4z"/><path d="M8 9h8M8 12h5"/></symbol>
   <symbol id="i-emote" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M8.6 14.2q3.4 3.4 6.8 0"/><path d="M9.2 9.6v.6M14.8 9.6v.6" stroke-width="2.2"/></symbol>
   <symbol id="em-selam" viewBox="0 0 24 24"><path d="M8.2 12.8V6.2a1.3 1.3 0 0 1 2.6 0v5M10.8 11V4.6a1.3 1.3 0 0 1 2.6 0V11M13.4 11V5.6a1.3 1.3 0 0 1 2.6 0V12M16 12.2V8.8a1.3 1.3 0 0 1 2.6 0v6.4c0 3.6-2.6 6.3-6.1 6.3h-.9c-1.7 0-2.9-.8-3.8-2.1L4.9 15.2c-.6-1 0-2 1.1-2 .8 0 1.4.5 2.2 1.4"/><path d="M3.4 7.2q-1 2.2.2 4.4M20.6 3.4q1.3 2 .6 4.4"/></symbol>
   <symbol id="em-kahkaha" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7.6 9.6q1.2-1.5 2.4 0M14 9.6q1.2-1.5 2.4 0"/><path d="M7.4 13h9.2q-.6 4.6-4.6 4.6T7.4 13z" fill="currentColor" fill-opacity=".3"/></symbol>
@@ -2793,11 +2825,16 @@ body.tv-full #tableView{height:100dvh}
         <button class="btn sm" id="tvCanli" data-act="tav-canli" aria-pressed="true" title="Sahne sürekli çizilsin, ışıklar titresin (kapatınca bilgisayar daha az yorulur)"><svg class="ic"><use href="#i-flame"/></svg><span>Canlı</span></button>
       </div>
       <input type="file" id="hrDosya" accept="image/*" hidden>
+      <input type="file" id="ksResimIn" accept="image/*" hidden>
+      <!-- Konuşma (2026-11-26, R4 madde 30): DM bir NPC'yle konuşmayı başlatınca herkesin ekranında sol üstte (ksKartCiz) -->
+      <div class="tv-konus" id="tvKonus" role="status" aria-live="polite" hidden></div>
       <div class="tv-ust">
         <!-- Tam ekran: tarayıcı desteklemiyorsa (ör. iPhone Safari) JS gizler -->
         <button class="btn sm tv-fs" id="tvFull" data-act="tv-full" aria-pressed="false" title="Tam ekran" hidden><svg class="ic"><use href="#i-expand"/></svg><span>Tam ekran</span></button>
         <!-- DM ekranı (2026-11-12): yalnızca DM'de. Eskiden üstteki masa şeridindeydi; şerit masada kalktı -->
         <button class="btn sm" id="tvDm" data-act="mode-dm" title="DM ekranı: oyuncular, düşmanlar, zarlar" hidden><svg class="ic"><use href="#i-users"/></svg><span>DM ekranı</span></button>
+        <!-- NPC'ler (2026-11-26, R4 madde 30): yalnızca DM'de. Konuşan NPC'ler: resim, ad, iş, dükkan; "Konuş" herkesin ekranına kart çıkarır -->
+        <button class="btn sm" id="tvKisi" data-act="ks-ac" aria-pressed="false" title="NPC'ler: resim ve ad yükle, dükkana çalışan koy, konuş" hidden><svg class="ic"><use href="#i-konus"/></svg><span>NPC'ler</span></button>
         <!-- Karakter kağıdını açar: kamera koltuğa yaklaşır, kağıt masanın üstünde açılır (madde 7) -->
         <button class="btn sm" id="tvKagit" data-act="mode-sheet" title="Karakter kağıdını aç"><svg class="ic"><use href="#i-scroll"/></svg><span>Kağıdım</span></button>
         <!-- Harita (BÖLÜM 10d): DM yükler, herkes görür; oyuncuda DM bir harita paylaşınca görünür -->
@@ -7411,7 +7448,7 @@ const dkBul = id => dkGorunen().find(d => d.id === id);
 const dkIc = d => (DUKKAN_TUR[d.tur] || DUKKAN_TUR.pazar).ic;
 const dkSatista = d => Object.values(ESYA).filter(e => d.esya[e.k]);  // katalog sırasıyla (DM'de esya nesne, oyuncuda dizi değil: aşağıda)
 function dkPaket() {
-  return { t: 'dukkan', d: dkY().filter(d => d.acik).slice(0, 12).map(d => ({ id: d.id, tur: d.tur, ad: short(d.ad, 40), yer: d.yer,
+  return { t: 'dukkan', d: dkY().filter(d => d.acik).slice(0, 12).map(d => ({ id: d.id, tur: d.tur, ad: short(d.ad, 40), yer: d.yer, calisan: ksPaket(ksBul(d.calisan), true),
     esya: Object.entries(d.esya).filter(([k]) => ESYA[k]).slice(0, PZ_SINIR).map(([k, x]) => [k, x.cp, x.stok]) })) };
 }
 function dkYay(p) { if (!pzDm()) return; const m = dkPaket(); if (p) send(p.conn, m); else net.players.forEach(o => send(o.conn, m)); }
@@ -7494,7 +7531,7 @@ function pzDmAl(p, msg) {                                              // oyuncu
 function dkAl(msg) {                                                   // DM'in açık dükkanları geldi
   const once = new Map((net.dukkan || []).map(d => [d.id, d]));
   net.dukkan = (Array.isArray(msg.d) ? msg.d : []).slice(0, 12).filter(d => d && typeof d === 'object').map(d => ({
-    id: hrTemiz(d.id), tur: DUKKAN_TUR[d.tur] ? d.tur : 'pazar', ad: short(d.ad, 40) || 'Pazar',
+    id: hrTemiz(d.id), tur: DUKKAN_TUR[d.tur] ? d.tur : 'pazar', ad: short(d.ad, 40) || 'Pazar', calisan: ksTemiz(d.calisan),
     yer: d.yer && typeof d.yer === 'object' && hrTemiz(d.yer.h) ? { h: hrTemiz(d.yer.h), x: clamp(num(d.yer.x), 0, 1), y: clamp(num(d.yer.y), 0, 1) } : null,
     esya: (Array.isArray(d.esya) ? d.esya : []).slice(0, PZ_SINIR).filter(x => Array.isArray(x) && ESYA[x[0]])
       .map(([k, cp, stok]) => [k, clamp(int(cp), 0, 10000000), stok === null || stok === undefined ? null : clamp(int(stok), 0, 9999)]) })).filter(d => d.id);
@@ -7596,6 +7633,105 @@ Object.assign(ACTIONS, {
   'dk-haritadan': b => { const d = dkY().find(x => x.id === b.dataset.id); if (d) { d.yer = null; dkDegisti(); } },
   'dk-pin': b => { const id = b.dataset.id; if (pzDm()) pzDmAc(id); else pzOyuncuAc(id); },
 });
+/* ═══════════════════════════════════════════════════════════════════
+   BÖLÜM 10g-2 — NPC'ler: konuşanlar (2026-11-26, R4 madde 30; kullanıcı: "DM NPC yükler (resim + ad), dükkanlara çalışan ekler,
+   'Şu an X ile konuşuyorsunuz' herkesin ekranında. Resmi DM kendi bilgisayarından yükler.")
+   • store.kisiler = [{ id, ad, unvan, img (192 px), kucuk (96 px) }] yalnızca DM'in tarayıcısında (en çok 30). Resim bilgisayardan
+     seçilir, kare kırpılıp küçültülür (makeThumb); dosyanın kendisi hiçbir yere gitmez.
+   • Dükkanın çalışanı: dukkan.calisan = NPC'nin kimliği (bir NPC bir dükkanda). Oyuncuya dükkan paketinde adı, işi, küçük resmi gider.
+   • Konuşma: store.konus = NPC'nin kimliği. Herkese {t:'konus', k:{ ad, unvan, img }} ya da {t:'konus', k:null}; masaya sonradan
+     gelene de gider. Sol üstte kart (ksKartCiz); DM'in kartında "bitir".
+   • Savaştaki düşman / dost NPC'ler ayrı (BÖLÜM 10b, DM ekranı).
+   ═══════════════════════════════════════════════════════════════════ */
+const KS = { sil: '', resim: '' };
+const ksY = () => { if (!Array.isArray(store.kisiler)) store.kisiler = []; return store.kisiler; };
+const ksBul = id => (id ? ksY().find(k => k.id === id) : null) || null;
+const ksAvHTML = (img, ad) => img ? `<img src="${esc(img)}" alt="">` : esc((String(ad || '').trim()[0] || '?').toLocaleUpperCase('tr'));
+function ksPaket(k, kucuk) { return k ? { ad: short(k.ad, 40) || 'İsimsiz', unvan: short(k.unvan, 50), img: (kucuk ? k.kucuk : k.img) || '' } : null; }
+function ksTemiz(k) { return k && typeof k === 'object' ? { ad: short(k.ad, 40) || 'İsimsiz', unvan: short(k.unvan, 50), img: cleanImg(k.img) } : null; }
+function ksYay(p) {                                                    // konuşulan NPC herkese (ya da yeni gelene)
+  if (store.net.role !== 'dm') return;
+  const m = { t: 'konus', k: ksPaket(ksBul(store.konus)) };
+  if (p) send(p.conn, m); else net.players.forEach(o => send(o.conn, m));
+}
+function ksAl(msg) {                                                   // oyuncu: DM bir NPC'yle konuşmayı başlattı ya da bitirdi
+  const k = ksTemiz(msg.k), once = net.konus;
+  net.konus = k;
+  if (k && (!once || once.ad !== k.ad)) { notify(`Şu an ${k.ad} ile konuşuyorsunuz`, k.unvan || ''); ses('tik'); }
+  ksKartCiz();
+}
+function ksKartCiz() {                                                 // sol üstteki konuşma kartı
+  const box = $('#tvKonus'); if (!box) return;
+  const dm = store.net.role === 'dm', k = dm ? ksPaket(ksBul(store.konus)) : store.net.role === 'player' ? net.konus : null;
+  box.hidden = !k;
+  if (!k) { box.innerHTML = ''; return; }
+  box.innerHTML = `<span class="kn-av">${ksAvHTML(k.img, k.ad)}</span><span class="kn-yazi"><small>Şu an konuşuyorsunuz</small><b>${esc(k.ad)}</b>${k.unvan ? `<em>${esc(k.unvan)}</em>` : ''}</span>
+    ${dm ? '<button class="icon-btn" data-act="ks-bitir" title="Konuşmayı bitir: kart herkesin ekranından kalkar" aria-label="Konuşmayı bitir"><svg class="ic"><use href="#i-x"/></svg></button>' : ''}`;
+  box.setAttribute('aria-label', `Şu an ${k.ad} ile konuşuyorsunuz`);
+}
+function ksDegisti() { save(); ksYay(); ksKartCiz(); if (dkY().some(d => d.acik && d.calisan)) dkYay(); if (!$('#katModal').hidden && KAT.mod === 'kisiler') katCiz(); }
+function ksAc() {                                                      // DM: NPC'ler penceresi (katalog penceresinin kalıbı)
+  katAc('kisiler', null, {
+    baslik: ['NPC\'ler', 'Oyuncuların konuştuğu kişiler: hancı, tüccar, kral… Resme basıp bilgisayarından resim seç. "Konuş"a basınca herkesin ekranında "Şu an … ile konuşuyorsunuz" yazar. Dükkana koyduğun NPC orada tüccar olur.'],
+    ozelCiz: () => { const l = ksY(), dk = dkY();
+      return l.length ? `<div class="dk-kartlar">${l.map(k => { const benim = dk.find(d => d.calisan === k.id), konus = store.konus === k.id;
+        return `<div class="ks-kart${konus ? ' konusuyor' : ''}" data-id="${k.id}">
+          <button class="ks-av" data-act="ks-resim" data-id="${k.id}" title="Resim seç (bilgisayarından)" aria-label="${esc(k.ad || 'NPC')}: resim seç">${k.img ? ksAvHTML(k.img, k.ad) : '<small>Resim seç</small>'}</button>
+          <div class="ks-bil"><input data-ks="ad" data-id="${k.id}" value="${esc(k.ad)}" maxlength="40" placeholder="Adı" aria-label="NPC'nin adı">
+            <input data-ks="unvan" data-id="${k.id}" value="${esc(k.unvan)}" maxlength="50" placeholder="Ne iş yapar? (ör. demirci, hancı, kral)" aria-label="NPC'nin işi">
+            <label>Dükkanı <select data-ks="dukkan" data-id="${k.id}" aria-label="Çalıştığı dükkan"><option value="">Yok</option>${dk.map(d => `<option value="${d.id}"${benim === d ? ' selected' : ''}>${esc(d.ad)}${d.calisan && d.calisan !== k.id ? ` (şimdi: ${esc((ksBul(d.calisan) || {}).ad || '?')})` : ''}</option>`).join('')}</select></label></div>
+          <span class="dk-is"><button class="btn sm${konus ? '' : ' accent'}" data-act="${konus ? 'ks-bitir' : 'ks-konus'}" data-id="${k.id}"${!konus && !String(k.ad || '').trim() ? ' disabled title="Önce adını yaz"' : ''}><svg class="ic"><use href="#i-konus"/></svg>${konus ? 'Konuşmayı bitir' : 'Konuş'}</button>
+            <button class="btn sm${KS.sil === k.id ? ' bad' : ''}" data-act="ks-sil" data-id="${k.id}">${KS.sil === k.id ? 'Emin misin? Sil' : 'Sil'}</button></span></div>`; }).join('')}</div>`
+        : '<p class="empty">Henüz NPC yok. Aşağıdan ekle: resmini bilgisayarından seçersin, adını ve işini yazarsın.</p>'; },
+    altYazi: () => `<button class="btn sm accent" data-act="ks-yeni"><svg class="ic"><use href="#i-plus"/></svg>Yeni NPC</button>${store.konus && ksBul(store.konus) ? `<span>Şu an <b>${esc(ksBul(store.konus).ad)}</b> ile konuşuluyor</span>` : ''}`,
+    kapaninca: () => { KS.sil = ''; $('#tvKisi').setAttribute('aria-pressed', 'false'); },
+  });
+  $('#tvKisi').setAttribute('aria-pressed', 'true');
+}
+function ksDegis(el, yerel) {                                          // pencerede ad, iş ya da dükkan değişti; yerel: yazarken (ağa gitmez)
+  const k = ksBul(el.dataset.id); if (!k) return;
+  const f = el.dataset.ks;
+  if (f === 'ad') k.ad = short(el.value.trim(), 40);
+  else if (f === 'unvan') k.unvan = short(el.value.trim(), 50);
+  else if (f === 'dukkan') { dkY().forEach(d => { if (d.calisan === k.id) d.calisan = ''; }); const d = dkY().find(x => x.id === el.value); if (d) d.calisan = k.id; }
+  if (yerel) { $$('[data-act="ks-konus"]').forEach(b => { const x = ksBul(b.dataset.id); b.disabled = !x || !String(x.ad || '').trim(); }); return; }
+  save();
+  if (f === 'dukkan') { katCiz(); if (dkY().some(d => d.acik)) dkYay(); }
+  else { if (store.konus === k.id) { ksYay(); ksKartCiz(); } if (dkY().some(d => d.acik && d.calisan === k.id)) dkYay(); $$('[data-act="ks-konus"]').forEach(b => { const x = ksBul(b.dataset.id); b.disabled = !x || !String(x.ad || '').trim(); }); }
+}
+$('#katModal').addEventListener('change', e => { if (e.target.dataset.ks && KAT.mod === 'kisiler') ksDegis(e.target); });
+$('#katModal').addEventListener('input', e => { if (['ad', 'unvan'].includes(e.target.dataset.ks) && KAT.mod === 'kisiler') ksDegis(e.target, true); });
+$('#ksResimIn').addEventListener('change', e => {
+  const f = e.target.files[0], k = ksBul(KS.resim); e.target.value = '';
+  if (!f || !k) return;
+  if (!/^image\//.test(f.type)) { notify('Bu bir resim değil', 'JPG, PNG ya da WebP seç.'); return; }
+  const rd = new FileReader();
+  rd.onload = () => Promise.all([makeThumb(rd.result, 192), makeThumb(rd.result, 96)]).then(([img, kucuk]) => {
+    if (!img) { notify('Resim açılamadı', 'Başka bir resim dene.'); return; }
+    k.img = img; k.kucuk = kucuk; ksDegisti();
+  });
+  rd.readAsDataURL(f);
+});
+Object.assign(ACTIONS, {
+  'ks-ac': () => { if (!$('#katModal').hidden && KAT.mod === 'kisiler') { katKapa(); return; } ksAc(); },
+  'ks-yeni': () => {
+    const l = ksY(); if (l.length >= 30) { notify('En çok 30 NPC', 'Önce birini sil.'); return; }
+    l.push({ id: 'k' + newCode().toLowerCase(), ad: '', unvan: '', img: '', kucuk: '' }); save(); katCiz();
+    const inp = $$('#katIc input[data-ks="ad"]').pop(); if (inp) inp.focus();
+  },
+  'ks-resim': b => { KS.resim = b.dataset.id; $('#ksResimIn').click(); },
+  'ks-konus': b => { const k = ksBul(b.dataset.id); if (!k || !String(k.ad || '').trim()) return; store.konus = k.id; ksDegisti(); notify(`${k.ad} ile konuşma başladı`, 'Masadakilerin ekranında sol üstte yazıyor. Bitirmek için karttaki ×.'); },
+  'ks-bitir': () => { store.konus = ''; ksDegisti(); },
+  'ks-sil': b => {
+    const id = b.dataset.id;
+    if (KS.sil !== id) { KS.sil = id; katCiz(); return; }
+    KS.sil = ''; store.kisiler = ksY().filter(k => k.id !== id);
+    dkY().forEach(d => { if (d.calisan === id) d.calisan = ''; });
+    if (store.konus === id) store.konus = '';
+    ksDegisti(); if (dkY().some(d => d.acik)) dkYay();
+  },
+});
+
 /* ═══════════════════════════════════════════════════════════════════
    BÖLÜM 10h — Satış ve pazarlık (2026-11-10, kullanıcının isteği: "oyuncu pazarda eşya satabilsin, teklif versin; DM, tüccar
    olarak kabul etsin, etmesin ya da ikna zarı istesin")
@@ -7880,6 +8016,7 @@ function stopNet(clearRole = true) {
   sozSifirla();                                                      // sohbet (BÖLÜM 10e): hiçbir yere kaydedilmez
   net.gifK = ''; GIF.liste = []; GIF.on.clear(); sozPopAc('gif', false); sozPopAc('emo', false);   // GIF anahtarı yalnızca bellekteydi
   net.notlar = []; net.notIlk = false; NOT.duz = ''; NOT.yeni = 0;   // ortak notlar: DM'inkiler store.notlar'da kalır
+  net.konus = null;                                                  // konuşulan NPC (DM'inki store.konus'ta)
   net.muzik = null;                                                  // müzik (BÖLÜM 10f): oyuncunun DM'den aldığı sıra
   TK.gelen = []; TK.benim = []; tkCiz();                             // satış teklifleri (BÖLÜM 10h)
   net.dukkan = null; PZ.bekle = ''; if (!$('#katModal').hidden && /^(pazar|dukkan-sec)/.test(KAT.mod) && store.net.role !== 'dm') katKapa();   // dükkanlar (BÖLÜM 10g); DM'inkiler store.dukkanlar'da kalır
@@ -7975,6 +8112,7 @@ function dmReceive(pid, conn, msg) {
     sozGecmisYolla(p);                                               // sohbetin son mesajları (BÖLÜM 10e)
     if (gifAnahtar()) gifYay(p);                                     // GIF anahtarı (KLIPY): yalnızca bellekte tutulur
     notYay(p);                                                       // ortak notlar (BÖLÜM 10e-2)
+    if (store.konus) ksYay(p);                                       // konuşulan NPC (BÖLÜM 10g-2)
     mzYay(p);                                                        // müzik: sıra ve çalan (BÖLÜM 10f)
     if (dkY().some(d => d.acik)) dkYay(p);                            // dükkanlar (BÖLÜM 10g)
   }
@@ -8193,6 +8331,7 @@ function playerReceive(conn, msg) {
   else if (msg.t === 'soz') sozEkle(sozKayit(msg));                  // sohbet (BÖLÜM 10e)
   else if (msg.t === 'soz-gecmis') sozGecmisAl(msg);
   else if (msg.t === 'notlar') notAl(msg);                           // ortak notlar (BÖLÜM 10e-2)
+  else if (msg.t === 'konus') ksAl(msg);                             // konuşulan NPC (BÖLÜM 10g-2)
   else if (msg.t === 'gif-k') { const k = gifAnahtarGecerli(msg.k) ? String(msg.k) : ''; if (k !== net.gifK) { net.gifK = k; GIF.on.clear(); GIF.liste = []; GIF.hata = ''; $('#sozGif').dataset.kip = ''; gifCiz(); } }
   else if (msg.t === 'yaz') { const k = cleanSeat(msg.kim); if (k && k !== net.mySeat) yazGoster(k, !!msg.on); }
   else if (msg.t === 'mz') mzAl(msg);                                // müzik (BÖLÜM 10f)
@@ -8298,6 +8437,8 @@ function renderNetUI() {
   const role = store.net.role, code = prettyCode(store.net.code);
   pzDugme();                                                         // pazar düğmesi (BÖLÜM 10g)
   $('#tvDm').hidden = role !== 'dm';                                 // araç şeridinde "DM ekranı" (2026-11-12)
+  $('#tvKisi').hidden = role !== 'dm';                               // NPC'ler (2026-11-26)
+  ksKartCiz();
   document.body.classList.toggle('role-dm', role === 'dm');          // DM isimliklere basıp hedef seçebilir (imleç)
   $('#tableDot').className = role ? dotClass() : 'dot';
   // Üst çubuk: masadayken düğmede masa kodu yazar, üstüne gelince durum görünür
