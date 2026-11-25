@@ -750,6 +750,11 @@ main.col{grid-template-rows:auto auto 1fr;align-content:stretch}
 .hk-sayi{display:flex;align-items:center;gap:4px;flex:none}
 .hk-sayi input{width:58px;text-align:center;padding:4px}
 .hk-sayi small{color:var(--muted)}
+.hk-kul{display:flex;gap:4px;flex:none}
+.hk-kul input{width:58px;text-align:center;padding:4px}
+.hk-liste .hk-kullan,.hk-kul .btn{flex:none}
+.mc-atk.mc-hak{grid-template-columns:minmax(0,1fr) auto}
+.mc-atk.mc-hak.bos span{opacity:.55}
 .hk-pip{flex:none;gap:2px}
 body.peek #haklar{pointer-events:none}
 body.peek #sheet [data-act="kisa-dinlen"]{display:none}
@@ -4057,8 +4062,47 @@ function hakHtml() {                                                  // C'nin h
     const say = h.havuz || h.max > 6
       ? `<span class="hk-sayi"><button class="icon-btn" data-act="hak" data-k="${h.k}" data-d="-1" title="Bir harca" aria-label="${esc(h.tr)}: bir harca"><svg class="ic"><use href="#i-minus"/></svg></button><input type="number" data-hak="${h.k}" min="0" max="${h.max}" value="${kalan}" aria-label="${esc(h.tr)}: kalan"><small>/ ${h.max}</small><button class="icon-btn" data-act="hak" data-k="${h.k}" data-d="1" title="Bir geri al" aria-label="${esc(h.tr)}: bir geri al"><svg class="ic"><use href="#i-plus"/></svg></button></span>`
       : `<span class="pips hk-pip">${Array.from({ length: h.max }, (_, i) => `<button class="pip${i < kalan ? ' on' : ''}" data-act="hak" data-k="${h.k}" data-v="${i < kalan ? i : i + 1}" aria-label="${esc(h.tr)}: ${i < kalan ? 'harca' : 'geri al'}"></button>`).join('')}</span>`;
-    return `<li><span class="hk-ad"><b>${esc(h.tr)}</b><small>${esc(h.en)} · ${hakDinlenYazi(h)}</small></span>${say}</li>`;
+    const u = hakEtki(h.k);
+    const kul = h.k === 'elkoy' ? `<span class="hk-kul"><input type="number" class="hk-miktar" min="1" max="${kalan}" placeholder="Kaç" aria-label="Kaç can verilecek"><button class="btn sm good" data-act="hak-kullan" data-k="elkoy" title="Seçili hedefe (bir arkadaşın) ya da hedef yoksa sana can verir" ${kalan ? '' : 'disabled'}>Ver</button></span>`
+      : h.havuz ? '' : `<button class="btn sm${u ? ' accent' : ''} hk-kullan" data-act="hak-kullan" data-k="${h.k}" title="${esc(u ? `${u.e}: ${u.x}` : 'Bir hak harcar')}" ${kalan ? '' : 'disabled'}>Kullan</button>`;
+    return `<li><span class="hk-ad"><b>${esc(h.tr)}</b><small>${esc(h.en)} · ${hakDinlenYazi(h)}</small></span>${say}${kul}</li>`;
   }).join('')}</ul>`;
+}
+/* Hakkı kullanma (2026-11-25, R3 madde 45; kullanıcı: "Second Wind gibi özellikleri savaşta basıp direkt kullanabilelim").
+   "Kullan" bir hak düşer ve etkisini uygular: can dolduran zar kendine (Second Wind, Wholeness of Body), El koyma yazdığın kadar
+   canı seçili hedefe ya da sana, Paladin's Smite hedefe 2d8 hasar zarı; öbürleri ne yaptığını söyler. e: ne harcanır, x: etkisi (SRD 5.2.1). */
+function hakEtki(k) {
+  const l = int(C.level), m = a => Math.floor((int(C.abilities[a]) - 10) / 2);
+  const E = {
+    soluk: () => ({ e: 'Bonus eylem', x: `Canın 1d10 + ${l} (Fighter seviyen) kadar dolar.`, zar: `1d10+${l}`, kendi: true }),
+    atilim: () => ({ e: 'Ücretsiz', x: 'Bu turunda bir eylem daha yaparsın (Magic eylemi olmaz).' }),
+    yilmaz: () => ({ e: 'Ücretsiz', x: `Başaramadığın kurtarma zarını yeniden at ve ${l} ekle; yeni sonucu kullanırsın.` }),
+    ofke: () => ({ e: 'Bonus eylem', x: `Öfkelisin: STR zarlarında avantaj, ezici / delici / kesici hasarın yarısını alırsın, STR'li saldırılarında +${l >= 16 ? 4 : l >= 9 ? 3 : 2} hasar. Ağır zırhla olmaz, büyü yapamazsın. Her turda saldırırsan ya da bonus eylemle uzatırsan sürer (en çok 10 dakika).` }),
+    ilham: () => ({ e: 'Bonus eylem', x: `60 ft içindeki bir dostuna d${l >= 15 ? 12 : l >= 10 ? 10 : l >= 5 ? 8 : 6} ilham zarı verirsin: bir saat içinde bir d20 zarını başaramazsa bu zarı atıp ekleyebilir. Kime verdiğini söyle.` }),
+    ilahi: () => ({ e: 'Eylem ya da bonus eylem', x: 'İlahi gücünü kullandın: hangi etkiyi seçtiğini DM\'e söyle (Özellikler sekmesinde yazar).' }),
+    vahsi: () => ({ e: 'Bonus eylem', x: 'Bir hayvan biçimine girersin; biçimin değerlerini DM ile kullan. Canın biterse eski biçimine dönersin.' }),
+    butunluk: () => { const z = l >= 17 ? 12 : l >= 11 ? 10 : l >= 5 ? 8 : 6; return { e: 'Bonus eylem', x: `Canın 1d${z} + WIS kadar dolar.`, zar: `1d${z}${m('wis') ? (m('wis') > 0 ? '+' : '') + m('wis') : ''}`, kendi: true }; },
+    smite: () => ({ e: 'Vurduktan sonra, bonus eylem', x: 'Yuvasız Divine Smite: yakın dövüşte vurduğun hedef +2d8 ışıyan hasar alır (iblis ya da ölümsüzse +1d8 daha).', zar: '2d8', hasar: true }),
+    gozde: () => ({ e: 'Bonus eylem', x: 'Yuvasız Hunter\'s Mark: işaretlediğin hedefe her vurduğunda +1d6 güç hasarı; konsantrasyon ister.' }),
+  };
+  return E[k] ? E[k]() : null;
+}
+function hakKullan(k, btn) {
+  if (mode === 'peek') return;
+  const h = hakListe().find(x => x.k === k); if (!h) return;
+  const kalan = hakKalan(h);
+  if (kalan <= 0) { notify(`${h.tr} hakkın kalmadı`, hakDinlenYazi(h)[0].toUpperCase() + hakDinlenYazi(h).slice(1) + '.'); return; }
+  if (k === 'elkoy') {                                                // El koyma: havuzdan yazdığın kadar can
+    const inp = btn && $('.hk-miktar', btn.closest('li')), n = clamp(int(inp && inp.value), 0, kalan);
+    if (!n) { notify('Kaç can vereceğini yaz', `Havuzunda ${kalan} can var.`); if (inp) inp.focus(); return; }
+    hakAyarla(k, kalan - n);
+    rollExpr(String(n), `${h.en} (${h.tr})`, { iyi: true });
+    return;
+  }
+  const u = hakEtki(k);
+  hakAyarla(k, kalan - 1);
+  if (u && u.zar) rollExpr(u.zar, `${h.en} (${h.tr})${u.hasar ? ': ışıyan hasar' : ''}`, u.hasar ? { hasar: true } : { iyi: true, kendi: !!u.kendi });
+  notify(`${h.tr} kullanıldı`, (u ? `${u.e}. ${u.x}` : `${h.en}: ne yaptığı Özellikler sekmesinde yazar.`) + ` Kalan: ${kalan - 1}/${h.max}.`);
 }
 function hakAyarla(k, kalan) {
   if (mode === 'peek') return;
@@ -4946,7 +4990,7 @@ function rollExpr(expr, label, opt = {}) {
       detail += `${op}${n}d${t.s} (${r.join(', ')})`;
     } else { total += t.neg ? -t.k : t.k; detail += op + t.k; }
   });
-  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : (opt.note || ''), dice, hasar: !!opt.hasar, hedefsiz: !!opt.hedefsiz, iyi: !!opt.iyi });
+  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : (opt.note || ''), dice, hasar: !!opt.hasar, hedefsiz: !!opt.hedefsiz, iyi: !!opt.iyi, kendi: !!opt.kendi });
   return total;
 }
 
@@ -5535,6 +5579,7 @@ const ACTIONS = {
   lvl: b => { C.level = clamp(C.level + int(b.dataset.d), 1, 20); C.hdUsed = clamp(C.hdUsed, 0, C.level); C.xp = Math.max(int(C.xp), XP_ESIK[C.level - 1]); setInput('xp'); changed(); renderChars(); },
   'seviye-atla': () => lvAc(),                                       // BÖLÜM 8c
   hak: b => { const h = hakListe().find(x => x.k === b.dataset.k); if (h) hakAyarla(h.k, 'v' in b.dataset ? int(b.dataset.v) : hakKalan(h) + int(b.dataset.d)); },
+  'hak-kullan': b => hakKullan(b.dataset.k, b),
   'kisa-dinlen': () => kisaDinlen(),
   'lv-kapa': () => lvKapa(),
   'lv-zar': () => lvCan(true),
@@ -8192,8 +8237,8 @@ function zarHedefle(r) {
   const h = gecerliHedef(), a = atanNpc();
   if (r.iyi) {                                                       // iyileştirme (2026-11-25, R3 madde 43): hedef seçiliyse ona, değilse sana
     if (a) { r.kim = a.ad || 'Düşman'; r.npc = a.id; }
-    r.hasar = false;
-    if (h) { r.hedef = h; r.label += ` → ${hedefAd(h)}`; if (store.net.role === 'dm') iyiUygula(h, r.total, r.kim || myName()); }
+    r.hasar = false;                                                 // kendi: yalnızca kendine (Second Wind), seçili hedefe bakılmaz
+    if (h && !r.kendi) { r.hedef = h; r.label += ` → ${hedefAd(h)}`; if (store.net.role === 'dm') iyiUygula(h, r.total, r.kim || myName()); }
     else if (store.net.role !== 'dm') { r.label += ' → kendin'; const m = int(r.total); setTimeout(() => iyiAl(m, ''), SAVAS.gecikme); }
     return;
   }
@@ -10453,7 +10498,10 @@ function renderMe() {
     + (u => `<div class="mc-atk" data-row data-i="-1"><span title="Silahsız vuruş · tutma / itme: hedef ZD ${u.zd}">Yumruk / tekme<small>${esc(u.dmg)}</small></span>
       <button class="roll" data-act="roll" data-roll="silahsiz" title="Yumruk ya da tekme: vuruş zarı at">${sign(u.vurus)}</button>
       <button class="roll die" data-act="roll" data-roll="silahsiz-hasar" title="Hasar: ${esc(u.dmg)} ezici" aria-label="Yumruk / tekme hasarı">${HASAR_IC}</button></div>`)(silahsiz(c))
-    + byCamSatir(c);                                                    // hasar veren cantrip'ler (BÖLÜM 8e)
+    + byCamSatir(c)                                                     // hasar veren cantrip'ler (BÖLÜM 8e)
+    + calc(c, () => hakListe().filter(h => hakEtki(h.k)).slice(0, 3).map(h => { const u = hakEtki(h.k), k = hakKalan(h);   // 2026-11-25: Second Wind, Öfke… tek tıkla
+      return `<div class="mc-atk mc-hak${k ? '' : ' bos'}"><span title="${esc(`${h.en}: ${u.e}. ${u.x}`)}">${esc(h.tr)}<small>${esc(u.e)} · ${k}/${h.max} hak</small></span>
+        <button class="btn sm accent" data-act="hak-kullan" data-k="${h.k}" ${k ? '' : 'disabled'} title="${esc(u.x)}">Kullan</button></div>`; }).join(''));
   // Beceriler / envanter camı (store.meSek: '' | 'beceri' | 'envanter')
   const sek = store.meSek || '';
   let sekCam = '';
