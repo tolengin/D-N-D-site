@@ -1168,7 +1168,6 @@ body.olusturuyor .kagit-ust :is(.gorunum,.ku-ad){visibility:hidden}
 .ol-alinan small{color:var(--muted)}
 .kat-yok{font-size:12px;color:var(--muted)}
 .kat-not{margin:0 0 6px;font-size:13px;color:var(--muted)}
-.sat-satir{grid-template-columns:32px minmax(0,1fr) auto auto auto}
 /* Satış teklif kartları (2026-11-10, BÖLÜM 10h): sol altta, araç şeridinin yanında; pencerelerin de üstünde */
 .tk-kartlar{position:fixed;left:72px;bottom:20px;z-index:75;width:min(340px,calc(100vw - 92px));display:grid;gap:10px}
 .tk-kartlar[hidden]{display:none}
@@ -1186,7 +1185,60 @@ body:has(#katModal:not([hidden])) .tk-kartlar{left:auto;right:20px;bottom:96px;w
 .tk-is{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .tk-is select{width:auto;padding:5px 6px}
 .tk-is .pz-say input{width:64px}
-@media (max-width:640px){.tk-kartlar{left:12px;bottom:84px;width:calc(100vw - 24px)}.sat-satir{grid-template-columns:28px minmax(0,1fr) auto}.sat-satir>.pz-say{grid-column:2}}
+@media (max-width:640px){.tk-kartlar{left:12px;bottom:84px;width:calc(100vw - 24px)}}
+/* Tüccar penceresi (2026-11-26, R4 madde 47–50): oyunlardaki gibi iki sütun. Üstte tüccar (NPC portresi, adı, işi) ve kesen (beş
+   para); solda tüccarın malları (kalan adet, fiyat, Al / Teklif), sağda çantan (Sat). Teklif satırın altında açılır: adet, miktar,
+   para türü. Dar ekranda sütunlar alt alta. */
+.kat-modal.tuccar .kat-box{max-width:1100px}
+.kat-liste:has(>.tc){overflow:hidden;padding-right:0}
+.tc{flex:1;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:10px}
+.tc-ust{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding:8px 10px;border:1px solid var(--line);background:var(--surface-2)}
+.tc-av{display:grid;place-items:center;width:56px;height:56px;flex:none;overflow:hidden;background:color-mix(in srgb,var(--g-dm) 30%,var(--lead));outline:2px solid var(--g-dm);outline-offset:-4px;
+  font-family:var(--font-display);font-size:24px;font-weight:700}
+.tc-av img{width:100%;height:100%;object-fit:cover;display:block}
+.tc-kim{display:grid;min-width:0}
+.tc-kim small,.tc-kese small{font-size:12px;font-weight:600;color:var(--muted)}
+.tc-kim b{font-family:var(--font-display);font-size:20px;line-height:1.1}
+.tc-kim em{font-style:normal;font-size:13px;color:color-mix(in srgb,var(--g-dm) 50%,var(--text))}
+.tc-kese{margin-left:auto;display:grid;gap:2px;text-align:right}
+.tc-para{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:2px 12px;font-size:14px}
+.tc-para b{font-family:var(--font-display);font-size:17px}
+.tc-para .sifir{color:var(--muted)}
+.tc-sutunlar{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px;min-height:0}
+.tc-sut{display:flex;flex-direction:column;gap:6px;min-height:0}
+.tc-sut>h3{display:flex;align-items:baseline;gap:8px;margin:0;font-family:var(--font-display);font-size:19px}
+.tc-sut>h3 small{font-family:var(--font-ui);font-size:12.5px;font-weight:600;color:var(--muted)}
+.tc-ara{padding:6px 9px;font-size:14px}
+.tc-liste{flex:1;min-height:0;overflow:auto;display:grid;align-content:start;gap:4px;padding-right:4px}
+.tc-satir{display:grid;grid-template-columns:30px minmax(0,1fr) auto auto auto;gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--line);background:var(--surface-2)}
+.tc-satir.bitti{opacity:.55}
+.tc-satir .esya-ic{width:26px;height:26px}
+.tc-ad{min-width:0}
+.tc-ad b{display:block;font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tc-ad small{display:block;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tc-stok{font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.tc-stok.az{color:var(--text)}
+.tc-fiyat{font-family:var(--font-display);font-size:16px;font-weight:600;white-space:nowrap;text-align:right}
+.tc-is{display:flex;gap:4px}
+.tc-sut.canta .tc-satir{grid-template-columns:30px minmax(0,1fr) auto}
+.tc-teklif{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:8px 0 2px;border-top:1px dashed var(--line);font-size:13px;font-weight:600;color:var(--muted)}
+.tc-teklif label{display:inline-flex;align-items:center;gap:6px}
+.tc-teklif input{width:76px;padding:5px 6px;text-align:right}
+.tc-teklif select{padding:4px 6px}
+.tc-teklif p{flex-basis:100%;margin:0;font-weight:500}
+.tc-bos{margin:0;padding:12px;color:var(--muted);font-size:14px;border:1px dashed var(--line)}
+@media (max-width:760px){
+  .kat-liste:has(>.tc){overflow:auto}
+  .tc{flex:none;grid-template-rows:auto auto}
+  .tc-sut{min-height:auto}
+  .tc-sutunlar{grid-template-columns:minmax(0,1fr)}
+  .tc-liste{overflow:visible}
+  .tc-satir{grid-template-columns:28px minmax(0,1fr) auto}
+  .tc-satir .tc-stok,.tc-satir .tc-fiyat{grid-column:2}
+  .tc-satir .tc-is{grid-column:2 / -1;justify-content:flex-start}
+  .tc-kese{margin-left:0;text-align:left}.tc-para{justify-content:flex-start}
+}
+.tk-is select{padding:4px 6px}
 /* Kitap okuma (2026-11-10, BÖLÜM 8d): kitap satırı, 6 bölmeli okuma çubuğu (dolanlar senin renginde, bitince yeşil) */
 .kitaplar{display:grid;gap:8px;margin-bottom:14px}
 .kt{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);background:var(--surface-2)}
@@ -6965,6 +7017,7 @@ function katSatir(e) {
     <span class="kat-fiyat">${KAT.fiyat ? KAT.fiyat(e) : fiyatYaz(e.cp)}</span><span class="kat-lb">${lbYaz(e.lb)}</span><span class="kat-sag">${sag}</span></div>`;
 }
 function katCiz() {
+  $('#katModal').classList.toggle('tuccar', KAT.mod === 'pazar');      // tüccar penceresi geniş (BÖLÜM 10g)
   const [bas, alt] = (KAT.baslik || katBaslik[KAT.mod] || katBaslik.kagit);
   $('#katBaslik').innerHTML = `${esc(bas)}<small>${esc(alt)}</small>`;
   $('#katAra').hidden = !!KAT.ozelCiz;
@@ -7779,7 +7832,7 @@ function pzDugme() {                                                   // araç 
   b.title = pzDm() ? 'Dükkanlar: pazar ve kütüphane kur, eşya ve fiyat seç, haritaya koy, aç / kapa' : 'Dükkanlar: DM\'in açtığı pazar ve kütüphaneler';
   b.setAttribute('aria-pressed', String(!$('#katModal').hidden && /^(pazar|dukkan)/.test(KAT.mod)));
 }
-const pzYenile = () => { if (!$('#katModal').hidden && /^(pazar|dukkan)/.test(KAT.mod)) katCiz(); };
+const pzYenile = () => { if (!$('#katModal').hidden && /^(pazar|dukkan)/.test(KAT.mod)) { if (KAT.mod === 'pazar') tcYenile(); else katCiz(); } };
 
 // ── DM: dükkan listesi ──
 function dkListeAc() {
@@ -7870,28 +7923,116 @@ function dkSecAc() {                                                   // oyuncu
   });
   pzDugme();
 }
+/* Tüccar penceresi (2026-11-26, R4 madde 47–50; kullanıcı: "oyunlardaki gibi: bir yanda tüccarın malları, öbür yanda senin çantan;
+   tıkla al / sat", "satın alırken de teklif verelim", "bütün paralar, üstü bozuk parayla", "kaç tane kaldığı görünsün").
+   Al: dükkanın fiyatıyla (DM onaylar, para kesenden düşer, üstü bozuk parayla gelir). Teklif: istediğin fiyatı yazarsın, DM'e alış
+   teklifi kartı gider (BÖLÜM 10h). Sat: kendi eşyana fiyat biçersin (satış teklifi). Fiyatlar her para türüyle yazılabilir. */
+const TC = { ara: '', acik: '' };                                      // ara: mallarda arama; acik: 'al:<eşya>' ya da 'sat:<çanta sırası>'
+const paraDeger = (miktar, tur) => clamp(Math.round(num(miktar) * (PARA_DEGER[tur] || 100)), 0, 100000000);
+function paraBirim(cp) {                                               // bir fiyatı kutuya yazmak için: tam sayı çıkan en büyük para
+  for (const k of ['gp', 'sp']) if (cp >= PARA_DEGER[k] && cp % PARA_DEGER[k] === 0) return [cp / PARA_DEGER[k], k];
+  return cp >= 100 ? [cp / 100, 'gp'] : [cp, 'cp'];
+}
+const paraSec = (sec, attr) => `<select ${attr} aria-label="Para türü">${PARA_AD.map(([k, ad]) => `<option value="${k}"${k === sec ? ' selected' : ''}>${ad}</option>`).join('')}</select>`;
+function paraFark(once, sonra) {                                       // ödeme: hangi paralar verildi, üstü ne geldi
+  const ver = [], ust = [];
+  PARA_AD.forEach(([k, ad]) => { const f = int(sonra[k]) - int(once[k]); if (f < 0) ver.push(`${-f} ${ad}`); else if (f > 0) ust.push(`${f} ${ad}`); });
+  return [ver.length ? `verdiğin ${ver.join(', ')}` : '', ust.length ? `üstün ${ust.join(', ')}` : ''].filter(Boolean).join(' · ') || 'ödendi';
+}
+const keseHTML = c => `<span class="tc-para">${PARA_AD.map(([k, ad]) => `<span${int(c.coins[k]) ? '' : ' class="sifir"'}><b>${int(c.coins[k])}</b> ${ad}</span>`).join('')}</span>`;
+function tuccarHTML() {
+  const d = dkBul(KAT.dukkan); if (!d) return '<p class="empty">Bu dükkan kapandı.</p>';
+  const own = ownChar(), kese = paraToplam(own), ara = TC.ara.trim().toLocaleLowerCase('tr'), c = d.calisan;
+  const mal = d.esya.filter(([k]) => ESYA[k] && (!ara || `${k} ${ESYA[k].tr}`.toLocaleLowerCase('tr').includes(ara)));
+  const malSatir = mal.map(([k, cp, stok]) => {
+    const e = ESYA[k], yeter = kese >= cp, bitti = stok === 0, bekle = PZ.bekle === k, ac = TC.acik === 'al:' + k, [m, pt] = paraBirim(cp);
+    return `<div class="tc-satir${bitti ? ' bitti' : ''}" data-k="${esc(k)}">${ESYA_IC(e)}
+      <div class="tc-ad" title="${esc(esyaIpucu(e))}"><b>${esc(e.tr)}</b><small>${esc(e.k)}${esyaOzet(e) ? ' · ' + esc(esyaOzet(e)) : ''}</small></div>
+      <span class="tc-stok${stok !== null && stok <= 3 ? ' az' : ''}" title="Dükkanda kalan">${stok === null ? 'bol' : stok ? `${stok} tane kaldı` : 'tükendi'}</span>
+      <span class="tc-fiyat">${fiyatYaz(cp)}</span>
+      <span class="tc-is"><button class="btn sm${yeter && !bitti ? ' accent' : ''}" data-act="tc-al" data-k="${esc(k)}"${!yeter || bitti || PZ.bekle ? ' disabled' : ''} title="${yeter ? 'Bu fiyata al: DM onaylayınca çantana girer' : 'Kesendeki para yetmiyor'}">${bekle ? 'Bekle…' : 'Al'}</button>
+        <button class="btn sm${ac ? ' on' : ''}" data-act="tc-teklif-ac" data-k="${esc(k)}"${bitti ? ' disabled' : ''} title="Daha ucuza almak için teklif ver: tüccar kabul eder, karşı teklif verir ya da ikna zarı ister">Teklif</button></span>
+      ${ac ? `<div class="tc-teklif"><label>Adet <input type="number" data-tc="n" min="1" max="${stok === null ? 20 : stok}" value="1"></label>
+        <label>Teklifin <input type="number" data-tc="miktar" min="0" step="any" value="${m}" aria-label="Teklif ettiğin fiyat (toplam)">${paraSec(pt, 'data-tc="para"')}</label>
+        <button class="btn sm accent" data-act="tc-teklif-ver" data-k="${esc(k)}">Teklif ver</button><button class="btn sm" data-act="tc-kapa">Vazgeç</button>
+        <p>Dükkanın fiyatı ${fiyatYaz(cp)} (tanesi). Tüccar kabul edebilir, karşı teklif verebilir ya da ikna zarı isteyebilir.</p></div>` : ''}</div>`;
+  }).join('');
+  const canta = satListe().map(({ it, i }) => {
+    const e = esyaBul(it), b = satBirim(it), bekle = TK.benim.some(t => !t.al && t.ad === it.name), ac = TC.acik === 'sat:' + i, [m, pt] = paraBirim(b);
+    return `<div class="tc-satir" data-i="${i}">${e ? ESYA_IC(e) : it.buyu ? '<svg class="ic esya-ic" style="color:var(--accent)"><use href="#i-star"/></svg>' : '<i class="esya-ic"></i>'}
+      <div class="tc-ad" title="${esc(esyaAciklama(it, e) || it.name)}"><b>${esc(it.name)}</b><small>${int(it.qty)} tane${it.eq ? ' · kuşanılı' : ''} · ${b ? 'örnek ' + fiyatYaz(b) + (int(it.qty) > 1 ? ' tanesi' : '') : 'fiyatını sen biç'}</small></div>
+      <span class="tc-is"><button class="btn sm${ac ? ' on' : ''}" data-act="tc-sat-ac" data-i="${i}"${bekle ? ' disabled' : ''}>${bekle ? 'Teklif tüccarda' : 'Sat'}</button></span>
+      ${ac ? `<div class="tc-teklif"><label>Adet <input type="number" data-tc="n" min="1" max="${int(it.qty)}" value="1"${int(it.qty) > 1 ? '' : ' disabled'}></label>
+        <label>İstediğin <input type="number" data-tc="miktar" min="0" step="any" value="${m}" aria-label="İstediğin fiyat (toplam)">${paraSec(pt, 'data-tc="para"')}</label>
+        <button class="btn sm accent" data-act="tc-sat-ver" data-i="${i}">Teklif ver</button><button class="btn sm" data-act="tc-kapa">Vazgeç</button>
+        <p>Kurallarda eşya yarı fiyatına satılır; hazır gelen fiyat o. Tüccar kabul edebilir, karşı teklif verebilir ya da ikna zarı isteyebilir.</p></div>` : ''}</div>`;
+  }).join('');
+  return `<div class="tc"><div class="tc-ust">${c ? `<span class="tc-av">${ksAvHTML(c.img, c.ad)}</span><span class="tc-kim"><small>Tüccar</small><b>${esc(c.ad)}</b>${c.unvan ? `<em>${esc(c.unvan)}</em>` : ''}</span>` : ''}
+      <span class="tc-kese"><small>Kesen (toplam ${paraYaz(kese)})</small>${keseHTML(own)}</span></div>
+    <div class="tc-sutunlar"><section class="tc-sut" aria-label="Tüccarın malları"><h3>${esc(d.ad)}<small>${d.esya.length} çeşit</small></h3>
+        ${d.esya.length > 8 ? `<input type="search" class="tc-ara" data-tc="ara" placeholder="Mallarda ara…" aria-label="Mallarda ara" value="${esc(TC.ara)}" autocomplete="off">` : ''}
+        <div class="tc-liste">${malSatir || `<p class="tc-bos">${ara ? 'Bulunamadı.' : 'Bu dükkanda şu an eşya yok.'}</p>`}</div></section>
+      <section class="tc-sut canta" aria-label="Çantan"><h3>Çantan<small>sat: fiyatını sen biç</small></h3>
+        <div class="tc-liste">${canta || '<p class="tc-bos">Çantanda satacak bir şey yok.</p>'}</div></section></div></div>`;
+}
+// Yeniden çizerken yazılanlar, odak ve kaydırma yeri kalsın (stok ya da kese değişince pencere yenilenir)
+const tcAnahtar = el => `${el.dataset.tc}|${(el.closest('[data-k]') || { dataset: {} }).dataset.k || ''}|${(el.closest('[data-i]') || { dataset: {} }).dataset.i || ''}`;
+function tcYenile() {
+  const ic = $('#katIc'), ae = document.activeElement, odak = ae && ic.contains(ae) && ae.dataset.tc ? [tcAnahtar(ae), ae.selectionStart] : null;
+  const yaz = $$('[data-tc]', ic).filter(el => el.dataset.tc !== 'ara').map(el => [tcAnahtar(el), el.value]), kay = $$('.tc-liste', ic).map(el => el.scrollTop);
+  katCiz();
+  const bul = a => $$('[data-tc]', ic).find(el => tcAnahtar(el) === a);
+  yaz.forEach(([a, v]) => { const el = bul(a); if (el) el.value = v; });
+  $$('.tc-liste', ic).forEach((el, i) => { if (kay[i]) el.scrollTop = kay[i]; });
+  if (odak) { const el = bul(odak[0]); if (el) { el.focus(); try { if (odak[1] !== null) el.setSelectionRange(odak[1], odak[1]); } catch (e) { /* sayı kutusu */ } } }
+}
 function pzOyuncuAc(id) {
   const d = dkBul(id); if (!d) return;
-  const ilk = d.esya[0];
-  katAc('pazar', ilk ? ESYA[ilk[0]].kat : DUKKAN_TUR[d.tur].sek, {
+  TC.ara = ''; TC.acik = '';
+  const c = d.calisan;
+  katAc('pazar', null, {
     dukkan: id,
-    baslik: [d.ad, `${net.dmName || 'DM'} bunları satıyor. Aldığın eşya çantana girer, parası kesenden düşer. "Sat" sekmesinden kendi eşyanı satabilirsin.`],
-    ozelSek: { k: 'sat', ad: 'Sat', ic: 'kese', liste: satListe, ciz: satCiz },   // satış ve pazarlık (BÖLÜM 10h)
-    liste: () => { const x = dkBul(id), v = new Set((x ? x.esya : []).map(r => r[0])); return Object.values(ESYA).filter(e => v.has(e.k)); },
-    fiyat: e => fiyatYaz((pzKayit(e.k) || [0, 0])[1]),
-    sag: e => { const r = pzKayit(e.k); if (!r) return ''; const [, cp, stok] = r, yeter = paraToplam(ownChar()) >= cp, bekle = PZ.bekle === e.k;
-      return `${stok !== null ? `<span class="kat-yok">${stok ? stok + ' tane' : 'tükendi'}</span>` : ''}<button class="btn sm${yeter && stok !== 0 ? ' accent' : ''}" data-act="kat-ekle" data-k="${esc(e.k)}"${!yeter || stok === 0 || PZ.bekle ? ' disabled' : ''}${!yeter ? ' title="Kesendeki para yetmiyor"' : ''}>${bekle ? 'Bekle…' : '<svg class="ic"><use href="#e-kese"/></svg>Satın al'}</button>`; },
-    ekle: k => pzSatinAl(k),
-    altYazi: () => `${(net.dukkan || []).length > 1 ? '<button class="btn sm" data-act="dk-sec"><svg class="ic"><use href="#i-geri"/></svg>Dükkanlar</button>' : ''}Kesen: <b>${paraYaz(paraToplam(ownChar()))}</b>`,
-    bos: 'Bu dükkanda şu an eşya yok.',
+    baslik: [d.ad, `${c ? `${c.ad}${c.unvan ? ' (' + c.unvan + ')' : ''} seni bekliyor. ` : ''}Solda tüccarın malları: Al ya da Teklif ver. Sağda çantan: Sat. Parayı kesenden öder, üstünü bozuk parayla alırsın.`],
+    ozelCiz: tuccarHTML,
+    altYazi: () => (net.dukkan || []).length > 1 ? '<button class="btn sm" data-act="dk-sec"><svg class="ic"><use href="#i-geri"/></svg>Dükkanlar</button>' : '',
   });
   pzDugme();
 }
+function tcAlTeklif(k) {                                               // oyuncu: daha ucuza almak için teklif
+  const r = pzKayit(k), row = $$('#katIc .tc-satir[data-k]').find(x => x.dataset.k === k); if (!r || !row) return;
+  if (TK.benim.length >= 5) { notify('Çok teklifin var', 'Önce tüccarın cevabını bekle.'); return; }
+  const n = clamp(int($('[data-tc="n"]', row).value) || 1, 1, r[2] === null ? 20 : Math.max(1, r[2])), cp = paraDeger($('[data-tc="miktar"]', row).value, $('[data-tc="para"]', row).value);
+  if (paraToplam(ownChar()) < cp) { notify('Kesende bu kadar para yok', `Kesende ${paraYaz(paraToplam(ownChar()))} var.`); return; }
+  const t = { id: newCode().toLowerCase(), d: KAT.dukkan, ad: ESYA[k].tr, k, n, cp, al: true, durum: 'bekle' };
+  if (!send(net.conn, { t: 'teklif', id: t.id, d: t.d, ad: k, k, n, cp, al: 1 })) { notify('DM\'e ulaşılamadı', 'Bağlantın kopmuş olabilir.'); return; }
+  TK.benim.push(t); TC.acik = ''; tkCiz(); tcYenile();
+  notify('Teklifin gitti', `${t.ad}${n > 1 ? ' × ' + n : ''}: ${fiyatYaz(cp)} (dükkanın fiyatı ${fiyatYaz(r[1] * n)}). Tüccarın cevabını bekle.`);
+}
+Object.assign(ACTIONS, {
+  'tc-al': b => pzSatinAl(b.dataset.k),
+  'tc-teklif-ac': b => { TC.acik = TC.acik === 'al:' + b.dataset.k ? '' : 'al:' + b.dataset.k; tcYenile(); const m = $('#katIc .tc-teklif [data-tc="miktar"]'); if (m) { m.focus(); m.select(); } },
+  'tc-sat-ac': b => { TC.acik = TC.acik === 'sat:' + b.dataset.i ? '' : 'sat:' + b.dataset.i; tcYenile(); const m = $('#katIc .tc-teklif [data-tc="miktar"]'); if (m) { m.focus(); m.select(); } },
+  'tc-kapa': () => { TC.acik = ''; tcYenile(); },
+  'tc-teklif-ver': b => tcAlTeklif(b.dataset.k),
+  'tc-sat-ver': b => tkVer(int(b.dataset.i)),
+});
+document.addEventListener('input', e => {
+  const el = e.target; if (!el.dataset || !el.dataset.tc || KAT.mod !== 'pazar') return;
+  if (el.dataset.tc === 'ara') { TC.ara = el.value; tcYenile(); return; }
+  if (el.dataset.tc === 'n' && !el.dataset.elle) {                     // adet değişince fiyat da değişir (oyuncu fiyatı elle yazmadıysa)
+    const row = el.closest('.tc-satir'), m = row && $('[data-tc="miktar"]', row), p = row && $('[data-tc="para"]', row), n = Math.max(1, int(el.value));
+    if (!m || m.dataset.elle) return;
+    const tane = row.dataset.k ? (pzKayit(row.dataset.k) || [0, 0])[1] : satBirim(ownChar().items[int(row.dataset.i)] || {});
+    const [v, pt] = paraBirim(tane * n); m.value = v; p.value = pt;
+  }
+  if (el.dataset.tc === 'miktar') el.dataset.elle = '1';
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset && ['n', 'miktar'].includes(e.target.dataset.tc)) { e.preventDefault(); const b = e.target.closest('.tc-teklif').querySelector('.btn.accent'); if (b) b.click(); } });
 function pzSatinAl(k) {
   const r = pzKayit(k); if (!r || PZ.bekle) return;
   if (paraToplam(ownChar()) < r[1]) { notify('Paran yetmiyor', `${k}: ${fiyatYaz(r[1])}. Kesende ${paraYaz(paraToplam(ownChar()))} var.`); return; }
   if (!send(net.conn, { t: 'pazar-al', d: KAT.dukkan, k, n: 1, cp: r[1] })) { notify('DM\'e ulaşılamadı', 'Bağlantın kopmuş olabilir.'); return; }
-  PZ.bekle = k; katCiz();
+  PZ.bekle = k; pzYenile();
   clearTimeout(PZ.zt); PZ.zt = setTimeout(() => { PZ.bekle = ''; pzYenile(); }, 6000);
 }
 function ownYenile(own) {                                              // kendi karakterim değişti (pazar, satış, kitap)
@@ -7902,12 +8043,12 @@ function ownYenile(own) {                                              // kendi 
 function pzOk(msg) {                                                   // DM onayladı: öde, çantaya koy
   const k = String(msg.k || ''), e = ESYA[k]; PZ.bekle = ''; clearTimeout(PZ.zt);
   if (!e) return;
-  const n = clamp(int(msg.n) || 1, 1, 20), cp = clamp(int(msg.cp), 0, 10000000) * n, own = ownChar();
+  const n = clamp(int(msg.n) || 1, 1, 20), cp = clamp(int(msg.cp), 0, 10000000) * n, own = ownChar(), once = Object.assign({}, own.coins);
   if (!paraOde(own, cp)) { notify('Paran yetmedi', `${e.k}: ${fiyatYaz(cp)}.`); pzYenile(); return; }
   esyaKoy(own, k, n);
   ownYenile(own);
   ses('kupa');
-  notify(`${e.k} çantanda`, `${fiyatYaz(cp)} ödedin · kesende ${paraYaz(paraToplam(own))} kaldı.${e.silah ? ' Saldırılarına da eklendi.' : e.kitap ? ' Kağıdında Envanter → Kitapların.' : ''}`);
+  notify(`${e.tr} çantanda`, `${fiyatYaz(cp)}: ${paraFark(once, own.coins)}.${e.silah ? ' Saldırılarına da eklendi.' : e.kitap ? ' Kağıdında Envanter → Kitapların.' : ''}`);
   pzYenile();
 }
 function pzRed(msg) { PZ.bekle = ''; clearTimeout(PZ.zt); notify('Satın alınamadı', short(msg.neden, 80)); pzYenile(); }
@@ -8066,45 +8207,33 @@ function satBirim(it) {                                                // bir ta
   return Math.floor(esyaFiyat(e) / esyaAdet(e) / 2);
 }
 const satListe = () => ownChar().items.map((it, i) => ({ it, i })).filter(x => String(x.it.name || '').trim() && int(x.it.qty) > 0);
-function satCiz() {                                                    // oyuncu: dükkanın "Sat" sekmesi
-  const l = satListe();
-  if (!l.length) return '<p class="empty">Çantanda satacak bir şey yok.</p>';
-  return '<p class="kat-not">Fiyatı sen yaz; hazır gelen örnek fiyat kurallardaki yarı fiyattır. Tüccar kabul edebilir, karşı teklif verebilir ya da ikna zarı isteyebilir.</p>'
-    + l.map(({ it, i }) => { const e = esyaBul(it), b = satBirim(it), bekle = TK.benim.some(t => t.ad === it.name);
-      return `<div class="kat-satir sat-satir" data-i="${i}">${e ? ESYA_IC(e) : '<span></span>'}
-        <div class="kat-ad"><b>${esc(it.name)}</b>${e ? ` <i>${esc(e.tr)}</i>` : ''}<small>Çantanda ${int(it.qty)}${it.eq ? ' · kuşanılı' : ''} · örnek: ${b ? fiyatYaz(b) + (int(it.qty) > 1 ? ' tanesi' : '') : 'katalogda yok, fiyatı sen biç'}${e && e.kitap && it.okuma && it.okuma.bitti ? ' · büyüsü tükenmiş' : ''}</small></div>
-        <label class="pz-say" title="Kaç tane satacaksın"><input type="number" data-sat="n" min="1" max="${int(it.qty)}" value="1" aria-label="${esc(it.name)}: adet"${int(it.qty) > 1 ? '' : ' disabled'}><small>adet</small></label>
-        <label class="pz-say" title="İstediğin fiyat (toplam, altın)"><input type="number" data-sat="fiyat" min="0" step="any" value="${b / 100}" aria-label="${esc(it.name)}: istediğin fiyat (gp)"><small>gp</small></label>
-        <span class="kat-sag"><button class="btn sm${bekle ? '' : ' accent'}" data-act="tk-ver" data-i="${i}"${bekle ? ' disabled' : ''}>${bekle ? 'Teklif tüccarda' : 'Teklif ver'}</button></span></div>`; }).join('');
-}
-// adet değişince fiyat örnek fiyata göre güncellenir (oyuncu elle değiştirmediyse)
-document.addEventListener('input', e => {
-  const el = e.target; if (el.dataset.sat !== 'n') return;
-  const row = el.closest('.sat-satir'), it = row && ownChar().items[int(row.dataset.i)], f = row && row.querySelector('[data-sat="fiyat"]');
-  if (it && f && !f.dataset.elle) f.value = satBirim(it) * clamp(int(el.value), 1, int(it.qty)) / 100;
-});
-document.addEventListener('input', e => { if (e.target.dataset.sat === 'fiyat') e.target.dataset.elle = '1'; });
-
 // ── Oyuncu ──
-function tkVer(i) {
-  const own = ownChar(), it = own.items[i], row = $(`.sat-satir[data-i="${i}"]`); if (!it || !row) return;
+function tkVer(i) {                                                    // tüccar penceresinin sağ sütunundan satış teklifi
+  const own = ownChar(), it = own.items[i], row = $$('#katIc .tc-satir[data-i]').find(x => int(x.dataset.i) === i); if (!it || !row) return;
   if (TK.benim.length >= 5) { notify('Çok teklifin var', 'Önce tüccarın cevabını bekle.'); return; }
-  const n = clamp(int(row.querySelector('[data-sat="n"]').value) || 1, 1, int(it.qty)), cp = clamp(Math.round(num(row.querySelector('[data-sat="fiyat"]').value) * 100), 0, 10000000);
+  const n = clamp(int($('[data-tc="n"]', row).value) || 1, 1, int(it.qty)), cp = paraDeger($('[data-tc="miktar"]', row).value, $('[data-tc="para"]', row).value);
   const e = esyaBul(it), t = { id: newCode().toLowerCase(), d: KAT.dukkan, ad: short(it.name, 60), k: e ? e.k : '', n, cp, bitti: !!(it.okuma && it.okuma.bitti), durum: 'bekle' };
   if (!send(net.conn, { t: 'teklif', id: t.id, d: t.d, ad: t.ad, k: t.k, n, cp, bitti: t.bitti })) { notify('DM\'e ulaşılamadı', 'Bağlantın kopmuş olabilir.'); return; }
-  TK.benim.push(t); tkCiz(); katCiz();
+  TK.benim.push(t); TC.acik = ''; tkCiz(); tcYenile();
   notify('Teklifin gitti', `${t.ad}${n > 1 ? ' × ' + n : ''}: ${fiyatYaz(cp)}. Tüccarın cevabını bekle.`);
 }
 const tkBenim = id => TK.benim.find(t => t.id === String(id || ''));
 function tkBitir(t) { TK.benim = TK.benim.filter(x => x !== t); tkCiz(); pzYenile(); }
 function tkOyuncuAl(msg) {
   const t = tkBenim(msg.id); if (!t) return;
-  if (msg.t === 'teklif-red') { notify(`${t.ad}: tüccar almadı`, short(msg.neden, 80) || 'Teklifin reddedildi.'); tkBitir(t); return; }
-  if (msg.t === 'teklif-karsi') { t.durum = 'karsi'; t.karsi = clamp(int(msg.cp), 0, 10000000); tkCiz(); notify(`Tüccar ${fiyatYaz(t.karsi)} diyor`, `${t.ad} için. Kabul et ya da reddet.`); return; }
+  if (msg.t === 'teklif-red') { notify(`${t.ad}: tüccar ${t.al ? 'vermedi' : 'almadı'}`, short(msg.neden, 80) || 'Teklifin reddedildi.'); tkBitir(t); return; }
+  if (msg.t === 'teklif-karsi') { t.durum = 'karsi'; t.karsi = clamp(int(msg.cp), 0, 100000000); tkCiz(); notify(`Tüccar ${fiyatYaz(t.karsi)} diyor`, `${t.ad} için. Kabul et ya da reddet.`); return; }
+  if (msg.t === 'teklif-ok' && t.al) {                                  // alış: öde, çantaya koy
+    const own = ownChar(), cp = clamp(int(msg.cp), 0, 100000000), once = Object.assign({}, own.coins), e = ESYA[t.k];
+    if (!e || !paraOde(own, cp)) { notify('Paran yetmedi', `${t.ad}: ${fiyatYaz(cp)}.`); send(net.conn, { t: 'teklif-iptal', id: t.id, yok: 1 }); tkBitir(t); return; }
+    esyaKoy(own, t.k, t.n); ownYenile(own); ses('kupa');
+    notify(`${t.ad}${t.n > 1 ? ' × ' + t.n : ''} çantanda`, `${fiyatYaz(cp)}: ${paraFark(once, own.coins)}.${e.silah ? ' Saldırılarına da eklendi.' : ''}`);
+    tkBitir(t); return;
+  }
   if (msg.t === 'teklif-ikna') { t.durum = 'zar'; t.zd = clamp(int(msg.zd), 1, 40); t.beceri = TK_ZAR[msg.beceri] ? msg.beceri : 'persuasion'; tkCiz();
     notify('Tüccar ikna olmak istiyor', `${SKILL[t.beceri].en} (${SKILL[t.beceri].tr}) zarı at.`); return; }
   if (msg.t === 'teklif-ok') {                                         // satıldı: eşya çıkar, para gelir
-    const own = ownChar(), cp = clamp(int(msg.cp), 0, 10000000), it = own.items.find(x => x.name === t.ad && int(x.qty) >= t.n);
+    const own = ownChar(), cp = clamp(int(msg.cp), 0, 100000000), it = own.items.find(x => x.name === t.ad && int(x.qty) >= t.n);
     if (!it) { notify(`${t.ad} çantanda yok`, 'Satış yapılamadı.'); send(net.conn, { t: 'teklif-iptal', id: t.id, yok: 1 }); tkBitir(t); return; }
     it.qty = int(it.qty) - t.n;
     if (it.qty <= 0) own.items.splice(own.items.indexOf(it), 1);
@@ -8136,22 +8265,36 @@ function tkDmAl(p, msg) {
     if (t || TK.gelen.filter(x => x.pid === p.pid).length >= 5) return;
     const d = dkY().find(x => x.id === msg.d);
     if (!d || !d.acik) { send(p.conn, { t: 'teklif-red', id, neden: 'Dükkan kapalı.' }); return; }
-    const k = ESYA[msg.k] ? msg.k : '', n = clamp(int(msg.n) || 1, 1, 999);
-    const yeni = { id, pid: p.pid, kim: (p.char && p.char.name.trim()) || p.name, d: d.id, dAd: d.ad, k, ad: short(msg.ad, 60), n, cp: clamp(int(msg.cp), 0, 10000000), bitti: !!msg.bitti,
-      ornek: k ? (msg.bitti && ESYA[k].kitap ? 1250 : Math.floor(esyaFiyat(ESYA[k]) / esyaAdet(ESYA[k]) / 2)) * n : 0, durum: 'yeni' };
+    const k = ESYA[msg.k] ? msg.k : '', al = !!msg.al, x = al && k ? d.esya[k] : null;
+    if (al && !x) { send(p.conn, { t: 'teklif-red', id, neden: 'Bu eşya artık satışta değil.' }); return; }
+    const n = clamp(int(msg.n) || 1, 1, al ? 20 : 999);
+    const yeni = { id, pid: p.pid, kim: (p.char && p.char.name.trim()) || p.name, d: d.id, dAd: d.ad, k, ad: al ? ESYA[k].tr : short(msg.ad, 60), n, cp: clamp(int(msg.cp), 0, 100000000), bitti: !al && !!msg.bitti, al,
+      ornek: al ? x.cp * n : k ? (msg.bitti && ESYA[k].kitap ? 1250 : Math.floor(esyaFiyat(ESYA[k]) / esyaAdet(ESYA[k]) / 2)) * n : 0, durum: 'yeni' };
     TK.gelen.push(yeni); tkCiz(); ses('tik');
-    notify(`${yeni.kim} satmak istiyor`, `${yeni.ad}${n > 1 ? ' × ' + n : ''}: ${fiyatYaz(yeni.cp)} (${d.ad}). Sol alttaki karttan cevap ver.`);
+    notify(`${yeni.kim} ${al ? 'almak' : 'satmak'} istiyor`, `${yeni.ad}${n > 1 ? ' × ' + n : ''}: ${fiyatYaz(yeni.cp)}${al ? ` (dükkanın fiyatı ${fiyatYaz(yeni.ornek)})` : ''} · ${d.ad}. Sol alttaki karttan cevap ver.`);
     return;
   }
   if (!t) return;
-  if (msg.t === 'teklif-iptal') { TK.gelen = TK.gelen.filter(x => x !== t); tkCiz(); if (msg.yok) notify(`${t.kim}: ${t.ad} çantasında yokmuş`, 'Satış olmadı.'); return; }
+  if (msg.t === 'teklif-iptal') { TK.gelen = TK.gelen.filter(x => x !== t); tkCiz(); if (msg.yok) notify(t.al ? `${t.kim}: parası yetmedi` : `${t.kim}: ${t.ad} çantasında yokmuş`, 'Satış olmadı.'); return; }
   if (msg.t === 'teklif-zar' && t.durum === 'zar') { t.zar = clamp(int(msg.total), -10, 99); t.durum = 'yeni'; tkCiz(); notify(`${t.kim} zar attı: ${t.zar}`, `ZD ${t.zd}: ${t.zar >= t.zd ? 'başardı' : 'başaramadı'}. Kararı sen ver.`); return; }
   if (msg.t === 'teklif-cevap' && t.durum === 'karsi') {
     if (msg.evet) { t.cp = t.karsi; tkSat(t); }
     else { TK.gelen = TK.gelen.filter(x => x !== t); tkCiz(); notify(`${t.kim} karşı teklifini reddetti`, t.ad); }
   }
 }
+function tkAlKabul(t) {                                                // DM alış teklifini kabul etti: stok düşer, oyuncu öder
+  const p = net.players.get(t.pid), d = dkY().find(x => x.id === t.d), x = d && d.esya[t.k];
+  const red = neden => { tkGonder(t, { t: 'teklif-red', neden }); TK.gelen = TK.gelen.filter(y => y !== t); tkCiz(); notify(`${t.kim}: satış olmadı`, neden); };
+  if (!d || !d.acik || !x) return red('Bu eşya artık satışta değil.');
+  if (x.stok !== null && x.stok < t.n) return red(x.stok ? `Yalnızca ${x.stok} tane kaldı.` : 'Tükendi.');
+  if (p && p.char && paraToplam(p.char) < t.cp) return red('Kesesindeki para yetmiyor.');
+  if (!p || !send(p.conn, { t: 'teklif-ok', id: t.id, cp: t.cp })) { notify(`${t.kim} bağlı değil`, 'Satış yapılamadı.'); return; }
+  if (x.stok !== null) x.stok -= t.n;
+  TK.gelen = TK.gelen.filter(y => y !== t); tkCiz(); dkDegisti();
+  notify(`${t.kim} ${t.ad} aldı`, `${t.n > 1 ? t.n + ' tane · ' : ''}${fiyatYaz(t.cp)} (dükkanın fiyatı ${fiyatYaz(t.ornek)})${x.stok !== null ? ` · ${x.stok} kaldı` : ''}`);
+}
 function tkSat(t) {                                                    // DM kabul etti: oyuncuya para, dükkana eşya
+  if (t.al) return tkAlKabul(t);
   const p = net.players.get(t.pid);
   if (!p || !send(p.conn, { t: 'teklif-ok', id: t.id, cp: t.cp })) { notify(`${t.kim} bağlı değil`, 'Satış yapılamadı.'); return; }
   TK.gelen = TK.gelen.filter(x => x !== t); tkCiz();
@@ -8180,32 +8323,31 @@ function tkCiz() {
         : `${zar}<div class="tk-is">
             <button class="btn sm accent" data-act="tk-kabul" data-id="${t.id}">Kabul: ${fiyatYaz(t.cp)}</button>
             <button class="btn sm" data-act="tk-red" data-id="${t.id}">Reddet</button></div>
-          <div class="tk-is"><label class="pz-say">Karşı <input type="number" class="tk-karsi" min="0" step="any" value="${(t.ornek || t.cp) / 100}" aria-label="Karşı teklif (gp)"><small>gp</small></label>
+          <div class="tk-is"><label class="pz-say">Karşı <input type="number" class="tk-karsi" min="0" step="any" value="${paraBirim(t.ornek || t.cp)[0]}" aria-label="Karşı teklif"></label>${paraSec(paraBirim(t.ornek || t.cp)[1], 'class="tk-para"')}
             <button class="btn sm" data-act="tk-karsi" data-id="${t.id}">Öner</button></div>
           <div class="tk-is"><select class="tk-beceri" aria-label="Hangi zar">${Object.entries(TK_ZAR).map(([k, a]) => `<option value="${k}"${k === t.beceri ? ' selected' : ''}>${a} (${SKILL[k].en})</option>`).join('')}</select>
             <label class="pz-say">ZD <input type="number" class="tk-zd" min="1" max="30" value="${t.zd || 15}" aria-label="Zorluk derecesi"></label>
             <button class="btn sm" data-act="tk-ikna" data-id="${t.id}">Zar iste</button></div>`;
-      return `<div class="tk" data-id="${t.id}"><div class="tk-ust">${ic}<span><b>${esc(t.kim)} satmak istiyor</b><small>${esc(t.dAd)}</small></span></div>
-        <p class="tk-esya"><b>${esc(t.ad)}${t.n > 1 ? ' × ' + t.n : ''}</b>${t.bitti ? ' <i>(büyüsü tükenmiş)</i>' : ''}<br>İstediği: <b>${fiyatYaz(t.cp)}</b>${t.ornek ? ` · örnek fiyat ${fiyatYaz(t.ornek)} (kurallarda yarı fiyat)` : ' · katalogda yok'}</p>${govde}</div>`;
+      return `<div class="tk" data-id="${t.id}"><div class="tk-ust">${ic}<span><b>${esc(t.kim)} ${t.al ? 'almak' : 'satmak'} istiyor</b><small>${esc(t.dAd)}</small></span></div>
+        <p class="tk-esya"><b>${esc(t.ad)}${t.n > 1 ? ' × ' + t.n : ''}</b>${t.bitti ? ' <i>(büyüsü tükenmiş)</i>' : ''}<br>${t.al ? 'Teklifi' : 'İstediği'}: <b>${fiyatYaz(t.cp)}</b>${t.al ? ` · dükkanın fiyatı ${fiyatYaz(t.ornek)}` : t.ornek ? ` · örnek fiyat ${fiyatYaz(t.ornek)} (kurallarda yarı fiyat)` : ' · katalogda yok'}</p>${govde}</div>`;
     }
     const govde = t.durum === 'zar' ? `<p>Tüccar ikna olmak istiyor: <b>${SKILL[t.beceri].en} (${SKILL[t.beceri].tr})</b>, ZD ${t.zd}.</p>
         <div class="tk-is"><button class="btn sm accent" data-act="tk-zar" data-id="${t.id}"><svg class="ic"><use href="#i-d20"/></svg>Zar at</button><button class="btn sm" data-act="tk-geri" data-id="${t.id}">Vazgeç</button></div>`
-      : t.durum === 'karsi' ? `<p>Tüccar <b>${fiyatYaz(t.karsi)}</b> veriyor (sen ${fiyatYaz(t.cp)} istedin).</p>
+      : t.durum === 'karsi' ? `<p>Tüccar <b>${fiyatYaz(t.karsi)}</b> ${t.al ? 'istiyor' : 'veriyor'} (sen ${fiyatYaz(t.cp)} ${t.al ? 'teklif ettin' : 'istedin'}).</p>
         <div class="tk-is"><button class="btn sm accent" data-act="tk-evet" data-id="${t.id}">Kabul et</button><button class="btn sm" data-act="tk-hayir" data-id="${t.id}">Reddet</button></div>`
       : `<p class="tk-bekle">Teklifin tüccarda: ${fiyatYaz(t.cp)}. Cevap bekleniyor…</p><div class="tk-is"><button class="btn sm" data-act="tk-geri" data-id="${t.id}">Geri çek</button></div>`;
-    return `<div class="tk" data-id="${t.id}"><div class="tk-ust">${ic}<span><b>${esc(t.ad)}${t.n > 1 ? ' × ' + t.n : ''}</b><small>satış teklifin</small></span></div>${govde}</div>`;
+    return `<div class="tk" data-id="${t.id}"><div class="tk-ust">${ic}<span><b>${esc(t.ad)}${t.n > 1 ? ' × ' + t.n : ''}</b><small>${t.al ? 'alış' : 'satış'} teklifin</small></span></div>${govde}</div>`;
   }).join('');
 }
 Object.assign(ACTIONS, {
-  'tk-ver': b => tkVer(int(b.dataset.i)),
-  'tk-zar': b => tkZarAt(b.dataset.id),
+    'tk-zar': b => tkZarAt(b.dataset.id),
   'tk-evet': b => tkCevap(b.dataset.id, true),
   'tk-hayir': b => tkCevap(b.dataset.id, false),
   'tk-geri': b => { const t = tkBenim(b.dataset.id); if (!t) return; send(net.conn, { t: 'teklif-iptal', id: t.id }); tkBitir(t); },
   'tk-kabul': b => { const t = tkGelen(b.dataset.id); if (t) tkSat(t); },
   'tk-red': b => { const t = tkGelen(b.dataset.id); if (!t) return; tkGonder(t, { t: 'teklif-red', neden: 'Tüccar almak istemedi.' }); TK.gelen = TK.gelen.filter(x => x !== t); tkCiz(); },
   'tk-karsi': b => { const t = tkGelen(b.dataset.id), kart = b.closest('.tk'); if (!t || !kart) return;
-    t.karsi = clamp(Math.round(num(kart.querySelector('.tk-karsi').value) * 100), 0, 10000000);
+    t.karsi = paraDeger(kart.querySelector('.tk-karsi').value, (kart.querySelector('.tk-para') || {}).value || 'gp');
     if (tkGonder(t, { t: 'teklif-karsi', cp: t.karsi })) { t.durum = 'karsi'; tkCiz(); } },
   'tk-ikna': b => { const t = tkGelen(b.dataset.id), kart = b.closest('.tk'); if (!t || !kart) return;
     t.beceri = kart.querySelector('.tk-beceri').value; t.zd = clamp(int(kart.querySelector('.tk-zd').value) || 15, 1, 30); delete t.zar;
@@ -8335,7 +8477,7 @@ function stopNet(clearRole = true) {
   net.konus = null;                                                  // konuşulan NPC (DM'inki store.konus'ta)
   net.muzik = null;                                                  // müzik (BÖLÜM 10f): oyuncunun DM'den aldığı sıra
   TK.gelen = []; TK.benim = []; tkCiz();                             // satış teklifleri (BÖLÜM 10h)
-  net.dukkan = null; PZ.bekle = ''; if (!$('#katModal').hidden && /^(pazar|dukkan-sec)/.test(KAT.mod) && store.net.role !== 'dm') katKapa();   // dükkanlar (BÖLÜM 10g); DM'inkiler store.dukkanlar'da kalır
+  net.dukkan = null; PZ.bekle = ''; TC.acik = ''; if (!$('#katModal').hidden && /^(pazar|dukkan-sec)/.test(KAT.mod) && store.net.role !== 'dm') katKapa();   // dükkanlar (BÖLÜM 10g); DM'inkiler store.dukkanlar'da kalır
   if (clearRole) store.sira = null;                                 // masa kapanınca savaş da biter
   if (clearRole) { tvReset(); store.net.role = ''; save(); if (mode !== 'sheet') setMode('table'); }   // DM ekranından ya da masadan: tek başına masaya
   setNet('off', '');
