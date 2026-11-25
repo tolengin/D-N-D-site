@@ -2119,6 +2119,12 @@ align-items:center;gap:4px;min-height:36px;border-bottom:1px solid var(--line)}
 .mc-esya li.sifir>span{color:var(--muted);text-decoration:line-through}
 .mc-para{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;font-size:13px;color:var(--muted)}
 .mc-para b{font-family:var(--font-display);font-size:17px;color:var(--text)}
+.mc-para .sifir{opacity:.55}
+.mc-kese{display:flex;gap:6px}
+.mc-kese input{flex:1 1 64px;min-width:0;padding:5px 8px;text-align:center}
+.mc-kese select{flex:0 1 auto;min-width:0;padding:4px 6px}
+.mc-dn{margin:0;font-size:13px;line-height:1.4;color:var(--muted)}
+.mc-dn b{color:var(--text)}
 .mc-bos{margin:0;color:var(--muted)}
 /* Büyüler sekmesi (2026-11-12, BÖLÜM 8e byCamSek): üstte ZD, saldırı, yuvalar, konsantrasyon; altta seviye seviye büyüler */
 .mc-byust{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;font-size:13px;color:var(--muted)}
@@ -6900,6 +6906,7 @@ document.addEventListener('change', e => {                             // kağı
 const PZ = { bekle: '', zt: 0 };
 const PZ_SINIR = 300;                                                  // bir dükkanda en çok bu kadar çeşit
 const PARA_DEGER = { cp: 1, sp: 10, ep: 50, gp: 100, pp: 1000 };
+const PARA_AD = [['pp', 'platin'], ['gp', 'altın'], ['ep', 'elektrum'], ['sp', 'gümüş'], ['cp', 'bakır']];
 const paraToplam = c => Object.entries(PARA_DEGER).reduce((s, [k, v]) => s + Math.max(0, int(c.coins[k])) * v, 0);
 function paraOde(c, cost) {                                            // kesesinden öder; büyük parayı bozar, üstünü verir
   if (cost <= 0) return true;
@@ -9803,6 +9810,8 @@ Object.assign(ACTIONS, {
   'mz-ac': () => { try { MZ.oyn.playVideo(); } catch (e) { /* yok say */ } MZ.engel = false; MZ.engelT = Date.now(); mzCiz(); },   // tarayıcı ancak bir tıklamayla çaldırır
 });
 $('#mzEkleForm').addEventListener('submit', e => { e.preventDefault(); mzEkle(); });
+document.addEventListener('change', e => { if (e.target.id === 'meKeseTur') { store.meKeseTur = e.target.value; save(); } });   // masadaki kesede seçilen para türü kalsın
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'meKese') { e.preventDefault(); ACTIONS['me-kese']({ dataset: { d: '1' } }); } });   // Enter: keseye koy
 ['pointerdown', 'wheel', 'dblclick'].forEach(t => $('#saPano').addEventListener(t, e => e.stopPropagation()));   // panoda sürüklemek ve kaydırmak tavernayı oynatmasın
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -10367,17 +10376,27 @@ function renderMe() {
   } else if (sek === 'hak') {
     sekCam = `<section class="mc-sek" aria-label="Haklar"><h3>Haklar<em>harcadıkça dokun · dinlenince dolar</em></h3>${calc(c, hakHtml) || '<p class="mc-bos">Sınıfının sayılan bir hakkı yok.</p>'}
       <div class="mc-dinlen"><button class="btn sm" data-act="kisa-dinlen"><svg class="ic"><use href="#i-flame"/></svg>Kısa dinlenme</button><button class="btn sm" data-act="longrest"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button></div></section>`;
+  } else if (sek === 'dinlen') {                                       // 2026-11-17: dinlenme her sınıfta masadan (Haklar sekmesi her sınıfta çıkmıyordu)
+    const hdKalan = Math.max(0, int(c.level) - int(c.hdUsed));
+    sekCam = `<section class="mc-sek" aria-label="Dinlenme"><h3>Dinlenme<em>DM "dinlenebilirsiniz" deyince</em></h3>
+      <p class="mc-dn"><b>Kısa dinlenme</b> (1 saat): kısa dinlenmede dolan hakların yenilenir; canın eksikse bir can zarı atarsın. Kalan can zarın <b>${hdKalan}/${int(c.level)}</b> (${esc(c.hitDie || 'd8')} + CON).</p>
+      <p class="mc-dn"><b>Uzun dinlenme</b> (8 saat): canın, can zarların, büyü yuvaların ve sınıf hakların dolar; bitkinlik bir kademe azalır.</p>
+      <div class="mc-dinlen"><button class="btn sm" data-act="kisa-dinlen"><svg class="ic"><use href="#i-flame"/></svg>Kısa dinlenme</button><button class="btn sm" data-act="longrest"><svg class="ic"><use href="#i-moon"/></svg>Uzun dinlenme</button></div></section>`;
   } else if (sek === 'buyu') {
     sekCam = byCamSek(c);
   } else if (sek === 'envanter') {
-    const para = [['pp', 'platin'], ['gp', 'altın'], ['ep', 'elektrum'], ['sp', 'gümüş'], ['cp', 'bakır']].filter(([k]) => int(c.coins[k]))
-      .map(([k, ad]) => `<span><b>${int(c.coins[k])}</b> ${ad}</span>`).join('');
+    // 2026-11-17 (kullanıcı: "altını masadan ekleyip çıkaralım"): beş para hep görünür; miktar + tür + Ekle / Harca (harcarken büyük para bozulur)
+    const para = PARA_AD.map(([k, ad]) => `<span${int(c.coins[k]) ? '' : ' class="sifir"'} title="${PARA_DEGER[k] >= 100 ? `1 ${ad} = ${PARA_DEGER[k] / 100} altın` : `${100 / PARA_DEGER[k]} ${ad} = 1 altın`}"><b>${int(c.coins[k])}</b> ${ad}</span>`).join('');
+    const kv = document.activeElement && document.activeElement.id === 'meKese' ? document.activeElement.value : '', kt = store.meKeseTur || 'gp';
+    const kese = `<div class="mc-kese"><input type="number" id="meKese" min="1" placeholder="Miktar" aria-label="Para miktarı" value="${esc(kv)}">
+      <select id="meKeseTur" aria-label="Para türü">${PARA_AD.map(([k, ad]) => `<option value="${k}"${k === kt ? ' selected' : ''}>${ad}</option>`).join('')}</select>
+      <button class="btn sm good" data-act="me-kese" data-d="1" title="Keseye koy (bulduğun, kazandığın)">Ekle</button><button class="btn sm" data-act="me-kese" data-d="-1" title="Keseden harca (yetmezse büyük para bozulur, üstü gelir)">Harca</button></div>`;
     const satir = c.items.map((x, i) => String(x.name || '').trim() ? `<li data-row data-i="${i}"${int(x.qty) ? '' : ' class="sifir"'}>${esyaBul(x) ? ESYA_IC(esyaBul(x)) : '<i class="esya-ic" aria-hidden="true"></i>'}<span title="${esc(esyaBul(x) ? esyaBul(x).tr : x.name)}">${esc(x.name)}</span>
         <button class="icon-btn" data-act="me-adet" data-d="-1" title="Bir azalt (kullandın, harcadın)" aria-label="${esc(x.name)}: bir azalt"><svg class="ic"><use href="#i-minus"/></svg></button><b>${int(x.qty)}</b>
         <button class="icon-btn" data-act="me-adet" data-d="1" title="Bir artır" aria-label="${esc(x.name)}: bir artır"><svg class="ic"><use href="#i-plus"/></svg></button></li>` : '').join('');
     const kit = c.items.map((it, i) => kitapSatiri(c, it, i, true)).join('');
     sekCam = `<section class="mc-sek" aria-label="Envanter"><h3>Envanter<em>adet − / + · eşya eklemek için Kağıdım</em></h3>${kit ? `<div class="kitaplar">${kit}</div>` : ''}
-      ${satir ? `<ul class="mc-esya">${satir}</ul>` : '<p class="mc-bos">Envanterin boş. Eşya eklemek için <b>Kağıdım</b>.</p>'}${para ? `<p class="mc-para">${para}</p>` : ''}</section>`;
+      ${satir ? `<ul class="mc-esya">${satir}</ul>` : '<p class="mc-bos">Envanterin boş. Eşya eklemek için <b>Kağıdım</b>.</p>'}<p class="mc-para">${para}</p>${kese}</section>`;
   }
   let detay = '';
   if (!min) {
@@ -10408,6 +10427,7 @@ function renderMe() {
       ${calc(c, () => hakListe().length) ? `<button class="btn${sek === 'hak' ? ' on' : ''}" data-act="me-sek" data-k="hak" aria-expanded="${sek === 'hak'}" title="Sınıf hakların: Öfke, İkinci soluk… harcadıkça dokun"><svg class="ic"><use href="#i-flame"/></svg>Haklar</button>` : ''}
       ${byKullan(c).length ? `<button class="btn${sek === 'buyu' ? ' on' : ''}" data-act="me-sek" data-k="buyu" aria-expanded="${sek === 'buyu'}" title="Büyülerin: yuvalar, büyü yap, hasar ve iyileştirme zarları"><svg class="ic"><use href="#i-book"/></svg>Büyüler</button>` : ''}
       <button class="btn${sek === 'envanter' ? ' on' : ''}" data-act="me-sek" data-k="envanter" aria-expanded="${sek === 'envanter'}" title="Envanterin: eşyalar ve paralar"><svg class="ic"><use href="#i-canta"/></svg>Envanter</button>
+      <button class="btn${sek === 'dinlen' ? ' on' : ''}" data-act="me-sek" data-k="dinlen" aria-expanded="${sek === 'dinlen'}" title="Kısa ve uzun dinlenme"><svg class="ic"><use href="#i-moon"/></svg>Dinlen</button>
       <button class="btn" data-act="mode-sheet" title="Karakter kağıdının tamamı"><svg class="ic"><use href="#i-scroll"/></svg>Kağıdım</button>
       <button class="btn icon" data-act="me-min" aria-expanded="${!min}" title="${min ? 'Ayrıntıları aç: kurtarma zarları, can, inisiyatif' : 'Ayrıntıları kapat'}" aria-label="${min ? 'Ayrıntıları aç' : 'Ayrıntıları kapat'}"><svg class="ic"><use href="#i-yukari"/></svg></button></div>
     <div class="mc-izgara mc-atklar" aria-label="Saldırılar">${atk}</div>
@@ -11080,6 +11100,16 @@ Object.assign(ACTIONS, {
     const x = C.items[int(b.closest('[data-row]').dataset.i)];
     if (!x) return;
     x.qty = Math.max(0, int(x.qty) + int(b.dataset.d)); renderLists(); changed();
+  },
+  'me-kese': b => {                                                       // masadaki kese: ekle / harca (2026-11-17)
+    const inp = $('#meKese'), n = clamp(int(inp && inp.value), 0, 999999), k = ($('#meKeseTur') || {}).value || 'gp';
+    const ad = (PARA_AD.find(x => x[0] === k) || [k, k])[1];
+    if (!n) { notify('Önce miktarı yaz', 'Kaç ' + ad + ' ekleneceğini ya da harcanacağını.'); if (inp) inp.focus(); return; }
+    if (int(b.dataset.d) > 0) { C.coins[k] = int(C.coins[k]) + n; notify(`Keseye ${n} ${ad} kondu`, `Şimdi ${int(C.coins[k])} ${ad}.`); }
+    else if (int(C.coins[k]) >= n) { C.coins[k] = int(C.coins[k]) - n; notify(`${n} ${ad} harcandı`, `Kalan ${int(C.coins[k])} ${ad}.`); }
+    else if (paraOde(C, n * PARA_DEGER[k])) notify(`${n} ${ad} harcandı`, `${ad[0].toUpperCase() + ad.slice(1)} yetmediği için büyük para bozuldu, üstü kesene kondu.`);
+    else { notify('Paran yetmiyor', `Kesende toplam ${+(paraToplam(C) / PARA_DEGER[k]).toFixed(2)} ${ad} değerinde para var.`); return; }
+    inp.value = ''; fillInputs(); changed(); renderMe();
   },
   'me-kind': b => { tv.meKind = b.dataset.k; renderMe(); },
   // Masadaki figürüm: kadın ↔ erkek. Kağıttaki "Masadaki figür" seçimiyle aynı şeydir; DM'e ve masaya da gider.
