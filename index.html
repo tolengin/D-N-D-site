@@ -2012,7 +2012,7 @@ body:not(.guide) .mc-rehber{display:none}
 .mc-atklar{align-self:stretch;flex-wrap:wrap;contain:inline-size}
 .mc-atk{flex:1 1 210px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:6px;padding:5px 6px 5px 12px;min-width:0}
 .mc-atk span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:14px}
-.mc-atk span small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+.mc-atk span small{display:block;font-weight:500;font-size:12px;color:var(--muted);white-space:normal;line-height:1.25}
 .mc-atk .roll{min-width:44px;padding:6px 8px;font-size:15px}
 .mc-ust>.btn{border:0;min-height:44px}
 .mc-ust>.btn.icon{width:44px}
@@ -6280,6 +6280,15 @@ function zirhOzet(e) {
   return [`AC ${z.ac}${z.dex >= 99 ? ' + DEX' : z.dex ? ` + DEX (en çok ${z.dex})` : ''}`, z.str ? `STR ${z.str} gerekir` : '', z.giz ? 'Gizlilikte dezavantaj' : ''].filter(Boolean).join(' · ');
 }
 const esyaOzet = e => e.silah ? silahOzet(e, true) : e.zirh ? zirhOzet(e) : e.d;
+// Masadaki saldırı satırı için silahın özellikleri (2026-11-17, kullanıcı: "Finesse, Two-Handed, Heavy karakter panelinde yazsın").
+// kisa: "İnce · Hafif · Fırlatılır 20/60 ft"; ipucu: her özelliğin açıklaması. Katalogda olmayan silahta oyuncunun notu.
+function atkOz(a) {
+  const e = esyaBul({ name: a.name });
+  if (!e || !e.silah) return { kisa: String(a.note || '').trim(), ipucu: '' };
+  const oz = e.silah.oz;
+  return { kisa: oz.map(([o, x]) => SILAH_OZ[o][1] + (o === 'cift' ? ' ' + x : '')).join(' · '),          // menzil açıklamada (satır kısa kalsın)
+    ipucu: oz.map(([o, x, y]) => `${SILAH_OZ[o][0]} (${SILAH_OZ[o][1]}${o === 'cep' ? ` ${x} ft, ${CEP_TR[y] || y}` : o === 'firl' ? ` ${x} ft` : o === 'cift' ? ` ${x}` : ''}): ${SILAH_OZ[o][2]}`).join('\n') };
+}
 const esyaIpucu = e => e.silah ? e.silah.oz.map(([o]) => `${SILAH_OZ[o][0]} (${SILAH_OZ[o][1]}): ${SILAH_OZ[o][2]}`).concat(`${e.silah.u} (${USTALIK[e.silah.u][0]}): ${USTALIK[e.silah.u][1]}`).join('\n')
   : e.zirh ? ZIRH_SURE[e.alt] + (e.alt === 'agir' ? ' DEX eklenmez.' : '') : e.d;
 
@@ -10358,9 +10367,9 @@ function renderMe() {
   const av = c.portrait ? `<img src="${esc(c.portrait)}" alt="">` : esc((c.name.trim()[0] || '?').toUpperCase());
   const kalkan = '<svg viewBox="0 0 100 110" aria-hidden="true"><path d="M50 5 91 19v34c0 25-17 41-41 51C26 94 9 78 9 53V19z"/></svg>';
   const rehber = rehberMetni(c);
-  const atk = c.attacks.slice(0, 6).map((a, i) => `<div class="mc-atk" data-row data-i="${i}"><span title="${esc(a.name || 'Saldırı')} · ${esc(a.dmg)}">${esc(a.name || 'Saldırı')}<small>${esc(String(a.dmg).split(' ')[0] || 'hasar')}</small></span>
+  const atk = c.attacks.slice(0, 6).map((a, i) => { const o = atkOz(a); return `<div class="mc-atk" data-row data-i="${i}"><span title="${esc(a.name || 'Saldırı')} · ${esc(a.dmg)}${o.ipucu ? '\n\n' + esc(o.ipucu) : ''}">${esc(a.name || 'Saldırı')}<small>${esc(String(a.dmg).split(' ')[0] || 'hasar')}${o.kisa ? ` · ${esc(o.kisa)}` : ''}</small></span>
       <button class="roll" data-act="roll" data-roll="attack" title="Vuruş zarı at: ${esc(a.name || 'saldırı')}">${sign(attackBonus(a))}</button>
-      <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(a.dmg)}" aria-label="Hasar zarı at">${HASAR_IC}</button></div>`).join('')
+      <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(a.dmg)}" aria-label="Hasar zarı at">${HASAR_IC}</button></div>`; }).join('')
     + (u => `<div class="mc-atk" data-row data-i="-1"><span title="Silahsız vuruş · tutma / itme: hedef ZD ${u.zd}">Yumruk / tekme<small>${esc(u.dmg)}</small></span>
       <button class="roll" data-act="roll" data-roll="silahsiz" title="Yumruk ya da tekme: vuruş zarı at">${sign(u.vurus)}</button>
       <button class="roll die" data-act="roll" data-roll="silahsiz-hasar" title="Hasar: ${esc(u.dmg)} ezici" aria-label="Yumruk / tekme hasarı">${HASAR_IC}</button></div>`)(silahsiz(c))
