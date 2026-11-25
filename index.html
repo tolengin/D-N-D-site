@@ -4469,11 +4469,14 @@ const ESYA_KAT = [   // [anahtar, İngilizce, Türkçe] pazarın ve seçicinin s
   ['silah', 'Weapons', 'Silahlar'], ['zirh', 'Armor', 'Zırhlar'], ['macera', 'Adventuring Gear', 'Macera eşyaları'],
   ['cephane', 'Ammunition', 'Cephane'], ['odak', 'Spellcasting Focus', 'Büyü odakları'], ['kitap', 'Books', 'Kitaplar'], ['paket', 'Equipment Packs', 'Paketler'],
   ['alet', 'Tools', 'Aletler'], ['yiyecek', 'Food, Drink & Lodging', 'Yiyecek ve konaklama'], ['binek', 'Mounts & Vehicles', 'Binek ve taşıt'],
+  ['buyu', 'Magic Items', 'Büyülü eşyalar'],
 ];
 const ESYA_ALT = {   // alt başlıklar (attığın tablolardaki gibi)
   bY: 'Basit yakın dövüş silahları', bM: 'Basit menzilli silahlar', uY: 'Ustalık gerektiren yakın dövüş silahları', uM: 'Ustalık gerektiren menzilli silahlar',
   hafif: 'Hafif zırhlar', orta: 'Orta zırhlar', agir: 'Ağır zırhlar', kalkan: 'Kalkan',
   buyulu: 'Büyülü kitaplar (çok nadir): okuyup bitirince yetenek +2', konu: 'Bilgi kitapları: konusundaki zarlara +5',
+  bIksir: 'İksirler ve yağlar (içince ya da sürünce tükenir)', bSilah: 'Büyülü silahlar ve cephane', bZirh: 'Büyülü zırhlar ve kalkanlar',
+  bHarika: 'Harika eşyalar (Wondrous Items)', bYuzuk: 'Yüzükler', bAsa: 'Değnekler ve asalar',
 };
 const HASAR_TR = { e: ['bludgeoning', 'ezici'], d: ['piercing', 'delici'], k: ['slashing', 'kesici'] };
 const SILAH_OZ = {   // silah özellikleri: [İngilizce, Türkçe, kısa açıklama]
@@ -4760,6 +4763,129 @@ KITAPLAR.forEach(([en, trAd, ic, tur, x, cp]) => { ESYA[en] = { k: en, tr: trAd,
     : `Konusunu anlatır: ${x[0].toUpperCase() + x.slice(1)} zarına kitaba bakarak atınca +5.` }; });
 const esyaFiyat = e => (e && e.cp !== null && e.cp !== undefined ? e.cp : 0);   // her eşyanın örnek fiyatı (kurallardaki fiyat)
 Object.entries(PAKET).forEach(([k, l]) => { ESYA[k].d = 'İçinde: ' + l.map(([a, n]) => (n > 1 ? n + ' ' : '') + ESYA[a].tr.toLowerCase()).join(', ') + '.'; });
+/* ───────── Büyülü eşyalar (2026-11-26, R4 "eskiden kalan: büyülü eşyalar"; kaynak SRD 5.2.1 "Magic Items A–Z", CC-BY-4.0) ─────────
+   Oyunda en çok işe yarayanlardan seçme (SRD'de 254 eşya var); açıklamalar kendi Türkçe sözlerimizle. Uğur / tılsım anlamı taşıyanlar
+   (Stone of Good Luck), aşk ve zehir iksirleri, kötülük tılsımları ve iskambil desteleri bilerek alınmadı (kullanıcının hassasiyeti).
+   Değer: SRD "Magic Item Rarities and Values" (Yaygın 100, Az bulunur 400, Nadir 4.000, Çok nadir 40.000, Efsanevi 200.000 gp;
+   tüketilen eşyada yarısı). Silah / zırh türü serbest olanlarda silahın ya da zırhın kendi fiyatı ayrıca eklenir.
+   Satır: [İngilizce ad, Türkçe ad, alt grup, nadirlik, uyum (0 | 1 | kimler), tükenir mi, lb, ikon, açıklama, silah tabanı, vuruş+hasar bonusu, hasar türü] */
+const NADIR = { yaygin: ['Common', 'Yaygın', 10000], az: ['Uncommon', 'Az bulunur', 40000], nadir: ['Rare', 'Nadir', 400000], cok: ['Very Rare', 'Çok nadir', 4000000], efsane: ['Legendary', 'Efsanevi', 20000000] };
+const BUYULU = [
+  ["Potion of Healing (greater)", "Büyük şifa iksiri", "bIksir", "az", 0, 1, 0.5, "iksir", "Bonus eylemle içersin ya da yanındakine içirirsin: 4d4 + 4 can."],
+  ["Potion of Healing (superior)", "Üstün şifa iksiri", "bIksir", "nadir", 0, 1, 0.5, "iksir", "Bonus eylemle içersin ya da yanındakine içirirsin: 8d4 + 8 can."],
+  ["Potion of Healing (supreme)", "Yüce şifa iksiri", "bIksir", "cok", 0, 1, 0.5, "iksir", "Bonus eylemle içersin ya da yanındakine içirirsin: 10d4 + 20 can."],
+  ["Potion of Climbing", "Tırmanma iksiri", "bIksir", "yaygin", 0, 1, 0.5, "iksir", "1 saat hızın kadar tırmanma hızın olur; tırmanırken STR (Athletics) zarlarında avantajlısın."],
+  ["Potion of Animal Friendship", "Hayvan dostluğu iksiri", "bIksir", "az", 0, 1, 0.5, "iksir", "İçince Animal Friendship büyüsünün 3. seviye hâlini yaparsın (ZD 13)."],
+  ["Potion of Water Breathing", "Su altında soluma iksiri", "bIksir", "az", 0, 1, 0.5, "iksir", "24 saat su altında nefes alırsın."],
+  ["Potion of Resistance", "Direnç iksiri", "bIksir", "az", 0, 1, 0.5, "iksir", "1 saat bir hasar türüne direncin olur (o hasarın yarısını alırsın). Türü DM seçer ya da d10 ile belirlenir."],
+  ["Potion of Growth", "Büyüme iksiri", "bIksir", "az", 0, 1, 0.5, "iksir", "10 dakika Enlarge/Reduce büyüsünün büyütme etkisi (konsantrasyon gerekmez)."],
+  ["Potion of Giant Strength (hill)", "Dev gücü iksiri (tepe devi)", "bIksir", "az", 0, 1, 0.5, "iksir", "1 saat STR skorun 21 olur. STR'in zaten 21 ya da yüksekse etkisi yok."],
+  ["Potion of Giant Strength (frost)", "Dev gücü iksiri (buz devi)", "bIksir", "nadir", 0, 1, 0.5, "iksir", "1 saat STR skorun 23 olur. STR'in zaten 23 ya da yüksekse etkisi yok."],
+  ["Potion of Giant Strength (stone)", "Dev gücü iksiri (taş devi)", "bIksir", "nadir", 0, 1, 0.5, "iksir", "1 saat STR skorun 23 olur. STR'in zaten 23 ya da yüksekse etkisi yok."],
+  ["Potion of Giant Strength (fire)", "Dev gücü iksiri (ateş devi)", "bIksir", "nadir", 0, 1, 0.5, "iksir", "1 saat STR skorun 25 olur. STR'in zaten 25 ya da yüksekse etkisi yok."],
+  ["Potion of Giant Strength (cloud)", "Dev gücü iksiri (bulut devi)", "bIksir", "cok", 0, 1, 0.5, "iksir", "1 saat STR skorun 27 olur. STR'in zaten 27 ya da yüksekse etkisi yok."],
+  ["Potion of Giant Strength (storm)", "Dev gücü iksiri (fırtına devi)", "bIksir", "efsane", 0, 1, 0.5, "iksir", "1 saat STR skorun 29 olur. STR'in zaten 29 ya da yüksekse etkisi yok."],
+  ["Potion of Heroism", "Kahramanlık iksiri", "bIksir", "nadir", 0, 1, 0.5, "iksir", "1 saat 10 geçici can ve Bless büyüsünün etkisi (konsantrasyon gerekmez)."],
+  ["Potion of Invisibility", "Görünmezlik iksiri", "bIksir", "nadir", 0, 1, 0.5, "iksir", "1 saat görünmez olursun (Invisible). Saldırı zarı atınca, hasar verince ya da büyü yapınca erken biter."],
+  ["Potion of Diminution", "Küçülme iksiri", "bIksir", "nadir", 0, 1, 0.5, "iksir", "1d4 saat Enlarge/Reduce büyüsünün küçültme etkisi (konsantrasyon gerekmez)."],
+  ["Potion of Gaseous Form", "Gaz biçimi iksiri", "bIksir", "nadir", 0, 1, 0.5, "iksir", "1 saat Gaseous Form büyüsünün etkisi (konsantrasyon gerekmez); bonus eylemle erken bitirirsin."],
+  ["Potion of Flying", "Uçma iksiri", "bIksir", "cok", 0, 1, 0.5, "iksir", "1 saat hızın kadar uçma hızın olur, havada asılı durabilirsin. Süre bitince havadaysan düşersin."],
+  ["Potion of Speed", "Hız iksiri", "bIksir", "cok", 0, 1, 0.5, "iksir", "1 dakika Haste büyüsünün etkisi (konsantrasyon gerekmez); bitince uyuşukluk gelmez."],
+  ["Elixir of Health", "Sağlık iksiri", "bIksir", "nadir", 0, 1, 0.5, "iksir", "Büyülü bütün hastalıkları iyileştirir; Blinded, Deafened, Paralyzed ve Poisoned durumlarını bitirir."],
+  ["Oil of Slipperiness", "Kayganlık yağı", "bIksir", "az", 0, 1, 0.5, "sise", "Orta boy bir yaratığa 10 dakikada sürülür: 8 saat Freedom of Movement etkisi. Ya da büyü eylemiyle yere dökülür: 10 ft karede 8 saat Grease etkisi."],
+
+  ["Weapon, +1", "Büyülü silah +1", "bSilah", "az", 0, 0, 0, "uzunkilic", "Vuruş ve hasar zarlarına +1. Herhangi bir basit ya da ustalık silahı olur: hangisi olduğunu adına yaz, saldırı satırında Ek bonus'a ve hasara +1 ekle. Fiyatına silahın kendi fiyatı da eklenir."],
+  ["Weapon, +2", "Büyülü silah +2", "bSilah", "nadir", 0, 0, 0, "uzunkilic", "Vuruş ve hasar zarlarına +2. Herhangi bir basit ya da ustalık silahı olur: hangisi olduğunu adına yaz, saldırı satırında Ek bonus'a ve hasara +2 ekle. Fiyatına silahın kendi fiyatı da eklenir."],
+  ["Weapon, +3", "Büyülü silah +3", "bSilah", "cok", 0, 0, 0, "uzunkilic", "Vuruş ve hasar zarlarına +3. Herhangi bir basit ya da ustalık silahı olur: hangisi olduğunu adına yaz, saldırı satırında Ek bonus'a ve hasara +3 ekle. Fiyatına silahın kendi fiyatı da eklenir."],
+  ["Ammunition, +1", "Büyülü cephane +1 (10 tane)", "bSilah", "az", 0, 1, 0, "ok", "Bu cephaneyle vuruş ve hasara +1. Bir hedefe isabet edince büyüsü biter. Fiyat 10 tane içindir."],
+  ["Ammunition, +2", "Büyülü cephane +2 (10 tane)", "bSilah", "nadir", 0, 1, 0, "ok", "Bu cephaneyle vuruş ve hasara +2. Bir hedefe isabet edince büyüsü biter. Fiyat 10 tane içindir."],
+  ["Ammunition, +3", "Büyülü cephane +3 (10 tane)", "bSilah", "cok", 0, 1, 0, "ok", "Bu cephaneyle vuruş ve hasara +3. Bir hedefe isabet edince büyüsü biter. Fiyat 10 tane içindir."],
+  ["Javelin of Lightning", "Yıldırım ciridi", "bSilah", "az", 0, 0, 2, "cirit", "Vurunca delici yerine yıldırım hasarı verebilir. Günde bir kez 120 ft içindeki bir hedefe atarken saldırı zarı atmazsın: 5 ft genişliğinde bir yıldırım çizgisi olur; çizgidekiler ZD 13 DEX kurtarması atar, 4d6 yıldırım hasarı alır (geçen yarısını). Cirit hemen eline döner.", "Javelin", 0],
+  ["Dagger of Venom", "Zehirli hançer", "bSilah", "nadir", 0, 0, 1, "hancer", "Vuruş ve hasara +1. Günde bir kez bonus eylemle bıçağı zehirlersin (1 dakika ya da ilk isabete kadar): vurduğun yaratık ZD 15 CON kurtarmasını geçemezse 2d10 zehir hasarı alır ve 1 dakika zehirlenir (Poisoned).", "Dagger", 1],
+  ["Flame Tongue", "Alev dili", "bSilah", "nadir", 1, 0, 0, "uzunkilic", "Herhangi bir yakın dövüş silahı. Bonus eylemle alevlenir: 40 ft parlak ışık saçar, alev sürerken vurunca +2d6 ateş hasarı. Yine bonus eylemle ya da silahı bırakınca, kınına koyunca söner."],
+  ["Sun Blade", "Güneş kılıcı", "bSilah", "nadir", 1, 0, 3, "uzunkilic", "Bir kılıç kabzası; bonus eylemle ışıktan bir bıçak çıkar. İnce (Finesse) özellikli uzun kılıç gibi vurur: vuruş ve hasara +2, hasarı ışıyan (radiant). Ölümsüzlere +1d8 ışıyan. Bıçak 15 ft parlak güneş ışığı saçar.", "Longsword", 2, "radiant"],
+  ["Vicious Weapon", "Acımasız silah", "bSilah", "nadir", 0, 0, 0, "uzunkilic", "Herhangi bir basit ya da ustalık silahı. Vurduğun her yaratığa silahın kendi hasar türünde +2d6 hasar."],
+  ["Weapon of Warning", "Uyarı silahı", "bSilah", "az", 1, 0, 0, "uzunkilic", "Uyumlu olduğun bu silah erişebileceğin yerdeyken sen ve 30 ft içindeki dostların inisiyatif zarlarında avantajlısınız; savaş başlayınca doğal uykudakiler uyanır."],
+  ["Mace of Disruption", "Bozan topuz", "bSilah", "nadir", 1, 0, 4, "topuz", "İblise (Fiend) ya da ölümsüze vurunca +2d6 ışıyan hasar; bu hasardan sonra canı 25 ya da azsa ZD 15 WIS kurtarması atar: geçemezse yok olur, geçerse bir sonraki turunun sonuna kadar korkar (Frightened). 20 ft parlak ışık saçar.", "Mace", 0],
+  ["Giant Slayer", "Dev avcısı", "bSilah", "nadir", 0, 0, 0, "uzunkilic", "Herhangi bir basit ya da ustalık silahı. Vuruş ve hasara +1. Deve (Giant) vurunca silahın türünde +2d6 hasar; dev ZD 15 STR kurtarmasını geçemezse yere düşer (Prone)."],
+  ["Dragon Slayer", "Ejder avcısı", "bSilah", "nadir", 0, 0, 0, "uzunkilic", "Herhangi bir basit ya da ustalık silahı. Vuruş ve hasara +1. Ejderhaya (Dragon) vurunca silahın türünde +3d6 hasar."],
+  ["Trident of Fish Command", "Balık buyruğu yabası", "bSilah", "az", 1, 0, 4, "ucdisli", "3 yükü var, her şafak 1d3 dolar. Bir yük harcayıp yüzme hızı olan bir hayvana Dominate Beast yaparsın (ZD 15).", "Trident", 0],
+
+  ["Armor, +1", "Büyülü zırh +1", "bZirh", "nadir", 0, 0, 0, "zincirzirh", "Giyerken AC'ine +1. Hafif, orta ya da ağır herhangi bir zırh olur: hangisi olduğunu adına yaz. AC kendiliğinden artmaz: kağıtta AC'ni 1 artır. Fiyatına zırhın kendi fiyatı da eklenir."],
+  ["Armor, +2", "Büyülü zırh +2", "bZirh", "cok", 0, 0, 0, "zincirzirh", "Giyerken AC'ine +2. Hafif, orta ya da ağır herhangi bir zırh olur: hangisi olduğunu adına yaz. AC kendiliğinden artmaz: kağıtta AC'ni 2 artır. Fiyatına zırhın kendi fiyatı da eklenir."],
+  ["Armor, +3", "Büyülü zırh +3", "bZirh", "efsane", 0, 0, 0, "zincirzirh", "Giyerken AC'ine +3. Hafif, orta ya da ağır herhangi bir zırh olur: hangisi olduğunu adına yaz. AC kendiliğinden artmaz: kağıtta AC'ni 3 artır. Fiyatına zırhın kendi fiyatı da eklenir."],
+  ["Shield, +1", "Büyülü kalkan +1", "bZirh", "az", 0, 0, 6, "kalkan", "Tutarken kalkanın olağan +2'sine ek olarak AC'ine +1 (toplam +3). AC kendiliğinden artmaz: kağıtta elle ekle."],
+  ["Shield, +2", "Büyülü kalkan +2", "bZirh", "nadir", 0, 0, 6, "kalkan", "Tutarken kalkanın olağan +2'sine ek olarak AC'ine +2 (toplam +4). AC kendiliğinden artmaz: kağıtta elle ekle."],
+  ["Shield, +3", "Büyülü kalkan +3", "bZirh", "cok", 0, 0, 6, "kalkan", "Tutarken kalkanın olağan +2'sine ek olarak AC'ine +3 (toplam +5). AC kendiliğinden artmaz: kağıtta elle ekle."],
+  ["Elven Chain", "Elf zinciri", "bZirh", "nadir", 0, 0, 20, "zincirgomlek", "Zincir gömlek ya da zincir zırh. Giyerken AC'ine +1; orta ya da ağır zırh eğitimin olmasa da bu zırhta eğitimli sayılırsın."],
+  ["Glamoured Studded Leather", "Kılık değiştiren perçinli deri", "bZirh", "nadir", 0, 0, 13, "percinli", "Perçinli deri zırh, giyerken AC'ine +1. Bonus eylemle sıradan giysi ya da başka bir zırh gibi görünür; ağırlığı aynı kalır."],
+  ["Sentinel Shield", "Nöbetçi kalkanı", "bZirh", "az", 0, 0, 6, "kalkan", "Tutarken inisiyatif zarlarında ve WIS (Perception) zarlarında avantajlısın. Üstünde bir göz işareti var."],
+  ["Arrow-Catching Shield", "Ok tutan kalkan", "bZirh", "nadir", 1, 0, 6, "kalkan", "Menzilli saldırılara karşı AC'ine ayrıca +2. 5 ft yanındaki birine menzilli saldırı yapılınca tepkinle hedef olarak onun yerine geçersin."],
+
+  ["Bag of Holding", "Derin kese", "bHarika", "az", 0, 0, 5, "kese", "İçi dışından çok büyük: 500 lb'ye kadar (64 fit küp) alır, kendisi hep 5 lb. İçinden bir şey çıkarmak Utilize eylemi. Aşırı doldurulur, delinir ya da yırtılırsa yok olur, içindekiler Astral düzleme saçılır."],
+  ["Handy Haversack", "Kullanışlı heybe", "bHarika", "nadir", 0, 0, 5, "sirtcanta", "İki yan cebi 200'er lb, ortası 500 lb alır; heybe hep 5 lb."],
+  ["Portable Hole", "Taşınabilir delik", "bHarika", "nadir", 0, 0, 0, "kese", "Mendil gibi katlanan siyah kumaş; açınca 6 ft çapında. Büyü eylemiyle bir yüzeye serince 10 ft derinliğinde, başka bir düzlemde duran bir delik olur; katlayınca içindekilerle birlikte yanında taşınır."],
+  ["Bead of Nourishment", "Doyurucu boncuk", "bHarika", "yaygin", 0, 1, 0, "kumanya", "Dilinde erir; bir günlük kumanya kadar doyurur."],
+  ["Boots of Elvenkind", "Elf çizmeleri", "bHarika", "az", 0, 0, 0, "giysi", "Ayak seslerin hiç duyulmaz; DEX (Stealth) zarlarında avantajlısın."],
+  ["Cloak of Elvenkind", "Elf pelerini", "bHarika", "az", 1, 0, 0, "cuppe", "Seni fark etmek için atılan WIS (Perception) zarları dezavantajlı; DEX (Stealth) zarlarında avantajlısın."],
+  ["Cloak of Protection", "Koruma pelerini", "bHarika", "az", 1, 0, 0, "cuppe", "Giyerken AC'ine ve bütün kurtarma zarlarına +1. Kağıtta elle ekle."],
+  ["Goggles of Night", "Gece gözlüğü", "bHarika", "az", 0, 0, 0, "buyutec", "60 ft karanlıkta görürsün (Darkvision); zaten görüyorsan 60 ft uzar."],
+  ["Rope of Climbing", "Tırmanan halat", "bHarika", "az", 0, 0, 0, "halat", "60 ft uzunluğunda, 3.000 lb taşır. Bir ucunu tutarken büyü eylemiyle öbür ucu canlanır ve istediğin yere doğru ilerler (turda 10 ft)."],
+  ["Immovable Rod", "Kımıldamaz çubuk", "bHarika", "az", 0, 0, 0, "degnek", "Düğmesine basınca (Utilize) olduğu yerde havada bile çakılı kalır; 8.000 lb'ye kadar taşır. Yerinden oynatmak için ZD 30 STR zarı gerekir."],
+  ["Decanter of Endless Water", "Tükenmez su testisi", "bHarika", "az", 0, 0, 2, "testi", "Büyü eylemiyle tatlı ya da tuzlu su akıtır: komut sözüne göre 1 galon, daha çok ya da güçlü bir fışkırma."],
+  ["Gauntlets of Ogre Power", "Dev gücü eldivenleri", "bHarika", "az", 1, 0, 0, "giysi", "Giyerken STR skorun 19 olur (zaten 19 ya da yüksekse etkisi yok)."],
+  ["Headband of Intellect", "Zekâ alın bandı", "bHarika", "az", 1, 0, 0, "kristal", "Takarken INT skorun 19 olur (zaten 19 ya da yüksekse etkisi yok)."],
+  ["Amulet of Health", "Sağlık kolyesi", "bHarika", "nadir", 1, 0, 0, "kutsal", "Takarken CON skorun 19 olur (zaten 19 ya da yüksekse etkisi yok)."],
+  ["Bracers of Defense", "Savunma bilezikleri", "bHarika", "nadir", 1, 0, 0, "giysi", "Zırh giymiyor ve kalkan tutmuyorken AC'ine +2."],
+  ["Bracers of Archery", "Okçuluk bilezikleri", "bHarika", "az", 1, 0, 0, "giysi", "Uzun yay ve kısa yayda yetkin olursun; bu yaylarla hasar zarlarına +2."],
+  ["Boots of Speed", "Hız çizmeleri", "bHarika", "nadir", 1, 0, 0, "giysi", "Bonus eylemle topuklarını vurunca hızın iki katına çıkar ve sana yapılan fırsat saldırıları dezavantajlı. Toplam 10 dakika kullanınca uzun dinlenmeye kadar çalışmaz."],
+  ["Boots of Striding and Springing", "Uzun adım çizmeleri", "bHarika", "az", 1, 0, 0, "giysi", "Hızın en az 30 ft olur; yük ya da ağır zırh hızını düşürmez. Turda bir kez 10 ft hareket harcayıp 30 ft zıplarsın."],
+  ["Winged Boots", "Kanatlı çizmeler", "bHarika", "az", 1, 0, 0, "giysi", "4 yükü var, her şafak 1d4 dolar. Büyü eylemiyle bir yük: 1 saat 30 ft uçma hızı."],
+  ["Wings of Flying", "Uçuş kanatları", "bHarika", "nadir", 1, 0, 0, "cuppe", "Pelerin büyü eylemiyle kanada dönüşür: 1 saat 60 ft uçma hızı. Kanatlar kaybolunca 1d12 saat kullanılamaz."],
+  ["Broom of Flying", "Uçan süpürge", "bHarika", "az", 1, 0, 0, "kurek", "Üstüne binip büyü eylemiyle havalandırırsın: 50 ft uçma hızı (200 lb'den ağır yükle 30 ft), en çok 400 lb taşır."],
+  ["Brooch of Shielding", "Kalkan broşu", "bHarika", "az", 1, 0, 0, "kutsal", "Güç (Force) hasarına direncin olur; Magic Missile büyüsü sana işlemez."],
+  ["Pearl of Power", "Güç incisi", "bHarika", "az", "büyü yapabilen", 0, 0, "kure", "Üzerindeyken büyü eylemiyle harcanmış 3. seviye ya da daha düşük bir büyü yuvan geri gelir; her şafak bir kez."],
+  ["Periapt of Wound Closure", "Yara kapatan kolye", "bHarika", "az", 1, 0, 0, "kutsal", "Ölüm zarında 9 ya da altı gelirse 10 sayabilirsin (başarı). Can zarıyla iyileşirken kazandığın can iki katı."],
+  ["Periapt of Health", "Şifa kolyesi", "bHarika", "az", 1, 0, 0, "kutsal", "Büyü eylemiyle 2d4 + 2 can kazanırsın (her şafak bir kez). Zehirlenmemek ya da zehirden kurtulmak için atılan kurtarmalarda avantajlısın."],
+  ["Eyes of the Eagle", "Kartal gözleri", "bHarika", "az", 0, 0, 0, "buyutec", "Görmeye dayalı WIS (Perception) zarlarında avantajlısın; açık havada çok uzaktaki 2 ft'lik şeyleri bile seçersin."],
+  ["Gloves of Thievery", "Usta parmak eldivenleri", "bHarika", "az", 0, 0, 0, "giysi", "Giyilince görünmezler; DEX (Sleight of Hand) zarlarına +5."],
+  ["Gloves of Swimming and Climbing", "Yüzme ve tırmanma eldivenleri", "bHarika", "az", 1, 0, 0, "giysi", "Hızın kadar tırmanma ve yüzme hızın olur; tırmanırken ya da yüzerken STR (Athletics) zarlarına +5."],
+  ["Hat of Disguise", "Kılık şapkası", "bHarika", "az", 1, 0, 0, "giysi", "Takarken Disguise Self büyüsünü yaparsın; şapka çıkınca büyü biter."],
+  ["Helm of Comprehending Languages", "Dil anlama miğferi", "bHarika", "az", 0, 0, 0, "giysi", "Takarken Comprehend Languages büyüsünü yaparsın."],
+  ["Lantern of Revealing", "Açığa çıkaran fener", "bHarika", "az", 0, 0, 2, "fener", "Yakınca 1 pint yağla 6 saat yanar, 30 ft parlak ışık saçar. Parlak ışığındaki görünmez yaratıklar ve eşyalar görünür."],
+  ["Sending Stones", "Haber taşları", "bHarika", "az", 0, 0, 0, "kristal", "Çift olarak gelir. Birine dokunup Sending büyüsü yaparsın; haber öbür taşı taşıyana gider. Her şafak bir kez."],
+  ["Necklace of Adaptation", "Uyum kolyesi", "bHarika", "az", 1, 0, 0, "kutsal", "Her ortamda rahatça nefes alırsın; zehirlenmemek ya da zehirden kurtulmak için atılan kurtarmalarda avantajlısın."],
+  ["Slippers of Spider Climbing", "Örümcek terlikleri", "bHarika", "az", 1, 0, 0, "giysi", "Elin serbestken duvarlarda ve tavanda yürürsün: hızın kadar tırmanma hızı. Buzlu ya da yağlı yüzeyde olmaz."],
+  ["Efficient Quiver", "Becerikli sadak", "bHarika", "az", 0, 0, 2, "sadak", "Üç bölmesi var: 60 ok ya da cıvata, 18 cirit, 6 uzun eşya (yay, asa, mızrak). İçi ne kadar dolu olursa olsun 2 lb gelir."],
+  ["Dust of Disappearance", "Kaybolma tozu", "bHarika", "az", 0, 1, 0, "kese", "Tek kullanımlık. Havaya atınca sen ve 10 ft içindeki her şey 2d4 dakika görünmez olur; saldırı zarı atan, hasar veren ya da büyü yapan için hemen biter."],
+
+  ["Ring of Protection", "Koruma yüzüğü", "bYuzuk", "nadir", 1, 0, 0, "kristal", "Takarken AC'ine ve bütün kurtarma zarlarına +1. Kağıtta elle ekle."],
+  ["Ring of Feather Falling", "Tüy düşüşü yüzüğü", "bYuzuk", "nadir", 1, 0, 0, "kristal", "Düşerken turda 60 ft yavaşça inersin, düşmekten hasar almazsın."],
+  ["Ring of Jumping", "Zıplama yüzüğü", "bYuzuk", "az", 1, 0, 0, "kristal", "Takarken yalnızca kendine Jump büyüsü yaparsın."],
+  ["Ring of Swimming", "Yüzme yüzüğü", "bYuzuk", "az", 0, 0, 0, "kristal", "Takarken 40 ft yüzme hızın olur."],
+  ["Ring of Water Walking", "Su üstünde yürüme yüzüğü", "bYuzuk", "az", 0, 0, 0, "kristal", "Takarken yalnızca kendine Water Walk büyüsü yaparsın."],
+  ["Ring of Warmth", "Sıcaklık yüzüğü", "bYuzuk", "az", 1, 0, 0, "kristal", "Soğuk hasarı alınca hasar 2d8 azalır; çok soğuk havada sen ve taşıdıkların zarar görmez."],
+  ["Ring of Resistance", "Direnç yüzüğü", "bYuzuk", "nadir", 0, 0, 0, "kristal", "Bir hasar türüne direncin olur; yüzüğün taşı türünü gösterir (DM seçer ya da d10 ile belirlenir)."],
+  ["Ring of Mind Shielding", "Zihin kalkanı yüzüğü", "bYuzuk", "az", 1, 0, 0, "kristal", "Düşüncelerini okuyan ya da yalan söyleyip söylemediğini anlayan büyüler sana işlemez; zihinden konuşma yalnızca izin verirsen olur."],
+  ["Ring of Free Action", "Serbest hareket yüzüğü", "bYuzuk", "nadir", 1, 0, 0, "kristal", "Zorlu arazi seni yavaşlatmaz; büyü hızını düşüremez, seni felç (Paralyzed) ya da bağlı (Restrained) yapamaz."],
+  ["Ring of Evasion", "Kaçınma yüzüğü", "bYuzuk", "nadir", 1, 0, 0, "kristal", "3 yükü var, her şafak 1d3 dolar. DEX kurtarmasını geçemeyince tepkinle bir yük harcayıp başarılı sayılırsın."],
+
+  ["Wand of Magic Missiles", "Büyü füzesi değneği", "bAsa", "az", 0, 0, 1, "degnek", "7 yük. 1 ile 3 yük harcayıp Magic Missile yaparsın (her fazla yük bir seviye artırır). Her şafak 1d6 + 1 dolar; son yükü harcayınca d20 at, 1 gelirse kül olur."],
+  ["Wand of Web", "Ağ değneği", "bAsa", "az", "büyü yapabilen", 0, 1, "degnek", "7 yük. Bir yükle Web büyüsü (ZD 13). Her şafak 1d6 + 1 dolar; son yükü harcayınca d20 at, 1 gelirse kül olur."],
+  ["Wand of Magic Detection", "Büyü sezme değneği", "bAsa", "az", 0, 0, 1, "degnek", "3 yük. Bir yükle Detect Magic büyüsü. Her şafak 1d3 dolar."],
+  ["Wand of Secrets", "Sırlar değneği", "bAsa", "az", 0, 0, 1, "degnek", "3 yük, her şafak 1d3 dolar. Büyü eylemiyle bir yük harcayınca 60 ft içindeki en yakın gizli kapıyı ya da tuzağı gösterir."],
+  ["Wand of the War Mage, +1", "Savaş büyücüsü değneği +1", "bAsa", "az", "büyü yapabilen", 0, 1, "degnek", "Tutarken büyü saldırısı zarlarına +1; büyü saldırısında yarım siper (Half Cover) işlemez."],
+  ["Wand of the War Mage, +2", "Savaş büyücüsü değneği +2", "bAsa", "nadir", "büyü yapabilen", 0, 1, "degnek", "Tutarken büyü saldırısı zarlarına +2; büyü saldırısında yarım siper (Half Cover) işlemez."],
+  ["Wand of the War Mage, +3", "Savaş büyücüsü değneği +3", "bAsa", "cok", "büyü yapabilen", 0, 1, "degnek", "Tutarken büyü saldırısı zarlarına +3; büyü saldırısında yarım siper (Half Cover) işlemez."],
+  ["Wand of Fireballs", "Ateş topu değneği", "bAsa", "nadir", "büyü yapabilen", 0, 1, "degnek", "7 yük. 1 ile 3 yük harcayıp Fireball yaparsın (ZD 15; her fazla yük bir seviye artırır). Her şafak 1d6 + 1 dolar; son yükü harcayınca d20 at, 1 gelirse kül olur."],
+  ["Staff of Healing", "Şifa asası", "bAsa", "nadir", "Bard, Cleric ya da Druid", 0, 4, "asaodak", "10 yük; kendi büyü yeteneğinle yaparsın: Cure Wounds (seviye başına 1 yük, en çok 4. seviye), Lesser Restoration (2 yük), Mass Cure Wounds (5 yük). Her şafak 1d6 + 4 dolar."],
+];
+BUYULU.forEach(([en, trAd, alt, n, uyum, tuket, lb, ic, d, taban, vb, ht]) => {
+  const N = NADIR[n], u = uyum ? ` · uyum gerekir${typeof uyum === 'string' ? ` (${uyum})` : ''}` : '';
+  ESYA[en] = { k: en, tr: trAd, kat: 'buyu', alt, lb, cp: tuket ? N[2] / 2 : N[2], ic, d: `${N[1]} (${N[0]})${u}${tuket ? ' · tükenir' : ''}. ${d}`,
+    buyu: { n, uyum: uyum || 0, tuket: !!tuket }, taban: taban || '', vb: vb || 0, ht: ht || '' };
+});
+
 const STIL = [
   ['Archery', 'Okçuluk', 'Menzilli silahla (yay, arbalet) vuruş zarına +2.'],
   ['Defense', 'Savunma', 'Zırh giyerken AC\'ine +1.'],
@@ -6657,7 +6783,7 @@ const esyaOzet = e => e.silah ? silahOzet(e, true) : e.zirh ? zirhOzet(e) : e.d;
    dövüş stili varsa eklenir). Versatile silah iki elle tutulunca büyük zarı atar. */
 const EL_AD = { '': 'Ele al', sag: 'Sağ elde', sol: 'Sol elde', iki: 'İki elle', ikisi: 'İki elde' };
 const EL_KISA = { '': 'el', sag: 'Sağ', sol: 'Sol', iki: '2 el', ikisi: 'Çift' };   // kutudaki küçük etiket
-const atkSilah = a => { const e = esyaBul({ name: a.name }); return e && e.silah ? e : null; };
+const atkSilah = a => { const e = esyaBul({ name: a.name }); return e && e.silah ? e : e && e.taban && ESYA[e.taban] && ESYA[e.taban].silah ? ESYA[e.taban] : null; };   // büyülü silahta tabanı
 const silahOzSet = e => new Set(e ? e.silah.oz.map(o => o[0]) : []);
 const secimVar = (c, v) => Object.values(c.secim || {}).some(l => Array.isArray(l) && l.includes(v));
 function elSecenek(a) {
@@ -6762,6 +6888,14 @@ function silahSatiri(c, e) {                                           // katalo
   const not = s.oz.map(([o, a]) => SILAH_OZ[o][0] + (a ? ` (${a})` : '')).concat(s.u).join(', ');
   return { name: e.k, ab, prof: silahYetkin(c, e), bonus: 0, dmg: `${s.zar}${m ? (m > 0 ? '+' : '') + m : ''} ${HASAR_TR[s.h][0]}`, note: not, k: e.k };
 }
+// Büyülü silahın saldırı satırı: tabanındaki silah gibi; vuruş "Ek bonus" ve hasar bonusu kadar artar, hasar türü değişebilir (Güneş kılıcı)
+function buyuluSilahSatiri(c, e) {
+  const t = ESYA[e.taban], a = silahSatiri(c, t), vb = e.vb || 0;
+  if (/Finesse/.test(e.d) && kMod(c, 'dex') > kMod(c, a.ab)) a.ab = 'dex';   // Güneş kılıcı: ince (Finesse) uzun kılıç
+  const m = kMod(c, a.ab) + vb;
+  if (vb || e.ht || a.ab !== silahSatiri(c, t).ab) a.dmg = `${t.silah.zar}${m ? (m > 0 ? '+' : '') + m : ''} ${e.ht || HASAR_TR[t.silah.h][0]}`;
+  return Object.assign(a, { name: e.k, k: e.k, bonus: vb, note: `${t.k} (${t.tr}), büyülü${a.note ? ': ' + a.note : ''}` });
+}
 // Bir katalog eşyasını karakterin çantasına koyar: paket içindekilere açılır, silah saldırı satırı da kurar, zırh boştaysa giyilir.
 function esyaKoy(c, k, adet = 1, not = '') {                         // not: "Book (prayers)" gibi ayrı satır
   const e = ESYA[k]; if (!e) return [];
@@ -6773,6 +6907,7 @@ function esyaKoy(c, k, adet = 1, not = '') {                         // not: "Bo
     c.items.push({ qty: n, name: not ? `${k} (${not})` : k, wt: Math.round(e.lb / esyaAdet(e) * 1000) / 1000, eq: !!giy, k });
   }
   if (e.silah && !c.attacks.some(a => a.k === k)) c.attacks.push(silahSatiri(c, e));
+  if (e.taban && ESYA[e.taban] && ESYA[e.taban].silah && !c.attacks.some(a => a.k === k)) c.attacks.push(buyuluSilahSatiri(c, e));   // büyülü silah (Yıldırım ciridi…)
   if (/staff\)$/.test(k) && !c.attacks.some(a => a.k === 'Quarterstaff')) c.attacks.push(silahSatiri(c, ESYA.Quarterstaff));   // asa biçimli odak: asa gibi de vurulur
   if (e.zirh) zirhUygula(c);
   return [e];
@@ -6836,7 +6971,7 @@ function katCiz() {
   if (KAT.ozelCiz) { $('#katSek').innerHTML = ''; $('#katIc').innerHTML = KAT.ozelCiz(); $('#katAlt').innerHTML = KAT.altYazi ? KAT.altYazi() : ''; return; }   // dükkan listesi
   const var_ = KAT.liste ? new Set(KAT.liste().map(e => e.kat)) : null, oz = KAT.ozelSek;
   if (var_ && var_.size && !var_.has(KAT.sek) && !(oz && KAT.sek === oz.k)) KAT.sek = ESYA_KAT.find(([k]) => var_.has(k))[0];   // pazarda olmayan türün sekmesi açık kalmasın
-  $('#katSek').innerHTML = (oz ? `<button class="kat-sekme" role="tab" data-act="kat-sek" data-k="${oz.k}" aria-selected="${!KAT.ara && KAT.sek === oz.k}">${ESYA_IC({ ic: oz.ic })}<span>${oz.ad} (${oz.liste().length})</span></button>` : '') + ESYA_KAT.filter(([k]) => !var_ || var_.has(k)).map(([k, en, t]) => `<button class="kat-sekme" role="tab" data-act="kat-sek" data-k="${k}" aria-selected="${!KAT.ara && KAT.sek === k}">${ESYA_IC({ ic: { silah: 'uzunkilic', zirh: 'kalkan', macera: 'sirtcanta', cephane: 'ok', odak: 'kristal', kitap: 'ktarih', paket: 'paket', alet: 'alet', yiyecek: 'kupa', binek: 'at' }[k] })}<span>${t}</span></button>`).join('');
+  $('#katSek').innerHTML = (oz ? `<button class="kat-sekme" role="tab" data-act="kat-sek" data-k="${oz.k}" aria-selected="${!KAT.ara && KAT.sek === oz.k}">${ESYA_IC({ ic: oz.ic })}<span>${oz.ad} (${oz.liste().length})</span></button>` : '') + ESYA_KAT.filter(([k]) => !var_ || var_.has(k)).map(([k, en, t]) => `<button class="kat-sekme" role="tab" data-act="kat-sek" data-k="${k}" aria-selected="${!KAT.ara && KAT.sek === k}">${ESYA_IC({ ic: { silah: 'uzunkilic', zirh: 'kalkan', macera: 'sirtcanta', cephane: 'ok', odak: 'kristal', kitap: 'ktarih', paket: 'paket', alet: 'alet', yiyecek: 'kupa', binek: 'at', buyu: 'iksir' }[k] })}<span>${t}</span></button>`).join('');
   if (oz && oz.ciz && !KAT.ara && KAT.sek === oz.k) { $('#katIc').innerHTML = oz.ciz(); $('#katAlt').innerHTML = KAT.altYazi ? KAT.altYazi() : ''; return; }   // ör. Sat sekmesi (BÖLÜM 10h)
   const l = katListe();
   let h = '', son = null;
@@ -6873,8 +7008,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#katMo
      ağırlık, değer, büyülü mü, nadirliği, uyum). DM'in yazdıkları store.ozelEsya'da kalır (tekrar vermek, dükkana koymak için).
      Ağda {t:'esya-ver', k, n} ya da {t:'esya-ver', o:{ name, d, wt, cp, buyu, uyum }, n}; oyuncu çantasına koyar.
    ═══════════════════════════════════════════════════════════════════ */
-// Büyülü eşyaların nadirliği; değer SRD 5.2.1 "Magic Item Rarities and Values" (tüketilen eşyada yarısı)
-const NADIR = { yaygin: ['Common', 'Yaygın', 10000], az: ['Uncommon', 'Az bulunur', 40000], nadir: ['Rare', 'Nadir', 400000], cok: ['Very Rare', 'Çok nadir', 4000000], efsane: ['Legendary', 'Efsanevi', 20000000] };
+// Büyülü eşyaların nadirliği (NADIR) ve büyülü eşyalar (BUYULU): BÖLÜM 1'in sonunda, eşya kataloğunun yanında
 function esyaAciklama(it, e) {                                        // üstüne gelince okunan açıklama
   if (e) return `${e.tr}: ${esyaOzet(e)}`;
   const n = NADIR[it.buyu];
