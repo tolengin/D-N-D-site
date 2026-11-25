@@ -44,6 +44,8 @@ Yayılma planı: önce arkadaş grubu, sonra Reddit ve LinkedIn'de paylaşım.
 - **Çalışma biçimi:** tek sayfa, sunucusuz. Her şey tarayıcıda çalışır.
   - Karakterler tarayıcının hafızasında (localStorage) durur.
   - Masa bağlantısı PeerJS ile kurulur (ücretsiz aracı sunucu).
+  - Sohbetteki GIF'ler KLIPY'den (2026-11-26; Tenor'un API'si kapandı). Arama ve GIF'ler herkesin kendi tarayıcısından KLIPY'ye gider; anahtar kodda değil, DM'in tarayıcısında durur ve masadakilere ağdan gider. İçerik süzgeci en sıkı.
+  - Masanın ortak notları, NPC'ler ve DM'in yazdığı eşyalar DM'in tarayıcısında kalır.
   - 3D sahne three.js ile gelir (CDN).
   - Yayın: GitHub Pages.
 - **Masa:** en çok 8 oyuncu. Bir oyuncuya diğer oyuncular hakkında yalnızca ad, karakter adı, bağlantı durumu, küçük portre, sınıf, figür seçimi ve (2026-11-25'ten beri, sahibinin kararıyla) can, geçici can, AC, seviye ve ölüm durumu gider. Eşya, notlar ve kağıdın geri kalanı yalnızca DM'de kalır. DM koltuğunda her zaman zar simgesi görünür (NPC portresi sızmasın).
