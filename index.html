@@ -6704,9 +6704,43 @@ function byDugme(b, d) {
   if (!s) return D('by-ekle', 'Ekle', { ic: 'plus', acc: true, off: dolu(d.n[t]), ip: dolu(d.n[t]) ? `${t === 'c' ? 'Cantrip\'lerin' : 'Hazırladığın büyüler'} dolu: önce birini çıkar.` : '' });
   return D('by-cikar', 'Çıkar', { ic: 'x', off: !byCikabilir(d, s, t), ip: byCikabilir(d, s, t) ? '' : kural });
 }
+/* Büyünün hedefi (2026-11-17, kullanıcı: "büyü kendine mi, başkasına da yapılabiliyor mu yazsın; Divine Smite kendin, Bless başkalarına").
+   SRD'deki menzilden (Self / Touch / ft) ve açıklamadan çıkarılır; kuralın yanıldığı büyüler BY_HEDEF_EL'de elle. k: kısa etiket, d: açıklama. */
+const BY_HEDEF = {
+  K: ['Yalnızca kendin', 'Yalnızca sana etki eder; başkasına yapılmaz.'],
+  V: ['Kendin · vuruşuna', 'Kendine yaparsın; silahınla vurduğun hedefe etki eder.'],
+  C: ['Senden çıkan alan', 'Senden başlayan alandaki herkese etki eder (sana değil).'],
+  E: ['Sen ve çevren', 'Çevrendeki alana etki eder; sen de içindesin.'],
+  S: ['Sen ya da başkası', 'Bir yaratığa yaparsın; kendine de yapabilirsin.'],
+  D: ['Sen ve dostların', 'Sana ve seçtiğin dostlarına etki eder.'],
+  B: ['Başkası', 'Bir hedefe yaparsın; hedef kurtarma zarı atar ya da hasar alır.'],
+  A: ['Alan', 'Seçtiğin yerdeki alana etki eder; içindeki herkes (dostlar da) etkilenebilir.'],
+};
+const BY_HEDEF_EL = {
+  'Beacon of Hope': 'D', "Heroes' Feast": 'D', 'Teleport': 'D', 'Dimension Door': 'D',
+  'Enlarge/Reduce': 'S', 'Gaseous Form': 'S', 'Haste': 'S', 'Levitate': 'S', 'Sanctuary': 'S', 'Seeming': 'S', 'True Polymorph': 'S',
+  'Barkskin': 'S', 'Death Ward': 'S', 'Mage Armor': 'S', 'Protection from Evil and Good': 'S', 'Shield of Faith': 'S',
+  'Meld into Stone': 'K',
+  'Spare the Dying': 'B', 'Revivify': 'B', 'Raise Dead': 'B', 'Resurrection': 'B', 'True Resurrection': 'B', 'Speak with Dead': 'B', 'Eyebite': 'B', 'Vampiric Touch': 'B',
+  'Darkness': 'A', 'Silence': 'A', 'Fog Cloud': 'A', 'Daylight': 'A', 'Conjure Celestial': 'A',
+  'Faithful Hound': '', 'Glyph of Warding': '', 'Guardian of Faith': '', 'Symbol': '', 'Animate Objects': '', 'Clone': '', 'Create Food and Water': '',
+  'Create Undead': '', 'Forbiddance': '', 'Hallow': '', 'Hallucinatory Terrain': '', 'Magnificent Mansion': '', 'Rope Trick': '', 'Sequester': '',
+  'Goodberry': '', 'Control Weather': '', 'Wish': '',
+};
+function byHedef(b) {
+  const h = k => k ? { k: BY_HEDEF[k][0], d: BY_HEDEF[k][1] } : { k: '', d: '' };
+  if (b.a in BY_HEDEF_EL) return h(BY_HEDEF_EL[b.a]);
+  const x = b.x || '';
+  if (b.mz === 'Kendin') return h(/^(Önündeki|Senden)|^\d+ ft'lik koni/.test(x) ? 'C' : /^Çevrende \d+ ft'lik/.test(x) ? 'E' : /vurduktan|silah saldırıların|yaptığın silahla/.test(x) ? 'V' : 'K');
+  if (b.mz === 'Özel' || b.mz === 'Sınırsız') return h('');
+  if (b.at) return h('B');
+  if (b.iy || /can kazan|geçici can/.test(x)) return h('S');
+  if (b.sv || b.h) return h(/koni|küp|yarıçap|küre|çizgi|duvar|bulut|silindir|alan\b|alanda|alanı|alana|bölge/i.test(x) ? 'A' : 'B');
+  return h(/dostların|seçtiğin .*yaratık|en çok (üç|altı|on|beş|iki)|yaratık|dokunduğun bir|kişi/i.test(x) ? 'S' : '');
+}
 function byBilgi(b) {                                                  // okul · süre · menzil · bileşen · zar
   const p = [`${BY_OKUL[b.o][1]} (${BY_OKUL[b.o][0]})`, b.sr, b.mz, b.c ? `Konsantrasyon, ${b.d}` : b.d, b.r ? 'Ritüel' : '', b.b + (b.mp ? ' (değerli malzeme)' : '')];
-  const z = [b.sv ? `${b.sv.toUpperCase()} kurtarması` : b.at ? (b.at === 'y' ? 'Yakın büyü saldırısı' : 'Menzilli büyü saldırısı') : '', b.h ? byHasar(b.h) : b.iy ? `${b.iy.replace('+mod', ' + büyü bonusu')} can` : ''];
+  const z = [byHedef(b).k, b.sv ? `${b.sv.toUpperCase()} kurtarması` : b.at ? (b.at === 'y' ? 'Yakın büyü saldırısı' : 'Menzilli büyü saldırısı') : '', b.h ? byHasar(b.h) : b.iy ? `${b.iy.replace('+mod', ' + büyü bonusu')} can` : ''];
   return { p: p.filter(Boolean), z: z.filter(Boolean) };
 }
 function bySatir(b, d) {
@@ -6862,8 +6896,9 @@ function byCamSek(c) {                                                 // "Büy�
     const yv = sv > 0 ? calc(c, () => byYuvalar(sv)) : [];
     const sec = yv.length > 1 && b && b.up ? `<select class="mc-yuva" data-i="${i}" aria-label="Hangi yuvayla" title="Üst yuvayla yaparsan güçlenir">${yv.map(x => `<option value="${x.sv}">${x.sv}. sv</option>`).join('')}</select>` : '';
     const zar = b && b.h ? calc(c, () => byZarIfade(b, sv, 'h')) : '', iy = b && b.iy ? calc(c, () => byZarIfade(b, sv, 'iy')) : '';
-    const etiket = b ? [b.c ? 'K' : '', b.r ? 'R' : '', b.sv ? `${b.sv.toUpperCase()} kurt.` : b.at ? 'saldırı' : ''].filter(Boolean).join(' · ') : '';
-    return `${bas}<li data-row data-i="${i}"${sv > 0 && !yv.length ? ' class="yuvasiz"' : ''}><span title="${esc(b ? `${b.t}: ${b.x}` : s.note || '')}">${esc(s.name)}<small>${esc([b && b.t !== b.a ? b.t : '', etiket, s.kay === 'hep' ? 'hep hazır' : ''].filter(Boolean).join(' · '))}</small></span>
+    const hd = b ? byHedef(b) : { k: '', d: '' };
+    const etiket = b ? [hd.k, b.c ? 'K' : '', b.r ? 'R' : '', b.sv ? `${b.sv.toUpperCase()} kurt.` : b.at ? 'saldırı' : ''].filter(Boolean).join(' · ') : '';
+    return `${bas}<li data-row data-i="${i}"${sv > 0 && !yv.length ? ' class="yuvasiz"' : ''}><span title="${esc(b ? `${b.t}: ${b.x}${hd.k ? `\n\nHedef: ${hd.k}. ${hd.d}` : ''}` : s.note || '')}">${esc(s.name)}<small>${esc([b && b.t !== b.a ? b.t : '', etiket, s.kay === 'hep' ? 'hep hazır' : ''].filter(Boolean).join(' · '))}</small></span>
       ${sec}<button class="btn sm" data-act="by-yap" data-i="${i}"${sv > 0 && !yv.length ? ' disabled title="Bu seviyede yuvan kalmadı"' : ''}>Yap</button>
       ${zar ? `<button class="roll die" data-act="by-zar" data-i="${i}" title="Hasar zarı at: ${esc(zar)}" aria-label="Hasar zarı">${HASAR_IC}</button>` : ''}
       ${iy ? `<button class="btn sm good" data-act="by-iyi" data-i="${i}" title="İyileştirme zarı at: ${esc(iy)}">+can</button>` : ''}</li>`;
