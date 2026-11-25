@@ -4955,6 +4955,7 @@ function rollD20(label, parts, opt = {}) {
   if (kept === 20) { flag = 'crit-hit'; note = opt.on20 || 'Doğal 20!'; }
   else if (kept === 1) { flag = 'crit-miss'; note = opt.on1 || 'Doğal 1!'; }
   // SRD 5.2.1: saldırıda doğal 1 bonusa bakmadan ıskalar; sonuç "1" yazar. Yetenek ve kurtarma zarında bonus yine eklenir.
+  if (opt.saldiri) SV.sonKrit = kept === 20;                          // son saldırı kritik miydi (sinsi saldırı zarları da ikiye katlanır)
   if (opt.saldiri && kept === 1 && total !== 1) { total = 1; detail = `d20 (${!b ? a : `${a} ve ${b}`}) · doğal 1, bonus eklenmez`; }
   const tag = mode === 'adv' ? ' (avantaj)' : mode === 'dis' ? ' (dezavantaj)' : '';
   const dice = [{ s:20, v:a }];
@@ -5017,6 +5018,13 @@ function doRoll(btn) {
     const r = rollD20(`${a.name || 'Saldırı'}: vuruş zarı`, [[a.ab.toUpperCase(), mod(a.ab)], ['yetkinlik', a.prof ? pb() : 0], ['ek bonus', a.bonus]],
       { on20:'Kritik vuruş! Şimdi hasar zarına bas, zarlar iki kez atılır.', on1:'Doğal 1: saldırı ıskalar.', saldiri: true });
     critRow = r.kept === 20 ? i : -1;
+  }
+  else if (kind === 'sinsi') {
+    const n = sinsiZar(C); if (!n) return;
+    const t = sinsiTur();
+    if (t && SV.sinsi === t) notify('Sinsi saldırıyı bu tur kullandın', 'Turda bir kez olur (başkasının turunda tepkiyle vurursan yeniden olabilir; DM karar verir).');
+    SV.sinsi = t;
+    rollExpr(`${n}d6`, 'Sneak Attack (sinsi saldırı): ek hasar', { crit: !!SV.sonKrit, hasar: true });
   }
   else if (kind === 'ek-vurus') {                                    // öbür eldeki hafif silahla ek saldırı (R3 madde 42)
     const x = ekSaldiri(); if (!x) return;
@@ -6369,6 +6377,11 @@ function atkHasar(a) {                                                 // Versat
   const e = atkSilah(a), c = e && a.el === 'iki' ? e.silah.oz.find(o => o[0] === 'cift') : null;
   return c && c[1] ? String(a.dmg).replace(e.silah.zar, c[1]) : String(a.dmg);
 }
+/* Sinsi saldırı (2026-11-25, R3 madde 19; SRD 5.2.1 Rogue Sneak Attack): turda bir kez, avantajlıyken ya da hedefin 5 ft yanında bir
+   dostun varken (ve dezavantajlı değilken) Finesse ya da menzilli silahla vurunca +Xd6; X = seviyenin yarısı, yukarı yuvarlanır.
+   Koşula oyuncu ve DM karar verir; site yalnızca bu tur kullanıldıysa uyarır (SV.sinsi: savaşın turu ve sırası). */
+const sinsiZar = c => /^rogue$/i.test(deger(c.cls).trim()) ? Math.ceil(int(c.level) / 2) : 0;
+const sinsiTur = () => { const s = store.net.role === 'dm' ? store.sira : net.sira; return s && s.aktif ? `${s.tur}|${s.simdi}` : ''; };
 function ekSaldiri(c = C) {                                            // öbür eldeki hafif silahla ek saldırı (yoksa null)
   const hafif = a => silahOzSet(atkSilah(a)).has('hafif');
   const ikisi = c.attacks.find(a => a.el === 'ikisi' && hafif(a));
@@ -10550,6 +10563,8 @@ function renderMe() {
     return `<div class="mc-atk" data-row data-i="${i}"><span title="${esc(a.name || 'Saldırı')} · ${esc(a.dmg)}${o.ipucu ? '\n\n' + esc(o.ipucu) : ''}">${esc(a.name || 'Saldırı')}<small><button class="mc-el${el ? ' on' : ''}" data-act="el-degis" title="Hangi elinde? Basınca değişir: ${elSecenek(a).map(k => EL_AD[k]).join(' → ')}">${EL_AD[el]}</button>${esc((yan || String(a.dmg)).split(' ')[0] || 'hasar')}${yan ? ' (iki elle)' : ''}${o.kisa ? ` · ${esc(o.kisa)}` : ''}</small></span>
       <button class="roll" data-act="roll" data-roll="attack" title="Vuruş zarı at: ${esc(a.name || 'saldırı')}">${sign(attackBonus(a))}</button>
       <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(atkHasar(a))}" aria-label="Hasar zarı at">${HASAR_IC}</button></div>`; }).join('')
+    + (sinsiZar(c) ? `<div class="mc-atk mc-ek mc-hak"><span title="Sneak Attack: turda bir kez, avantajlıyken ya da hedefin 5 ft yanında bir dostun varken (dezavantajlı değilken) ince (Finesse) ya da menzilli silahla vurunca. Önce silahının hasarını at, sonra bunu.">Sinsi saldırı<small>${sinsiZar(c)}d6 · vurunca, turda bir kez</small></span>
+      <button class="roll die" data-act="roll" data-roll="sinsi" title="Sinsi saldırı hasarı: ${sinsiZar(c)}d6 (kritik vuruştan sonra zarlar iki kez)" aria-label="Sinsi saldırı hasarı">${HASAR_IC}</button></div>` : '')
     + (ekS ? `<div class="mc-atk mc-ek"><span title="SRD: iki hafif silahla saldırınca öbür elindekiyle bir ek saldırı. ${esc(ekS.ne)}; ${esc(ekS.not)}.">${esc(ekS.a.name)} · öbür el<small>${esc(ekS.dmg.split(' ')[0])} · ek saldırı, ${esc(ekS.ne.toLowerCase())}</small></span>
       <button class="roll" data-act="roll" data-roll="ek-vurus" title="Ek saldırı: vuruş zarı at">${sign(attackBonus(ekS.a))}</button>
       <button class="roll die" data-act="roll" data-roll="ek-hasar" title="Ek saldırının hasarı: ${esc(ekS.dmg)} (${esc(ekS.not)})" aria-label="Ek saldırı hasarı">${HASAR_IC}</button></div>` : '')
