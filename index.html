@@ -4113,7 +4113,8 @@ function hakKullan(k, btn) {
   }
   const u = hakEtki(k);
   hakAyarla(k, kalan - 1);
-  if (u && u.zar) rollExpr(u.zar, `${h.en} (${h.tr})${u.hasar ? ': ışıyan hasar' : ''}`, u.hasar ? { hasar: true } : { iyi: true, kendi: !!u.kendi });
+  if (u && u.zar) rollExpr(u.zar, `${h.en} (${h.tr})${u.hasar ? ': ışıyan hasar' : ''}`, u.hasar ? { hasar: true, crit: !!SV.sonKrit } : { iyi: true, kendi: !!u.kendi });
+  if (u && u.hasar) SV.sonKrit = false;
   notify(`${h.tr} kullanıldı`, (u ? `${u.e}. ${u.x}` : `${h.en}: ne yaptığı Özellikler sekmesinde yazar.`) + ` Kalan: ${kalan - 1}/${h.max}.`);
 }
 function hakAyarla(k, kalan) {
@@ -5612,6 +5613,7 @@ const ACTIONS = {
   hak: b => { const h = hakListe().find(x => x.k === b.dataset.k); if (h) hakAyarla(h.k, 'v' in b.dataset ? int(b.dataset.v) : hakKalan(h) + int(b.dataset.d)); },
   'hak-kullan': b => hakKullan(b.dataset.k, b),
   'el-degis': b => elDegis(int(b.closest('[data-row]').dataset.i)),
+  smite: () => smiteVur(),
   'kisa-dinlen': () => kisaDinlen(),
   'lv-kapa': () => lvKapa(),
   'lv-zar': () => lvCan(true),
@@ -6963,6 +6965,27 @@ function byZarIfade(b, yuva, tur) {                                    // tur 'h
   }).join('+');
 }
 const byYuvalar = sv => C.slots.map((s, i) => ({ sv: i + 1, kalan: int(s.t) - int(s.u) })).filter(x => x.sv >= sv && x.kalan > 0);
+/* İlahi vuruş tek tuş (2026-11-25, R3 madde 18; kullanıcı: "vurduktan sonra bas, yuva harcansın, hasar silahın hasarına eklensin").
+   SRD 5.2.1 Divine Smite: yakın dövüşte vurduktan hemen sonra bonus eylem; hedef 2d8 ışıyan hasar alır, yuva seviyesi 1'in üstündeki her
+   seviye için +1d8; iblis ya da ölümsüzse +1d8 daha. Son saldırı kritikse zarlar ikiye katlanır (SV.sonKrit). */
+function smiteSatir(c) {
+  const x = byKullan(c).find(y => y.b && y.b.a === 'Divine Smite'); if (!x) return '';
+  const yv = calc(c, () => byYuvalar(1));
+  const sec = yv.length > 1 ? `<select class="mc-yuva" id="smiteYuva" aria-label="Hangi yuvayla" title="Üst yuvayla daha çok hasar">${yv.map(v => `<option value="${v.sv}">${v.sv}. sv · ${v.sv + 1}d8</option>`).join('')}</select>` : '';
+  return `<div class="mc-atk mc-ek${sec ? '' : ' mc-hak'}"><span title="Divine Smite: yakın dövüş silahıyla ya da yumrukla vurduktan hemen sonra bonus eylemle. Önce silahının hasarını at, sonra bunu. Hedef iblis (Fiend) ya da ölümsüzse (Undead) DM +1d8 ekler.">İlahi vuruş<small>${yv.length ? `${yv[0].sv + 1}d8 ışıyan · vurunca, yuva harcar` : 'büyü yuvan kalmadı'}</small></span>${sec}
+    <button class="roll die" data-act="smite" ${yv.length ? '' : 'disabled'} title="${yv.length ? 'Yuva harcanır, hasar zarı hedefe atılır' : 'Uzun dinlenmede dolar'}" aria-label="İlahi vuruş hasarı">${HASAR_IC}</button></div>`;
+}
+function smiteVur() {
+  if (mode === 'peek') return;
+  const l = byYuvalar(1), sel = $('#smiteYuva'), yuva = l.some(x => x.sv === int(sel && sel.value)) ? int(sel.value) : (l[0] || {}).sv;
+  if (!yuva) { notify('Büyü yuvan kalmadı', 'Uzun dinlenmede dolar.'); return; }
+  C.slots[yuva - 1].u = int(C.slots[yuva - 1].u) + 1;
+  if (C.byHak && C.byHak.p === 'hepsi') C.byHak = Object.assign({}, C.byHak, { p: 0 });
+  rollExpr(`${yuva + 1}d8`, `Divine Smite (${yuva}. sv yuva): ışıyan hasar`, { hasar: true, crit: !!SV.sonKrit });
+  SV.sonKrit = false;
+  notify('İlahi vuruş', `${yuva}. seviye yuva harcandı (bonus eylem). Hedef iblis ya da ölümsüzse DM +1d8 ekler.`);
+  changed(); renderLists(); if (mode === 'table') renderMe();
+}
 function byYap(i, yuvaSec) {
   const s = C.spells[i]; if (!s) return;
   const b = buyuBul(s) || { a: s.name, t: s.name, s: int(s.lvl), x: s.note || '' };
@@ -10600,6 +10623,7 @@ function renderMe() {
     return `<div class="mc-atk" data-row data-i="${i}"><span title="${esc(a.name || 'Saldırı')} · ${esc(a.dmg)}${o.ipucu ? '\n\n' + esc(o.ipucu) : ''}">${esc(a.name || 'Saldırı')}<small><button class="mc-el${el ? ' on' : ''}" data-act="el-degis" title="Hangi elinde? Basınca değişir: ${elSecenek(a).map(k => EL_AD[k]).join(' → ')}">${EL_AD[el]}</button>${esc((yan || String(a.dmg)).split(' ')[0] || 'hasar')}${yan ? ' (iki elle)' : ''}${o.kisa ? ` · ${esc(o.kisa)}` : ''}</small></span>
       <button class="roll" data-act="roll" data-roll="attack" title="Vuruş zarı at: ${esc(a.name || 'saldırı')}">${sign(attackBonus(a))}</button>
       <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(atkHasar(a))}" aria-label="Hasar zarı at">${HASAR_IC}</button></div>`; }).join('')
+    + smiteSatir(c)
     + (sinsiZar(c) ? `<div class="mc-atk mc-ek mc-hak"><span title="Sneak Attack: turda bir kez, avantajlıyken ya da hedefin 5 ft yanında bir dostun varken (dezavantajlı değilken) ince (Finesse) ya da menzilli silahla vurunca. Önce silahının hasarını at, sonra bunu.">Sinsi saldırı<small>${sinsiZar(c)}d6 · vurunca, turda bir kez</small></span>
       <button class="roll die" data-act="roll" data-roll="sinsi" title="Sinsi saldırı hasarı: ${sinsiZar(c)}d6 (kritik vuruştan sonra zarlar iki kez)" aria-label="Sinsi saldırı hasarı">${HASAR_IC}</button></div>` : '')
     + (ekS ? `<div class="mc-atk mc-ek"><span title="SRD: iki hafif silahla saldırınca öbür elindekiyle bir ek saldırı. ${esc(ekS.ne)}; ${esc(ekS.not)}.">${esc(ekS.a.name)} · öbür el<small>${esc(ekS.dmg.split(' ')[0])} · ek saldırı, ${esc(ekS.ne.toLowerCase())}</small></span>
