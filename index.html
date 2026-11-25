@@ -2019,6 +2019,10 @@ body:not(.guide) .mc-rehber{display:none}
 .mc-atk span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:14px}
 .mc-atk span small{display:block;font-weight:500;font-size:12px;color:var(--muted);white-space:normal;line-height:1.25}
 .mc-atk .roll{min-width:44px;padding:6px 8px;font-size:15px}
+.mc-el{display:inline-block;margin:1px 5px 1px 0;padding:0 5px;border:1px dashed var(--line);background:none;color:var(--muted);font:inherit;font-size:11px;font-weight:700;line-height:1.5;vertical-align:baseline}
+.mc-el.on{border-style:solid;border-color:var(--accent);color:var(--text);background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.mc-el:hover{color:var(--text);border-color:var(--accent)}
+.mc-atk.mc-ek{border-left:3px solid var(--accent)}
 .mc-ust>.btn{border:0;min-height:44px}
 .mc-ust>.btn.icon{width:44px}
 .mc-ust>.btn.icon .ic{transition:rotate .2s}
@@ -5014,6 +5018,17 @@ function doRoll(btn) {
       { on20:'Kritik vuruş! Şimdi hasar zarına bas, zarlar iki kez atılır.', on1:'Doğal 1: saldırı ıskalar.', saldiri: true });
     critRow = r.kept === 20 ? i : -1;
   }
+  else if (kind === 'ek-vurus') {                                    // öbür eldeki hafif silahla ek saldırı (R3 madde 42)
+    const x = ekSaldiri(); if (!x) return;
+    const r = rollD20(`${x.a.name}: ek saldırı (öbür el)`, [[x.a.ab.toUpperCase(), mod(x.a.ab)], ['yetkinlik', x.a.prof ? pb() : 0], ['ek bonus', x.a.bonus]],
+      { on20:'Kritik vuruş! Şimdi ek saldırının hasar zarına bas.', on1:'Doğal 1: saldırı ıskalar.', saldiri: true });
+    critRow = r && r.kept === 20 ? 'ek' : -1;
+  }
+  else if (kind === 'ek-hasar') {
+    const x = ekSaldiri(); if (!x) return;
+    rollExpr(x.dmg, `${x.a.name}: ek saldırı hasarı (${x.not})`, { crit: critRow === 'ek', hasar: true });
+    critRow = -1;
+  }
   else if (kind === 'silahsiz') {                                     // yumruk / tekme (masada kendi camımdan da: C her zaman benim kağıdım ya da DM'in baktığı)
     const u = silahsiz();
     const r = rollD20('Yumruk / tekme: vuruş zarı', [[u.ab.toUpperCase(), u.am], ['yetkinlik', u.p]],
@@ -5027,7 +5042,7 @@ function doRoll(btn) {
   else if (kind === 'damage') {
     const a = C.attacks[i]; if (!a) return;
     if (!String(a.dmg).trim()) { notify('Önce hasar zarını yaz', 'Örnek: 1d8+3 slashing'); return; }
-    rollExpr(a.dmg, `${a.name || 'Saldırı'}: hasar`, { crit: critRow === i, hasar: true });   // hedef seçiliyse hedefin canından düşer
+    rollExpr(atkHasar(a), `${a.name || 'Saldırı'}: hasar${a.el === 'iki' && atkHasar(a) !== String(a.dmg) ? ' (iki elle)' : ''}`, { crit: critRow === i, hasar: true });   // hedef seçiliyse hedefin canından düşer
     critRow = -1;
   }
   else if (kind === 'death' && mode !== 'peek') rollDeath();
@@ -5580,6 +5595,7 @@ const ACTIONS = {
   'seviye-atla': () => lvAc(),                                       // BÖLÜM 8c
   hak: b => { const h = hakListe().find(x => x.k === b.dataset.k); if (h) hakAyarla(h.k, 'v' in b.dataset ? int(b.dataset.v) : hakKalan(h) + int(b.dataset.d)); },
   'hak-kullan': b => hakKullan(b.dataset.k, b),
+  'el-degis': b => elDegis(int(b.closest('[data-row]').dataset.i)),
   'kisa-dinlen': () => kisaDinlen(),
   'lv-kapa': () => lvKapa(),
   'lv-zar': () => lvCan(true),
@@ -6327,6 +6343,43 @@ function zirhOzet(e) {
 const esyaOzet = e => e.silah ? silahOzet(e, true) : e.zirh ? zirhOzet(e) : e.d;
 // Masadaki saldırı satırı için silahın özellikleri (2026-11-17, kullanıcı: "Finesse, Two-Handed, Heavy karakter panelinde yazsın").
 // kisa: "İnce · Hafif · Fırlatılır 20/60 ft"; ipucu: her özelliğin açıklaması. Katalogda olmayan silahta oyuncunun notu.
+/* Sağ el / sol el (2026-11-25, R3 madde 42; kullanıcı: "sol ele ve sağ ele silah koyalım, iki elli silah iki elde dursun, iki hançerle
+   ikisiyle de vuralım"). Saldırı satırında a.el: '' | 'sag' | 'sol' | 'iki' (iki elle: Two-Handed ya da Versatile) | 'ikisi' (iki elde
+   birer tane, hafif silah). SRD 5.2.1 Light: iki hafif silahla saldırınca öbür elindekiyle bir ek saldırı (bonus eylem; silahın Nick
+   ustalığını biliyorsan Saldırı eyleminin içinde); bu saldırının hasarına yetenek bonusu eklenmez (eksiyse eklenir; Two-Weapon Fighting
+   dövüş stili varsa eklenir). Versatile silah iki elle tutulunca büyük zarı atar. */
+const EL_AD = { '': 'Ele al', sag: 'Sağ elde', sol: 'Sol elde', iki: 'İki elle', ikisi: 'İki elde' };
+const atkSilah = a => { const e = esyaBul({ name: a.name }); return e && e.silah ? e : null; };
+const silahOzSet = e => new Set(e ? e.silah.oz.map(o => o[0]) : []);
+const secimVar = (c, v) => Object.values(c.secim || {}).some(l => Array.isArray(l) && l.includes(v));
+function elSecenek(a) {
+  const e = atkSilah(a), oz = silahOzSet(e);
+  if (oz.has('ikiel')) return ['', 'iki'];
+  if (oz.has('binek')) return ['', 'iki', 'sag'];
+  return ['', 'sag', 'sol'].concat(oz.has('cift') ? ['iki'] : [], oz.has('hafif') ? ['ikisi'] : []);
+}
+function elDegis(i) {
+  const a = C.attacks[i]; if (!a) return;
+  const l = elSecenek(a), yeni = l[(l.indexOf(a.el || '') + 1) % l.length];
+  const dolu = { sag: ['sag', 'iki', 'ikisi'], sol: ['sol', 'iki', 'ikisi'], iki: ['sag', 'sol', 'iki', 'ikisi'], ikisi: ['sag', 'sol', 'iki', 'ikisi'] }[yeni] || [];
+  C.attacks.forEach((x, j) => { if (j !== i && dolu.includes(x.el)) x.el = ''; });   // aynı ele ikinci silah girmez
+  a.el = yeni; changed(); if (mode === 'table') renderMe();
+}
+function atkHasar(a) {                                                 // Versatile silah iki elle: büyük zar
+  const e = atkSilah(a), c = e && a.el === 'iki' ? e.silah.oz.find(o => o[0] === 'cift') : null;
+  return c && c[1] ? String(a.dmg).replace(e.silah.zar, c[1]) : String(a.dmg);
+}
+function ekSaldiri(c = C) {                                            // öbür eldeki hafif silahla ek saldırı (yoksa null)
+  const hafif = a => silahOzSet(atkSilah(a)).has('hafif');
+  const ikisi = c.attacks.find(a => a.el === 'ikisi' && hafif(a));
+  const sag = c.attacks.find(a => a.el === 'sag'), sol = c.attacks.find(a => a.el === 'sol');
+  const a = ikisi || (sag && sol && hafif(sag) && hafif(sol) ? sol : null);
+  if (!a) return null;
+  const e = atkSilah(a), m = calc(c, () => mod(a.ab)), stil = secimVar(c, 'Two-Weapon Fighting'), nick = e.silah.u === 'Nick' && secimVar(c, e.k);
+  const ek = stil || m < 0 ? m : 0;
+  return { a, i: c.attacks.indexOf(a), dmg: `${e.silah.zar}${ek ? (ek > 0 ? '+' : '') + ek : ''} ${HASAR_TR[e.silah.h][0]}`, nick, stil,
+    ne: nick ? 'Saldırı eyleminin içinde (Nick)' : 'Bonus eylem', not: stil ? 'Two-Weapon Fighting: yetenek bonusu hasara eklenir' : 'yetenek bonusu hasara eklenmez' };
+}
 function atkOz(a) {
   const e = esyaBul({ name: a.name });
   if (!e || !e.silah) return { kisa: String(a.note || '').trim(), ipucu: '' };
@@ -10492,9 +10545,14 @@ function renderMe() {
   const av = c.portrait ? `<img src="${esc(c.portrait)}" alt="">` : esc((c.name.trim()[0] || '?').toUpperCase());
   const kalkan = '<svg viewBox="0 0 100 110" aria-hidden="true"><path d="M50 5 91 19v34c0 25-17 41-41 51C26 94 9 78 9 53V19z"/></svg>';
   const rehber = rehberMetni(c);
-  const atk = c.attacks.slice(0, 6).map((a, i) => { const o = atkOz(a); return `<div class="mc-atk" data-row data-i="${i}"><span title="${esc(a.name || 'Saldırı')} · ${esc(a.dmg)}${o.ipucu ? '\n\n' + esc(o.ipucu) : ''}">${esc(a.name || 'Saldırı')}<small>${esc(String(a.dmg).split(' ')[0] || 'hasar')}${o.kisa ? ` · ${esc(o.kisa)}` : ''}</small></span>
+  const ekS = ekSaldiri(c);
+  const atk = c.attacks.slice(0, 6).map((a, i) => { const o = atkOz(a), el = a.el || '', yan = atkHasar(a) !== String(a.dmg) ? atkHasar(a) : '';
+    return `<div class="mc-atk" data-row data-i="${i}"><span title="${esc(a.name || 'Saldırı')} · ${esc(a.dmg)}${o.ipucu ? '\n\n' + esc(o.ipucu) : ''}">${esc(a.name || 'Saldırı')}<small><button class="mc-el${el ? ' on' : ''}" data-act="el-degis" title="Hangi elinde? Basınca değişir: ${elSecenek(a).map(k => EL_AD[k]).join(' → ')}">${EL_AD[el]}</button>${esc((yan || String(a.dmg)).split(' ')[0] || 'hasar')}${yan ? ' (iki elle)' : ''}${o.kisa ? ` · ${esc(o.kisa)}` : ''}</small></span>
       <button class="roll" data-act="roll" data-roll="attack" title="Vuruş zarı at: ${esc(a.name || 'saldırı')}">${sign(attackBonus(a))}</button>
-      <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(a.dmg)}" aria-label="Hasar zarı at">${HASAR_IC}</button></div>`; }).join('')
+      <button class="roll die" data-act="roll" data-roll="damage" title="Hasar zarı at: ${esc(atkHasar(a))}" aria-label="Hasar zarı at">${HASAR_IC}</button></div>`; }).join('')
+    + (ekS ? `<div class="mc-atk mc-ek"><span title="SRD: iki hafif silahla saldırınca öbür elindekiyle bir ek saldırı. ${esc(ekS.ne)}; ${esc(ekS.not)}.">${esc(ekS.a.name)} · öbür el<small>${esc(ekS.dmg.split(' ')[0])} · ek saldırı, ${esc(ekS.ne.toLowerCase())}</small></span>
+      <button class="roll" data-act="roll" data-roll="ek-vurus" title="Ek saldırı: vuruş zarı at">${sign(attackBonus(ekS.a))}</button>
+      <button class="roll die" data-act="roll" data-roll="ek-hasar" title="Ek saldırının hasarı: ${esc(ekS.dmg)} (${esc(ekS.not)})" aria-label="Ek saldırı hasarı">${HASAR_IC}</button></div>` : '')
     + (u => `<div class="mc-atk" data-row data-i="-1"><span title="Silahsız vuruş · tutma / itme: hedef ZD ${u.zd}">Yumruk / tekme<small>${esc(u.dmg)}</small></span>
       <button class="roll" data-act="roll" data-roll="silahsiz" title="Yumruk ya da tekme: vuruş zarı at">${sign(u.vurus)}</button>
       <button class="roll die" data-act="roll" data-roll="silahsiz-hasar" title="Hasar: ${esc(u.dmg)} ezici" aria-label="Yumruk / tekme hasarı">${HASAR_IC}</button></div>`)(silahsiz(c))
