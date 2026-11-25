@@ -151,6 +151,23 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .hb-zar{margin-left:auto;font-size:12.5px;color:var(--muted);white-space:nowrap}
 .hb-btn{display:flex;gap:8px}
 .hb-btn .btn{flex:1 1 auto}
+.hb-kart{background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
+.hb-kart .hb-ust>.ic{color:var(--accent)}
+.hk-hl{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-height:220px;overflow:auto}
+.hk-hl li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 6px;background:var(--surface)}
+.hk-hl li>span:first-child{min-width:0}
+.hk-hl b{display:block;font-weight:700;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hk-hl small{display:block;font-size:11.5px;color:var(--muted)}
+.hk-seg{display:flex;flex:none}
+.hk-seg button{padding:3px 7px;border:1px solid var(--line);background:none;color:var(--muted);font:inherit;font-size:12px;font-weight:700}
+.hk-seg button+button{border-left:0}
+.hk-seg button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.hk-l{font-size:12.5px;color:var(--muted)}
+.npc-kz{display:flex;flex-wrap:wrap;align-items:flex-end;gap:4px;width:100%}
+.npc-kz .f-l{width:100%}
+.npc-kz label{display:grid;justify-items:center;gap:1px}
+.npc-kz small{font-size:10.5px;color:var(--muted);font-weight:700}
+.npc-kz input{width:44px;text-align:center;padding:3px}
 .npc-kart{margin-top:30px}
 .npc-list{display:grid;gap:10px}
 .npc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:0;background:var(--surface-2)}
@@ -3234,6 +3251,7 @@ body.tv-full #tableView{height:100dvh}
   <div class="hedef-blok" id="hedefBlok" hidden>
     <label class="f" id="atanAlan" hidden><span class="f-l">Atan<i>kimin adına</i></span><select id="atanSec"></select></label>
     <label class="f"><span class="f-l">Hedef<i>zar kime gidiyor</i></span><select id="hedefSec"></select></label>
+    <button class="btn sm" id="hedefCokBtn" data-act="hedef-cok" aria-pressed="false" title="Birden çok hedef: alan büyüleri için (Fireball, Bless…). Açıkken kartlara basarak hedef ekle / çıkar"><svg class="ic"><use href="#i-hedef"/></svg>Birden çok</button>
     <button class="btn sm" id="hasarBtn" data-act="hasar-sec" aria-pressed="false" hidden title="Açıksa tepsiden atacağın bir sonraki zar hasar sayılır ve hedefin canından düşer"><svg class="ic"><use href="#i-hancer"/></svg>Sonraki zar hasar</button>
   </div>
   <div class="dice-grid">
@@ -5004,7 +5022,7 @@ function rollExpr(expr, label, opt = {}) {
       detail += `${op}${n}d${t.s} (${r.join(', ')})`;
     } else { total += t.neg ? -t.k : t.k; detail += op + t.k; }
   });
-  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : (opt.note || ''), dice, hasar: !!opt.hasar, hedefsiz: !!opt.hedefsiz, iyi: !!opt.iyi, kendi: !!opt.kendi });
+  showRoll({ label, total, detail, flag: opt.crit ? 'crit-hit' : '', note: opt.crit ? 'Kritik vuruş: hasar zarları iki kez atıldı.' : (opt.note || ''), dice, hasar: !!opt.hasar, hedefsiz: !!opt.hedefsiz, iyi: !!opt.iyi, kendi: !!opt.kendi, kurt: opt.kurt || null });
   return total;
 }
 
@@ -7008,15 +7026,21 @@ function byYap(i, yuvaSec) {
       { on20: 'Kritik vuruş! Şimdi hasar zarına bas, zarlar iki kez atılır.', on1: 'Doğal 1: büyü ıskalar.', saldiri: true });
     BY.krit = r && r.kept === 20 ? b.a : '';
     if (kons) notify('Konsantrasyon', kons.trim());
-  } else if (b.sv) notify(`${ad}: hedef ${b.sv.toUpperCase()} kurtarması atar`, `Büyü zorluğun (ZD) ${byZd()}.${b.h ? ' Hasar zarına bas; kurtarmayı geçenin ne alacağını açıklama söyler.' : ''}${kons}`);
+  } else if (b.sv) {
+    const hl = hedefListe();
+    if (store.net.role === 'player' && hl.length) send(net.conn, Object.assign({ t: 'kurt-iste', hedefler: hl, h: !!b.h }, byKurt(b)));   // DM'e büyü kartı (R3 madde 16)
+    else if (store.net.role === 'dm' && hl.length) kartAc({ kimden: myName(), seat: 'dm', hedefler: hl, kurt: byKurt(b), h: !!b.h });
+    notify(`${ad}: ${hl.length ? hedefAdlar(hl) : 'hedef'} ${b.sv.toUpperCase()} kurtarması atar`, `Büyü zorluğun (ZD) ${byZd()}.${hl.length && store.net.role ? ' DM\'e gitti: düşmanların kurtarmasını DM atar.' : ' Önce hedef seç, DM kurtarmayı atsın.'}${b.h ? ' Sonra hasar zarına bas; geçen ' + (byKurt(b).yari ? 'yarısını alır.' : 'hiç almaz.') : ''}${kons}`);
+  }
   else notify(`${ad} yapıldı`, `${yuva ? `${yuva}. seviye yuva harcandı. ` : ''}${b.x || ''}${kons}`.trim());
   changed(); renderLists(); if (mode === 'table') renderMe();
 }
+const byKurt = b => ({ buyu: b.a, sv: b.sv, zd: byZd(), yari: /yarı/i.test(b.x || '') });
 function byZarAt(i, tur) {
   const s = C.spells[i], b = s && buyuBul(s); if (!b) return;
   const yuva = BY.son && BY.son.a === b.a ? BY.son.yuva : b.s, expr = byZarIfade(b, yuva, tur); if (!expr) return;
   if (tur === 'iy') rollExpr(expr, `${b.a}: iyileştirme (can)`, { iyi: true });
-  else { rollExpr(expr, `${b.a}: hasar (${b.h.split(' + ').map(x => BY_HT[x.split(' ')[1]] || x.split(' ')[1]).join(' + ')})`, { hasar: true, crit: BY.krit === b.a }); BY.krit = ''; }
+  else { rollExpr(expr, `${b.a}: hasar (${b.h.split(' + ').map(x => BY_HT[x.split(' ')[1]] || x.split(' ')[1]).join(' + ')})`, { hasar: true, crit: BY.krit === b.a, kurt: b.sv ? byKurt(b) : null }); BY.krit = ''; }
 }
 function byCamSatir(c) {                                               // saldırı satırına: hasar veren cantrip'ler
   return byKullan(c).filter(x => x.b && x.b.s === 0 && x.b.h && (x.b.at || x.b.sv)).slice(0, 4).map(({ i, b }) => {
@@ -7703,6 +7727,11 @@ function dmReceive(pid, conn, msg) {
   else if (msg.t === 'mz-ekle') mzDmEkle(p, msg);                    // müzik: oyuncu link ekledi / başlattı (BÖLÜM 10f)
   else if (msg.t === 'mz-is') mzDmIs(p, msg);                        // müzik: oyuncu çal / durdur / sonraki / seç
   else if (msg.t === 'pazar-al') pzDmAl(p, msg);
+  else if (msg.t === 'kurt-iste') {                                    // oyuncu kurtarmalı bir büyü yaptı (R3 madde 16)
+    const ids = (Array.isArray(msg.hedefler) ? msg.hedefler : []).slice(0, 12).map(cleanHedef).filter(id => npcler().some(n => n.id === id && n.gor) || seated().some(o => o.seat === id && o.pid !== pid));
+    const kurt = cleanKurt(msg);
+    if (ids.length && kurt) { kartAc({ kimden: (p.char && p.char.name.trim()) || p.name, seat: p.seat, hedefler: ids, kurt, h: !!msg.h }); notify(`${(p.char && p.char.name.trim()) || p.name}: ${kurt.buyu}`, `${ids.length} hedef ${kurt.sv.toUpperCase()} kurtarması atacak (ZD ${kurt.zd}). Sağ alttaki kartta "Düşmanların kurtarmalarını at".`); }
+  }
   else if (/^teklif/.test(msg.t)) tkDmAl(p, msg);                    // satış teklifi (BÖLÜM 10h)                     // pazar: oyuncu satın almak istiyor (BÖLÜM 10g)
   else if (msg.t === 'sheet' && msg.char && typeof msg.char === 'object') {
     const portrait = typeof msg.portrait === 'string' ? guvenliPortre(msg.portrait) : (p.char ? p.char.portrait : '');
@@ -7721,8 +7750,12 @@ function dmReceive(pid, conn, msg) {
     // Hedef: masadaki bir düşman ya da başka bir oyuncu olmalı; hasarı DM uygular (BÖLÜM 10b)
     const hedef = cleanHedef(msg.hedef);
     const savasDisi = siraAktif() && savasDurum(p.seat) !== 'katil';  // savaşı izleyen ya da dışarıdaki oyuncu vuramaz
-    if (hedef && msg.hasar && !savasDisi && (npcler().some(n => n.id === hedef && n.gor) || seated().some(o => o.seat === hedef && o.pid !== pid))) hasarUygula(hedef, roll.total, entry.char.trim() || p.name);
-    if (hedef && msg.iyi && !msg.hasar && !savasDisi && (npcler().some(n => n.id === hedef && n.gor) || seated().some(o => o.seat === hedef && o.pid !== pid))) iyiUygula(hedef, roll.total, entry.char.trim() || p.name);
+    const gecer = id => !!id && (npcler().some(n => n.id === id && n.gor) || seated().some(o => o.seat === id && o.pid !== pid));
+    const hl = (Array.isArray(msg.hedefler) ? msg.hedefler : []).slice(0, 12).map(cleanHedef).filter(gecer), kurt = cleanKurt(msg.kurt), kim = entry.char.trim() || p.name;
+    const hepsi = hl.length ? hl : gecer(hedef) ? [hedef] : [];
+    if (msg.hasar && !savasDisi && hepsi.length && (hepsi.length > 1 || kurt)) setTimeout(() => kartAc({ kimden: kim, seat: p.seat, hedefler: hepsi, kurt, miktar: roll.total, detail: roll.detail }), SAVAS.gecikme);   // DM karar verir
+    else if (msg.hasar && !savasDisi && hepsi.length) hasarUygula(hepsi[0], roll.total, kim);
+    if (msg.iyi && !msg.hasar && !savasDisi) hepsi.forEach(id => iyiUygula(id, roll.total, kim));
     // İnisiyatif zarı savaş sırasına yazılır (zar yere indikten sonra; sonuç zardan önce görünmesin)
     if (msg.ini && store.sira && store.sira.aktif && !savasDisi) setTimeout(() => {
       const s = store.sira; if (!s || !s.aktif) return;
@@ -7885,7 +7918,8 @@ function playerReceive(conn, msg) {
   }
   else if (msg.t === 'roster') { net.roster = readRoster(msg.roster); net.npcs = readNpcs(msg.npcs); siraAl(msg.sira, msg.savas); if (msg.dm) net.dmName = short(msg.dm, 30); net.dmPortre = DM_PORTRE.includes(msg.dmp) ? msg.dmp : ''; renderNetUI(); renderTable(); }
   else if (msg.t === 'hasar') hasarAl(clamp(int(msg.miktar), 0, 9999), short(msg.kimden, 40), !!msg.dogrudan);   // DM'in uyguladığı hasar (BÖLÜM 10b)
-  else if (msg.t === 'iyi') iyiAl(clamp(int(msg.miktar), 0, 9999), short(msg.kimden, 40));                          // arkadaşın iyileştirdi (R3 madde 43)
+  else if (msg.t === 'iyi') iyiAl(clamp(int(msg.miktar), 0, 9999), short(msg.kimden, 40));
+  else if (msg.t === 'kurt-sor') kurtSor(msg);                                                                         // bir büyünün hedefisin: kurtarma at                          // arkadaşın iyileştirdi (R3 madde 43)
   else if (msg.t === 'face') {                                       // bir koltuğun küçük portresi (yalnızca değişince gelir)
     const id = cleanSeat(msg.id), img = cleanImg(msg.img);
     if (id && id !== 'dm') {
@@ -7924,7 +7958,7 @@ function queueSheet() { if (store.net.role !== 'player') return; clearTimeout(ne
 
 /* ───────── Zarların paylaşılması ───────── */
 function shareRoll(r) {
-  if (store.net.role === 'player') send(net.conn, { t:'roll', roll: cleanRoll(r), hedef: r.hedef || '', hasar: !!r.hasar, ini: !!r.ini, iyi: !!r.iyi });
+  if (store.net.role === 'player') send(net.conn, { t:'roll', roll: cleanRoll(r), hedef: r.hedef || '', hasar: !!r.hasar, ini: !!r.ini, iyi: !!r.iyi, hedefler: r.hedefler || [], kurt: r.kurt || null });
   else if (store.net.role === 'dm' && net.peer) {
     const secret = mode === 'peek' || !!store.net.dmSecret;
     pushFeed(Object.assign(cleanRoll(r), { who: r.kim || 'DM', char: mode === 'peek' ? `${C.name.trim() || 'oyuncu'} adına` : '', ts: Date.now(), secret }));
@@ -8301,9 +8335,11 @@ const readNpcs = list => (Array.isArray(list) ? list : []).slice(0, 30).filter(n
     max: n.max === undefined ? null : clamp(int(n.max), 0, 9999), ac: n.ac === undefined ? null : clamp(int(n.ac), 0, 99) }));
 // Hazır düşmanlar: görselleri masa/npc/<k>.webp (Nano Banana 2). Sayılar yalnızca başlangıç içindir; DM değiştirir.
 const NPC_HAZIR = [
-  { k:'goblin', ad:'Goblin', max:10, ac:15, ini:2, silah:'Scimitar', vur:4, hasar:'1d6+2 slashing' }, { k:'ork', ad:'Ork', max:15, ac:13, ini:1, silah:'Greataxe', vur:5, hasar:'1d12+3 slashing' },
-  { k:'iskelet', ad:'İskelet', max:13, ac:14, ini:3, silah:'Shortsword', vur:5, hasar:'1d6+3 piercing' }, { k:'haydut', ad:'Haydut', max:11, ac:12, ini:1, silah:'Scimitar', vur:3, hasar:'1d6+1 slashing' },
-  { k:'kurt', ad:'Kurt', max:11, ac:12, ini:2, silah:'Isırık', vur:4, hasar:'2d4+2 piercing' },
+  { k:'goblin', ad:'Goblin', max:10, ac:15, ini:2, silah:'Scimitar', vur:4, hasar:'1d6+2 slashing', kz:{ str:-1, dex:2, con:0, int:0, wis:-1, cha:-1 } },
+  { k:'ork', ad:'Ork', max:15, ac:13, ini:1, silah:'Greataxe', vur:5, hasar:'1d12+3 slashing', kz:{ str:3, dex:1, con:3, int:-2, wis:0, cha:0 } },
+  { k:'iskelet', ad:'İskelet', max:13, ac:14, ini:3, silah:'Shortsword', vur:5, hasar:'1d6+3 piercing', kz:{ str:0, dex:3, con:2, int:-2, wis:-1, cha:-3 } },
+  { k:'haydut', ad:'Haydut', max:11, ac:12, ini:1, silah:'Scimitar', vur:3, hasar:'1d6+1 slashing', kz:{ str:0, dex:1, con:1, int:0, wis:0, cha:0 } },
+  { k:'kurt', ad:'Kurt', max:11, ac:12, ini:2, silah:'Isırık', vur:4, hasar:'2d4+2 piercing', kz:{ str:2, dex:2, con:1, int:-4, wis:1, cha:-2 } },
 ];
 const cleanNpcImg = v => (NPC_HAZIR.some(h => h.k === v) ? v : cleanImg(v));
 const npcSrc = img => (!img ? '' : img.startsWith('data:') ? img : `${ART}npc/${img}.webp`);
@@ -8326,22 +8362,32 @@ function hedefler() {
 }
 const hedefAd = id => (hedefler().find(h => h.id === id) || {}).ad || '';
 function gecerliHedef() { const h = cleanHedef(store.hedef); return h && hedefler().some(x => x.id === h) ? h : ''; }
+/* Birden çok hedef (2026-11-25, R3 madde 16, 17): "Birden çok" açıkken karta / düşmana basmak hedefi listeye ekler ya da çıkarır
+   (store.hedefler; store.hedef listenin ilki). Kapalıyken tek hedef. Alan büyüsünün hasarı ve kurtarmaları her hedefe ayrı uygulanır. */
+function hedefListe() {
+  const ok = new Set(hedefler().map(x => x.id));
+  if (store.hedefCok) return [...new Set((store.hedefler || []).map(cleanHedef))].filter(id => id && ok.has(id));
+  const h = gecerliHedef(); return h ? [h] : [];
+}
+const hedefAdlar = l => l.map(hedefAd).filter(Boolean).join(', ');
 const atanNpc = () => (store.net.role === 'dm' ? npcler().find(n => n.id === store.atan) || null : null);
 
 // Kendi atışım (showRoll'dan): kimin adına, kime, hasar mı? Zarın adı buna göre yazılır.
 function zarHedefle(r) {
   if (r.sistem || r.ini || r.hedefsiz) return;                      // düşmanların inisiyatifi, inisiyatif zarı, seviye atlama can zarı: hedefsiz
-  const h = gecerliHedef(), a = atanNpc();
+  const h = gecerliHedef(), a = atanNpc(), hl = hedefListe();
+  if (r.kurt) r.kurt = Object.assign({}, r.kurt);
+  if (hl.length > 1 && !r.kendi) r.hedefler = hl;                  // birden çok hedef (alan büyüsü, Mass Healing Word)
   if (r.iyi) {                                                       // iyileştirme (2026-11-25, R3 madde 43): hedef seçiliyse ona, değilse sana
     if (a) { r.kim = a.ad || 'Düşman'; r.npc = a.id; }
     r.hasar = false;                                                 // kendi: yalnızca kendine (Second Wind), seçili hedefe bakılmaz
-    if (h && !r.kendi) { r.hedef = h; r.label += ` → ${hedefAd(h)}`; if (store.net.role === 'dm') iyiUygula(h, r.total, r.kim || myName()); }
+    if (h && !r.kendi) { r.hedef = h; r.label += ` → ${r.hedefler ? hedefAdlar(r.hedefler) : hedefAd(h)}`; if (store.net.role === 'dm') (r.hedefler || [h]).forEach(x => iyiUygula(x, r.total, r.kim || myName())); }
     else if (store.net.role !== 'dm') { r.label += ' → kendin'; const m = int(r.total); setTimeout(() => iyiAl(m, ''), SAVAS.gecikme); }
     return;
   }
   if (a) { r.kim = a.ad || 'Düşman'; r.npc = a.id; }                 // tahtada, bildirimde ve oyuncularda düşmanın adı yazar; zar onun kartından çıkar (10c)
   r.hasar = !!h && !!(r.hasar || (SAVAS.hasarSecili && !r.d20));
-  if (h) { r.hedef = h; r.label += ` → ${hedefAd(h)}`; }
+  if (h) { r.hedef = h; r.label += ` → ${r.hedefler ? hedefAdlar(r.hedefler) : hedefAd(h)}`; }
   if (r.hasar && SAVAS.hasarSecili) { SAVAS.hasarSecili = false; hedefUI(); }   // "Sonraki zar hasar" tek zarlıktır
 }
 // DM'de: hasarı uygular (zar yere indikten sonra; hemen: DM'in "Hasarı vur" düğmesinden). Düşmansa canından düşer, oyuncuysa oyuncuya gider.
@@ -8373,6 +8419,76 @@ function iyiUygula(hedef, miktar, kimden) {
     if (p && !send(p.conn, { t:'iyi', miktar, kimden: short(kimden, 40) })) notify(`${p.name} şu an bağlı değil`, `${miktar} canı kağıdına elle ekle.`);
   }, SAVAS.gecikme);
 }
+/* Büyü kartı (DM, 2026-11-25, R3 madde 16, 17): kurtarmalı büyü ya da birden çok hedefe hasar. Oyuncu "Yap"a basınca (kurt-iste) ya da
+   hasar zarı gelince açılır. Her hedef: kurtarma sonucu ve Tam / Yarı / Yok. "Kurtarmaları at": DM düşmanlar adına d20 + kurtarma
+   bonusunu atar (oyuncular kendi zarını atar, DM işaretler). "Hasarı vur": her hedefe kendi payı. Kayıt tutulmaz. */
+SAVAS.kartlar = [];
+const KURT_AB = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+function cleanKurt(v) {
+  if (!v || typeof v !== 'object' || !KURT_AB.includes(v.sv)) return null;
+  return { buyu: short(v.buyu, 40), sv: v.sv, zd: clamp(int(v.zd), 0, 40), yari: !!v.yari };
+}
+function kartAc(o) {                                                   // o: { kimden, seat, hedefler, kurt, h, miktar, detail }
+  const k = o.kurt || null;
+  let K = SAVAS.kartlar.find(x => x.seat === o.seat && k && x.kurt && x.kurt.buyu === k.buyu && x.miktar === null);
+  if (!K) {
+    K = { id: newCode(), kimden: o.kimden, seat: o.seat, kurt: k, h: o.h !== false, miktar: null, zar: null, detail: '', hedefler: [] };
+    SAVAS.kartlar.push(K); if (SAVAS.kartlar.length > 4) SAVAS.kartlar.shift();
+  }
+  o.hedefler.forEach(id => { if (!K.hedefler.some(h => h.id === id)) K.hedefler.push({ id, ad: hedefAd(id) || 'hedef', npc: npcler().some(n => n.id === id), kz: null, durum: 'tam' }); });
+  if (o.miktar !== undefined && o.miktar !== null) { K.miktar = clamp(int(o.miktar), 0, 9999); K.zar = K.miktar; K.detail = o.detail || ''; K.h = true; }
+  if (k) K.hedefler.filter(h => !h.npc && !h.sorildu).forEach(h => {      // oyuncu hedef: kendi zarını atsın diye haber
+    h.sorildu = true; const p = seated().find(x => x.seat === h.id);
+    if (p) send(p.conn, { t: 'kurt-sor', buyu: k.buyu, sv: k.sv, zd: k.zd, kimden: short(o.kimden, 40) });
+  });
+  renderBekleyen();
+  return K;
+}
+function kartKurtAt(K) {                                               // düşmanların kurtarma zarları
+  const k = K.kurt; if (!k) return;
+  K.hedefler.filter(h => h.npc && !h.kz).forEach((h, i) => {
+    const n = npcler().find(x => x.id === h.id); if (!n) return;
+    const d = die(20), b = int((n.kz || {})[k.sv]), top = d + b, gecti = top >= k.zd;
+    h.kz = { d, top, gecti }; h.durum = gecti ? (k.yari ? 'yari' : 'yok') : 'tam';
+    setTimeout(() => showRoll({ sistem: true, d20: true, kim: n.ad || 'Düşman', label: `${k.sv.toUpperCase()} kurtarması · ${k.buyu} (ZD ${k.zd})`, total: String(top),
+      detail: `d20 (${d})${b ? ` ${b > 0 ? '+' : '−'} ${Math.abs(b)} ${k.sv.toUpperCase()}` : ''}`, flag: d === 20 ? 'crit-hit' : d === 1 ? 'crit-miss' : '',
+      note: gecti ? `Geçti${k.yari ? ': hasarın yarısını alır' : ''}.` : 'Kaldı.', dice: [{ s: 20, v: d }] }), i * 250);
+  });
+  renderBekleyen();
+}
+function kartVur(K) {
+  if (K.miktar === null) return;
+  const ozet = K.hedefler.map(h => { const m = h.durum === 'tam' ? K.miktar : h.durum === 'yari' ? Math.floor(K.miktar / 2) : 0; if (m) hasarUygula(h.id, m, K.kimden, true); return `${h.ad} ${m}`; });
+  notify(`${K.kurt ? K.kurt.buyu : 'Hasar'}: ${ozet.join(', ')}`, `${K.kimden} vurdu.`);
+  SAVAS.kartlar = SAVAS.kartlar.filter(x => x !== K); renderBekleyen();
+}
+function kartHTML(K) {
+  const k = K.kurt, DUR = [['tam', 'Tam'], ['yari', 'Yarı'], ['yok', 'Yok']];
+  return `<div class="hb hb-kart" data-k="${K.id}">
+    <div class="hb-ust"><svg class="ic"><use href="#i-hedef"/></svg><span><b>${esc(K.kimden)} · ${esc(k ? k.buyu : 'birden çok hedef')}</b>
+      <small>${k ? `${k.sv.toUpperCase()} kurtarması · ZD ${k.zd} · geçen ${k.yari ? 'yarısını alır' : 'hiç almaz'}` : `${K.hedefler.length} hedef`}</small></span></div>
+    <ul class="hk-hl">${K.hedefler.map(h => `<li data-h="${h.id}"><span><b>${esc(h.ad)}</b><small>${h.kz ? `${h.kz.top}: ${h.kz.gecti ? 'geçti' : 'kaldı'}` : k ? (h.npc ? 'kurtarma bekliyor' : 'kendi zarını atar') : ''}</small></span>
+      ${K.h ? `<span class="hk-seg" role="group" aria-label="${esc(h.ad)}: ne kadar hasar">${DUR.map(([d, ad]) => `<button class="${h.durum === d ? 'on' : ''}" data-act="hk-durum" data-d="${d}" aria-pressed="${h.durum === d}">${ad}</button>`).join('')}</span>` : ''}</li>`).join('')}</ul>
+    ${k && K.hedefler.some(h => h.npc && !h.kz) ? '<button class="btn sm" data-act="hk-kurt"><svg class="ic"><use href="#i-d20"/></svg>Düşmanların kurtarmalarını at</button>' : ''}
+    ${K.h ? `<div class="hb-say"><span class="hk-l">Hasar</span><input type="number" class="hb-n hk-n" min="0" max="9999" value="${K.miktar === null ? '' : K.miktar}" placeholder="—" aria-label="Hasar">
+      <span class="hb-zar">${K.miktar === null ? 'hasar zarı bekleniyor' : K.zar !== K.miktar ? `zar ${K.zar}` : esc(K.detail).slice(0, 60)}</span></div>` : ''}
+    <div class="hb-btn"><button class="btn sm" data-act="hk-iptal">${K.h ? 'Vazgeç' : 'Kapat'}</button>${K.h ? `<button class="btn sm accent" data-act="hk-vur" ${K.miktar === null ? 'disabled' : ''}><svg class="ic"><use href="#i-hancer"/></svg>Hasarı vur</button>` : ''}</div>
+  </div>`;
+}
+const kartBul = el => SAVAS.kartlar.find(K => K.id === (el.closest('.hb-kart') || {}).dataset?.k);
+Object.assign(ACTIONS, {
+  'hk-durum': b => { const K = kartBul(b), h = K && K.hedefler.find(x => x.id === b.closest('li').dataset.h); if (h) { h.durum = b.dataset.d; renderBekleyen(); } },
+  'hk-kurt': b => { const K = kartBul(b); if (K) kartKurtAt(K); },
+  'hk-vur': b => { const K = kartBul(b); if (K) kartVur(K); },
+  'hk-iptal': b => { const K = kartBul(b); if (K) { SAVAS.kartlar = SAVAS.kartlar.filter(x => x !== K); renderBekleyen(); } },
+});
+document.addEventListener('input', e => { if (e.target.classList.contains('hk-n')) { const K = kartBul(e.target); if (K) { K.miktar = e.target.value === '' ? null : clamp(int(e.target.value), 0, 9999); const v = $('[data-act="hk-vur"]', e.target.closest('.hb-kart')); if (v) v.disabled = K.miktar === null; } } });
+// Oyuncuda: DM "kurtarma at" diyor (bir büyünün hedefisin)
+function kurtSor(m) {
+  const k = cleanKurt(m); if (!k) return;
+  notify(`${short(m.kimden, 40) || 'Biri'}: ${k.buyu}`, `${k.sv.toUpperCase()} kurtarması at (ZD ${k.zd}). Kendi camındaki "${k.sv.toUpperCase()}" kurtarma zarına bas; sonucu DM işaretler.`);
+  ses('dogal-1');
+}
 // Oyuncuda: can kazanır (en çok canı geçmez). 0 candaysa ayağa kalkar.
 function iyiAl(miktar, kimden) {
   if (!miktar) return;
@@ -8391,14 +8507,19 @@ function iyiAl(miktar, kimden) {
 SAVAS.bekleyen = [];
 function hasarBekle(r, kimden) {
   if (store.net.role !== 'dm') return;
+  if ((r.hedefler && r.hedefler.length > 1) || r.kurt) {                // alan büyüsü / birden çok hedef: büyü kartı
+    const l = r.hedefler || [r.hedef];
+    setTimeout(() => kartAc({ kimden, seat: 'dm', hedefler: l, kurt: cleanKurt(r.kurt), miktar: r.total, detail: r.detail }), SAVAS.gecikme);
+    return;
+  }
   const b = { id: newCode(), hedef: r.hedef, ad: hedefAd(r.hedef), kimden, zar: clamp(int(r.total), 0, 9999), label: r.label, detail: r.detail };
   b.miktar = b.zar;
   setTimeout(() => { SAVAS.bekleyen.push(b); if (SAVAS.bekleyen.length > 4) SAVAS.bekleyen.shift(); renderBekleyen(); }, SAVAS.gecikme);   // sonuç zardan önce görünmesin
 }
 function renderBekleyen() {
-  const box = $('#hasarBekle'), list = store.net.role === 'dm' ? SAVAS.bekleyen : [];
-  box.hidden = !list.length;
-  box.innerHTML = list.map(b => `<div class="hb" data-id="${b.id}">
+  const box = $('#hasarBekle'), list = store.net.role === 'dm' ? SAVAS.bekleyen : [], kartlar = store.net.role === 'dm' ? SAVAS.kartlar || [] : [];
+  box.hidden = !list.length && !kartlar.length;
+  box.innerHTML = kartlar.map(kartHTML).join('') + list.map(b => `<div class="hb" data-id="${b.id}">
     <div class="hb-ust"><svg class="ic"><use href="#i-hancer"/></svg><span><b>${esc(b.kimden)} → ${esc(b.ad || 'hedef')}</b><small>${esc(b.label.replace(/\s*→.*$/, ''))} · ${esc(b.detail)}</small></span></div>
     <div class="hb-say">
       <button class="icon-btn" data-act="hb-ayar" data-d="-1" title="Bir azalt" aria-label="Hasarı bir azalt"><svg class="ic"><use href="#i-minus"/></svg></button>
@@ -8454,13 +8575,16 @@ function hedefUI() {
   const hx = list.find(x => x.id === h);
   const hb = $('#hasarBtn');
   hb.hidden = !h; hb.setAttribute('aria-pressed', String(!!h && SAVAS.hasarSecili));
-  $('#hedefChip').hidden = !h && !a;
-  $('#hedefChipAd').innerHTML = (a ? `${esc(a.ad || 'Düşman')} ` : '') + (h ? `<em>→</em> ${esc(hedefAd(h))}${hx && hx.ek ? ` <em>(${esc(hx.ek)})</em>` : ''}` : '<em>adına atıyorsun</em>')
+  $('#hedefCokBtn').setAttribute('aria-pressed', String(!!store.hedefCok));
+  const hl = hedefListe();
+  $('#hedefChip').hidden = !h && !a && !store.hedefCok;
+  $('#hedefChipAd').innerHTML = (a ? `${esc(a.ad || 'Düşman')} ` : '') + (hl.length > 1 ? `<em>→</em> ${esc(hedefAdlar(hl))} <em>(${hl.length} hedef)</em>`
+    : h ? `<em>→</em> ${esc(hedefAd(h))}${hx && hx.ek ? ` <em>(${esc(hx.ek)})</em>` : ''}` : store.hedefCok ? '<em>birden çok hedef: kartlara bas</em>' : '<em>adına atıyorsun</em>')
     + (h && SAVAS.hasarSecili ? ' <em>· sonraki zar hasar</em>' : '');
   svRender();                                                        // savaş sahnesinde hedefin halkası ve canlar
   if (mode === 'table' && !dm) renderMe();                          // rehber satırı hedefe göre değişir
 }
-$('#hedefSec').addEventListener('change', e => { store.hedef = cleanHedef(e.target.value); SAVAS.hasarSecili = false; save(); hedefUI(); renderTable(); });
+$('#hedefSec').addEventListener('change', e => { store.hedef = cleanHedef(e.target.value); store.hedefler = store.hedef ? [store.hedef] : []; SAVAS.hasarSecili = false; save(); hedefUI(); renderTable(); });
 $('#atanSec').addEventListener('change', e => { store.atan = cleanHedef(e.target.value); save(); hedefUI(); });
 
 /* ───────── DM ekranı: düşmanlar ve NPC'ler ───────── */
@@ -8491,6 +8615,7 @@ function renderNpcs() {
         <label class="f npc-silah" title="Düşmanın silahı (2026-11-25): katalogdan seçersen hasar zarı da gelir"><span class="f-l">Silah</span><input data-npc="silah" list="npcSilahList" value="${esc(n.silah || '')}" maxlength="40" placeholder="Scimitar"></label>
         <label class="f" title="Vuruş bonusu: d20'ye eklenir"><span class="f-l">Vuruş</span><input type="number" data-npc="vur" value="${int(n.vur)}"></label>
         <label class="f npc-hasar" title="Hasar zarı: 1d6+2 slashing gibi"><span class="f-l">Hasar</span><input data-npc="hasar" value="${esc(n.hasar || '')}" maxlength="30" placeholder="1d6+2"></label>
+        <span class="npc-kz" title="Kurtarma bonusları: büyü kartında DM onun adına d20'ye ekler (2026-11-25)"><span class="f-l">Kurtarma</span>${KURT_AB.map(a => `<label><small>${a.toUpperCase()}</small><input type="number" data-npc="kz-${a}" value="${int((n.kz || {})[a])}" aria-label="${a.toUpperCase()} kurtarma bonusu"></label>`).join('')}</span>
         <label class="f npc-gorsel"><span class="f-l">Görsel</span><select data-npc="img">${secenek(n)}</select></label>
         <div class="btns">
           <button class="btn sm" data-act="npc-gor" data-id="${n.id}" aria-pressed="${!!n.gor}" title="Açıksa oyuncular onu görür ve hedef seçebilir"><svg class="ic"><use href="#i-eye"/></svg>Masada</button>
@@ -8515,6 +8640,7 @@ function npcDegisti(hemen) {
 $('#npcList').addEventListener('input', e => {
   const k = e.target.dataset.npc, row = e.target.closest('.npc'), n = row && npcler().find(x => x.id === row.dataset.id);
   if (!k || !n || k === 'img') return;
+  if (k.startsWith('kz-')) { n.kz = Object.assign({}, n.kz, { [k.slice(3)]: clamp(int(e.target.value), -5, 20) }); save(); return; }
   n[k] = k === 'ad' || k === 'silah' ? short(e.target.value, 40) : k === 'hasar' ? short(e.target.value, 30) : k === 'ini' || k === 'vur' ? clamp(int(e.target.value), -10, 30) : clamp(int(e.target.value), k === 'can' ? -999 : 0, 9999);
   if (k === 'silah' && !String(n.hasar || '').trim()) { const w = ESYA[ESYA_KUCUK[n.silah.trim().toLowerCase()]]; if (w && w.silah) { n.hasar = `${w.silah.zar} ${HASAR_TR[w.silah.h][0]}`; const h = $('input[data-npc="hasar"]', row); if (h) h.value = n.hasar; } }
   row.classList.toggle('dustu', int(n.max) > 0 && int(n.can) <= 0);
@@ -8561,12 +8687,12 @@ function renderDus() {
   box.hidden = !dm && !list.length;
   panoUI();
   if (box.hidden) return;
-  const h = gecerliHedef(), simdi = siraSimdi();
+  const hs = new Set(hedefListe()), simdi = siraSimdi();
   $('#tvDusList').innerHTML = list.length ? list.map(n => {
     const olu = n.max > 0 && n.can <= 0, pct = n.max ? clamp(n.can / n.max, 0, 1) : 0;
     const bilgi = [n.max ? `${Math.max(0, n.can)}/${n.max} can` : '', n.ac ? `AC ${n.ac}` : '', n.gizli ? 'gizli' : ''].filter(Boolean).join(' · ');
-    return `<li><button class="dus-i${n.id === h ? ' hedef' : ''}${n.id === simdi ? ' simdi' : ''}${olu ? ' olu' : ''}" data-act="hedef-yap" data-id="${n.id}"
-      title="${n.id === h ? 'Hedefi kaldır' : 'Hedef yap'}${olu ? ' (yere düştü)' : ''}"><span class="dus-av">${avHTML(npcSrc(n.img), n.ad)}</span>
+    return `<li><button class="dus-i${hs.has(n.id) ? ' hedef' : ''}${n.id === simdi ? ' simdi' : ''}${olu ? ' olu' : ''}" data-act="hedef-yap" data-id="${n.id}"
+      title="${hs.has(n.id) ? 'Hedefi kaldır' : store.hedefCok ? 'Hedeflere ekle' : 'Hedef yap'}${olu ? ' (yere düştü)' : ''}"><span class="dus-av">${avHTML(npcSrc(n.img), n.ad)}</span>
       <span class="dus-ad"><b>${esc(n.ad || 'İsimsiz düşman')}</b>${bilgi ? `<small>${esc(bilgi)}</small>` : ''}${n.max
         ? `<span class="dus-can"><span class="hp-fill" style="width:${pct * 100}%" data-s="${pct > 0.5 ? 'ok' : pct > 0.25 ? 'mid' : 'low'}"></span></span>` : ''}</span></button>
       ${dm ? `<div class="dus-sld">${n.hasar ? `<span title="${esc(n.ad || 'Düşman')} adına saldırır; hedefi tepsiden ya da karta basarak seç">${esc(n.silah || 'Saldırı')}</span>
@@ -8709,7 +8835,7 @@ function savasBaslat() {
 }
 function savasBitir() { store.sira = null; store.atan = ''; hedefBirak(); siraYay(); notify('Savaş bitti'); }
 // Savaş bitince seçili hedef bırakılır (bir sonraki savaşta eski hedefe yanlışlıkla vurulmasın)
-function hedefBirak() { if (!store.hedef && !SAVAS.hasarSecili) return; store.hedef = ''; SAVAS.hasarSecili = false; save(); hedefUI(); }
+function hedefBirak() { if (!store.hedef && !SAVAS.hasarSecili && !(store.hedefler || []).length) return; store.hedef = ''; store.hedefler = []; SAVAS.hasarSecili = false; save(); hedefUI(); }
 function siraIleri() {
   const s = store.sira;
   if (!s || !s.aktif) return;
@@ -8728,7 +8854,7 @@ function iniAt() { calc(ownChar(), () => rollD20('İnisiyatif', [['DEX', mod('de
 function koltukAc(el, tag) {
   const s = el._s, pop = $('#koltukPop');
   if (!s || store.net.role !== 'dm' || s.dm || s.me) return;         // oyuncular isimlikten bir şey seçmez
-  const h = gecerliHedef() === s.id;
+  const h = hedefListe().includes(s.id);
   pop.innerHTML = `<div class="kp-ad">${esc(s.char || s.name)}<small>${esc(s.char ? s.name : '')}</small></div>
     <div class="kp-btn"><button class="btn sm${h ? '' : ' accent'}" data-act="hedef-yap" data-id="${s.id}"><svg class="ic"><use href="#i-hedef"/></svg>${h ? 'Hedefi kaldır' : 'Hedef yap'}</button></div>
     <div class="kp-xp"><input type="number" id="kpXp" min="1" max="100000" placeholder="XP" aria-label="Verilecek XP"><button class="btn sm" data-act="xp-ver" data-id="${s.id}">XP ver</button></div>`;
@@ -8765,9 +8891,21 @@ Object.assign(ACTIONS, {
     if (!npcler().some(n => n.id === b.hedef) && !seated().some(p => p.seat === b.hedef)) { notify(`${b.ad || 'Hedef'} masada değil`, 'Hasar vurulamadı.'); return; }
     hasarUygula(b.hedef, b.miktar, b.kimden, true, b.dog);
   },
-  'hedef-kaldir': () => { store.hedef = ''; SAVAS.hasarSecili = false; save(); hedefUI(); renderTable(); },
+  'hedef-kaldir': () => { store.hedef = ''; store.hedefler = []; SAVAS.hasarSecili = false; save(); hedefUI(); renderTable(); },
   'hasar-sec': () => { SAVAS.hasarSecili = !SAVAS.hasarSecili && !!gecerliHedef(); hedefUI(); },
+  'hedef-cok': () => {                                                // birden çok hedef aç / kapa
+    store.hedefCok = !store.hedefCok;
+    store.hedefler = store.hedefCok && gecerliHedef() ? [gecerliHedef()] : [];
+    SAVAS.hasarSecili = false; save(); hedefUI(); renderTable();
+    if (store.hedefCok) notify('Birden çok hedef', 'Şimdi kartlara ya da düşmanlara basarak hedefleri ekle, yeniden basınca çıkar. Alan büyüsünün hasarı hepsine gider.');
+  },
   'hedef-yap': b => {
+    if (store.hedefCok) {
+      const id = cleanHedef(b.dataset.id), l = hedefListe();
+      store.hedefler = l.includes(id) ? l.filter(x => x !== id) : l.concat(id).slice(0, 12);
+      store.hedef = store.hedefler[0] || '';
+      SAVAS.hasarSecili = false; save(); koltukKapa(); hedefUI(); renderTable(); return;
+    }
     store.hedef = gecerliHedef() === b.dataset.id ? '' : cleanHedef(b.dataset.id);
     SAVAS.hasarSecili = false; save(); koltukKapa(); hedefUI(); renderTable();
   },
@@ -8775,7 +8913,7 @@ Object.assign(ACTIONS, {
     const h = NPC_HAZIR.find(x => x.k === b.dataset.k); if (!h) return;
     const ayni = npcler().filter(n => n.img === h.k).length;           // ikinci goblin "Goblin 2" olur
     npcler().push({ id: 'n' + newCode().toLowerCase(), ad: ayni ? `${h.ad} ${ayni + 1}` : h.ad, can: h.max, max: h.max, ac: h.ac, ini: h.ini, img: h.k, gor: true, canGor: false,
-      silah: h.silah || '', vur: h.vur || 0, hasar: h.hasar || '' });
+      silah: h.silah || '', vur: h.vur || 0, hasar: h.hasar || '', kz: Object.assign({}, h.kz || {}) });
     if (siraAktif()) notify(`${h.ad} eklendi`, 'Savaş sürüyor: sıraya girmesi için savaşı yeniden başlat ya da sıranın sonunda yerini söyle.');
     save(); renderNpcs(); npcDegisti(true);
   },
@@ -8877,14 +9015,14 @@ function svRender() {
   const me = $('#tvMe'), mb = me && !me.hidden && me.offsetParent ? me.getBoundingClientRect().top - st.top : H;   // alttaki kendi camın kartları örtmesin
   const alt = Math.max(H * 0.62, Math.min(H * 0.91, mb - 14));
   const yo = svYerler(oyuncu.length, L, SV.mid - gap, H, kw, alt), yd = svYerler(dus.length, SV.mid + gap, R, H, kw, alt);
-  const h = gecerliHedef(), simdi = siraSimdi(), secilir = new Set(hedefler().map(x => x.id));
+  const hs = new Set(hedefListe()), simdi = siraSimdi(), secilir = new Set(hedefler().map(x => x.id));
   const kart = (o, p, i) => {
     const olu = o.max !== null && o.can <= 0, pct = o.max ? clamp(o.can / o.max, 0, 1) : 0;
     const bilgi = o.max !== null ? `${Math.max(0, o.can)}/${o.max} can${o.ac ? ` · AC ${o.ac}` : ''}` : o.ac && (o.tip === 'oyuncu' || store.net.role === 'dm') ? `AC ${o.ac}` : '';
     const alt = olu ? (o.tip === 'npc' ? 'yere düştü' : o.olu ? 'öldü' : 'baygın · ölüm zarı atıyor') : o.me ? `sen${o.ac ? ` · AC ${o.ac}` : ''}` : o.gizli ? 'gizli' : bilgi;
     const tag = secilir.has(o.id) ? 'button' : 'div';
-    const cls = `sv-kisi t-${o.tip}${o.id === simdi ? ' simdi' : ''}${o.id === h ? ' hedef' : ''}${olu ? ' olu' : ''}${o.me ? ' ben' : ''}${o.gizli || o.off ? ' gizli' : ''}`;
-    return `<${tag} class="${cls}" data-id="${o.id}"${tag === 'button' ? ` data-act="hedef-yap" title="${o.id === h ? 'Hedefi kaldır' : 'Hedef yap'}: ${esc(o.ad)}"` : ` title="${esc(o.ad)}"`}
+    const cls = `sv-kisi t-${o.tip}${o.id === simdi ? ' simdi' : ''}${hs.has(o.id) ? ' hedef' : ''}${olu ? ' olu' : ''}${o.me ? ' ben' : ''}${o.gizli || o.off ? ' gizli' : ''}`;
+    return `<${tag} class="${cls}" data-id="${o.id}"${tag === 'button' ? ` data-act="hedef-yap" title="${hs.has(o.id) ? 'Hedefi kaldır' : store.hedefCok ? 'Hedeflere ekle' : 'Hedef yap'}: ${esc(o.ad)}"` : ` title="${esc(o.ad)}"`}
       style="left:${p.x.toFixed(1)}px;top:${p.y.toFixed(1)}px;--k:${p.k.toFixed(3)};z-index:${Math.round(p.y)};--gec:${(-i * 0.73 % 3.4).toFixed(2)}s;--g:${o.tip === 'npc' ? 'var(--g-dus)' : camOf(o.id)}">
       <span class="sv-golge"></span><span class="sv-kart"><span class="sv-res">${avHTML(o.img, o.ad)}</span></span>
       <span class="sv-ad"><b>${esc(o.ad)}</b>${alt ? `<small>${esc(alt)}</small>` : ''}</span>
@@ -10455,7 +10593,7 @@ function renderTable() {
     el.style.setProperty('--oy', sy.toFixed(3));
     el.classList.toggle('dm', !!s.dm); el.classList.toggle('me', !!s.me); el.classList.toggle('off', !s.on);
     el.style.setProperty('--g', `var(--g-${s.cam})`);                // koltuğun camı
-    el.dataset.id = s.id; el.classList.toggle('hedef', s.id === gecerliHedef());   // seçili hedefin isimliği kesikli halkalı (BÖLÜM 10b)
+    el.dataset.id = s.id; el.classList.toggle('hedef', hedefListe().includes(s.id));   // seçili hedefin isimliği kesikli halkalı (BÖLÜM 10b)
     el.title = `${s.name}${s.char ? ', ' + s.char : ''}${s.dm ? ' (DM)' : ''}${s.me ? ' (sen)' : ''}: ${s.on ? 'bağlı' : 'çevrimdışı'}`;
     const html = seatHTML(s);
     if (el._html !== html) {                                         // değişmediyse dokunma (portre titremesin)
