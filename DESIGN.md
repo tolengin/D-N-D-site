@@ -495,3 +495,10 @@ Savaş başlayınca taverna yerine 2D bir orman açıklığı gelir (0,8 sn, par
 - **Don't** kapalı bir aç/kapa düğmesini soluklaştırma.
 - **Don't** 12px'in altında okunması gereken yazı kullanma.
 - **Don't** sayfanın altındaki İngilizce Fan Content ve SRD atıf metnine dokunma.
+
+### Savaş eklemeleri (2026-11-25, R3)
+- **Herkes herkesin canını ve AC'sini görür:** savaş kartlarında oyuncular "15/20 can · AC 18", kendi kartında "sen · AC 16"; 0 candaki oyuncu "baygın · ölüm zarı atıyor" ya da "öldü". İsimliklerde oyunculara da can çubuğu. Bilgi DM'in masa listesiyle gider (can, geçici can, AC, seviye, ölüm durumu; karakterin geri kalanı gitmez).
+- **Takım hedefi:** oyuncunun hedef listesinde "Düşmanlar"ın altında "Takım" grubu (can, AC). İyileştirme ("+can", El koyma) seçili hedefe, hedef yoksa sana; arkadaşa saldırı ve hasar da gider.
+- **Kullan:** Haklar listesinde her hakta "Kullan" (etkisi olan haklarda accent, öbürlerinde düz); havuzlarda yalnızca El koyma: "Kaç" kutusu + yeşil "Ver". Masada etkisi olan ilk üç hak saldırı satırında (ad, "Bonus eylem · 2/2 hak", accent "Kullan"; hak bitince ad %55 soluk, düğme kapalı).
+- **El etiketi:** saldırı satırının küçük satırının başında kesikli çerçeveli küçük etiket ("Ele al"; seçiliyken accent çerçeve ve %22 dolgu: "Sağ elde", "Sol elde", "İki elle", "İki elde"). İki hafif silahta altta solu accent çizgili "öbür el" ek saldırı satırı. Rogue'da aynı biçimde "Sinsi saldırı · 3d6".
+- **DM'in düşmanları (masada):** Düşmanlar camında her düşmanın altında yüzey zeminli satır: silah adı, vuruş zarı, hasar zarı, ×. Altta "Ekle:" ile hazır düşmanlar ve "Diğer…" (DM ekranı). DM ekranındaki kartta Silah (katalog listesi), Vuruş, Hasar kutuları.
