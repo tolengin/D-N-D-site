@@ -191,15 +191,15 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .dus-av,.sira-av{position:relative}
 .dus-av img,.sira-av img{position:absolute;inset:0}
 
-/* Açılış (BÖLÜM 11d): bütün ekranı kaplayan perde. Video ekranı doldurur (kenarlardan kırpılır); ad ve düğme alt
-   üçte birde, videonun boş bıraktığı kaldırım üstünde. Video oynarken yazılar çekilir; bitince perde solarak kalkar. */
-.acilis{position:fixed;inset:0;z-index:200;overflow:hidden;background:#0b0710 url(video/acilis-poster.jpg) center/cover no-repeat;
+/* Açılış (BÖLÜM 11d): bütün ekranı kaplayan perde. Arkada canlı 3D tuval (gelene kadar aynı karenin afişi); ad ve düğme alt
+   üçte birde, patikanın üstünde. Kamera uçarken yazılar çekilir; bitince perde solarak kalkar. */
+.acilis{position:fixed;inset:0;z-index:200;overflow:hidden;background:#0b0710 url(masa/acilis-poster.webp) center/cover no-repeat;
   transition:opacity var(--bitis,.9s) ease}
 .acilis[hidden]{display:none}
 .acilis.bitti{opacity:0;pointer-events:none}
 .acilis-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-#acilisVideo{opacity:0;transition:opacity .35s}
-.acilis.oynuyor #acilisVideo{opacity:1}
+#acilisTuval{opacity:0;transition:opacity .6s}
+.acilis.canli #acilisTuval{opacity:1}
 .acilis-on{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
   padding:18vh 20px max(9vh,48px);background:linear-gradient(transparent,rgba(8,5,12,.7));transition:opacity .45s,transform .45s}
 .acilis.oynuyor .acilis-on{opacity:0;transform:translateY(14px);pointer-events:none}
@@ -2592,10 +2592,9 @@ body.tv-full #tableView{height:100dvh}
 </head>
 <body class="guide">
 
-<!-- ═════════ AÇILIŞ: tavernanın kapısı (BÖLÜM 11d). Bekleme döngüsü; "Tavernaya gir" ile açılış videosu oynar. ═════════ -->
-<div class="acilis" id="acilis" role="dialog" aria-label="Tavernanın kapısı" hidden>
-  <video class="acilis-v" id="acilisDongu" poster="video/acilis-poster.jpg" muted loop playsinline preload="auto" aria-hidden="true"></video>
-  <video class="acilis-v" id="acilisVideo" muted playsinline preload="auto" aria-hidden="true"></video>
+<!-- ═════════ AÇILIŞ: hanın kapısı (BÖLÜM 11d). Arkada canlı 3D (önce afiş); "Tavernaya gir" ile kamera içeri uçar. ═════════ -->
+<div class="acilis" id="acilis" role="dialog" aria-label="Hanın kapısı" hidden>
+  <canvas class="acilis-v" id="acilisTuval" aria-hidden="true"></canvas>
   <div class="acilis-on">
     <p class="acilis-ad">Kervansaray</p>
     <p class="acilis-alt">D&amp;D karakter defteri ve masası</p>
@@ -13204,6 +13203,7 @@ async function tavStart() {
   void st.offsetWidth;                                                  // yeni yerler kayma olmadan uygulansın
   st.classList.remove('snap', 'tav-wait');
   tavKick();
+  acilisHazirla();                                                      // dış cephe, çevre ve açılış uçuşu (BÖLÜM 11d)
 }
 
 /* Çizim hattı: 1) sahnenin rengi (toon) bir ara tuvale, 2) yüzey yönleri ve derinlik başka bir ara tuvale,
@@ -13549,6 +13549,7 @@ function tavTitre(now) {
     o.L.intensity = still ? o.base : o.base * (1 + o.fl * (0.55 * Math.sin(t * o.a + o.p) + 0.3 * Math.sin(t * o.b + o.p * 2.3) + 0.15 * Math.sin(t * 23.7 + o.p * 5.1)));
   });
   tav.alevler.forEach(a => { a.o.scale.y = still ? a.y : a.y * (1 + 0.14 * Math.sin(t * 9.1 + a.p) + 0.08 * Math.sin(t * 17.3 + a.p * 1.7)); });
+  (tav.tabelalar || []).forEach(o => { o.mil.rotation[o.eksen] = still ? 0 : 0.07 * Math.sin(t * 1.3 + o.faz) + 0.025 * Math.sin(t * 2.9 + o.faz * 1.7); });   // zincirde sallanan tabelalar (BÖLÜM 11d)
   if (tav.pisU) {                                                      // pişmiş ışıkta şömine, avize ve mumların payı (her biri kendi hızıyla)
     const tit = (fl, a, b, p) => still ? 1 : 1 + fl * (0.55 * Math.sin(t * a + p) + 0.3 * Math.sin(t * b + p * 2.3) + 0.15 * Math.sin(t * 23.7 + p * 5.1));
     tav.pisU.uTit.value.set(tit(TAV.LIGHT.somine[3], 7, 13, 0), tit(TAV.LIGHT.avize[3], 8.3, 15.1, 1.7), tit(TAV.LIGHT.mum[3], 9.7, 17.9, 3.1));
@@ -13558,6 +13559,7 @@ function tavTitre(now) {
 /* Çizer. Tepeden: kamera tablonun ekrandaki yerine göre ayarlanır; tablo noktası (u, v) birim → kamera düzleminde sağa
    (u − TV.cx) · m, yukarı −(v − TV.cy) · m metre. Göz hizası: panelin altındaki bölgeye, koltuğumdan perspektif. */
 function tavDraw(now) {
+  if (ACILIS.durum === 'hazir' || ACILIS.durum === 'ucuyor') return;  // açılış perdesi kendi tuvaline çiziyor (BÖLÜM 11d)
   const cv = $('#tvNpr'), cr = cv.getBoundingClientRect(), sc = $('#tvScene').getBoundingClientRect();
   if (!cr.width || !sc.width) return;
   saPanoYer(sc);                                                       // sahne panosu sahneyle birlikte kayar (yumuşak geçişte de)
@@ -14711,72 +14713,225 @@ document.addEventListener('click', e => {
 });
 
 /* ═══════════════════════════════════════════════════════════════════
-   BÖLÜM 11d — AÇILIŞ: tavernanın kapısı
-   Site açılınca ekranı tavernanın dış cephesi kaplar: sessiz bekleme döngüsü, ortada ad ve "Tavernaya gir". Bu sırada
-   arkada masa görünümü ve 3D taverna yüklenir. Tarayıcı tıklamadan ses çalmadığı için sesler bu tıklamayla başlar.
-   • İlk gelişte açılış videosu oynar: kapıya yürünür, kapı açılır, içeri girilir, kamera yükselir. Sesler videonun
-     anlarına bağlıdır (ACILIS.an). Dışarıdayken taverna boğuk ve kısık duyulur (sesDisari), kapı aralanınca sızar,
-     içeri girince tam açılır; gece sesi söner. Video bitince perde solarak kalkar, canlı taverna görünür.
-   • Sonraki gelişlerde uzun video inmez ve oynamaz: kapı sesiyle kısa bir geçiş (store.acilisGordu).
-   • "Geç" (ya da Esc) videoyu her an bitirir. Hareket azaltma açıksa video oynamaz, kısa geçiş olur.
-   Videolar geçici (Nano Banana kareleri + Veo); ileride Blender sahnesinden çekilecek. Yeni video gelince video/
-   içindeki dosyalar ve ACILIS.an'daki saniyeler değişir. Ham hâlleri giris-videosu/ içinde (GitHub'a gitmez).
+   BÖLÜM 11d — AÇILIŞ: hanın kapısı (2026-11-26'dan beri canlı 3D; önce video)
+   Site açılınca ekranı açılış perdesi kaplar: arkada canlı 3D (kameranın ilk karesi: yol ağzındaki tabela, alacakaranlıkta han),
+   ortada ad ve "Tavernaya gir". 3D gelene kadar aynı karenin Blender'dan çekilmiş afişi (masa/acilis-poster.webp) durur.
+   • "Tavernaya gir" (ilk gelişte): kamera 10 sn uçar: patikadan kapıya (kapı kanadı açılır), giriş bölümünden geçitle salona,
+     masanın üstüne yükselir; sonra perde solarak kalkar, masa görünümü gelir. Yol: masa/acilis-kamera.js (araclar/acilis_kamera.py;
+     kaba yolu kullanıcı Blender'da kurdu). Dış kabuk ve çevre: masa/han-dis.glb (araclar/han_dis_aktar.py; userData.dis:
+     'kabuk' yalnızca açılışta, 'zemin' (çayır, toprak avlu, yollar) kalır ve içerinin eski taş döşemesinin yerini alır).
+   • Uçuş perdenin içindeki kendi tuvaline (#acilisTuval, ayrı çizici) çizilir; masa görünümü o sırada çizilmez. Duvarlar tam boy,
+     tavan görünür, hafif sis ve alacakaranlık göğü; bitince çizici atılır, kabuk bellekten silinir, sis sıfırlanır.
+   • Sesler uçuşun anlarına bağlı (ACILIS.an, kare): dışarıdayken taverna boğuk (sesDisari), kapı açılınca sızar, içeride tam.
+   • Sonraki gelişlerde ve hareket azaltmada kısa geçiş (kapı sesi); "Geç" (ya da Esc) uçuşu bitirir. 3D açılamazsa yine kısa geçiş.
    ═══════════════════════════════════════════════════════════════════ */
 const ACILIS = {
-  an: { adim: 0.4, kapi: 4.4, gecis: 11.6, iceri: 12.0, vinc: 19.3 },   // videodaki anlar (sn)
-  bitis: 900, kisa: 700,                                                // perdenin kalkış süresi (ms): videodan sonra / kısa geçişte
-  raf: 0,
+  an: { adim: 8, kapiAc: [108, 152], kapi: 112, gecis: 170, iceri: 187, vinc: 236 },   // uçuşun anları (kare, 30 kare/sn)
+  bitis: 900, kisa: 700,                                                // perdenin kalkış süresi (ms): uçuştan sonra / kısa geçişte
+  sis: [0x6a5a78, 0.011],                                               // alacakaranlık sisi: renk, yoğunluk (yalnızca uçuşta)
+  gok: ['#e06c42', '#4c2d52', '#0a0b1f'],                               // gök: ufuk, orta, tepe
+  isik: { gun: [0xff9a62, 1.1], gok: [0x8c9ce0, 0x2a2036, 0.5] },       // batan güneş (batı-güneybatıdan, alçak) ve serin gök ışığı
+  kapiAci: 72,                                                          // uçuşta iki kanat da bu kadar açılır (kuzeydeki Blender'da zaten 72°)
+  raf: 0, durum: 'yok',                                                 // yok → yukleniyor → hazir → ucuyor → bitti
 };
-function acilisGoster() {
-  const el = $('#acilis'), d = $('#acilisDongu');
-  el.hidden = false; el.classList.remove('oynuyor', 'bitti');
-  if (!reduceMotion.matches) {
-    d.src = 'video/acilis-dongu.mp4'; d.play().catch(() => {});        // sessiz video tıklamasız oynayabilir
-    if (!store.acilisGordu) $('#acilisVideo').src = 'video/acilis.mp4';   // uzun video yalnızca ilk gelişte iner
+// Kamera verisi: .js (bilgisayardan açılınca da okunur), window.ACILIS_KAMERA
+function acilisKameraVeri() {
+  if (window.ACILIS_KAMERA) return Promise.resolve(window.ACILIS_KAMERA);
+  return new Promise((ok, fail) => {
+    const s = document.createElement('script'); s.src = ART + 'acilis-kamera.js';
+    s.onload = () => (window.ACILIS_KAMERA ? ok(window.ACILIS_KAMERA) : fail(new Error('acilis-kamera.js boş')));
+    s.onerror = () => fail(new Error('acilis-kamera.js bulunamadı'));
+    document.head.appendChild(s);
+  });
+}
+// Taverna açılınca (tavStart) çağrılır: dış kabuğu ve çevreyi yükler, zemini yerine koyar; ilk gelişse uçuşu hazırlar
+async function acilisHazirla() {
+  if (ACILIS.durum !== 'yok' || tav.state !== 'on' || !SAHNE.ozan) return;   // yalnızca yeni handa
+  ACILIS.durum = 'yukleniyor';
+  try {
+    const [{ GLTFLoader }, { DRACOLoader }, buf, kd] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'),
+      import('three/addons/loaders/DRACOLoader.js'), tavVeri('han-dis', 'HAN_DIS_GLB'), acilisKameraVeri()]);
+    const THREE = tav.THREE, draco = new DRACOLoader(); draco.setDecoderPath(TAV.LIB + 'libs/draco/gltf/');
+    const loader = new GLTFLoader(); loader.setDRACOLoader(draco);
+    const gltf = await new Promise((ok, fail) => loader.parse(buf, '', ok, fail));
+    draco.dispose();
+    const root = gltf.scene, kabuk = [], zemin = [], toon = new Map();
+    const toonOf = m => {                                               // dışarısı canlı ışıkla (pişmemiş), toon basamaklı
+      if (!toon.has(m)) {
+        const t = new THREE.MeshToonMaterial({ name: m.name, color: m.color, map: m.map, gradientMap: tav.ramp, emissive: m.emissive,
+          emissiveMap: m.emissiveMap, emissiveIntensity: m.emissiveIntensity, side: m.side });
+        if (m.map) { m.map.anisotropy = tav.R.capabilities.getMaxAnisotropy(); }
+        if (TAV.ALPHA.includes(m.name)) { t.alphaTest = 0.5; t.alphaMap = m.alphaMap; t.map = m.map; }
+        if (m.name === 'Dis_Pencere') { t.emissive = new THREE.Color(1.0, 0.6, 0.27); t.emissiveMap = m.map; t.emissiveIntensity = 1.7; }   // içeriden ışıyan cam
+        toon.set(m, t);
+      }
+      return toon.get(m);
+    };
+    root.traverse(o => {
+      let d = null; for (let p = o; p; p = p.parent) if (p.userData && p.userData.dis) { d = p.userData.dis; break; }
+      if (o.isMesh) {
+        o.material = Array.isArray(o.material) ? o.material.map(toonOf) : toonOf(o.material);
+        o.castShadow = false; o.receiveShadow = d === 'zemin'; o.layers.set(0);
+      }
+      if (o.userData && o.userData.dis) (o.userData.dis === 'zemin' ? zemin : kabuk).push(o);
+    });
+    tav.S.add(root); root.updateMatrixWorld(true);
+    const eski = tav.S.getObjectByName('Dis_Toprak'); if (eski) eski.visible = false;   // eski taş döşeme: yerine toprak avlu ve çayır
+    // tabelalar sallanır (zincirlerin tepesi çevresinde): kapının önündeki (içerinin) ve yol ağzındaki (dışarının)
+    tav.tabelalar = [['Sundurma_Tabela', 3.06, 'z'], ['Cevre_Tabela', -0.45 + 2.9, 'x']].map(([ad, zt, eksen], i) => {
+      const o = tav.S.getObjectByName(ad); if (!o) return null;
+      const p = o.getWorldPosition(new THREE.Vector3()), mil = new THREE.Object3D(); mil.position.set(p.x, zt, p.z);
+      o.parent.add(mil); mil.updateMatrixWorld(true); mil.attach(o);
+      return { mil, eksen, faz: i * 2.1 };
+    }).filter(Boolean);
+    // uçuş için gök, sis ve alacakaranlık ışıkları (sahnede hep durur, uçuş dışında sıfır: ışık sayısı değişince malzemeler yeniden derlenmesin)
+    const gc = document.createElement('canvas'); gc.width = 2; gc.height = 256;
+    const g = gc.getContext('2d'), gr = g.createLinearGradient(0, 256, 0, 0);
+    gr.addColorStop(0, ACILIS.gok[0]); gr.addColorStop(0.45, ACILIS.gok[0]); gr.addColorStop(0.6, ACILIS.gok[1]); gr.addColorStop(1, ACILIS.gok[2]);
+    g.fillStyle = gr; g.fillRect(0, 0, 2, 256);
+    const gok = new THREE.CanvasTexture(gc); gok.colorSpace = THREE.SRGBColorSpace;
+    tav.S.fog = new THREE.FogExp2(ACILIS.sis[0], 0);
+    const gun = new THREE.DirectionalLight(ACILIS.isik.gun[0], 0); gun.position.set(-30, 4, 12);     // three ekseni: batıdan, alçaktan
+    const gokI = new THREE.HemisphereLight(ACILIS.isik.gok[0], ACILIS.isik.gok[1], 0);
+    [gun, gokI].forEach(L => { L.layers.enableAll(); tav.S.add(L); });
+    // giriş kapısı: kuzey kanadı modelde 72° açık, güney kanadı kapalı; uçuşta ikisi de kapalıdan açılır (kamera ortadan geçer)
+    const kanat = ['Kapi_Giris_Kanat_1', 'Kapi_Giris_Kanat_2'].map(ad => tav.S.getObjectByName(ad)).map((o, i) => o && { o, y0: o.rotation.y, yon: i ? 1 : -1 }).filter(Boolean);
+    Object.assign(ACILIS, { THREE, kd, root, kabuk, zemin, gok, gun, gokI, kanat });
+    kabuk.forEach(o => { o.visible = false; });                         // masa görünümünde yok; yalnızca açılış tuvaline çizilirken
+    tavKick();
+    if (store.acilisGordu || reduceMotion.matches || $('#acilis').hidden || $('#acilis').classList.contains('bitti')) { acilisKabukAt(); return; }
+    acilisTuvalKur();
+    ACILIS.durum = 'hazir';
+    acilisBekle();
+  } catch (e) {
+    console.warn('Açılış 3D yüklenemedi, kısa geçiş kullanılacak:', e);
+    ACILIS.durum = 'bitti';
   }
+}
+function acilisTuvalKur() {
+  const THREE = ACILIS.THREE, cv = $('#acilisTuval');
+  const R = new THREE.WebGLRenderer({ canvas: cv, antialias: false, powerPreference: 'high-performance' });
+  R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap; R.shadowMap.autoUpdate = false; R.shadowMap.needsUpdate = true;
+  Object.assign(ACILIS, { R, boru: tavBoru(THREE, R, false), cam: new THREE.PerspectiveCamera(40, 16 / 9, 0.1, 300), w: 0, h: 0 });
+}
+// Kamera verisinin f. karesi (kesirli: iki kare arası doğrusal)
+function acilisPoz(f) {
+  const K = ACILIS.kd.kareler, n = K.length - 1, i = Math.min(Math.max(Math.floor(f), 0), n - 1), u = Math.min(Math.max(f - i, 0), 1);
+  return K[i].map((v, k) => v + (K[i + 1][k] - v) * u);
+}
+// f. karede bir kare çiz: kamera, kapı, ışıklar; kabuk yalnızca bu çizim için görünür, duvarlar tam boy
+function acilisCiz(now, f) {
+  const A = ACILIS, THREE = A.THREE, cv = $('#acilisTuval'), cr = cv.getBoundingClientRect();
+  if (!cr.width) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.25), w = Math.round(cr.width * dpr), h = Math.round(cr.height * dpr);
+  if (w !== A.w || h !== A.h) { A.R.setPixelRatio(dpr); A.R.setSize(cr.width, cr.height, false); A.w = w; A.h = h; }
+  const [x, y, z, egim, yon] = acilisPoz(f), e = egim * Math.PI / 180, yo = yon * Math.PI / 180;
+  // Blender kamerası: önce X ekseninde 'egim', sonra Z'de 'yon'; bakış yerel −Z, üst yerel +Y
+  const bak = [-Math.sin(yo) * Math.sin(e), Math.cos(yo) * Math.sin(e), -Math.cos(e)];
+  const ust = [-Math.sin(yo) * Math.cos(e), Math.cos(yo) * Math.cos(e), Math.sin(e)];
+  const cam = A.cam, yatay = 2 * Math.atan(A.kd.sensor / 2 / A.kd.lens);
+  cam.aspect = cr.width / cr.height;                                    // geniş ekranda yatay açı Blender'daki gibi; dar ekranda düşey açı 16:9'daki gibi
+  cam.fov = 2 * Math.atan(Math.tan(yatay / 2) / Math.max(cam.aspect, 16 / 9)) * 180 / Math.PI;
+  cam.position.copy(tav.b3([x, y, z])); cam.up.copy(tav.b3(ust)); cam.lookAt(tav.b3([x + bak[0], y + bak[1], z + bak[2]]));
+  cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+  const yum = x => { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); };
+  const ac = yum((f - A.an.kapiAc[0]) / (A.an.kapiAc[1] - A.an.kapiAc[0])) * A.kapiAci * Math.PI / 180;
+  A.kanat.forEach(k => { k.o.rotation.y = k.yon * ac; });
+  const dis = 1 - 0.85 * yum((f - A.an.kapi) / (A.an.iceri + 15 - A.an.kapi));   // eşikten geçince sis ve gök ışığı söner (içerisi morarmasın)
+  A.kabuk.forEach(o => { o.visible = true; });
+  tav.S.fog.density = A.sis[1] * dis; tav.S.background = A.gok; A.gun.intensity = A.isik.gun[1] * dis; A.gokI.intensity = A.isik.gok[2] * dis;
+  tavKesit(false);
+  A.boru.render(tav.S, cam, K_(0) | K_(1) | K_(5) | K_(6) | K_(7) | K_(8), K_(0) | K_(5) | K_(6), w, h, 0, [0, 0, cr.width, cr.height]);
+  tavKesit(true);
+  A.kabuk.forEach(o => { o.visible = false; });
+  tav.S.fog.density = 0; tav.S.background = null; A.gun.intensity = 0; A.gokI.intensity = 0;
+  A.kanat.forEach(k => { k.o.rotation.y = k.y0; });                    // masa görünümünde kapı modeldeki gibi
+}
+// Beklerken: ilk kare, ışıklar titrer, tabelalar sallanır
+function acilisBekle() {
+  const tik = now => {
+    if (ACILIS.durum !== 'hazir') return;
+    tavTitre(now); acilisCiz(now, 0);
+    $('#acilis').classList.add('canli');
+    if (!reduceMotion.matches) ACILIS.raf = requestAnimationFrame(tik);
+  };
+  ACILIS.raf = requestAnimationFrame(tik);
+}
+function acilisUc() {
+  const A = ACILIS, el = $('#acilis'), n = A.kd.kareler.length - 1, t0 = performance.now(), olan = new Set();
+  A.durum = 'ucuyor'; cancelAnimationFrame(A.raf);
+  el.classList.add('oynuyor'); $('.acilis-gec').hidden = false;
+  const anlar = [
+    [A.an.adim, () => ses('adim')],
+    [A.an.kapi, () => { ses('kapi-ac'); sesDisari(1500, 0.6, 0.7, 1.5); }],   // kapı aralanır: içerinin sesi sızar
+    [A.an.gecis, () => ses('gecis')],
+    [A.an.iceri, () => sesDisari(20000, 1, 0, 1)],                         // eşikten geçtin: taverna tam, gece söner
+    [A.an.vinc, () => ses('gecis')],
+  ];
+  const tik = now => {
+    if (A.durum !== 'ucuyor') return;
+    const f = Math.min((now - t0) / 1000 * A.kd.fps, n);
+    anlar.forEach(([k, fn], i) => { if (!olan.has(i) && f >= k) { olan.add(i); fn(); } });
+    tavTitre(now); tavHanciGuncelle(now); tavGarsonGuncelle(now);
+    acilisCiz(now, f);
+    if (f >= n) { acilisSon(A.bitis); return; }
+    A.raf = requestAnimationFrame(tik);
+  };
+  A.raf = requestAnimationFrame(tik);
+}
+// Uçuş bitti (ya da geçildi): masa görünümü çizilsin, perde kalksın, açılışın çizicisi ve kabuk atılsın
+function acilisSon(ms) {
+  const A = ACILIS; if (A.durum === 'bitti') return;
+  cancelAnimationFrame(A.raf); A.durum = 'bitti';
+  sesDisari(20000, 1, 0, 0.6);
+  tav.dirty = true; tavKick();
+  requestAnimationFrame(() => requestAnimationFrame(() => acilisBitir(ms)));   // masa görünümü bir kez çizilsin, sonra perde
+}
+function acilisKabukAt() {
+  const A = ACILIS;
+  const kalan = new Set();                                              // zeminin kullandığı dokular atılmasın
+  (A.zemin || []).forEach(o => o.traverse(x => { if (x.isMesh) [].concat(x.material).forEach(m => { kalan.add(m); if (m.map) kalan.add(m.map); }); }));
+  (A.kabuk || []).forEach(o => {
+    o.traverse(x => { if (x.isMesh) { x.geometry.dispose(); [].concat(x.material).forEach(m => { if (m.map && !kalan.has(m.map)) m.map.dispose(); if (!kalan.has(m)) m.dispose(); }); } });
+    if (o.parent) o.parent.remove(o);
+  });
+  A.kabuk = [];
+  if (A.R) { A.R.dispose(); A.R.forceContextLoss(); A.R = null; A.boru = null; }
+  if (A.gok) { A.gok.dispose(); A.gok = null; }
+  A.durum = 'bitti';
+}
+function acilisGoster() {
+  const el = $('#acilis');
+  el.hidden = false; el.classList.remove('oynuyor', 'bitti', 'canli');
   sesDisari(450, 0.3, 1, 0);                                            // dışarıdasın: taverna boğuk ve kısık, gece sesi açık
   $('[data-act="acilis-gir"]').focus({ preventScroll: true });
 }
-function acilisGir() {
-  const el = $('#acilis'), v = $('#acilisVideo');
-  if (el.classList.contains('oynuyor') || el.classList.contains('bitti')) return;
+async function acilisGir() {
+  const el = $('#acilis'), b = $('[data-act="acilis-gir"]');
+  if (el.classList.contains('oynuyor') || el.classList.contains('bitti') || b.disabled) return;
   const ilk = !store.acilisGordu;
   store.acilisGordu = true; flush();
-  if (!ilk || reduceMotion.matches || !v.src) return acilisKisa();
-  el.classList.add('oynuyor'); $('.acilis-gec').hidden = false;
-  v.onended = () => acilisBitir(ACILIS.bitis);
-  v.currentTime = 0;
-  v.play().then(acilisZaman).catch(acilisKisa);                         // video oynamazsa (bozuk, inmedi) kısa geçiş
+  if (!ilk || reduceMotion.matches) return acilisKisa();
+  if (ACILIS.durum === 'yok' || ACILIS.durum === 'yukleniyor') {        // 3D henüz gelmedi: en çok 8 sn bekle
+    b.disabled = true; const yazi = b.lastChild.textContent; b.lastChild.textContent = 'Taverna hazırlanıyor…';
+    const t0 = performance.now();
+    while ((ACILIS.durum === 'yok' || ACILIS.durum === 'yukleniyor') && tav.state !== 'fail' && performance.now() - t0 < 8000) await new Promise(r => setTimeout(r, 150));
+    b.disabled = false; b.lastChild.textContent = yazi;
+  }
+  if (ACILIS.durum !== 'hazir') return acilisKisa();
+  acilisUc();
 }
-function acilisKisa() { ses('kapi-ac'); sesDisari(20000, 1, 0, 1.2); acilisBitir(ACILIS.kisa); }
-function acilisGec() { if ($('#acilis').classList.contains('bitti')) return; $('#acilisVideo').pause(); sesDisari(20000, 1, 0, 0.6); acilisBitir(500); }
-// Videonun saatine bakarak sesleri zamanında çalar (geç kalınan an 1 sn'den eskiyse sessiz geçilir)
-function acilisZaman() {
-  const v = $('#acilisVideo'), an = ACILIS.an, olan = new Set();
-  const anlar = [
-    [an.adim, () => ses('adim')],
-    [an.kapi, () => { ses('kapi-ac'); sesDisari(1500, 0.6, 0.7, 1.5); }],   // kapı aralanır: içerinin sesi sızar
-    [an.gecis, () => ses('gecis')],
-    [an.iceri, () => sesDisari(20000, 1, 0, 1)],                          // eşikten geçtin: taverna tam, gece söner
-    [an.vinc, () => ses('gecis')],
-  ];
-  const tik = () => {
-    anlar.forEach(([t, f], i) => {
-      if (olan.has(i) || v.currentTime < t) return;
-      olan.add(i); if (v.currentTime - t < 1 || i === 3) f();             // "içeri" anı her durumda uygulanır
-    });
-    if (!v.ended && !$('#acilis').classList.contains('bitti')) ACILIS.raf = requestAnimationFrame(tik);
-  };
-  tik();
+function acilisKisa() {
+  cancelAnimationFrame(ACILIS.raf);
+  if (ACILIS.durum === 'hazir') ACILIS.durum = 'bitti';
+  ses('kapi-ac'); sesDisari(20000, 1, 0, 1.2); tav.dirty = true; tavKick(); acilisBitir(ACILIS.kisa);
 }
+function acilisGec() { if ($('#acilis').classList.contains('bitti')) return; acilisSon(500); }
 function acilisBitir(ms) {
   cancelAnimationFrame(ACILIS.raf);
   const el = $('#acilis');
   el.style.setProperty('--bitis', ms + 'ms'); el.classList.add('bitti');
-  setTimeout(() => {
-    el.hidden = true;
-    ['#acilisDongu', '#acilisVideo'].forEach(s => { const v = $(s); v.pause(); v.removeAttribute('src'); v.load(); });   // belleği boşalt
-  }, ms);
+  setTimeout(() => { el.hidden = true; if (ACILIS.durum === 'bitti') acilisKabukAt(); }, ms);   // yükleniyorsa acilisHazirla kendisi atar
 }
 Object.assign(ACTIONS, { 'acilis-gir': acilisGir, 'acilis-gec': acilisGec });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#acilis').classList.contains('oynuyor')) acilisGec(); });

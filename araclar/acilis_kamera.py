@@ -15,8 +15,8 @@ Yol: anahtar noktalardan geçen yumuşak eğri (merkezcil Catmull-Rom); zaman: h
 Bakış açıları da yol boyunca aynı yumuşak eğriyle.
 
 Çalıştırma (proje klasöründe; Blender gerekmez):  python araclar\\acilis_kamera.py
-Çıktı: 3d/han/acilis-kamera.json (her kare: x, y, z, egim, yon). han_dis_blender.py bunu okuyup 'Kamera_Acilis'i kurar;
-site bağlanınca aynı veri siteye gidecek.
+Çıktı: 3d/han/acilis-kamera.json (her kare: x, y, z, egim, yon; han_dis_blender.py bunu okuyup 'Kamera_Acilis'i kurar) ve
+masa/acilis-kamera.js (aynı veri sitede: window.ACILIS_KAMERA, index.html BÖLÜM 11d).
 """
 import json, math, os
 
@@ -115,5 +115,8 @@ for k in range(NK):
     kareler.append([round(v, 4) for v in p] + [round(eg, 3), round(yo, 3)])
 
 json.dump({'fps': FPS, 'lens': LENS, 'sensor': SENSOR, 'kareler': kareler}, open(CIKTI, 'w'), separators=(',', ':'))
+# site için (bilgisayardan açılınca da okunsun diye .js): window.ACILIS_KAMERA
+open(os.path.join(KOK, 'masa', 'acilis-kamera.js'), 'w', encoding='ascii').write(
+    'window.ACILIS_KAMERA=' + json.dumps({'fps': FPS, 'lens': LENS, 'sensor': SENSOR, 'kareler': kareler}, separators=(',', ':')) + ';\n')
 hizlar = [math.dist(kareler[k][:3], kareler[k + 1][:3]) * FPS for k in range(NK - 1)]
 print(f'Yol {L:.1f} m, {NK} kare; hız en çok {max(hizlar):.1f} m/sn, kapıda {hizlar[int(NK * 0.48)]:.1f} m/sn; yazıldı: {CIKTI}')
