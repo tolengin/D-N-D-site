@@ -14728,10 +14728,10 @@ document.addEventListener('click', e => {
 const ACILIS = {
   an: { adim: 8, kapiAc: [108, 152], kapi: 112, gecis: 170, iceri: 187, vinc: 236 },   // uçuşun anları (kare, 30 kare/sn)
   bitis: 900, kisa: 700,                                                // perdenin kalkış süresi (ms): uçuştan sonra / kısa geçişte
-  sis: [0x6a5a78, 0.011],                                               // alacakaranlık sisi: renk, yoğunluk (yalnızca uçuşta)
+  sis: [0x3a3048, 0.018],                                               // alacakaranlık sisi: renk, yoğunluk (yalnızca uçuşta; kullanıcı: 'orta, koyu')
   gok: ['#e06c42', '#4c2d52', '#0a0b1f'],                               // gök: ufuk, orta, tepe
-  isik: { gun: [0xff9a62, 1.1], gok: [0x8c9ce0, 0x2a2036, 0.5] },       // batan güneş ve serin gök ışığı (yalnızca pişmeyenlere: uzak ağaç ve çayır)
-  pis: { guc: 1.0, ortam: 0.03, titre: 0.12 },                          // pişmiş dış ışık: parlaklık, en karanlıkta kalan pay, fenerlerin titremesi
+  isik: { gun: [0xff9a62, 0.82], gok: [0x8c9ce0, 0x2a2036, 0.38] },       // batan güneş ve serin gök ışığı (yalnızca pişmeyenlere: uzak ağaç ve çayır)
+  pis: { guc: 2.1, ortam: 0.08, titre: 0.12 },                          // pişmiş dış ışık: parlaklık, en karanlıkta kalan pay, fenerlerin titremesi (kullanıcı: 'orta')
   kapiAci: 72,                                                          // uçuşta iki kanat da bu kadar açılır (kuzeydeki Blender'da zaten 72°)
   raf: 0, durum: 'yok',                                                 // yok → yukleniyor → hazir → ucuyor → bitti
   hep: new URLSearchParams(location.search).has('acilis'),              // ?acilis=1: her açılışta uç (denemek için)
