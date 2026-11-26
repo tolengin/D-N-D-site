@@ -14733,6 +14733,7 @@ const ACILIS = {
   isik: { gun: [0xff9a62, 1.1], gok: [0x8c9ce0, 0x2a2036, 0.5] },       // batan güneş (batı-güneybatıdan, alçak) ve serin gök ışığı
   kapiAci: 72,                                                          // uçuşta iki kanat da bu kadar açılır (kuzeydeki Blender'da zaten 72°)
   raf: 0, durum: 'yok',                                                 // yok → yukleniyor → hazir → ucuyor → bitti
+  hep: new URLSearchParams(location.search).has('acilis'),              // ?acilis=1: her açılışta uç (denemek için)
 };
 // Kamera verisi: .js (bilgisayardan açılınca da okunur), window.ACILIS_KAMERA
 function acilisKameraVeri() {
@@ -14799,7 +14800,7 @@ async function acilisHazirla() {
     Object.assign(ACILIS, { THREE, kd, root, kabuk, zemin, gok, gun, gokI, kanat });
     kabuk.forEach(o => { o.visible = false; });                         // masa görünümünde yok; yalnızca açılış tuvaline çizilirken
     tavKick();
-    if (store.acilisGordu || reduceMotion.matches || $('#acilis').hidden || $('#acilis').classList.contains('bitti')) { acilisKabukAt(); return; }
+    if ((store.acilisGordu && !ACILIS.hep) || reduceMotion.matches || $('#acilis').hidden || $('#acilis').classList.contains('bitti')) { acilisKabukAt(); return; }
     acilisTuvalKur();
     ACILIS.durum = 'hazir';
     acilisBekle();
@@ -14909,7 +14910,7 @@ function acilisGoster() {
 async function acilisGir() {
   const el = $('#acilis'), b = $('[data-act="acilis-gir"]');
   if (el.classList.contains('oynuyor') || el.classList.contains('bitti') || b.disabled) return;
-  const ilk = !store.acilisGordu;
+  const ilk = !store.acilisGordu || ACILIS.hep;
   store.acilisGordu = true; flush();
   if (!ilk || reduceMotion.matches) return acilisKisa();
   if (ACILIS.durum === 'yok' || ACILIS.durum === 'yukleniyor') {        // 3D henüz gelmedi: en çok 8 sn bekle
