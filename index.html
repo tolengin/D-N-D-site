@@ -14730,7 +14730,8 @@ const ACILIS = {
   bitis: 900, kisa: 700,                                                // perdenin kalkış süresi (ms): uçuştan sonra / kısa geçişte
   sis: [0x6a5a78, 0.011],                                               // alacakaranlık sisi: renk, yoğunluk (yalnızca uçuşta)
   gok: ['#e06c42', '#4c2d52', '#0a0b1f'],                               // gök: ufuk, orta, tepe
-  isik: { gun: [0xff9a62, 1.1], gok: [0x8c9ce0, 0x2a2036, 0.5] },       // batan güneş (batı-güneybatıdan, alçak) ve serin gök ışığı
+  isik: { gun: [0xff9a62, 1.1], gok: [0x8c9ce0, 0x2a2036, 0.5] },       // batan güneş ve serin gök ışığı (yalnızca pişmeyenlere: uzak ağaç ve çayır)
+  pis: { guc: 1.0, ortam: 0.03, titre: 0.12 },                          // pişmiş dış ışık: parlaklık, en karanlıkta kalan pay, fenerlerin titremesi
   kapiAci: 72,                                                          // uçuşta iki kanat da bu kadar açılır (kuzeydeki Blender'da zaten 72°)
   raf: 0, durum: 'yok',                                                 // yok → yukleniyor → hazir → ucuyor → bitti
   hep: new URLSearchParams(location.search).has('acilis'),              // ?acilis=1: her açılışta uç (denemek için)
@@ -14756,7 +14757,40 @@ async function acilisHazirla() {
     const loader = new GLTFLoader(); loader.setDRACOLoader(draco);
     const gltf = await new Promise((ok, fail) => loader.parse(buf, '', ok, fail));
     draco.dispose();
-    const root = gltf.scene, kabuk = [], zemin = [], toon = new Map();
+    const root = gltf.scene, kabuk = [], zemin = [], toon = new Map(), pis = new Map();
+    // Pişmiş alacakaranlık (araclar/han_dis_aktar.py, 2026-11-26): ikinci UV (uv1) iki resme bakar: isik-a² · K (güneş, gök,
+    // pencereler, içeriden sızan) + isik-b² · Kb · renkB (dört fener; titrer). Resimler gizli kartların parlama dokusu.
+    const ia = (root.getObjectByName('Isik_Ayar') || {}).userData || {};
+    const harita = ad => { const o = root.getObjectByName(ad); let t = null;
+      o && o.traverse(x => { if (x.isMesh) { t = t || x.material.emissiveMap; x.visible = false; } });
+      if (t) { t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true; }
+      return t; };
+    const lmA = harita('Isik_Harita_A'), lmB = harita('Isik_Harita_B');
+    const disU = lmA && { uK: { value: ia.K || 1 }, uKb: { value: ia.Kb || 1 }, uRenkB: { value: new THREE.Vector3(...(ia.renkB || [1, 0.55, 0.22])) },
+      uTit: { value: 1 }, uVarB: { value: lmB ? 1 : 0 }, uGuc: { value: ACILIS.pis.guc }, uOrtam: { value: ACILIS.pis.ortam },
+      uIsikA: { value: lmA }, uIsikB: { value: lmB || lmA } };
+    const pisOf = m => {                                                // ışığı resimden okur, canlı ışık hesaplamaz
+      if (!pis.has(m)) {
+        const t = new THREE.MeshLambertMaterial({ name: m.name, color: m.color, map: m.map, side: m.side });
+        if (TAV.ALPHA.includes(m.name)) { t.alphaTest = 0.5; t.alphaMap = m.alphaMap; }
+        if (m.map) m.map.anisotropy = tav.R.capabilities.getMaxAnisotropy();
+        t.onBeforeCompile = sh => {
+          Object.assign(sh.uniforms, disU);
+          sh.vertexShader = 'attribute vec2 uv1;\nvarying vec2 vIsikUv;\n' + sh.vertexShader.replace('#include <uv_vertex>', '#include <uv_vertex>\nvIsikUv = uv1;');
+          sh.fragmentShader = 'uniform float uK, uKb, uTit, uVarB, uGuc, uOrtam; uniform vec3 uRenkB; uniform sampler2D uIsikA, uIsikB;\nvarying vec2 vIsikUv;\n'
+            + sh.fragmentShader
+              .replace('#include <lights_fragment_begin>', '').replace('#include <lights_fragment_maps>', '').replace('#include <lights_fragment_end>', '')
+              .replace('#include <opaque_fragment>', `{
+                vec3 a = texture2D(uIsikA, vIsikUv).rgb; float b = texture2D(uIsikB, vIsikUv).r;
+                vec3 isik = a * a * uK + uRenkB * (b * b * uKb * uTit * uVarB);
+                outgoingLight = diffuseColor.rgb * (isik * uGuc + uOrtam); }
+              #include <opaque_fragment>`);
+        };
+        t.customProgramCacheKey = () => 'dis-pismis';
+        pis.set(m, t);
+      }
+      return pis.get(m);
+    };
     const toonOf = m => {                                               // dışarısı canlı ışıkla (pişmemiş), toon basamaklı
       if (!toon.has(m)) {
         const t = new THREE.MeshToonMaterial({ name: m.name, color: m.color, map: m.map, gradientMap: tav.ramp, emissive: m.emissive,
@@ -14771,7 +14805,9 @@ async function acilisHazirla() {
     root.traverse(o => {
       let d = null; for (let p = o; p; p = p.parent) if (p.userData && p.userData.dis) { d = p.userData.dis; break; }
       if (o.isMesh) {
-        o.material = Array.isArray(o.material) ? o.material.map(toonOf) : toonOf(o.material);
+        const lm = disU && !!o.geometry.attributes.uv1;
+        const yap = m => (lm && !['Dis_Pencere', 'M_Fener_Cam'].includes(m.name) ? pisOf(m) : toonOf(m));   // ışıyan camlar kendi ışığıyla
+        o.material = Array.isArray(o.material) ? o.material.map(yap) : yap(o.material);
         o.castShadow = false; o.receiveShadow = d === 'zemin'; o.layers.set(0);
       }
       if (o.userData && o.userData.dis) (o.userData.dis === 'zemin' ? zemin : kabuk).push(o);
@@ -14797,7 +14833,7 @@ async function acilisHazirla() {
     [gun, gokI].forEach(L => { L.layers.enableAll(); tav.S.add(L); });
     // giriş kapısı: kuzey kanadı modelde 72° açık, güney kanadı kapalı; uçuşta ikisi de kapalıdan açılır (kamera ortadan geçer)
     const kanat = ['Kapi_Giris_Kanat_1', 'Kapi_Giris_Kanat_2'].map(ad => tav.S.getObjectByName(ad)).map((o, i) => o && { o, y0: o.rotation.y, yon: i ? 1 : -1 }).filter(Boolean);
-    Object.assign(ACILIS, { THREE, kd, root, kabuk, zemin, gok, gun, gokI, kanat });
+    Object.assign(ACILIS, { THREE, kd, root, kabuk, zemin, gok, gun, gokI, kanat, disU });
     kabuk.forEach(o => { o.visible = false; });                         // masa görünümünde yok; yalnızca açılış tuvaline çizilirken
     tavKick();
     if ((store.acilisGordu && !ACILIS.hep) || reduceMotion.matches || $('#acilis').hidden || $('#acilis').classList.contains('bitti')) { acilisKabukAt(); return; }
@@ -14840,6 +14876,7 @@ function acilisCiz(now, f) {
   A.kanat.forEach(k => { k.o.rotation.y = k.yon * ac; });
   const dis = 1 - 0.85 * yum((f - A.an.kapi) / (A.an.iceri + 15 - A.an.kapi));   // eşikten geçince sis ve gök ışığı söner (içerisi morarmasın)
   A.kabuk.forEach(o => { o.visible = true; });
+  if (A.disU && !reduceMotion.matches) { const t = now / 1000; A.disU.uTit.value = 1 + A.pis.titre * (0.55 * Math.sin(t * 7.3) + 0.3 * Math.sin(t * 13.1 + 1.3) + 0.15 * Math.sin(t * 23.7)); }
   tav.S.fog.density = A.sis[1] * dis; tav.S.background = A.gok; A.gun.intensity = A.isik.gun[1] * dis; A.gokI.intensity = A.isik.gok[2] * dis;
   tavKesit(false);
   A.boru.render(tav.S, cam, K_(0) | K_(1) | K_(5) | K_(6) | K_(7) | K_(8), K_(0) | K_(5) | K_(6), w, h, 0, [0, 0, cr.width, cr.height]);

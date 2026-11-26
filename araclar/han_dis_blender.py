@@ -430,7 +430,13 @@ if 'Dis_Toprak' in bpy.data.objects: bpy.data.objects.remove(bpy.data.objects['D
 ZY = DIS_Z                                                 # avlu yüzeyi (içerinin dış toprağının yüksekliği)
 
 # Çayır (geniş) ve toprak avlu (yuvarlatılmış dikdörtgen, kenarı düzensiz)
-bm = bmesh.new(); kutu(bm, -200, 220, -200, 220, ZY - 0.09, ZY - 0.03, 'cimen'); nesne('Cevre_Cayir', bm, KC)
+# çayır iki parça: hanın çevresi (ışığı pişer: fenerlerin ışık havuzları) ve uzağı (canlı ışık; ışık haritasında yer yutmasın)
+YAKIN = (-24.0, 46.0, -26.0, 36.0)
+bm = bmesh.new(); kutu(bm, YAKIN[0], YAKIN[1], YAKIN[2], YAKIN[3], ZY - 0.09, ZY - 0.03, 'cimen'); nesne('Cevre_Cayir_Yakin', bm, KC)
+bm = bmesh.new()
+for X0, X1, Y0, Y1 in ((-200, YAKIN[0], -200, 220), (YAKIN[1], 220, -200, 220), (YAKIN[0], YAKIN[1], -200, YAKIN[2]), (YAKIN[0], YAKIN[1], YAKIN[3], 220)):
+    kutu(bm, X0, X1, Y0, Y1, ZY - 0.09, ZY - 0.03, 'cimen')
+nesne('Cevre_Cayir', bm, KC)
 AV_M, AV_A, AV_B = ((11.0, 7.0), 27.0, 20.0) if TOPRAK != 'kucuk' else ((11.5, 7.5), 20.5, 15.0)                  # avlunun ortası ve yarı boyları (PLAN)
 def avlu_r(t):
     """Avlunun kenarının ortaya uzaklığı (t açısında): süper elips + iki katlı dalga."""
