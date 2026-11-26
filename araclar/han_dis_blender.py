@@ -523,7 +523,11 @@ def agac(bm, X, Y, boy, tac=3, z0=ZY - 0.05, uzak=False):
         r = boy * rnd.uniform(0.2, 0.28)
         kure(bm, W3(X + rnd.uniform(-0.6, 0.6) * r, Y + rnd.uniform(-0.6, 0.6) * r, z0 + boy * (0.62 + 0.13 * k)), r)
 def cali(bm, X, Y, r):
-    for k in range(2): kure(bm, W3(X + rnd.uniform(-0.5, 0.5) * r, Y + rnd.uniform(-0.5, 0.5) * r, ZY + r * 0.35), r * rnd.uniform(0.7, 1.0), yassi=0.7)
+    """Çalı (2026-11-26, kullanıcı: çamlarla aynı dilde): ardıç gibi 2–3 küçük basık koni, iki yeşil tonu."""
+    for k in range(rnd.choice((2, 3))):
+        rr = r * rnd.uniform(0.55, 0.8)
+        koni(bm, X + rnd.uniform(-0.6, 0.6) * r, Y + rnd.uniform(-0.6, 0.6) * r, ZY - 0.05, ZY + rr * rnd.uniform(1.5, 2.2), rr,
+             'yaprak' if k % 2 else 'yaprak2', n=7)
 
 # Orman: avlunun hemen dışında başlar (yakın sıra sık ve üç taçlı, uzaklar tek taçlı); yolların ve patikanın üstü açık
 CAYIR = 6.0                                                              # avlunun kenarıyla ormanın arasındaki çimenli şerit (m)
