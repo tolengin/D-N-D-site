@@ -1449,7 +1449,9 @@ body.tv-on .tablebar{margin:8px 12px}
   height:calc(100dvh - var(--topbar-h,66px) - var(--tablebar-h,0px));
   background:var(--lead);color:var(--text)}
 /* .tv-wrap sahnenin boyutundadır; oyuncu kutusu ve düğmeler ona göre yerleşir. --povw: soldaki POV panelinin genişliği (kapalıyken 0) */
-.tv-wrap{position:relative;width:100%;height:100%;--u:min(1cqw,1.7778cqh);--povw:0px}
+.tv-wrap{position:relative;width:100%;height:100%;--u:min(1cqw,1.7778cqh);--povw:0px;
+  --cam-en:240px}   /* camların en dar hâli (2026-11-26): birim pencerenin genişliğine bağlı; sağa yaslanmış yarım ekranda (960 px)
+                       camlar 163 px'e iniyor, yazılar sığmayıp taşıyordu (Düşmanlar camı). Zoom'la (--hud) birlikte küçülür. */
 .tv-wrap{--povgen:min(calc(100cqh * 9 / 16 * var(--povk,1) * var(--povg,1)),64cqw)}   /* POV panelinin genişliği: --povk büyüklük, --povg yandan genişlik (madde 11) */
 .tv-wrap.pov-on{--povw:calc(var(--povgen) + .18 * var(--u))}
 /* .tv-main sahnenin, POV panelinin ve kara tahtanın ortak kutusudur */
@@ -1509,7 +1511,7 @@ body.tv-on .tablebar{margin:8px 12px}
 .tv-stage.fig3d :is(.tv-chairw,.tv-figw,.tav-masa){display:none}      /* karakter modeli geldi: figürler ve sandalyeler 3D'de çizilir (tavBuyucu) */
 /* Araç şeridi (2026-10-21, vitray): sahnenin solunda (POV paneli açıksa onun sağında) dik bir kurşun şerit; içinde yalnız
    ikonlu kare camlar. Adları üstlerine gelince (title) ve ekran okuyucuda (görünmez yazı) okunur. Yakınlaştırma sol altta. */
-.tv-ust{position:absolute;z-index:9;left:calc(var(--povw) + 12px);top:50%;translate:0 -50%;display:flex;flex-direction:column;gap:var(--lw);
+.tv-ust{position:absolute;z-index:9;left:calc(var(--povw) / var(--hud,1) + 12px);top:50%;translate:0 -50%;display:flex;flex-direction:column;gap:var(--lw);
   padding:var(--lw);background:var(--lead);box-shadow:var(--shadow)}
 .tv-arac{display:flex;flex-direction:column;gap:var(--lw)}
 /* Arayüz gizli (2026-10-27): masa ekranında yalnızca han ve geri getirme düğmesi kalır */
@@ -1527,7 +1529,7 @@ body.hud-yok .tv-ust:hover,body.hud-yok .tv-ust:focus-within{opacity:1}
 :is(.tv-ust,.tv-zoom) .btn[aria-pressed="true"] .ic{color:color-mix(in srgb,var(--accent) 55%,#fff)}
 .tv-ust .btn span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}   /* yazı yalnızca ekran okuyucu için */
 .tv-wrap.has-me #tvKagit{display:none}                                   /* oyuncuda "Kağıdım" alttaki kendi camında */
-.tv-zoom{position:absolute;z-index:9;left:calc(var(--povw) + 12px);bottom:16px;display:flex;flex-direction:column;gap:var(--lw);padding:var(--lw);background:var(--lead)}
+.tv-zoom{position:absolute;z-index:9;left:calc(var(--povw) / var(--hud,1) + 12px);bottom:16px;display:flex;flex-direction:column;gap:var(--lw);padding:var(--lw);background:var(--lead)}
 /* POV paneli yalnızca 3D taverna açıkken ve "POV" düğmesi basılıyken görünür (.pov-on); uzaklaşıp yakınlaşınca kendiliğinden kapanmaz */
 .tv-wrap:not(.pov-on) .tv-pov{display:none}
 
@@ -1567,7 +1569,7 @@ body.hud-yok .tv-ust:hover,body.hud-yok .tv-ust:focus-within{opacity:1}
 /* İsimlik (2026-10-21, vitray): oyuncunun kendi cam renginde (--g, koltuk sırasından) koyu bir cam levha; solda kare
    küçük pencere içinde portre. Kendi koltuğun daha çok ışık alır (parlama değil, camın açılması). Yazılar her zaman düz durur. */
 .tv-seat{--g:var(--g-kobalt)}
-.tv-tag{position:absolute;z-index:5;left:calc(var(--px) * 1cqw);top:calc(var(--py) * 1cqw);translate:-50% -50%;
+.tv-tag{position:absolute;z-index:5;left:calc(var(--px) * 1cqw / var(--hud,1));top:calc(var(--py) * 1cqw / var(--hud,1));translate:-50% -50%;
   --av:clamp(27px,3.9cqw,60px);width:clamp(84px,10.4cqw,160px);aspect-ratio:2323/730;
   background:color-mix(in srgb,var(--g) 26%,var(--bar));border:max(2px,.22cqw) solid var(--lead);box-shadow:0 .3cqw .8cqw rgba(0,0,0,.55);
   color:var(--text);line-height:1;white-space:nowrap;transition:opacity .3s,background-color .3s}   /* kayma, koltuğun --px/--py sayılarıyla gelir */
@@ -1663,7 +1665,7 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 /* Son atışlar (2026-10-21, vitray): sağ üstte koyu bir cam; her atış ayrı bir cam satırı, solunda atanın cam rengi (--g).
    En yeni atış gelince satırı bir an kendi renginde ışık alır, sonra söner (imza hareket: "arkadan ışık").
    Normalde yalnızca sonuç ve ad görünür; üstüne gelince (telefonda dokununca) cam sola doğru genişler, ayrıntılar okunur. */
-.tv-log{position:relative;box-sizing:border-box;width:calc(var(--cw,17) * var(--u));max-height:calc(100% - 2.8 * var(--u));overflow:hidden;
+.tv-log{position:relative;box-sizing:border-box;width:max(calc(var(--cw,17) * var(--u)),var(--cam-en,0px));max-height:calc(100% - 2.8 * var(--u));overflow:hidden;
   border:var(--lw) solid var(--lead);background:var(--lead);cursor:zoom-in;outline:0;color:var(--text);box-shadow:var(--shadow);
   font-family:var(--font-ui);transition:width .28s ease}
 .tv-log h2{margin:0;padding:calc(.7 * var(--u)) calc(2.6 * var(--u)) calc(.6 * var(--u)) calc(1 * var(--u));background:var(--bar);
@@ -1685,9 +1687,9 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 @media (prefers-reduced-motion:reduce){.tv-log li.yeni{animation:none}}
 .tv-log li:nth-child(n+7){display:none}
 .tv-log li.none{display:block;padding:calc(.8 * var(--u)) calc(1 * var(--u));color:var(--muted);white-space:normal;font-size:clamp(12px,calc(1.05 * var(--u)),15px)}
-.tv-log.open,.tv-log:focus-visible{width:max(calc(40 * var(--u)),calc(var(--cw,17) * var(--u)));overflow:auto;cursor:zoom-out}
+.tv-log.open,.tv-log:focus-visible{width:max(calc(40 * var(--u)),calc(var(--cw,17) * var(--u)),var(--cam-en,0px));overflow:auto;cursor:zoom-out}
 @media (hover:hover){
-  .tv-log:hover{width:max(calc(40 * var(--u)),calc(var(--cw,17) * var(--u)));overflow:auto}
+  .tv-log:hover{width:max(calc(40 * var(--u)),calc(var(--cw,17) * var(--u)),var(--cam-en,0px));overflow:auto}
   .tv-log:hover h2 em{display:inline}
   .tv-log:hover li:nth-child(n+7){display:grid}
   .tv-log:hover li .d{display:block;grid-column:2/4;white-space:normal;color:var(--muted);font-size:.9em;line-height:1.3}
@@ -1734,7 +1736,7 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
   :is(.cam,.tv-ust,.tv-zoom).uyku{opacity:.2;transition:opacity .9s}
 }
 /* Düzen kutusu: araç şeridindeki "Düzen" düğmesinin sağında */
-.duzen-pop{position:absolute;z-index:12;left:calc(var(--povw) + 12px + 44px + 4 * var(--lw) + 8px);width:290px;display:grid;gap:10px;padding:14px 16px;
+.duzen-pop{position:absolute;z-index:12;left:calc(var(--povw) + (12px + 44px + 4 * var(--lw)) * var(--hud,1) + 8px);width:290px;display:grid;gap:10px;padding:14px 16px;
   background:var(--surface);border:var(--lw) solid var(--lead);box-shadow:var(--shadow);color:var(--text);font-size:14px}
 .duzen-pop[hidden]{display:none}
 .duzen-pop h3{margin:0;font-family:var(--font-display);font-size:18px}
@@ -1742,6 +1744,22 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 .duzen-sec{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:start;cursor:pointer}
 .duzen-sec input{margin-top:3px}
 .duzen-sec small{grid-column:2;color:var(--muted)}
+.duzen-pop h4{margin:4px 0 0;font-family:var(--font-display);font-size:16px}
+/* Arayüz boyutu (2026-11-26, kullanıcı: "bütün HUD bana büyük; direkt küçültmeyelim, isteyen küçültsün"): Ayarlar'daki sürgü
+   --hud'u değiştirir (0,6–1,3; varsayılan 1, yani eskisi gibi). Masanın arayüz parçaları zoom'la birlikte küçülür ya da büyür:
+   zoom, birimle (--u) ölçülenleri de pikselle ölçülenleri de aynı oranda değiştirir (Edge'de ölçüldü); yüzdeyle verilen yerler
+   kaymaz, pikselle verilenler küçülür. Bu yüzden POV paneline (--povw) ve koltuğa (--px, --py) göre verilen yerler --hud'a bölünür.
+   Kendi camın zaten zoom'lu (--mek: tvLayout --hud'u da katar). Ayarlar kutusunun kendisi küçülmez: sürgü elin altında kaymasın. */
+:is(.tv-sag,.tv-camlar>.cam,.tv-ust,.tv-zoom,.tv-konus,.tv-sira,.tv-tag,.tv-balon){zoom:var(--hud,1)}
+body.tv-on:not(.kagit-ustte) :is(.fab,.tray,.hedef-chip,.hasar-bekle){zoom:var(--hud,1)}
+.hud-ayar{display:grid;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.hud-ayar label{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-weight:700}
+.hud-ayar output{font-family:var(--font-display);font-size:18px;font-weight:700;font-variant-numeric:lining-nums tabular-nums}
+.hud-ayar .ses-sur{grid-column:auto}
+.hud-dug{display:flex;gap:6px}
+.hud-dug .btn{flex:1;padding-inline:6px}
+.hud-dug .btn[aria-pressed="true"]{background:var(--lit);border-color:var(--accent)}
+.hud-ayar small{color:var(--muted);line-height:1.35}
 .tv-sag>*{pointer-events:auto}
 /* Büyütme tutamağı (madde 11): POV panelinin sağ alt, sağ sütunun sol alt köşesinde; sürükleyince büyür ya da küçülür */
 .buyut{position:absolute;z-index:12;width:22px;height:22px;cursor:nwse-resize;touch-action:none;pointer-events:auto;
@@ -1762,10 +1780,10 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
   padding:0;border:0;border-radius:0;background:none;color:var(--muted);cursor:pointer}
 .tv-kapa:hover{color:var(--text);background:var(--lit)}
 .tv-kapa .ic{width:16px;height:16px}
-.tv-log.kapali,.tv-log.kapali:hover,.tv-log.kapali:is(.open,:focus-visible){width:calc(var(--cw,17) * var(--u));cursor:default}
+.tv-log.kapali,.tv-log.kapali:hover,.tv-log.kapali:is(.open,:focus-visible){width:max(calc(var(--cw,17) * var(--u)),var(--cam-en,0px));cursor:default}
 .tv-log.kapali ol,.tv-log.kapali h2 em{display:none!important}
 /* Düşmanlar: son atışlarla aynı koyu cam; her düşman bir cam satırı (kare portre, ad, can). Basınca hedef seçilir. */
-.tv-dus{position:relative;box-sizing:border-box;width:calc(var(--cw,17) * var(--u));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);box-shadow:var(--shadow);
+.tv-dus{position:relative;box-sizing:border-box;width:max(calc(var(--cw,17) * var(--u)),var(--cam-en,0px));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);box-shadow:var(--shadow);
   display:flex;flex-direction:column;min-height:0}
 .tv-dus[hidden]{display:none}
 .tv-dus>:not(ol){flex:none}
@@ -1817,12 +1835,16 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 .katil-i:hover{background:color-mix(in srgb,var(--g) 22%,var(--lead))}
 .katil-i[data-d="katil"]:hover{background:color-mix(in srgb,var(--g) 50%,var(--lead))}
 .katil-i:focus-visible{outline:2px solid var(--text);outline-offset:-2px}
-.tv-dus-alt{display:flex;gap:var(--lw);margin-top:var(--lw)}
-.tv-dus-alt .btn{flex:1;border:0}
+/* "Savaşı başlat" tam satır, altında "Ekle:" ve hazır düşmanlar (2026-11-26: ikisi aynı satıra sıkışınca düğme koca bir kutu
+   oluyor, "Ekle" düğmeleri yanında alt alta dizilip camın dışına taşıyordu; kullanıcı dar pencerede gördü) */
+.tv-dus-alt{display:flex;flex-wrap:wrap;gap:var(--lw);margin-top:var(--lw)}
+.tv-dus-alt>.btn{flex:1 1 100%;border:0}
+.tv-dus-alt>.dus-ekle{box-sizing:border-box;margin-top:0;padding:6px calc(.7 * var(--u));background:var(--surface)}
+.tv-dus-alt .dus-ekle .btn{flex:1 1 auto;border:0}
 .tv-dus-alt:empty{display:none}
 /* Sohbet (BÖLÜM 10e, 2026-10-30): düşmanlar panosunun altında aynı koyu cam. Her mesaj yazanın cam renginde bir satır, en yenisi
    altta. Gizli mesajlar kesikli çerçeveli (DM ekranındaki gizli zarlar gibi). Kapalıyken başlıkta okunmamışların sayısı. */
-.tv-soz{position:relative;box-sizing:border-box;width:calc(var(--cw,17) * var(--u));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);
+.tv-soz{position:relative;box-sizing:border-box;width:max(calc(var(--cw,17) * var(--u)),var(--cam-en,0px));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);
   box-shadow:var(--shadow);font-family:var(--font-ui);display:flex;flex-direction:column;min-height:0}
 .tv-soz[hidden]{display:none}
 .tv-soz>:not(ol){flex:none}
@@ -1849,7 +1871,7 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 .soz-satir .btn{border:0;flex:none}
 .tv-soz.gizli-yaz .soz-satir input{outline:2px dashed color-mix(in srgb,var(--text) 50%,transparent);outline-offset:-4px}   /* gizli yazarken kutu da kesikli */
 /* Konuşma balonu: herkese yazılan mesaj birkaç saniye yazanın isimliğinin üstünde küçük bir cam olarak durur (isimlikle birlikte kayar) */
-.tv-balon{position:absolute;z-index:6;left:calc(var(--px) * 1cqw);top:calc(var(--py) * 1cqw);width:max-content;max-width:clamp(150px,16cqw,260px);
+.tv-balon{position:absolute;z-index:6;left:calc(var(--px) * 1cqw / var(--hud,1));top:calc(var(--py) * 1cqw / var(--hud,1));width:max-content;max-width:clamp(150px,16cqw,260px);
   translate:calc(-50% + var(--bx,0px)) calc(-100% - clamp(84px,10.4cqw,160px) * .157 - 12px);padding:6px 10px;
   background:color-mix(in srgb,var(--g) 24%,var(--surface));border:max(2px,.22cqw) solid var(--lead);box-shadow:0 .3cqw .8cqw rgba(0,0,0,.55);
   color:var(--text);font-family:var(--font-ui);font-size:clamp(12px,1.05cqw,15px);font-weight:500;line-height:1.3;white-space:normal;pointer-events:none;
@@ -1858,7 +1880,7 @@ body.role-dm .tv-seat:not(.dm) .tv-tag{cursor:pointer}
 .tv-balon::after{content:"";position:absolute;left:calc(50% - var(--bx,0px));top:100%;translate:-50% 0;border:7px solid transparent;border-top-color:var(--lead);border-bottom:0}
 /* Müzik camı (BÖLÜM 10f, 2026-10-30; 2026-11-07'den beri yalnızca şarkı seçiliyken): sohbetle aynı koyu cam. Üstte küçük YouTube
    videosu (YouTube'un kuralı: video görünür olmalı), altında çalan şarkı ve çal / sonraki. Link ve sıra sahne panosunda (.sa-pano). */
-.tv-mz{position:relative;box-sizing:border-box;width:calc(var(--cw,17) * var(--u));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);
+.tv-mz{position:relative;box-sizing:border-box;width:max(calc(var(--cw,17) * var(--u)),var(--cam-en,0px));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);
   box-shadow:var(--shadow);font-family:var(--font-ui);display:flex;flex-direction:column;min-height:0}
 .tv-mz[hidden]{display:none}
 .tv-mz>:not(ol){flex:none}
@@ -1910,7 +1932,7 @@ button.mz-sec:hover{background:var(--lit)}
 .sa-pano .mz-isaret{margin-left:auto}
 .sa-pano.uzak{width:calc(15 * var(--u))}
 .sa-pano.uzak:not(:hover,:focus-within) .mz-liste{display:none}
-.tv-sag .sa-pano{position:relative;transform:none!important;width:calc(var(--cw,17) * var(--u));min-width:0}
+.tv-sag .sa-pano{position:relative;transform:none!important;width:max(calc(var(--cw,17) * var(--u)),var(--cam-en,0px));min-width:0}
 /* Savaşta / sağ sütunda: başlıkta küçült ve kapat (sahneye iğneliyken yok). Küçükken yalnızca başlık kalır */
 .sa-pano .sa-dug{display:none;gap:2px;margin:-4px -6px -4px auto}
 .tv-sag .sa-pano .sa-dug{display:flex}
@@ -1977,10 +1999,10 @@ button.mz-sec:hover{background:var(--lit)}
 /* Ortak notlar (2026-11-26, R4 madde 28; kullanıcı: "sol altta ortak not / ipucu panosu, grup notları"). Sohbetle aynı koyu cam;
    varsayılan yeri sol alt köşe (yakınlaştırma düğmelerinin yanı), başlığından taşınır. Her not yazanın camıyla boyanmış satır: üstte
    küçük ad ve saat, altında not. DM'in ipucu yaptığı notlar en üstte, yıldızlı ve accent kenarlı. Yazı kutusu altta. */
-.tv-not{position:relative;box-sizing:border-box;width:calc(var(--cw,18) * var(--u));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);
+.tv-not{position:relative;box-sizing:border-box;width:max(calc(var(--cw,18) * var(--u)),var(--cam-en,0px));border:var(--lw) solid var(--lead);background:var(--lead);color:var(--text);
   box-shadow:var(--shadow);font-family:var(--font-ui);display:flex;flex-direction:column;min-height:0}
 .tv-not[hidden]{display:none}
-.tv-camlar>.tv-not.varsayilan{left:calc(var(--povw) + 72px);bottom:16px;top:auto}
+.tv-camlar>.tv-not.varsayilan{left:calc(var(--povw) / var(--hud,1) + 72px);bottom:16px;top:auto}
 .tv-not.varsayilan .cam-boy{display:none}
 .tv-not>:not(ol){flex:none}
 .tv-not h2{position:relative;margin:0;padding:calc(.7 * var(--u)) calc(2.6 * var(--u)) calc(.6 * var(--u)) calc(1 * var(--u));background:var(--bar);
@@ -2022,7 +2044,7 @@ button.mz-sec:hover{background:var(--lit)}
 .ks-bil label{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
 .ks-bil select{flex:1;min-width:0;padding:4px 6px;font-size:13px}
 @media (max-width:560px){.ks-kart{grid-template-columns:56px minmax(0,1fr)}.ks-av{width:56px;height:56px}.ks-kart .dk-is{grid-column:1/-1;justify-content:flex-start}}
-.tv-konus{position:absolute;z-index:9;left:calc(var(--povw) + 72px);top:12px;display:flex;align-items:center;gap:calc(1 * var(--u));max-width:min(440px,46%);
+.tv-konus{position:absolute;z-index:9;left:calc(var(--povw) / var(--hud,1) + 72px);top:12px;display:flex;align-items:center;gap:calc(1 * var(--u));max-width:min(440px,46%);
   padding:var(--lw) calc(1.2 * var(--u)) var(--lw) var(--lw);background:var(--lead);border:var(--lw) solid var(--lead);box-shadow:var(--shadow);color:var(--text);
   animation:konusGel .35s cubic-bezier(.2,.8,.3,1)}
 .tv-konus[hidden]{display:none}
@@ -2059,7 +2081,7 @@ body.hud-yok .tv-konus{display:none}
 }
 /* Savaş sırası (2026-10-21, vitray): üst ortada bir sıra kemerli pencere (lansetler). Her pencere bir kişi: oyuncular kendi
    cam renginde, düşmanlar lal. Sırası gelenin penceresi arkadan ışık alır (camın kendi rengiyle dolar), hafifçe uzar. */
-.tv-sira{position:absolute;z-index:9;left:calc(var(--povw) + (100% - var(--povw)) / 2);translate:-50% 0;top:12px;max-width:calc(100% - var(--povw) - 2 * 19 * var(--u));
+.tv-sira{position:absolute;z-index:9;left:calc(var(--povw) / 2 / var(--hud,1) + 50%);translate:-50% 0;top:12px;max-width:calc(100% - var(--povw) / var(--hud,1) - 2 * 19 * var(--u));
   display:flex;align-items:stretch;gap:var(--lw);padding:var(--lw);color:var(--text);background:var(--lead);box-shadow:var(--shadow)}
 .tv-sira[hidden]{display:none}
 .sira-bas{display:grid;align-content:center;gap:2px;flex:none;max-width:170px;padding:8px 14px;background:var(--bar)}
@@ -2626,6 +2648,7 @@ body.tv-full #tableView{height:100dvh}
   <!-- Heybe: envanter (2026-10-29) -->
   <symbol id="i-canta" viewBox="0 0 24 24"><path d="M9 6.5c0-2 1.3-3 3-3s3 1 3 3M6.2 8h11.6l1.6 10.6a1.6 1.6 0 0 1-1.6 1.9H6.2a1.6 1.6 0 0 1-1.6-1.9zM9.5 11.5h5"/></symbol>
   <symbol id="i-duzen" viewBox="0 0 24 24"><path d="M4 4.5h7v7H4zM13 4.5h7v4.5h-7zM13 11h7v8.5h-7zM4 13.5h7v6H4z"/></symbol>
+  <symbol id="i-ayar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.6"/><circle cx="12" cy="12" r="2.6"/><path d="M18.6 12h2.6M16.7 16.7l1.8 1.8M12 18.6v2.6M7.3 16.7l-1.8 1.8M5.4 12H2.8M7.3 7.3 5.5 5.5M12 5.4V2.8M16.7 7.3l1.8-1.8"/></symbol>
   <symbol id="i-oynat" viewBox="0 0 24 24"><path d="M7.5 5v14l11-7z"/></symbol>
   <symbol id="i-duraklat" viewBox="0 0 24 24"><path d="M8 5.5v13M16 5.5v13"/></symbol>
   <symbol id="i-gonder" viewBox="0 0 24 24"><path d="M4 11.6 20 4l-5.6 16-3.1-6.7zM11.3 13.3 20 4"/></symbol>
@@ -2883,8 +2906,20 @@ body.tv-full #tableView{height:100dvh}
       <aside class="tv-me" id="tvMe" aria-label="Karakterim" hidden></aside>
       <!-- Harita camı (BÖLÜM 10d; içini JS doldurur) ve DM'in harita resmi seçtiği gizli kutu -->
       <section class="hr-pano" id="hrPano" aria-label="Harita" hidden></section>
-      <div class="duzen-pop" id="duzenPop" role="dialog" aria-label="Düzen" hidden>
-        <h3>Düzen</h3>
+      <div class="duzen-pop" id="duzenPop" role="dialog" aria-label="Ayarlar" hidden>
+        <h3>Ayarlar</h3>
+        <!-- Arayüz boyutu (2026-11-26, kullanıcının isteği): bütün masa arayüzü birlikte küçülür ya da büyür (--hud, hudUygula) -->
+        <div class="hud-ayar">
+          <label for="hudSur"><span>Arayüz boyutu</span><output id="hudDeger" for="hudSur">%100</output></label>
+          <input class="ses-sur" id="hudSur" type="range" min="60" max="130" step="5" value="100">
+          <div class="hud-dug" role="group" aria-label="Hazır boyutlar">
+            <button class="btn sm" type="button" data-hud="80" aria-pressed="false">Küçük</button>
+            <button class="btn sm" type="button" data-hud="100" aria-pressed="true">Varsayılan</button>
+            <button class="btn sm" type="button" data-hud="115" aria-pressed="false">Büyük</button>
+          </div>
+          <small>Camlar, şerit, isimlikler, kendi camın ve "Zar at" birlikte küçülür ya da büyür. Bu tarayıcıda kalır.</small>
+        </div>
+        <h4>Düzen</h4>
         <p>Sağdaki camları başlığından sürükleyip istediğin yere taşı, köşesinden büyüt. Yerleri bu tarayıcıda kalır.</p>
         <!-- Yapışma (2026-11-10, kullanıcının isteği): taşırken kenara, köşeye ya da başka bir cama yaklaşınca yerine oturur (camYapistir) -->
         <label class="duzen-sec"><input type="checkbox" id="duzenYapis"><span>Camlar kenarlara ve köşelere yapışsın</span><small>Taşırken ekranın kenarına ya da başka bir cama yaklaşınca yerine oturur. O an istemezsen Alt'a basılı tut.</small></label>
@@ -2920,8 +2955,9 @@ body.tv-full #tableView{height:100dvh}
         <button class="btn sm" id="tvPazar" data-act="pazar" aria-pressed="false" hidden><svg class="ic"><use href="#e-kese"/></svg><span>Pazar</span></button>
         <!-- Sahne (2026-11-17): savaşta kapatılan sahne panosunu (müzik linki, sıra) geri açar; yalnızca pano kapalıyken görünür -->
         <button class="btn sm" id="tvSahneAc" data-act="sa-ac" title="Sahneyi aç: müzik linki ve sıradaki şarkılar" hidden><svg class="ic"><use href="#i-nota"/></svg><span>Sahne</span></button>
-        <!-- Düzen (2026-10-30): camları varsayılan yerine al, kullanılmayan camlar solsun (camlar her zaman başlığından taşınır) -->
-        <button class="btn sm" id="tvDuzen" data-act="duzen" aria-expanded="false" aria-controls="duzenPop" title="Düzen: camları taşı ve büyüt, varsayılana dön, solma"><svg class="ic"><use href="#i-duzen"/></svg><span>Düzen</span></button>
+        <!-- Ayarlar (2026-10-30 "Düzen"; 2026-11-26'dan beri dişli, en üstte arayüz boyutu): camları varsayılan yerine al,
+             kullanılmayan camlar solsun (camlar her zaman başlığından taşınır) -->
+        <button class="btn sm" id="tvDuzen" data-act="duzen" aria-expanded="false" aria-controls="duzenPop" title="Ayarlar: arayüz boyutu, camların düzeni, solma"><svg class="ic"><use href="#i-ayar"/></svg><span>Ayarlar</span></button>
         <!-- NPR taverna yüklenince görünür: bütün tavernaya bakmak / masaya dönmek -->
         <div class="tv-arac" id="tvArac" hidden>
           <!-- Görünüm (2026-11-12, kullanıcının isteği): yandan / kuş bakışı / POV / bütün han / sahne ve "Canlı" tek düğmenin menüsünde (gorAc) -->
@@ -12426,6 +12462,7 @@ const telefonDik = matchMedia('(max-width:640px) and (orientation:portrait)');
 const camAyar = k => (store.cam && store.cam[k]) || {};
 function camKaydet(k, deg) { store.cam = Object.assign({}, store.cam, { [k]: Object.assign({}, camAyar(k), deg) }); }
 function camBirim() { const A = $('.tv-wrap').getBoundingClientRect(); return Math.min(A.width / 100, A.height / 56.25) || 1; }   // --u, piksel
+const CAM_EN = 240;                                                   // camların en dar hâli, piksel (CSS --cam-en ile aynı)
 function camYerlestir() {
   const sag = $('.tv-sag'), yuz = $('#tvCamlar'), tel = telefonDik.matches;
   let i = 0;
@@ -12460,7 +12497,8 @@ function camYerlestir() {
    Yatay ve dikey ayrı bakılır; ikisi birden tutunca cam köşeye oturur. Kapalıysa (store.camYapis false) ya da Alt basılıysa yapışmaz. */
 const CAM_YAPIS = 16, CAM_ARA = 8;
 // Camın kendi (kapalı) genişliği, piksel: "Son atışlar" üstüne gelince 40 birime açılır; yer ve yapışma kapalı genişliğe göre
-function camGen(el) { return el.dataset.cam === 'log' ? (camAyar('log').w || 17) * camBirim() : el.getBoundingClientRect().width; }
+// (2026-11-26: camlar arayüz boyutuyla, zoom: var(--hud), küçülür; görünen genişlik × hud)
+function camGen(el) { return el.dataset.cam === 'log' ? Math.max((camAyar('log').w || 17) * camBirim(), CAM_EN) * hudOlcek() : el.getBoundingClientRect().width; }
 function camYapistir(el, xp, yp, A) {
   const W = A.width, H = A.height, r = el.getBoundingClientRect(), w = camGen(el), h = r.height;
   const px = xp / 100 * W, py = yp / 100 * H;
@@ -12492,7 +12530,7 @@ function camSinirla() {                                               // yüzen 
     if (e.button !== 0 || telefonDik.matches) return;
     const boy = e.target.closest('.cam-boy'), bas = !boy && e.target.closest('.cam > h2');
     if (!boy && (!bas || e.target.closest('button'))) return;          // başlıktaki "−" düğmesi kendi işini yapar
-    const el = e.target.closest('.cam'), A = $('.tv-wrap').getBoundingClientRect(), r = el.getBoundingClientRect(), u = camBirim();
+    const el = e.target.closest('.cam'), A = $('.tv-wrap').getBoundingClientRect(), r = el.getBoundingClientRect(), u = camBirim() * hudOlcek();   // camın görünen birimi (arayüz boyutuyla)
     const li = CAM.liste[el.dataset.cam] && $(CAM.liste[el.dataset.cam], el);
     d = { el, k: el.dataset.cam, id: e.pointerId, x: e.clientX, y: e.clientY, A, r, u, boy: !!boy, oynadi: false, yuzer: el.classList.contains('yuzer'), sagda: el.classList.contains('sagda'), xb: camAyar(el.dataset.cam).x,
           w0: camAyar(el.dataset.cam).w || 17, h0: li && li.offsetParent ? li.getBoundingClientRect().height / u : 0 };   // w0: camın kendi genişliği (açık "Son atışlar"ın 40 birimi değil)
@@ -12603,6 +12641,23 @@ Object.assign(ACTIONS, {
 $('#duzenSolma').addEventListener('change', e => { store.solma = e.target.checked; save(); solmaBasla(); });
 $('#duzenYapis').addEventListener('change', e => { store.camYapis = e.target.checked; save(); });
 $('#duzenSozSeffaf').addEventListener('change', e => { store.sozSeffaf = e.target.checked; save(); sozBosDur(); });
+/* Arayüz boyutu (2026-11-26, kullanıcı: "bütün HUD bana büyük geliyor; direkt küçültmeyelim, isteyen küçültsün"): Ayarlar'daki
+   sürgü ve hazır boyutlar (Küçük %80, Varsayılan %100, Büyük %115). --hud: CSS'te masanın arayüz parçaları zoom'la; kendi camı
+   --mek'e katılır (tvLayout); camları sürükleyip büyütürken görünen birim (camTut, camGen). store.hud, bu tarayıcıda. */
+function hudOlcek() { return clamp(+store.hud || 1, 0.6, 1.3); }      // (sabit değil işlev: camGen / tvLayout bu bloktan önce de çağrılabilir)
+function hudUygula() {
+  const h = hudOlcek(), y = Math.round(h * 100);
+  document.documentElement.style.setProperty('--hud', String(h));
+  const s = $('#hudSur');
+  s.value = y; s.style.setProperty('--v', ((y - 60) / 70 * 100) + '%');   // sürgünün dolu kısmı (60–130)
+  $('#hudDeger').textContent = '%' + y;
+  $$('.hud-dug [data-hud]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.hud === y)));
+  if (mode === 'table') { tvLayout(); camYerlestir(); }
+}
+$('#hudSur').addEventListener('input', e => { store.hud = +e.target.value / 100; hudUygula(); });
+$('#hudSur').addEventListener('change', () => save());
+$$('.hud-dug [data-hud]').forEach(b => b.addEventListener('click', () => { store.hud = +b.dataset.hud / 100; hudUygula(); save(); }));
+hudUygula();
 document.addEventListener('pointerdown', e => { if (!$('#duzenPop').hidden && !e.target.closest('#duzenPop, #tvDuzen')) duzenAc(false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#duzenPop').hidden) duzenAc(false); });
 
@@ -12625,7 +12680,8 @@ function tvLayout() {
   const over = fab.width && fab.left < r.right && fab.top < r.bottom && fab.bottom > r.top;
   const sag = (over ? fab.left - 14 : r.right - 14) - r.left;
   wrap.style.setProperty('--me-x', Math.round((sol + sag) / 2) + 'px');
-  wrap.style.setProperty('--mek', clamp(Math.min(k, (sag - sol) / ME_GEN), 0.5, 1.25).toFixed(3));
+  // arayüz boyutu (Ayarlar, --hud) da katılır; sığmazsa yine küçülür
+  wrap.style.setProperty('--mek', clamp(Math.min(k * hudOlcek(), (sag - sol) / ME_GEN), 0.4, 1.6).toFixed(3));
 }
 // Masa durum çubuğunun yüksekliği: sahne alanı ekranın kalanını doldursun diye (CSS'te --tablebar-h)
 function measureTablebar() {
