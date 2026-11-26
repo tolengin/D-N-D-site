@@ -348,8 +348,10 @@ for i in range(8):                                                              
     for j in range(4): b.faces.new((v[j], v[(j + 1) % 4], v2[(j + 1) % 4], v2[j]))
     bmesh.ops.recalc_face_normals(b, faces=b.faces); P(bm, b, 0)
 nesne('Sundurma_Sacak', bm, [M['cati']], K_SUNDURMA)
-kur, uv, mats = hp.tabela(0.9, 1.75, 2.45)
-hp.duvar_parcasi('Sundurma_Tabela', K_SUNDURMA, *w(SX0 - 2.2, KAPI_Y[1] + 1.15), 90, kur, mats, uv)
+# tabela: sundurmanın ön ortasında, kapının tam önünde saçağın altından iki zincirle asılı (2026-11-26, kullanıcının isteği;
+# önce direğin yanındaydı). Saçağın alt yüzü burada ~3,08 m. Site sallar (zincirlerin tepesi çevresinde).
+kur, uv, mats = hp.tabela(0.9, 2.15, 3.06)
+hp.duvar_parcasi('Sundurma_Tabela', K_SUNDURMA, *w(SX0 - 2.3, (KAPI_Y[0] + KAPI_Y[1]) / 2), 90, kur, mats, uv)
 hp.sarkit('Sarkit_Sundurma', *w(SX0 - 1.2, (KAPI_Y[0] + KAPI_Y[1]) / 2), 2.15, K_SUNDURMA, 3.1)
 hp.saksi('Bitki_Sundurma', K_SUNDURMA, *w(SX0 - 0.35, KAPI_Y[0] - 0.4), 1.1, 0.24, 0.0, kart=9)
 etiket('Sundurma', SX0 - 1.2, 0.3)

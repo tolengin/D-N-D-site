@@ -416,81 +416,193 @@ for i, (X, Y, zz) in enumerate(FENER):
     d = bpy.data.lights.new(f'Dis_Fener_{i + 1}', 'POINT'); d.energy = 60; d.color = (1.0, 0.55, 0.22); d.shadow_soft_size = 0.05
     o = bpy.data.objects.new(f'Dis_Fener_{i + 1}', d); o.location = W3(X, Y, zz); K.objects.link(o)
 
-# ═════════ ÇEVRE (kullanıcının kararı: yol kenarında han) ═════════
-# İçerinin taş döşemesi (Dis_Toprak, 54 × 40 m) hanın avlusu olarak kalır; çevresi çayır. Güneyden doğu-batı giden ana yol,
-# ondan avluya sapan yan yol; yol ağzında tabela direği; avlunun güneyinde alçak çit; ağaçlar ve uzakta ağaç çizgisi.
+# ═════════ ÇEVRE (kullanıcının kararları, 2026-11-26) ═════════
+# Ormanda açıklık: han düzensiz kenarlı TOPRAK avlunun ortasında (içerinin taş döşemesi Dis_Toprak bu dosyada silinir; site
+# bağlanırken içerinin zemini de buna uyacak), orman avlunun hemen dışında başlar. Kapıdan ana yola toprak patika; patikanın
+# yola çıktığı yerde tabela direği. Avlu kalabalık: yük arabası, kuyu, at bağlama direği ve yalak, odun yığını, bank,
+# mutfak kapısında sandık / fıçı / çuval, patika boyunca iki fener direği, çalılar. Çok hafif sis (önizleme; sitede ayrıca).
 KC = koleksiyon('11_Cevre')
 import random
 rnd = random.Random(11)
-AVLU = (-15.0, 39.0, -12.0, 28.0)                     # içerinin taş döşemesinin PLAN sınırı (Dis_Toprak)
-bm = bmesh.new(); kutu(bm, -200, 220, -200, 220, DIS_Z - 0.09, DIS_Z - 0.04, 'cimen'); nesne('Cevre_Cayir', bm, KC)
+if 'Dis_Toprak' in bpy.data.objects: bpy.data.objects.remove(bpy.data.objects['Dis_Toprak'], do_unlink=True)
+ZY = DIS_Z                                                 # avlu yüzeyi (içerinin dış toprağının yüksekliği)
+
+# Çayır (geniş) ve toprak avlu (yuvarlatılmış dikdörtgen, kenarı düzensiz)
+bm = bmesh.new(); kutu(bm, -200, 220, -200, 220, ZY - 0.09, ZY - 0.03, 'cimen'); nesne('Cevre_Cayir', bm, KC)
+AV_M, AV_A, AV_B = (11.0, 7.0), 27.0, 20.0                  # avlunun ortası ve yarı boyları (PLAN)
+def avlu_r(t):
+    """Avlunun kenarının ortaya uzaklığı (t açısında): süper elips + iki katlı dalga."""
+    c, s = math.cos(t), math.sin(t)
+    r = 1 / ((abs(c) / AV_A) ** 4 + (abs(s) / AV_B) ** 4) ** 0.25
+    return r * (1 + 0.06 * math.sin(3 * t + 1) + 0.04 * math.sin(7 * t + 2) + 0.025 * math.sin(13 * t))
+N_AV = 96
+bm = bmesh.new()
+mer = bm.verts.new(W3(*AV_M, ZY - 0.02))
+kenar = [bm.verts.new(W3(AV_M[0] + avlu_r(2 * math.pi * i / N_AV) * math.cos(2 * math.pi * i / N_AV),
+                         AV_M[1] + avlu_r(2 * math.pi * i / N_AV) * math.sin(2 * math.pi * i / N_AV), ZY - 0.02)) for i in range(N_AV)]
+for i in range(N_AV): bm.faces.new((mer, kenar[i], kenar[(i + 1) % N_AV])).material_index = SIRA.index('yol')
+nesne('Cevre_Avlu', bm, KC)
+def avluda(X, Y, pay=0.0):
+    dx, dy = X - AV_M[0], Y - AV_M[1]
+    return math.hypot(dx, dy) < avlu_r(math.atan2(dy, dx)) + pay
 
 def serit(bm, pts, en, z, mat):
     """Yatay şerit (yol): orta çizginin iki yanında en / 2."""
     sol, sag = [], []
     for i, (X, Y) in enumerate(pts):
         a = pts[max(i - 1, 0)]; b = pts[min(i + 1, len(pts) - 1)]
-        dx, dy = b[0] - a[0], b[1] - a[1]; L = math.hypot(dx, dy); nx, ny = -dy / L * en / 2, dx / L * en / 2
+        dx, dy = b[0] - a[0], b[1] - a[1]; L = math.hypot(dx, dy)
+        e = en * (1 + 0.12 * math.sin(i * 1.7))                    # kenar hafif dalgalı
+        nx, ny = -dy / L * e / 2, dx / L * e / 2
         sol.append(bm.verts.new(W3(X + nx, Y + ny, z))); sag.append(bm.verts.new(W3(X - nx, Y - ny, z)))
     for i in range(len(pts) - 1):
         bm.faces.new((sag[i], sag[i + 1], sol[i + 1], sol[i])).material_index = SIRA.index(mat)
-def egri(p0, p1, p2, n=16):
-    return [((1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0], (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1])
-            for t in (k / n for k in range(n + 1))]
-ANA_YOL = egri((-150, -26), (10, -16), (170, -30), 40)
-YAN_YOL = egri((-16, -21.5), (-12, -15), (-7, -11.0), 8)
+def egri(*p, n=16):
+    """İkinci ya da üçüncü dereceden Bézier eğrisi."""
+    out = []
+    for k in range(n + 1):
+        t = k / n
+        if len(p) == 3: c = ((1 - t) ** 2, 2 * (1 - t) * t, t * t)
+        else: c = ((1 - t) ** 3, 3 * (1 - t) ** 2 * t, 3 * (1 - t) * t * t, t ** 3)
+        out.append((sum(ci * q[0] for ci, q in zip(c, p)), sum(ci * q[1] for ci, q in zip(c, p))))
+    return out
+ANA_YOL = egri((-150, -30), (-20, -14), (60, -10), (170, -32), n=48)
+PATIKA = egri((-2.2, 2.4), (-9.0, 2.0), (-12.0, -6.0), (-14.5, -15.6), n=14)
 bm = bmesh.new()
-serit(bm, ANA_YOL, 5.0, DIS_Z - 0.035, 'yol'); serit(bm, YAN_YOL, 4.0, DIS_Z - 0.03, 'yol')
+serit(bm, ANA_YOL, 4.6, ZY - 0.025, 'yol'); serit(bm, PATIKA, 2.4, ZY - 0.015, 'yol')
 nesne('Cevre_Yol', bm, KC)
+def yolda(X, Y, pay):
+    return any(math.hypot(X - a, Y - b) < pay for a, b in ANA_YOL + PATIKA)
 
-def agac(bm, X, Y, boy, z0=DIS_Z - 0.05):
-    """Ağaç: altı köşeli gövde + üç yuvarlak taç (az çokgenli küre, yaprak dokusu)."""
+# Ağaç ve çalı: gövde + yuvarlak taçlar (az çokgenli küre, yaprak dokusu)
+def kure(bm, merkez, r, mat='yaprak', yassi=0.85, alt=1):
+    b2 = bmesh.new(); bmesh.ops.create_icosphere(b2, subdivisions=alt, radius=r)
+    for v in b2.verts: v.co = Vector((v.co.x, v.co.y, v.co.z * yassi)) * rnd.uniform(0.88, 1.12) + merkez
+    for f in b2.faces: f.material_index = SIRA.index(mat)
+    me = bpy.data.meshes.new('_g'); b2.to_mesh(me); b2.free(); bm.from_mesh(me); bpy.data.meshes.remove(me)
+def agac(bm, X, Y, boy, tac=3, z0=ZY - 0.05):
     gr = boy * 0.045
     kalip(bm, [W3(X + gr * math.cos(t), Y + gr * math.sin(t), z0) for t in (k * math.pi / 3 for k in range(6))],
           [W3(X + gr * 0.6 * math.cos(t), Y + gr * 0.6 * math.sin(t), z0 + boy * 0.55) for t in (k * math.pi / 3 for k in range(6))], 'kiris')
-    for k in range(3):
+    for k in range(tac):
         r = boy * rnd.uniform(0.2, 0.28)
-        merkez = W3(X + rnd.uniform(-0.6, 0.6) * r, Y + rnd.uniform(-0.6, 0.6) * r, z0 + boy * (0.62 + 0.13 * k))
-        b2 = bmesh.new(); bmesh.ops.create_icosphere(b2, subdivisions=1, radius=r)
-        for v in b2.verts: v.co = Vector((v.co.x, v.co.y, v.co.z * 0.85)) * rnd.uniform(0.9, 1.1) + merkez
-        for f in b2.faces: f.material_index = SIRA.index('yaprak')
-        me = bpy.data.meshes.new('_g'); b2.to_mesh(me); b2.free(); bm.from_mesh(me); bpy.data.meshes.remove(me)
-def bos_mu(X, Y, pay):
-    if AVLU[0] - pay < X < AVLU[1] + pay and AVLU[2] - pay < Y < AVLU[3] + pay: return False
-    return all(math.hypot(X - a, Y - b) > pay + 3 for a, b in ANA_YOL + YAN_YOL)
-bm = bmesh.new()
-YAKIN = [(-22, -6), (-26, 4), (-20, 14), (-24, 24), (44, -6), (46, 12), (-9, -30), (6, -32), (24, -31), (-34, -12), (40, 32), (10, 34)]
-for X, Y in YAKIN:
-    if bos_mu(X, Y, 1.5): agac(bm, X, Y, rnd.uniform(7, 10))
-nesne('Cevre_Agaclar', bm, KC)
-bm = bmesh.new(); sayi = 0
-for i in range(90):                                    # uzaktaki ağaç çizgisi (55–85 m), yolun geçtiği yerde boşluk
-    t = 2 * math.pi * i / 90 + rnd.uniform(-0.02, 0.02); r = rnd.uniform(55, 85)
-    X, Y = 12 + r * math.cos(t), 8 + r * math.sin(t)
-    if bos_mu(X, Y, 2): agac(bm, X, Y, rnd.uniform(9, 14)); sayi += 1
-nesne('Cevre_Agac_Cizgisi', bm, KC)
+        kure(bm, W3(X + rnd.uniform(-0.6, 0.6) * r, Y + rnd.uniform(-0.6, 0.6) * r, z0 + boy * (0.62 + 0.13 * k)), r)
+def cali(bm, X, Y, r):
+    for k in range(2): kure(bm, W3(X + rnd.uniform(-0.5, 0.5) * r, Y + rnd.uniform(-0.5, 0.5) * r, ZY + r * 0.35), r * rnd.uniform(0.7, 1.0), yassi=0.7)
 
-# avlunun güney kenarında alçak çit (yan yolun ağzı açık), yol ağzında tabela direği
+# Orman: avlunun hemen dışında başlar (yakın sıra sık ve üç taçlı, uzaklar tek taçlı); yolların ve patikanın üstü açık
+CAYIR = 6.0                                                              # avlunun kenarıyla ormanın arasındaki çimenli şerit (m)
+bm_y, bm_u = bmesh.new(), bmesh.new(); yakin = uzak = 0
+noktalar = []
+for _ in range(6000):
+    X, Y = rnd.uniform(-75, 100), rnd.uniform(-70, 85)
+    if avluda(X, Y, CAYIR) or yolda(X, Y, 4.5) or any(math.hypot(X - a, Y - b) < 7.0 for a, b in PATIKA[:-2]): continue
+    d = math.hypot(X - AV_M[0], Y - AV_M[1]) - avlu_r(math.atan2(Y - AV_M[1], X - AV_M[0]))
+    ara = 5.2 if d < CAYIR + 12 else 6.5                                 # orman kenarı biraz daha sık
+    if any((X - a) ** 2 + (Y - b) ** 2 < ara * ara for a, b in noktalar): continue
+    noktalar.append((X, Y))
+    if d < CAYIR + 12: agac(bm_y, X, Y, rnd.uniform(8, 12)); yakin += 1
+    elif d < 70: agac(bm_u, X, Y, rnd.uniform(10, 15), tac=1); uzak += 1
+nesne('Cevre_Agaclar', bm_y, KC); nesne('Cevre_Agac_Uzak', bm_u, KC)
+# avlunun içinde iki büyük ağaç (kuzeybatı ve doğu) ve kenarlarda çalılar
 bm = bmesh.new()
-for X0, X1 in ((-14.6, -9.5), (-4.5, 20.0)):
-    Y = AVLU[2] - 0.3; X = X0
-    while X <= X1 + 0.01:
-        kutu(bm, X - 0.06, X + 0.06, Y - 0.06, Y + 0.06, DIS_Z - 0.05, DIS_Z + 1.0, 'kiris'); X += 2.0
-    for zz in (0.45, 0.85): kutu(bm, X0, X1, Y - 0.03, Y + 0.03, DIS_Z + zz - 0.04, DIS_Z + zz + 0.04, 'kiris')
-TX, TY = -13.2, -19.0                                   # tabela direği: yan yolun ağzı
-kutu(bm, TX - 0.1, TX + 0.1, TY - 0.1, TY + 0.1, DIS_Z - 0.05, DIS_Z + 3.2, 'kiris')
-kutu(bm, TX - 0.05, TX + 1.3, TY - 0.06, TY + 0.06, DIS_Z + 2.9, DIS_Z + 3.02, 'kiris')
-cubuk(bm, W3(TX, TY, DIS_Z + 2.3), W3(TX + 0.7, TY, DIS_Z + 2.92), 0.08, Vector((0, 1, 0)), -0.04, 0.04, 'kiris')
-nesne('Cevre_Cit', bm, KC)
-import han_parcalar as hp; hp.DOKU = os.path.join(KOK, '3d', 'dokular')   # içerinin hazır parçaları (fıçı, sandık, tabela), içerinin malzemeleriyle
+agac(bm, -5.5, 19.0, 12.5, tac=4); agac(bm, 31.0, 14.5, 11.0, tac=4)
+for i in range(70):
+    t = 2 * math.pi * i / 70 + rnd.uniform(-0.03, 0.03); r = avlu_r(t) + rnd.uniform(-0.6, 0.8)
+    X, Y = AV_M[0] + r * math.cos(t), AV_M[1] + r * math.sin(t)
+    if not yolda(X, Y, 2.0): cali(bm, X, Y, rnd.uniform(0.5, 0.9))
+for X, Y in ((-0.9, 6.5), (-0.9, 12.8), (8.0, -1.0), (23.0, -0.9), (26.0, 10.0)):                   # bina dibinde
+    cali(bm, X, Y, 0.55)
+nesne('Cevre_Calilar', bm, KC)
+
+# ───────── Avludaki eşyalar ─────────
+import han_parcalar as hp; hp.DOKU = os.path.join(KOK, '3d', 'dokular')     # içerinin hazır parçaları, içerinin malzemeleriyle
 hp.M.update({'ahsap': MAT['M_Ahsap'], 'demir': MAT['M_Demir'], 'masa': MAT['M_Masa'], 'koyu': MAT['M_Ahsap_Koyu'],
-             'dovme': MAT['M_Demir_Dovme'], 'tabela': MAT['M_Tabela']})
-kur, uv, mats = hp.tabela(0.9, DIS_Z + 1.95, DIS_Z + 2.9)
+             'dovme': MAT['M_Demir_Dovme'], 'tabela': MAT['M_Tabela'], 'cuval': MAT['M_Cuval']})
+def silindir(bm, A, B, r, mat, n=10):
+    """A'dan B'ye silindir (kütük, tekerlek, direk)."""
+    yon = (B - A).normalized(); u = yon.orthogonal().normalized(); v = yon.cross(u)
+    halka = [u * (r * math.cos(2 * math.pi * k / n)) + v * (r * math.sin(2 * math.pi * k / n)) for k in range(n)]
+    kalip(bm, [A + h for h in halka], [B + h for h in halka], mat)
+bm = bmesh.new()
+# yük arabası (avlunun güneybatısında, oku yere dayalı)
+ax, ay, aa = -7.5, -2.0, math.radians(25)
+def ar(dx, dy, zz): return W3(ax + dx * math.cos(aa) - dy * math.sin(aa), ay + dx * math.sin(aa) + dy * math.cos(aa), ZY + zz)
+kalip(bm, [ar(-1.1, -0.65, 0.62), ar(1.1, -0.65, 0.62), ar(1.1, 0.65, 0.62), ar(-1.1, 0.65, 0.62)],
+      [ar(-1.1, -0.65, 0.72), ar(1.1, -0.65, 0.72), ar(1.1, 0.65, 0.72), ar(-1.1, 0.65, 0.72)], 'kiris')
+for s in (-1, 1):
+    for dx in (-1.05, 1.05): cubuk(bm, ar(dx, s * 0.62, 0.72), ar(dx, s * 0.62, 1.15), 0.07, Vector((0, 0, 0)) + (ar(0, 1, 0) - ar(0, 0, 0)).normalized(), -0.03, 0.03, 'kiris')
+    cubuk(bm, ar(-1.1, s * 0.62, 1.05), ar(1.1, s * 0.62, 1.05), 0.08, (ar(0, 1, 0) - ar(0, 0, 0)).normalized(), -0.03, 0.03, 'kiris')
+    silindir(bm, ar(0.1, s * 0.78, 0.55), ar(0.1, s * 0.9, 0.55), 0.55, 'kiris', n=14)                         # tekerlek
+    cubuk(bm, ar(-1.1, s * 0.35, 0.65), ar(-2.9, s * 0.3, 0.06), 0.08, Vector((0, 0, 1)), -0.04, 0.04, 'kiris')  # oklar
+silindir(bm, ar(0.1, -0.9, 0.55), ar(0.1, 0.9, 0.55), 0.06, 'demir')
+# kuyu (batıda): taş bilezik, iki direk, çatı, makara, kova
+kx, ky = -7.0, 10.0
+for i in range(14):
+    a0, a1 = 2 * math.pi * i / 14, 2 * math.pi * (i + 1) / 14
+    hal = [(0.62, a0), (0.85, a0), (0.85, a1), (0.62, a1)]
+    kalip(bm, [W3(kx + r * math.cos(a), ky + r * math.sin(a), ZY) for r, a in hal], [W3(kx + r * math.cos(a), ky + r * math.sin(a), ZY + 0.8) for r, a in hal], 'tas')
+kutu(bm, kx - 0.62, kx + 0.62, ky - 0.62, ky + 0.62, ZY + 0.1, ZY + 0.12, 'demir')                        # karanlık su
+for s in (-1, 1): kutu(bm, kx - 0.07, kx + 0.07, ky + s * 0.75 - 0.07, ky + s * 0.75 + 0.07, ZY + 0.8, ZY + 2.3, 'kiris')
+silindir(bm, W3(kx, ky - 0.8, ZY + 1.85), W3(kx, ky + 0.8, ZY + 1.85), 0.1, 'kiris')
+k_ = [(-0.75, ZY + 2.15), (0.0, ZY + 2.75), (0.75, ZY + 2.15), (0.75, ZY + 2.25), (0.0, ZY + 2.85), (-0.75, ZY + 2.25)]
+kalip(bm, [W3(kx + u, ky - 1.0, zz) for u, zz in k_], [W3(kx + u, ky + 1.0, zz) for u, zz in k_], 'cati')
+silindir(bm, W3(kx + 0.3, ky + 0.25, ZY + 0.8), W3(kx + 0.3, ky + 0.25, ZY + 1.08), 0.16, 'kiris', n=10)         # kova
+# at bağlama direği ve yalak (patikanın kuzeyinde)
+for Y in (5.0, 7.6): kutu(bm, -7.1, -6.9, Y - 0.1, Y + 0.1, ZY, ZY + 1.15, 'kiris')
+cubuk(bm, W3(-7.0, 4.8, ZY + 1.05), W3(-7.0, 7.8, ZY + 1.05), 0.1, Vector((1, 0, 0)), -0.05, 0.05, 'kiris')
+kutu(bm, -6.4, -5.9, 5.2, 7.4, ZY, ZY + 0.5, 'kiris'); kutu(bm, -6.35, -5.95, 5.25, 7.35, ZY + 0.38, ZY + 0.44, 'pencere')  # yalak (su ışığı yansıtır)
+# odun yığını (batı kanadının duvarına dayalı, kuzeyde) ve üstünde sundurmacık
+for sira in range(6):
+    for i in range(int(18 - sira)):
+        Y = 9.2 + 0.19 * i + 0.095 * sira; zz = ZY + 0.1 + 0.165 * sira
+        silindir(bm, W3(-0.42, Y, zz), W3(-1.2 + rnd.uniform(-0.05, 0.05), Y, zz), 0.09, 'ahsap' if 'ahsap' in M else 'kiris', n=7)
+nesne('Cevre_Esyalar', bm, KC)
+kur, uv, mats = hp.tabela(0.9, ZY + 1.95, ZY + 2.9)
+TX, TY = -15.2, -16.8                                                    # tabela direği: patikanın ana yola çıktığı yer
+bm = bmesh.new()
+kutu(bm, TX - 0.1, TX + 0.1, TY - 0.1, TY + 0.1, ZY - 0.05, ZY + 3.2, 'kiris')
+kutu(bm, TX - 0.05, TX + 1.3, TY - 0.06, TY + 0.06, ZY + 2.9, ZY + 3.02, 'kiris')
+cubuk(bm, W3(TX, TY, ZY + 2.3), W3(TX + 0.7, TY, ZY + 2.92), 0.08, Vector((0, 1, 0)), -0.04, 0.04, 'kiris')
+# patika boyunca iki fener direği
+FENER2 = [PATIKA[4], PATIKA[9]]
+for X, Y in FENER2:
+    X += 1.6
+    kutu(bm, X - 0.08, X + 0.08, Y - 0.08, Y + 0.08, ZY, ZY + 2.4, 'kiris')
+    kutu(bm, X - 0.04, X + 0.5, Y - 0.04, Y + 0.04, ZY + 2.3, ZY + 2.38, 'kiris')
+    kutu(bm, X + 0.33, X + 0.53, Y - 0.1, Y + 0.1, ZY + 1.85, ZY + 2.15, 'fener'); kutu(bm, X + 0.3, X + 0.56, Y - 0.13, Y + 0.13, ZY + 2.15, ZY + 2.22, 'demir')
+nesne('Cevre_Direkler', bm, KC)
 hp.duvar_parcasi('Cevre_Tabela', KC, *w(TX + 0.85, TY), 0, kur, mats, uv)
-for i, (X, Y, r, h, a) in enumerate(((-2.2, 4.6, 0.32, 0.9, 10), (-2.0, 5.4, 0.3, 0.85, -20), (-1.4, 5.1, 0.26, 0.75, 40))):
-    hp.fici(f'Cevre_Fici_{i + 1}', KC, *w(X, Y), r, h, a, z=DIS_Z)
-hp.sandik('Cevre_Sandik', KC, *w(-2.4, -0.2), DIS_Z, 0.7, 0.6, 0.55, 12)
-print('Çevre: yakın ağaç', len(YAKIN), ', uzak ağaç', sayi)
+for i, (X, Y) in enumerate(FENER2):
+    d = bpy.data.lights.new(f'Cevre_Fener_{i + 1}', 'POINT'); d.energy = 45; d.color = (1.0, 0.55, 0.22); d.shadow_soft_size = 0.05
+    o = bpy.data.objects.new(f'Cevre_Fener_{i + 1}', d); o.location = W3(X + 1.6 + 0.43, Y, ZY + 2.0); KC.objects.link(o)
+# kapının yanı (sundurmanın kuzeyi) ve mutfak kapısı: fıçı, sandık, çuval; geçidin altında bank
+for i, (X, Y, r, h, a) in enumerate(((-2.2, 4.6, 0.32, 0.9, 10), (-2.0, 5.4, 0.3, 0.85, -20), (-1.4, 5.1, 0.26, 0.75, 40),
+                                     (14.6, 18.0, 0.32, 0.9, 0), (15.2, 18.4, 0.3, 0.85, 30), (19.0, 18.1, 0.3, 0.85, 0))):
+    hp.fici(f'Cevre_Fici_{i + 1}', KC, *w(X, Y), r, h, a, z=ZY)
+hp.fici('Cevre_Fici_Yatik', KC, *w(18.6, 18.9), 0.3, 0.85, 80, z=ZY, yatik=True)
+for i, (X, Y, zz, s, a) in enumerate(((-2.4, -0.2, 0, 0.6, 12), (19.8, 18.3, 0, 0.6, 8), (19.8, 18.3, 0.55, 0.45, -14), (13.9, 18.3, 0, 0.55, 20))):
+    hp.sandik(f'Cevre_Sandik_{i + 1}', KC, *w(X, Y), ZY + zz, s, s, s * 0.9, a)
+bm = bmesh.new()
+for X, Y, a in ((-1.6, 6.1, 20), (-1.2, 6.5, -40), (14.9, 18.9, 70), (14.3, 18.8, 10)): hp.cuval_kur(bm, *w(X, Y), ZY, a)
+hp.nesne('Cevre_Cuvallar', bm, [MAT['M_Cuval']], KC)
+hp.bank_kur('Cevre_Bank', 1.6, KC, (*w(4.0, 0.2), ZY))
+print('Çevre: yakın ağaç', yakin, ', uzak ağaç', uzak)
+
+# çok hafif sis (yalnızca önizleme; sitede three.js sisi): sahneyi saran kutu (dünyaya verilen hacim gökyüzünü de yutuyordu)
+sis = MAT.get('Dis_Sis') or MAT.new('Dis_Sis'); sis.use_nodes = True; nt_ = sis.node_tree
+for n_ in list(nt_.nodes):
+    if n_.type != 'OUTPUT_MATERIAL': nt_.nodes.remove(n_)
+vol = nt_.nodes.new('ShaderNodeVolumePrincipled')
+vol.inputs['Density'].default_value = 0.0035; vol.inputs['Color'].default_value = (0.62, 0.62, 0.82, 1)
+nt_.links.new(vol.outputs['Volume'], nt_.nodes['Material Output'].inputs['Volume'])
+bpy.ops.mesh.primitive_cube_add(size=1, location=W3(12, 6, 25)); kup = bpy.context.active_object
+kup.name = 'Onizleme_Sis'; kup.scale = (260, 260, 60); kup.data.materials.append(sis)
+for c in kup.users_collection: c.objects.unlink(kup)
+KC.objects.link(kup)
+try: sahne.eevee.volumetric_end = 160
+except Exception: pass
+
 
 print('Dış cephe kuruldu. Mahya:', round(MAHYA, 2), 'm; yüz (bina):', sum(len(o.data.polygons) for o in K.objects if o.type == 'MESH'),
       ', yüz (çevre):', sum(len(o.data.polygons) for o in KC.objects if o.type == 'MESH'))
@@ -525,7 +637,8 @@ def kam(ad, konum, bakis, lens=24):
     o = bpy.data.objects.new(ad, d); o.location = konum; K.objects.link(o)
     o.rotation_euler = (Vector(bakis) - Vector(konum)).to_track_quat('-Z', 'Y').to_euler(); return o
 sahne.render.resolution_x, sahne.render.resolution_y = 1600, 900
-CEKIM = {'dis-yaklasma': ((*w(-22, -14), 1.7), (*w(4, 3), 5.0), 22),
+CEKIM = {'dis-yaklasma': ((*w(-16.5, -19.5), 1.7), (*w(4, 4), 4.5), 22),
+         'dis-ustten': ((*w(-30, -40), 55), (*w(12, 6), 0), 30),
          'dis-gb': ((*w(-24, -22), 14), (*w(10, 7), 5), 24),
          'dis-kd': ((*w(46, 36), 18), (*w(12, 8), 5), 26),
          'dis-kapi': ((*w(-7.5, 0.0), 1.6), (*w(GIRIS_X0, (KAPI_Y[0] + KAPI_Y[1]) / 2), 2.0), 20)}
