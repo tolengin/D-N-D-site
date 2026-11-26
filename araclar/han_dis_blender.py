@@ -47,6 +47,7 @@ ALINLIK_X = (10.0, 17.0)           # güneyde öne çıkan alınlık
 ALINLIK_TASMA = 0.5
 PEN_EN, PEN_BOY = 1.0, 1.3         # üst kattaki pencereler
 RAY_Z = KAT_Z + 1.0                # üst katın ara kuşağı (pencerelerin altı)
+TOPRAK = os.environ.get('DIS_TOPRAK', 'kucuk')     # toprak (kullanıcının seçimi 2026-11-26: kucuk = koyu kahve-gri + küçük avlu; şıklar: simdiki, koyu)
 KIRIS = os.environ.get('DIS_KIRIS', 'sade')   # 'dolu': her bölmede kemer / çapraz; 'sade': yalnızca pencere bölmeleri ve köşeler
 eg = math.tan(math.radians(EGIM_CATI))
 YM = (UY0 + UY1) / 2
@@ -92,9 +93,10 @@ def cimen():
     return m
 M = {'tas': renk_kopya('M_Tas_Blok', 'Dis_Tas', (0.66, 0.64, 0.62)), 'siva': MAT['M_Duvar'], 'kiris': MAT['M_Ahsap_Koyu'], 'cati': MAT['M_Cati'],
      'pencere': dis_pencere(), 'fener': MAT['M_Fener_Cam'], 'demir': MAT['M_Demir'],
-     'cimen': cimen(), 'yol': renk_kopya('M_Saksi', 'Dis_Yol', (0.50, 0.42, 0.36)), 'yaprak': renk_kopya('M_Sarmasik', 'Dis_Yaprak', (0.62, 0.72, 0.58))}
+     'cimen': cimen(), 'yol': renk_kopya('M_Saksi', 'Dis_Yol', (0.50, 0.42, 0.36) if TOPRAK == 'simdiki' else (0.36, 0.37, 0.40)), 'yaprak': renk_kopya('M_Sarmasik', 'Dis_Yaprak', (0.62, 0.72, 0.58)),
+     'yaprak2': renk_kopya('M_Sarmasik', 'Dis_Yaprak_Koyu', (0.36, 0.48, 0.44))}
 UVS = {'tas': 1.0, 'siva': 2.5, 'kiris': 1.0, 'cati': (1.55, 1.5), 'pencere': (1.04, 1.0), 'fener': 1.0, 'demir': 1.0,
-       'cimen': 3.5, 'yol': 2.0, 'yaprak': 1.6}
+       'cimen': 3.5, 'yol': 2.0, 'yaprak': 1.6, 'yaprak2': 1.6}
 SIRA = list(M)                     # her nesne bütün malzemeleri taşır; yüzün malzemesi sıradan
 
 # ───────── Geometri yardımcıları (bmesh, DÜNYA koordinatı) ─────────
@@ -429,7 +431,7 @@ ZY = DIS_Z                                                 # avlu yüzeyi (içer
 
 # Çayır (geniş) ve toprak avlu (yuvarlatılmış dikdörtgen, kenarı düzensiz)
 bm = bmesh.new(); kutu(bm, -200, 220, -200, 220, ZY - 0.09, ZY - 0.03, 'cimen'); nesne('Cevre_Cayir', bm, KC)
-AV_M, AV_A, AV_B = (11.0, 7.0), 27.0, 20.0                  # avlunun ortası ve yarı boyları (PLAN)
+AV_M, AV_A, AV_B = ((11.0, 7.0), 27.0, 20.0) if TOPRAK != 'kucuk' else ((11.5, 7.5), 20.5, 15.0)                  # avlunun ortası ve yarı boyları (PLAN)
 def avlu_r(t):
     """Avlunun kenarının ortaya uzaklığı (t açısında): süper elips + iki katlı dalga."""
     c, s = math.cos(t), math.sin(t)
@@ -471,19 +473,52 @@ PATIKA = egri((-2.2, 2.4), (-9.0, 2.0), (-12.0, -6.0), (-14.5, -15.6), n=14)
 bm = bmesh.new()
 serit(bm, ANA_YOL, 4.6, ZY - 0.025, 'yol'); serit(bm, PATIKA, 2.4, ZY - 0.015, 'yol')
 nesne('Cevre_Yol', bm, KC)
+# Görüş üçgeni: açılışta kameranın başladığı yerden (yol ağzı) hanın batı ve güney cephesine bakış açık kalsın (ağaç yok)
+GORUS = [(-15.5, -20.5), (-3.0, 8.0), (25.0, -2.0)]
+def gorusde(X, Y):
+    (ax, ay), (bx, by), (cx, cy) = GORUS
+    def yan(px, py, qx, qy, rx, ry): return (qx - px) * (ry - py) - (qy - py) * (rx - px)
+    d1, d2, d3 = yan(ax, ay, bx, by, X, Y), yan(bx, by, cx, cy, X, Y), yan(cx, cy, ax, ay, X, Y)
+    return not ((d1 < 0 or d2 < 0 or d3 < 0) and (d1 > 0 or d2 > 0 or d3 > 0))
 def yolda(X, Y, pay):
     return any(math.hypot(X - a, Y - b) < pay for a, b in ANA_YOL + PATIKA)
 
 # Ağaç ve çalı: gövde + yuvarlak taçlar (az çokgenli küre, yaprak dokusu)
-def kure(bm, merkez, r, mat='yaprak', yassi=0.85, alt=1):
+AGAC = os.environ.get('DIS_AGAC', 'cam')    # ağaç biçimi (kullanıcının seçimi 2026-11-26: çam; şıklar: kure (ilk), yuvarlak, cam, karisik)
+def kure(bm, merkez, r, mat='yaprak', yassi=0.85, alt=1, yumusak=False):
     b2 = bmesh.new(); bmesh.ops.create_icosphere(b2, subdivisions=alt, radius=r)
     for v in b2.verts: v.co = Vector((v.co.x, v.co.y, v.co.z * yassi)) * rnd.uniform(0.88, 1.12) + merkez
-    for f in b2.faces: f.material_index = SIRA.index(mat)
+    for f in b2.faces: f.material_index = SIRA.index(mat); f.smooth = yumusak
     me = bpy.data.meshes.new('_g'); b2.to_mesh(me); b2.free(); bm.from_mesh(me); bpy.data.meshes.remove(me)
-def agac(bm, X, Y, boy, tac=3, z0=ZY - 0.05):
+def govde(bm, X, Y, z0, boy, oran):
     gr = boy * 0.045
     kalip(bm, [W3(X + gr * math.cos(t), Y + gr * math.sin(t), z0) for t in (k * math.pi / 3 for k in range(6))],
-          [W3(X + gr * 0.6 * math.cos(t), Y + gr * 0.6 * math.sin(t), z0 + boy * 0.55) for t in (k * math.pi / 3 for k in range(6))], 'kiris')
+          [W3(X + gr * 0.6 * math.cos(t), Y + gr * 0.6 * math.sin(t), z0 + boy * oran) for t in (k * math.pi / 3 for k in range(6))], 'kiris')
+def koni(bm, X, Y, z0, z1, r, mat, n=8):
+    """Yere oturan koni (çamın bir katı): taban halkası + tepe."""
+    a = [bm.verts.new(W3(X + r * math.cos(2 * math.pi * k / n + 0.3), Y + r * math.sin(2 * math.pi * k / n + 0.3), z0)) for k in range(n)]
+    t = bm.verts.new(W3(X, Y, z1)); mi = SIRA.index(mat)
+    for k in range(n): bm.faces.new((a[k], a[(k + 1) % n], t)).material_index = mi
+    bm.faces.new(list(reversed(a))).material_index = mi
+def agac(bm, X, Y, boy, tac=3, z0=ZY - 0.05, uzak=False):
+    bicim = AGAC if AGAC != 'karisik' else ('cam' if uzak else 'yuvarlak')
+    if bicim == 'cam':                                       # çam: kısa gövde, üst üste dört koni, koyu yeşil
+        govde(bm, X, Y, z0, boy, 0.3)
+        for k in range(4):
+            za = z0 + boy * (0.18 + 0.19 * k); r = boy * (0.3 - 0.06 * k) * rnd.uniform(0.9, 1.1)
+            koni(bm, X, Y, za, za + boy * 0.36, r, 'yaprak2')
+        return
+    if bicim == 'yuvarlak':                                  # yuvarlak taç: kubbe gibi dizilmiş yumuşak öbekler, altı koyu
+        govde(bm, X, Y, z0, boy, 0.6)
+        R, zc = boy * 0.3, z0 + boy * 0.66
+        n = 1 if uzak else 7
+        for k in range(n):
+            a = 2 * math.pi * k / max(n - 1, 1) + rnd.uniform(-0.3, 0.3); u = 0.0 if k == n - 1 else rnd.uniform(0.45, 0.7)
+            h = rnd.uniform(-0.25, 0.1) if k < n - 1 else 0.25
+            kure(bm, W3(X + R * u * math.cos(a), Y + R * u * math.sin(a), zc + R * h), R * (1.05 if n == 1 else rnd.uniform(0.5, 0.65)),
+                 'yaprak2' if h < -0.1 else 'yaprak', yassi=0.8, yumusak=True)
+        return
+    govde(bm, X, Y, z0, boy, 0.55)
     for k in range(tac):
         r = boy * rnd.uniform(0.2, 0.28)
         kure(bm, W3(X + rnd.uniform(-0.6, 0.6) * r, Y + rnd.uniform(-0.6, 0.6) * r, z0 + boy * (0.62 + 0.13 * k)), r)
@@ -496,13 +531,13 @@ bm_y, bm_u = bmesh.new(), bmesh.new(); yakin = uzak = 0
 noktalar = []
 for _ in range(6000):
     X, Y = rnd.uniform(-75, 100), rnd.uniform(-70, 85)
-    if avluda(X, Y, CAYIR) or yolda(X, Y, 4.5) or any(math.hypot(X - a, Y - b) < 7.0 for a, b in PATIKA[:-2]): continue
+    if avluda(X, Y, CAYIR) or yolda(X, Y, 4.5) or gorusde(X, Y) or any(math.hypot(X - a, Y - b) < 7.0 for a, b in PATIKA[:-2]): continue
     d = math.hypot(X - AV_M[0], Y - AV_M[1]) - avlu_r(math.atan2(Y - AV_M[1], X - AV_M[0]))
     ara = 5.2 if d < CAYIR + 12 else 6.5                                 # orman kenarı biraz daha sık
     if any((X - a) ** 2 + (Y - b) ** 2 < ara * ara for a, b in noktalar): continue
     noktalar.append((X, Y))
     if d < CAYIR + 12: agac(bm_y, X, Y, rnd.uniform(8, 12)); yakin += 1
-    elif d < 70: agac(bm_u, X, Y, rnd.uniform(10, 15), tac=1); uzak += 1
+    elif d < 70: agac(bm_u, X, Y, rnd.uniform(10, 15), tac=1, uzak=True); uzak += 1
 nesne('Cevre_Agaclar', bm_y, KC); nesne('Cevre_Agac_Uzak', bm_u, KC)
 # avlunun içinde iki büyük ağaç (kuzeybatı ve doğu) ve kenarlarda çalılar
 bm = bmesh.new()
@@ -658,9 +693,9 @@ SADECE = os.environ.get('DIS_CEK')                                              
 for ad, (k, b, lens) in CEKIM.items():
     if SADECE and ad not in SADECE.split(','): continue
     sahne.camera = kam('Kamera_' + ad, k, b, lens)
-    sahne.render.filepath = os.path.join(CIKTI, ad + ('' if KIRIS == 'sade' else '-dolu') + '.png')
+    sahne.render.filepath = os.path.join(CIKTI, ad + ('' if KIRIS == 'sade' else '-dolu') + ('' if AGAC == 'cam' else '-agac-' + AGAC) + ('' if TOPRAK == 'kucuk' else '-toprak-' + TOPRAK) + '.png')
     bpy.ops.render.render(write_still=True)
 
 bpy.context.preferences.filepaths.save_version = 0
-if KIRIS == 'sade': bpy.ops.wm.save_as_mainfile(filepath=os.path.join(CIKTI, 'han-dis.blend'), compress=True, relative_remap=True)
+if KIRIS == 'sade' and AGAC == 'cam' and TOPRAK == 'kucuk': bpy.ops.wm.save_as_mainfile(filepath=os.path.join(CIKTI, 'han-dis.blend'), compress=True, relative_remap=True)
 print('TAMAM')
