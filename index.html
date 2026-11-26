@@ -14726,7 +14726,8 @@ document.addEventListener('click', e => {
    • Sonraki gelişlerde ve hareket azaltmada kısa geçiş (kapı sesi); "Geç" (ya da Esc) uçuşu bitirir. 3D açılamazsa yine kısa geçiş.
    ═══════════════════════════════════════════════════════════════════ */
 const ACILIS = {
-  an: { adim: 8, kapiAc: [108, 152], kapi: 112, gecis: 170, iceri: 187, vinc: 236 },   // uçuşun anları (kare, 30 kare/sn)
+  an: { adim: 6, kapiAc: [108, 152], kapi: 106, iceri: 187, adimIc: 178, vinc: 236 },   // uçuşun anları (kare, 30 kare/sn)
+  kavus: { sure: 1.6, uzak: 250 },                                      // uçuş bitince masa görünümüne kavuşma: süre (sn), son kameranın uzaklığı (m; ortografiğe yakın)
   bitis: 900, kisa: 700,                                                // perdenin kalkış süresi (ms): uçuştan sonra / kısa geçişte
   sis: [0x3a3048, 0.018],                                               // alacakaranlık sisi: renk, yoğunluk (yalnızca uçuşta; kullanıcı: 'orta, koyu')
   gok: ['#e06c42', '#4c2d52', '#0a0b1f'],                               // gök: ufuk, orta, tepe
@@ -14821,6 +14822,8 @@ async function acilisHazirla() {
       o.parent.add(mil); mil.updateMatrixWorld(true); mil.attach(o);
       return { mil, eksen, faz: i * 2.1 };
     }).filter(Boolean);
+    const tb = tav.S.getObjectByName('Sundurma_Tabela');                 // kapının önündeki tabela pişmiş ışıkta karanlık kalıyordu: canlı ışık
+    if (tb && tav.canliMat) tb.traverse(x => { if (x.isMesh) x.material = Array.isArray(x.material) ? x.material.map(m => tav.canliMat.get(m) || m) : (tav.canliMat.get(x.material) || x.material); });
     // uçuş için gök, sis ve alacakaranlık ışıkları (sahnede hep durur, uçuş dışında sıfır: ışık sayısı değişince malzemeler yeniden derlenmesin)
     const gc = document.createElement('canvas'); gc.width = 2; gc.height = 256;
     const g = gc.getContext('2d'), gr = g.createLinearGradient(0, 256, 0, 0);
@@ -14899,23 +14902,58 @@ function acilisUc() {
   const A = ACILIS, el = $('#acilis'), n = A.kd.kareler.length - 1, t0 = performance.now(), olan = new Set();
   A.durum = 'ucuyor'; cancelAnimationFrame(A.raf);
   el.classList.add('oynuyor'); $('.acilis-gec').hidden = false;
+  const msK = k => k / A.kd.fps * 1000;                                 // kare → ms
   const anlar = [
-    [A.an.adim, () => ses('adim')],
-    [A.an.kapi, () => { ses('kapi-ac'); sesDisari(1500, 0.6, 0.7, 1.5); }],   // kapı aralanır: içerinin sesi sızar
-    [A.an.gecis, () => ses('gecis')],
+    [A.an.adim, () => ses('adim', 0, msK(A.an.kapi - A.an.adim))],         // patikada ayak sesi (kapı gıcırdamadan biter)
+    [A.an.kapi, () => { ses('kapi-ac'); sesDisari(1500, 0.6, 0.7, 1.5); }],   // kanatlar açılır: içerinin sesi sızar
+    [A.an.adimIc, () => ses('adim', 0, msK(A.an.vinc - A.an.adimIc))],     // içeride, tahtada birkaç adım
     [A.an.iceri, () => sesDisari(20000, 1, 0, 1)],                         // eşikten geçtin: taverna tam, gece söner
-    [A.an.vinc, () => ses('gecis')],
+    [A.an.vinc, () => ses('gecis')],                                       // yükseliş
   ];
   const tik = now => {
     if (A.durum !== 'ucuyor') return;
-    const f = Math.min((now - t0) / 1000 * A.kd.fps, n);
+    const fs = (now - t0) / 1000 * A.kd.fps, f = Math.min(fs, n), u = (fs - n) / (A.kavus.sure * A.kd.fps);
     anlar.forEach(([k, fn], i) => { if (!olan.has(i) && f >= k) { olan.add(i); fn(); } });
     tavTitre(now); tavHanciGuncelle(now); tavGarsonGuncelle(now);
-    acilisCiz(now, f);
-    if (f >= n) { acilisSon(A.bitis); return; }
+    if (u <= 0) acilisCiz(now, f); else acilisKavus(now, Math.min(u, 1));
+    if (u >= 1) { acilisSon(350); return; }                             // son kare masa görünümüyle aynı: perde hızlı kalkar
     A.raf = requestAnimationFrame(tik);
   };
   A.raf = requestAnimationFrame(tik);
+}
+// Kavuşma (u: 0…1): yolun son karesinden masa görünümüne. Masa görünümü ortografik; buna en yakın perspektif, çok uzaktan çok dar
+// açıyla bakmaktır. Kamera hedefe bakarak geri çekilir ve yükselir, açı daralır; tavan ve çatı gizli, öndeki duvarlar alçalır.
+// Sonunda tuvalin her pikseli masa görünümündeki aynı yere düşer (pencerenin tamamı: masa tuvali #tvNpr'nin dışı da).
+function acilisKavus(now, u) {
+  const A = ACILIS, THREE = A.THREE, cv = $('#acilisTuval'), cr = cv.getBoundingClientRect();
+  if (!cr.width) return;
+  const e = u * u * (3 - 2 * u), V = THREE.Vector3, b = v => tav.b3(v);
+  if (!A.son) {                                                         // başlangıç ve bitiş bir kez hesaplanır
+    const [x, y, z, egim, yon] = acilisPoz(A.kd.kareler.length - 1), eg = egim * Math.PI / 180, yo = yon * Math.PI / 180;
+    const P0 = b([x, y, z]), d0v = b([-Math.sin(yo) * Math.sin(eg), Math.cos(yo) * Math.sin(eg), -Math.cos(eg)]).normalize();
+    const u0 = b([-Math.sin(yo) * Math.cos(eg), Math.cos(yo) * Math.cos(eg), Math.sin(eg)]).normalize();
+    const H = b(TAV.hedef), d0 = P0.distanceTo(H), T0 = P0.clone().addScaledVector(d0v, d0), h0 = d0 * Math.tan(A.cam.fov * Math.PI / 360);
+    // masa görünümünün ortografik kutusu (tavDraw ile aynı hesap), pencerenin tamamına genişletilmiş
+    const tc = $('#tvNpr').getBoundingClientRect(), sc = $('#tvScene').getBoundingClientRect(), bu = sc.width / 100, m = TAV.m;
+    const L = ((tc.left - sc.left) / bu - TV.cx) * m, R = ((tc.right - sc.left) / bu - TV.cx) * m;
+    const T = -((tc.top - sc.top) / bu - TV.cy) * m, B = -((tc.bottom - sc.top) / bu - TV.cy) * m, px = (R - L) / tc.width;
+    const Lw = L - (tc.left - cr.left) * px, Rw = R + (cr.right - tc.right) * px, Tw = T + (tc.top - cr.top) * px, Bw = B - (cr.bottom - tc.bottom) * px;
+    const cx = (Lw + Rw) / 2, cy = (Tw + Bw) / 2;
+    const TF = H.clone().add(b(TAV.sag).multiplyScalar(cx)).add(b(TAV.ust).multiplyScalar(cy));
+    A.son = { P0, d0v, u0, d0, T0, h0, TF, dF: b(TAV.bak).normalize(), uF: b(TAV.ust).normalize(), hF: (Tw - Bw) / 2 };
+  }
+  const S = A.son, cam = A.cam;
+  const T = S.T0.clone().lerp(S.TF, e), dir = S.d0v.clone().lerp(S.dF, e).normalize(), up = S.u0.clone().lerp(S.uF, e).normalize();
+  const d = Math.exp(Math.log(S.d0) + (Math.log(A.kavus.uzak) - Math.log(S.d0)) * e), h = S.h0 + (S.hF - S.h0) * e;
+  cam.position.copy(T).addScaledVector(dir, -d); cam.up.copy(up); cam.lookAt(T);
+  cam.fov = 2 * Math.atan(h / d) * 180 / Math.PI; cam.aspect = cr.width / cr.height;
+  cam.near = Math.max(0.1, d - 40); cam.far = d + 80; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.25), w = Math.round(cr.width * dpr), hh = Math.round(cr.height * dpr);
+  // sahne: kabuk (çatı) ve tavan yok, öndeki duvarlar u ile alçalır, asılı parçalar gizli; sis, gök ve alacakaranlık ışıkları sıfır
+  tav.kesik.forEach(k => { k.o.scale.y = 1 + (k.y - 1) * e; }); tav.gizli.forEach(o => { o.visible = false; });
+  tav.S.fog.density = 0; tav.S.background = null; A.gun.intensity = 0; A.gokI.intensity = 0;
+  A.boru.render(tav.S, cam, K_(0) | K_(1) | K_(8) | K_(9), K_(0), w, hh, 0, [0, 0, cr.width, cr.height]);   // masa görünümüyle aynı katmanlar ve çizgi
+  tavKesit(true);
 }
 // Uçuş bitti (ya da geçildi): masa görünümü çizilsin, perde kalksın, açılışın çizicisi ve kabuk atılsın
 function acilisSon(ms) {
