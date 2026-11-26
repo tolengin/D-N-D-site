@@ -559,7 +559,7 @@ for sira in range(6):
         silindir(bm, W3(-0.42, Y, zz), W3(-1.2 + rnd.uniform(-0.05, 0.05), Y, zz), 0.09, 'ahsap' if 'ahsap' in M else 'kiris', n=7)
 nesne('Cevre_Esyalar', bm, KC)
 kur, uv, mats = hp.tabela(0.9, ZY + 1.95, ZY + 2.9)
-TX, TY = -15.2, -16.8                                                    # tabela direği: patikanın ana yola çıktığı yer
+TX, TY = -15.47, -14.33                                                    # tabela direği: patikanın ana yola çıktığı yer
 bm = bmesh.new()
 kutu(bm, TX - 0.1, TX + 0.1, TY - 0.1, TY + 0.1, ZY - 0.05, ZY + 3.2, 'kiris')
 kutu(bm, TX - 0.05, TX + 1.3, TY - 0.06, TY + 0.06, ZY + 2.9, ZY + 3.02, 'kiris')
@@ -567,7 +567,7 @@ cubuk(bm, W3(TX, TY, ZY + 2.3), W3(TX + 0.7, TY, ZY + 2.92), 0.08, Vector((0, 1,
 # patika boyunca iki fener direği
 FENER2 = [PATIKA[4], PATIKA[9]]
 for X, Y in FENER2:
-    X += 1.6
+    X += 3.2                                                              # patikadan uzakta (kamera yanından geçer)
     kutu(bm, X - 0.08, X + 0.08, Y - 0.08, Y + 0.08, ZY, ZY + 2.4, 'kiris')
     kutu(bm, X - 0.04, X + 0.5, Y - 0.04, Y + 0.04, ZY + 2.3, ZY + 2.38, 'kiris')
     kutu(bm, X + 0.33, X + 0.53, Y - 0.1, Y + 0.1, ZY + 1.85, ZY + 2.15, 'fener'); kutu(bm, X + 0.3, X + 0.56, Y - 0.13, Y + 0.13, ZY + 2.15, ZY + 2.22, 'demir')
@@ -575,7 +575,7 @@ nesne('Cevre_Direkler', bm, KC)
 hp.duvar_parcasi('Cevre_Tabela', KC, *w(TX + 0.85, TY), 0, kur, mats, uv)
 for i, (X, Y) in enumerate(FENER2):
     d = bpy.data.lights.new(f'Cevre_Fener_{i + 1}', 'POINT'); d.energy = 45; d.color = (1.0, 0.55, 0.22); d.shadow_soft_size = 0.05
-    o = bpy.data.objects.new(f'Cevre_Fener_{i + 1}', d); o.location = W3(X + 1.6 + 0.43, Y, ZY + 2.0); KC.objects.link(o)
+    o = bpy.data.objects.new(f'Cevre_Fener_{i + 1}', d); o.location = W3(X + 3.2 + 0.43, Y, ZY + 2.0); KC.objects.link(o)
 # kapının yanı (sundurmanın kuzeyi) ve mutfak kapısı: fıçı, sandık, çuval; geçidin altında bank
 for i, (X, Y, r, h, a) in enumerate(((-2.2, 4.6, 0.32, 0.9, 10), (-2.0, 5.4, 0.3, 0.85, -20), (-1.4, 5.1, 0.26, 0.75, 40),
                                      (14.6, 18.0, 0.32, 0.9, 0), (15.2, 18.4, 0.3, 0.85, 30), (19.0, 18.1, 0.3, 0.85, 0))):
@@ -603,6 +603,18 @@ KC.objects.link(kup)
 try: sahne.eevee.volumetric_end = 160
 except Exception: pass
 
+
+# ═════════ AÇILIŞ KAMERASI: araclar/acilis_kamera.py'nin çıktısı (her kare bir anahtar) ═════════
+import json
+KJ = os.path.join(CIKTI, 'acilis-kamera.json')
+if os.path.exists(KJ):
+    kd = json.load(open(KJ))
+    cam = bpy.data.cameras.new('Kamera_Acilis'); cam.lens = kd['lens']; cam.sensor_width = kd['sensor']; cam.clip_start = 0.05; cam.clip_end = 400
+    ko = bpy.data.objects.new('Kamera_Acilis', cam); K.objects.link(ko)
+    for i, (x, y, zz, egim, yon) in enumerate(kd['kareler']):
+        ko.location = (x, y, zz); ko.rotation_euler = (math.radians(egim), 0, math.radians(yon))
+        ko.keyframe_insert('location', frame=i + 1); ko.keyframe_insert('rotation_euler', frame=i + 1)
+    sahne.frame_start, sahne.frame_end = 1, len(kd['kareler']); sahne.render.fps = kd['fps']; sahne.camera = ko
 
 print('Dış cephe kuruldu. Mahya:', round(MAHYA, 2), 'm; yüz (bina):', sum(len(o.data.polygons) for o in K.objects if o.type == 'MESH'),
       ', yüz (çevre):', sum(len(o.data.polygons) for o in KC.objects if o.type == 'MESH'))
