@@ -22,7 +22,7 @@ import json, math, os
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CIKTI = os.path.join(KOK, '3d', 'han', 'acilis-kamera.json')
-FPS, SURE = 30, 8.0                  # 240 kare
+FPS, SURE = 30, 10.0                 # 300 kare (kullanıcı: 8 sn hızlıydı)
 LENS, SENSOR = 34.2, 36.0            # kullanıcının seçtiği odak (mm); yatay görüş ~55°
 KALKIS, DURUS = 0.9, 1.3             # yumuşak kalkış / duruş süresi (sn)
 
