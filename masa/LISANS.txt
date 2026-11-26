@@ -51,6 +51,26 @@ garson-kiz.glb, garson-kiz.js
             boyandi (yesil korse, krem bluz ve onluk, kizil sac), uzun etek ve kupali tepsi eklendi, iskelet, poz, yurume
             ve bekleme hareketi verildi.
 
+paladin-iskelet.glb, paladin-iskelet.js
+  Ne icin : Sinifi Paladin olan oyuncunun masadaki 3D figuru (2026-11-26; erkek hali)
+  Kaynak  : Govde: Fallen Paladin in Corrupted Black Plate Armor - Pigcraft (Sketchfab), https://skfb.ly/pLUxs
+            Bas   : Medieval Peasant Warrior - Azura_SQ (Sketchfab), https://skfb.ly/pITrW
+  Lisans  : ikisi de CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)  Atif GEREKIR.
+  Degisiklik: araclar/karakter_kur_blender.py ile migferi, pelerini, kilici ve uzerindeki haclar kaldirildi; bas
+            ikinci modelden alinip takildi; dokusu kullanicinin karakter kagidina (gorseller/3d karakterler/
+            paladin-human-woman.jpg) gore yeniden boyandi (gumus zirh, altin kenarli beyaz tabar, sari sac); gogse
+            altin gunes, iskelet, oturur poz, zar atma ve "yemin" hareketi eklendi.
+
+rogue-iskelet.glb, rogue-iskelet.js
+  Ne icin : Sinifi Rogue olan oyuncunun masadaki 3D figuru (2026-11-26; bucukluk, erkek hali)
+  Kaynak  : Govde: Night Hunter Assassin - Dark Fantasy - Pigcraft (Sketchfab), https://skfb.ly/pMzyZ
+            Bas   : Meshy_AI_ Aurelian_0405041635_texture - aliyaz01 (Sketchfab), https://skfb.ly/pIq9D
+  Lisans  : ikisi de CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)  Atif GEREKIR.
+  Degisiklik: araclar/karakter_kur_blender.py ile kapusonu, maskesi ve ok kilifi kaldirildi; bucukluk oranlarina
+            getirildi (kisa bacak, tiknaz govde); bas ikinci modelden alinip takildi; dokusu kullanicinin karakter
+            kagidina (gorseller/3d karakterler/rogue-halfling.jpg) gore yeniden boyandi (koyu deri ceket, kahverengi
+            kemer, kivircik sac); sivri kulak uclari, minder, iskelet, oturur poz, zar atma ve "etraf" hareketi eklendi.
+
 garson-erkek.glb, garson-erkek.js
   Ne icin : Yeni handa dolasan yari-elf garson (2026-10-28)
   Kaynak  : Medieval Peasant Warrior

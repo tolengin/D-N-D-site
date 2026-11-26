@@ -93,12 +93,34 @@ def yuz(arm):
     return dict(cene=P(0.10, 0.01), burun=P(0.115, 0.105), kulak=P(0.0, 0.11, 0.085), alin=P(0.10, 0.17), on=on, yuk=yuk, sag=sag, k=k)
 
 
-def ozel_tablo(arm, tur):
+def ozel_tablo(arm, tur, nokta=None):
     """Karakterin ara sıra yaptığı hareket (kare tablosu). Eller 'IK' ile yüzdeki noktalara gider, parmaklar 'YON' ile hedefe bakar.
     tur: sakal (büyücü: sakalını sıvazlar), gozluk (DM: gözlüğünü iter, sonra notlarına eğilir), boyun (fighter: boynunu esnetir,
-    parmaklarını çıtlatır), sac (kız garson: saçını kulağının arkasına atar), alin (oğlan garson: alnının terini siler)."""
+    parmaklarını çıtlatır), sac (kız garson: saçını kulağının arkasına atar), alin (oğlan garson: alnının terini siler),
+    yemin (paladin: sağ yumruğu kalbinin üstünde, başı eğik: yemin), etraf (rogue: sinsice sağa sola bakar, ellerini ovuşturur).
+    nokta: modelden ölçülmüş yerler (karakter_kur_blender: göğsün / karnın önü; elin kıyafete girmemesi için)."""
     Y = yuz(arm); on, yuk, sag, k = Y['on'], Y['yuk'], Y['sag'], Y['k']
     t = lambda v: tuple(v)
+    nokta = nokta or {}
+    if tur == 'yemin':
+        # Yumruk göğüs zırhının önünde (nokta['kalp']: zırhın yüzeyi + yumruğun yarı kalınlığı), önkol göğsün önünden yana:
+        # bilek yumruğun 7 cm sağında, el sola bakar. Bilek önce göğsün önünde dışarıdan gelir (zırhın içinden geçmesin).
+        kalp = Vector(nokta['kalp']); sol = -sag
+        yum = [('bip R Finger1_021', 'X', 75), ('bip R Finger11_022', 'X', 85), ('bip R Finger0_019', 'Z', -30), ('bip R Finger01_020', 'Z', -35)]
+        bas_ = lambda d=0.0: [(SAG_EL, 'IK', t(kalp - sol * 0.07 + on * d)), (SAG_EL, 'YON', t(sol * 0.95 + on * 0.25))] + yum
+        egil = [('bip Head_06', 'X', 14), ('bip Spine1_04', 'X', 3)]
+        return [(0, []), (14, bas_(0.08)), (24, bas_(0.0)), (32, bas_(0.0) + egil), (70, bas_(0.0) + egil), (80, bas_(0.0)),
+                (92, bas_(0.07)), (108, [])]
+    if tur == 'etraf':
+        # Önce başını sola, sonra sağa çevirip sinsice bakar (gövde biraz eğilir), sonra karnının önünde ellerini ovuşturur
+        # (nokta['karin']: ceketin önü + 6 cm).
+        kr = Vector(nokta['karin']); sol = -sag
+        ovus = lambda d: [(SAG_EL, 'IK', t(kr - sol * 0.045 + on * (0.0 + d))), (SOL_EL, 'IK', t(kr + sol * 0.045 + on * (0.0 - d))),
+                          (SAG_EL, 'YON', t(on * 0.8 + sol * 0.6 - yuk * 0.2)), (SOL_EL, 'YON', t(on * 0.8 - sol * 0.6 - yuk * 0.2)),
+                          ('bip Spine1_04', 'X', 6)]
+        return [(0, []), (12, [('bip Head_06', 'Z', 38), ('bip Spine1_04', 'X', 5)]), (30, [('bip Head_06', 'Z', 38), ('bip Spine1_04', 'X', 5)]),
+                (44, [('bip Head_06', 'Z', -38), ('bip Spine1_04', 'X', 5)]), (62, [('bip Head_06', 'Z', -38), ('bip Spine1_04', 'X', 5)]),
+                (74, ovus(0.0)), (80, ovus(0.018)), (86, ovus(-0.018)), (92, ovus(0.018)), (98, ovus(-0.018)), (104, ovus(0.0)), (120, [])]
     inis = [(SAG_EL, 'IK', t(Y['cene'] - yuk * 0.32 * k + on * 0.14 * k + sag * 0.10 * k))]   # dönüşte el önce göğsün önüne iner
                                                                     #   (yoksa kol yüzden dinlenmeye dönerken yana savruluyordu)
     def uzan(nokta, geri=0.13, ek=(), yan=0.0):
@@ -137,11 +159,11 @@ def ozel_tablo(arm, tur):
     raise ValueError(tur)
 
 
-def bosta_kur(arm, tur):
+def bosta_kur(arm, tur, nokta=None):
     """nefes (döngü) ve ozel (bir kez) hareketleri; zar_at'tan sonra çağrılır (birak / sure değişmez)."""
     sure = arm.get('sure')
     hareket_kur(arm, 'nefes', NEFES, NEFES_KEMIK, None)
-    if tur: hareket_kur(arm, 'ozel', ozel_tablo(arm, tur), OZEL_KEMIK, None)
+    if tur: hareket_kur(arm, 'ozel', ozel_tablo(arm, tur, nokta), OZEL_KEMIK, None)
     if sure is not None: arm['sure'] = sure
 
 

@@ -96,6 +96,18 @@ def hucre_ort(P, deger, gecerli, adim):
 
 
 KAPSAM = None   # karakter_kur_blender.kur doldurur: dokunun gerçekten modele düşen pikselleri (UV üçgenleri; pişirme kenar payını da dolduruyor)
+BAS = None      # karakter_kur_blender: takılan başın ayarları (AYAR['bas']); bas_yerel bununla vericinin koordinatına döner
+
+
+def bas_yerel(P):
+    """Takılan başın konum haritası gövdenin biriminde; vericinin (DM'in, garsonun hazır modeli) kendi koordinatına çevirir:
+    onların ölçülmüş bölgeleri (saç, yüz, sakal) yeniden kullanılır. karakter_kur_blender.bas_al'ın tersi."""
+    B, H = BAS, BAS['hedef']
+    k = (H['tepe'] - H['cene']) / (B['tepe'] - B['cene'])
+    a = -np.radians(B.get('egim', 0))
+    q = P - np.array([0, H['merkez_y'], H['cene']], np.float32)
+    y = q[..., 1] * np.cos(a) - q[..., 2] * np.sin(a); z = q[..., 1] * np.sin(a) + q[..., 2] * np.cos(a)
+    return np.stack([q[..., 0], y, z], -1) / k + np.array([0, B['merkez_y'], B['cene']], np.float32)
 
 
 def tasir(C, gecerli, n=8):
@@ -511,4 +523,170 @@ def fighter(C, P, parca=None, hata=False):
     kil = gurultu(P * np.array([1, 1, 0.4], np.float32), 2600, 23)
     a = np.clip(0.28 + (kil - 0.5) * 0.6, 0, 0.6)[cene][:, None]
     D[cene] = D[cene] * (1 - a) + renk('#3d3735') * a
+    return D
+
+
+# ---------------------------------------------------------------- PALADİN (kâğıt: paladin-human-woman.jpg; önce erkek hâli)
+# Model: "Fallen Paladin in Corrupted Black Plate Armor" (Pigcraft): kara plaka zırh, omuzlarda ve göğüste haçlar, pelerin,
+# kapalı miğfer. Kâğıtta: gümüş plaka zırh (altın kenarlar), beyaz tabar (göğüste altın güneş: ayrı parça, karakter_kur_blender.
+# paladin_ekler), kahverengi deri kemer ve kayışlar, kısa sarı saç. Haçlar gümüşe boyanır (kâğıtta yok). Model: boy 0,97
+# (z −0,49…0,48), yüzü −y; 1 birim ≈ 1,91 m (PALADIN_OLCEK).
+PALADIN_OLCEK = 1.85 / 0.97
+
+
+def _tabar_en(z):
+    """Önden ve arkadan sarkan tabarın yarı eni (z'ye göre): kemerden dize kadar düz, altta sivri uç (kâğıttaki gibi)."""
+    return np.where(z > -0.15, 0.075, np.clip(0.075 * (z + 0.247) / 0.097, 0, 0.075))
+
+
+def gecerli():
+    """Dokunun modele gerçekten düşen pikselleri (KAPSAM; silinen parçaların ve kenar payının pikselleri sayılmasın: ortanca
+    parlaklık onlarla kayıyordu)."""
+    return KAPSAM
+
+
+def paladin(C, P, parca=None, hata=False):
+    import os
+    hata = hata or os.environ.get('BOYA_HATA') == '1'
+    C = C.copy()
+    G = gecerli() if gecerli() is not None else np.ones(C.shape[:2], bool)
+    x, y, z = P[..., 0], P[..., 1], P[..., 2]
+    h, s, v = hsv(C)
+    ax = np.abs(x)
+    deri = (h < 0.12) & (s > 0.42) & (v > 0.1)                         # kahverengi kemer (baldırlardaki pas lekeleri de kahveye
+                                                                        #   çalıyor: kemer dışında hepsi gümüş; kâğıtta bacakta kayış yok)
+    w = _tabar_en(z)
+    etek_on = (ax < w) & (z < 0.095) & (z > -0.25) & (y < -0.085)
+    etek_arka = (ax < w + 0.01) & (z < 0.095) & (z > -0.25) & (y > 0.03)
+    gogus = (ax < 0.075 - (z - 0.11) * 0.06) & (z > 0.105) & (z < 0.338) & (y < -0.06)
+    sirt = (ax < 0.135) & (z > 0.11) & (z < 0.345) & (y > 0.045)       # pelerinden kalan sırt örtüsü (tabarın arkası)
+    yaka = (z > 0.325) & (ax < 0.12) & (y > -0.1)                       # boyundaki kukuleteden kalan yaka
+    beyaz = (etek_on | etek_arka | gogus | sirt | yaka) & G
+    kemer = deri & (z > 0.08) & (z < 0.13) & ~beyaz & G
+    metal = ~beyaz & ~kemer & G
+    # altın kenar (kâğıttaki gibi): tabarın kenarı (beyazın gümüşe değdiği 1,4 cm) ve yakanın üst kenarı
+    kenar = beyaz & yakin(P, metal | kemer, beyaz, 0.0075, adim=0.0035)
+    kenar |= beyaz & yaka & (z > 0.36)
+    D = _ciz(C, hata, [(beyaz, '#ffffff'), (kenar, '#ffc000'), (kemer, '#c06020'), (metal, '#5080c0')])
+    if D is not None: return D
+    # Önce boyalı tarzın yumuşak ışık-gölgesi (asıl dokudan), sonra her bölge kendi tonuna: boyalı tarz bütün parlaklıkları
+    # ortancaya çektiği için gümüş zırh beyaz tabarla aynı açıklıkta kalıyordu.
+    D = boyali(C, P, olcek=PALADIN_OLCEK)
+    # sitenin ışığında açık gümüş beyaz tabarla karışıyordu (masada denendi): gümüş biraz koyu, parlak yerleri sınırlı
+    boya(D, metal, '#7b818b', 0.8)
+    D[metal] = np.clip(D[metal], renk('#7b818b') * 0.5, renk('#7b818b') * 1.3)   # iç yüzler (kucak, koltuk altı) kapkara kalmasın
+    boya(D, beyaz & ~kenar, '#ece7dc', 0.45)
+    boya(D, kenar, '#c69d45', 0.6)
+    boya(D, kemer, '#5b3b25', 0.8)
+    return D
+
+
+def paladin_bas(C, P, parca=None, hata=False):
+    """Takılan baş: erkek garsonun hazır modelinden ("Medieval Peasant Warrior", Azura_SQ; bölgeler garson_erkek'teki gibi,
+    vericinin koordinatında). Kısa sarı saç, kısa sarımsı sakal, açık ten, sarı kaşlar."""
+    import os
+    hata = hata or os.environ.get('BOYA_HATA') == '1'
+    C = C.copy()
+    Pd = bas_yerel(P)
+    x, y, z = Pd[..., 0], Pd[..., 1], Pd[..., 2]
+    h, s, v = hsv(C)
+    ax = np.abs(x)
+    kafa = (x ** 2 + (y - 0.02) ** 2 + ((z - 0.81) * 0.9) ** 2) < 0.19 ** 2
+    tenrenk = (h < 0.1) & (s > 0.2) & (s < 0.68) & (v > 0.3)
+    yuz = kafa & (y < 0.03) & (z < 0.85)
+    sac = kafa & (z > 0.72) & ~(yuz & tenrenk)
+    dudak = ((h < 0.03) | (h > 0.95)) & (s > 0.3) & (v > 0.35)
+    sakal = kafa & (y < 0.04) & (z > 0.585) & (z < 0.758) & (ax < 0.078) & ~dudak & ~sac
+    kas = kafa & (y < -0.06) & (z > 0.795) & (z < 0.84) & (ax < 0.065) & (v < 0.38) & ~sac
+    G = gecerli() if gecerli() is not None else np.ones(C.shape[:2], bool)
+    sac &= G; sakal &= G; kas &= G
+    ten = ~sac & ~sakal & ~kas & G
+    D = _ciz(C, hata, [(sac, '#ffd040'), (sakal, '#a06020'), (kas, '#ff00ff'), (ten, '#ffb090')])
+    if D is not None: return D
+    L = lum(C)
+    boya(C, ten, '#e0b195', 0.85)
+    k = np.clip(L[sac] / max(np.median(L[sac]), 1e-3), 0.45, 1.8)
+    tel = gurultu(P * PALADIN_OLCEK * np.array([1, 1, 0.35], np.float32), 500, 41)
+    C[sac] = np.clip(renk('#cfa65a') * (k ** 0.7 * (0.9 + 0.2 * tel[sac]))[:, None], 0, 1)
+    a = 0.6
+    C[sakal] = C[sakal] * (1 - a) + renk('#b48e52') * np.clip(L[sakal] / max(np.median(L[sakal]), 1e-3), 0.7, 1.25)[:, None] * a
+    C[kas] = renk('#8a6a3a')
+    yuz_ = (yuz & ~sac).astype(np.float32) * np.clip((-0.06 - y) / 0.04, 0, 1)
+    return boyali(C, P, koru=yuz_ * 0.6, olcek=PALADIN_OLCEK)
+
+
+# ---------------------------------------------------------------- ROGUE (kâğıt: rogue-halfling.jpg; buçukluk)
+# Model: "Night Hunter Assassin - Dark Fantasy" (Pigcraft): kapüşonlu, maskeli, koyu deri ceketli kadın suikastçı (karakter_kur_
+# blender.rogue_ham kapüşonu ve ok kılıfını siler, buçukluk oranlarına sokar). Kâğıtta: koyu deri ceket, kahverengi kemer ve
+# keseler, siyah boyunluk, koyu pantolon, deri dizlik, kahverengi çizme. Model: boy 0,895 (z 0…0,895), yüzü −y; 1 birim ≈ 1,06 m.
+ROGUE_OLCEK = 0.95 / 0.895
+
+
+def rogue(C, P, parca=None, hata=False):
+    import os
+    hata = hata or os.environ.get('BOYA_HATA') == '1'
+    C = C.copy()
+    x, y, z = P[..., 0], P[..., 1], P[..., 2]
+    h, s, v = hsv(C)
+    ax = np.abs(x)
+    G = gecerli() if gecerli() is not None else np.ones(C.shape[:2], bool)
+    kahve = (h < 0.11) & (s > 0.3) & (v > 0.13) & G                    # kahverengi kayış, kemer, kese
+    metal = (s < 0.22) & (v > 0.42) & G                                # tokalar, perçinler
+    yaka = (z > 0.655) & (ax < 0.1) & ~metal                           # boyunluk ve sırta düşen kapüşon
+    kemer = kahve & (z > 0.455) & (z < 0.53)
+    dizlik = (z > 0.195) & (z < 0.272) & (y < -0.045) & (ax > 0.03) & (ax < 0.125) & ~metal
+    yaka &= G; dizlik &= G
+    cizme = (z < 0.195) & ~metal & G
+    pantolon = (z >= 0.195) & (z < 0.31) & ~dizlik & ~metal & ~kahve & G
+    ceket = ~yaka & ~kemer & ~dizlik & ~cizme & ~pantolon & ~metal & ~kahve & G
+    D = _ciz(C, hata, [(yaka, '#202020'), (kemer, '#c06020'), (kahve & ~kemer, '#806040'), (metal, '#ffffff'), (dizlik, '#ff8000'),
+                       (cizme, '#603000'), (pantolon, '#3050a0'), (ceket, '#30a030')])
+    if D is not None: return D
+    # sitenin sıcak, loş ışığında koyu deri kapkara görünüyordu: kâğıttaki tonların biraz açığı
+    D = boyali(C, P, olcek=ROGUE_OLCEK)
+    boya(D, ceket, '#3a3330', 1.0)
+    boya(D, yaka, '#262221', 0.9)
+    boya(D, kemer, '#6a4529', 0.85)
+    boya(D, kahve & ~kemer & ~dizlik & ~cizme, '#5a3d2b', 0.85)
+    boya(D, metal, '#a09686', 0.7)
+    boya(D, dizlik, '#55392a', 0.85)
+    boya(D, cizme, '#4a3322', 0.9)
+    boya(D, pantolon, '#3f3a35', 0.9)
+    return D
+
+
+def rogue_bas(C, P, parca=None, hata=False):
+    """Takılan baş: DM'in hazır modelinden ("Meshy_AI_ Aurelian", aliyaz01; bölgeler dm'deki gibi, vericinin koordinatında):
+    kıvırcık, gür, koyu kahve-siyah saç; sıcak buğday ten; koyu kaşlar."""
+    import os
+    hata = hata or os.environ.get('BOYA_HATA') == '1'
+    C = C.copy()
+    Pd = bas_yerel(P)
+    x, y, z = Pd[..., 0], Pd[..., 1], Pd[..., 2]
+    h, s, v = hsv(C)
+    ten0 = (h < 0.09) & (s > 0.26) & (s < 0.62) & (v > 0.55)
+    r2 = x ** 2 + (y - 0.11) ** 2 + ((z - 0.81) * 0.85) ** 2
+    kafa = r2 < 0.148 ** 2
+    sac = ~ten0 & (z > 0.68) & (v < 0.52) & (kafa | ((r2 < 0.19 ** 2) & (s > 0.3) & (v < 0.45)))
+    on = y < 0.1
+    xz = np.stack([x, z], -1)
+    kas = np.zeros(x.shape, bool)
+    for k_ in DM_YUZ['kaslar']:
+        kas[on] |= yumusak(xz[on], k_, 0.0) > 0.5
+    G = gecerli() if gecerli() is not None else np.ones(C.shape[:2], bool)
+    sac &= G
+    kas &= ~sac & G
+    ten = ~sac & ~kas & G
+    D = _ciz(C, hata, [(sac, '#402010'), (kas, '#ff00ff'), (ten, '#ffb090')])
+    if D is not None: return D
+    # Önce boyalı tarzın yumuşak ışık-gölgesi, sonra renkler (saç çok yer kapladığı için boyalı tarzın ortancası koyu kalıyor,
+    # yüz de onunla kararıyordu)
+    D = boyali(C, P, olcek=ROGUE_OLCEK)
+    L = lum(D)
+    yuzon = ten & (y < 0.02) & (z > 0.68)                              # yüzün önü: tenin ortanca parlaklığı buradan (gölgeli boyun değil)
+    boya(D, ten, '#d9a383', 0.5, taban=float(np.median(L[yuzon])) if yuzon.sum() > 50 else None)
+    k = np.clip(L[sac] / max(np.median(L[sac]), 1e-3), 0.4, 2.0)
+    kivir = gurultu(P * ROGUE_OLCEK, 160, 51) * 0.6 + gurultu(P * ROGUE_OLCEK, 420, 52) * 0.4   # kıvırcık bukleler
+    D[sac] = np.clip(renk('#33231a') * (k ** 0.6 * (0.7 + 0.6 * kivir[sac]))[:, None], 0, 1)
+    D[kas] = renk('#2a1c15')
     return D

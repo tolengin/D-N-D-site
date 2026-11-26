@@ -18,7 +18,7 @@ Aşamalar (ikinci ad; verilmezse ikisi sırayla):
 Çalıştırma (proje klasöründen):
   & "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Blender\\blender.exe" --background --factory-startup --python araclar\\karakter_kur_blender.py -- dm
 """
-import bpy, bmesh, math, base64, pathlib, sys
+import bpy, bmesh, math, base64, pathlib, sys, os
 import numpy as np
 from mathutils import Matrix, Vector
 
@@ -58,7 +58,28 @@ AYAR = {
                   # 2026-10-30: eller az çokgenlide kara köşeli yumaklardı (eldiven + bileklik): dirseğin 5 cm altından önkol ve
                   # yumruk yeniden kurulur (sıvalı kolun altı çıplak)
                   kol=dict(kes_dirsek=0.05, yan=0.06, pay=0.05, kivir={'l': (80, 100), 'r': (80, 100)})),
+    # 2026-11-26 (R5, kullanıcı: "önce paladin ve rogue, her sınıfa önce erkek karakter"). İki hazır modelin de yüzü kapalı
+    # (miğfer, kapüşon + maske); kâğıtlarda yüz açık. Gövde bir modelden, baş yüzü açık başka bir modelden (bas: baş verici;
+    # bas_al), ikisi ayrı boyanır, ayrı az çokgenli olur, sonra birleşir. Baş vericinin ölçüleri kendi biriminde: merkez_y (başın
+    # ortası, önden arkaya), cene (çene), tepe (saçın tepesi), alt (boynun kesildiği yer), r (başı saran küre), boyun_r / boyun_y
+    # (boyun silindiri); hedef: başın gövdedeki yeri (gövdenin biriminde). egim: baş öne (+) / arkaya (−) eğilir (derece).
+    'paladin': dict(girdi='paladin-v2.glb', don=-90, yuz=36000, doku=2048, alcak=3400, renk=12, temizle=5,   # "Fallen Paladin in Corrupted Black Plate Armor" (Pigcraft)
+                    bas=dict(girdi='erkek-garson.glb', yuz=9000, doku=1024, alcak=520, renk=8, merkez_y=-0.035, cene=0.712, tepe=0.948,
+                             alt=0.62, r=0.175, boyun_r=0.075, boyun_y=-0.015,
+                             hedef=dict(merkez_y=-0.058, cene=0.366, tepe=0.481)),
+                    kol=dict(kes_dirsek=0.035, yan=0.06, pay=0.02, kivir={'l': (25, 35), 'r': (25, 35)}, renk='#9aa0a9', bilezik='#c39b45', el='#4a3428',
+                             kalin=1.3)),
+    'rogue': dict(girdi='rogue-v3.glb', yuz=36000, doku=2048, alcak=3000, renk=12, temizle=5,   # "Night Hunter Assassin - Dark Fantasy" (Pigcraft)
+                  bucuk=dict(kalca=0.50, bacak=0.80, en=1.08),   # buçukluk: bacaklar kısa, gövde tıknaz (rogue_ham)
+                  bas=dict(girdi='dm.glb', yuz=9000, doku=1024, alcak=600, renk=8, merkez_y=0.115, cene=0.668, tepe=0.952,
+                           alt=0.615, r=0.2, boyun_r=0.052, boyun_y=0.13, egim=-14,   # DM'in başı kitaba eğik: kaldır
+                           hedef=dict(merkez_y=-0.028, cene=0.708, tepe=0.902)),
+                  kol=dict(kes_dirsek=0.035, yan=0.05, pay=0.015, kivir={'l': (20, 30), 'r': (20, 30)}, renk='#2b2624', bilezik='#4b3426',
+                           el='#d39c7c'),
+                  oturak=0.66, bas_r=0.14),   # sandalyede minderin üstünde (masaya yetişsin); bas_r: POV'da gizlenen baş küresi (m)
 }[AD]
+BOYLAR = {'dm': 1.80, 'fighter': 1.80, 'hanci': 1.35, 'garson_kiz': 1.62, 'garson_erkek': 1.74, 'paladin': 1.85, 'rogue': 0.95}   # ayakta boy (m)
+OTURANLAR = ('dm', 'fighter', 'paladin', 'rogue')   # masada oturur, zar atar
 
 
 def secili(obs, aktif=None):
@@ -83,6 +104,8 @@ def ham():
     if len(ms) > 1: bpy.ops.object.join()
     ob = bpy.context.active_object; ob.name = AD
     me = ob.data
+    if AYAR.get('don'):                                           # model −y'ye baksın (paladin +x'e bakıyordu)
+        me.transform(Matrix.Rotation(math.radians(AYAR['don']), 4, 'Z')); me.update()
     renk_uv(ob)
     while len(me.uv_layers) > 1: me.uv_layers.remove(me.uv_layers[-1])   # yalnızca ilk UV (renk_uv onu renk dokusuna göre doldurdu)
     bm = bmesh.new(); bm.from_mesh(me)
@@ -95,8 +118,14 @@ def ham():
         bpy.ops.object.modifier_apply(modifier=md.name)
     if 'sil_kutu' in AYAR: kutu_sil(ob)
     if AD == 'fighter': fighter_bas(ob)
+    if AD == 'paladin': paladin_ham(ob)
+    if AD == 'rogue': rogue_ham(ob)
     print('YUZ', len(me.polygons), 'KOSE', len(me.vertices))
-    konum_pisir(ob)
+    hizli = os.environ.get('HIZLI') == '1'                          # yalnızca biçim (konum haritası pişirilmez): denemeler için
+    if 'bas' in AYAR:
+        bas = bas_al(AYAR['bas'])
+        if not hizli: konum_pisir(bas, 'bas', AYAR['bas']['doku'])
+    if not hizli: konum_pisir(ob)
     bpy.ops.wm.save_as_mainfile(filepath=str(ARA / f'{AD}-ham.blend'))
 
 
@@ -332,10 +361,10 @@ def pisir(ob, n, dugum_kur):
     return a
 
 
-def konum_pisir(ob):
+def konum_pisir(ob, ek='', n=None):
     """Dokunun her pikseline düşen 3D noktayı (P, metre ya da modelin birimi) ve parçanın numarasını (parca) pişirir:
-    boyama bölgeleri buna göre seçilir."""
-    n = AYAR['doku']
+    boyama bölgeleri buna göre seçilir. ek: ikinci parça (takılan baş: '<ad>-bas-konum.npz'), n: onun doku boyu."""
+    n = n or AYAR['doku']
     a = pisir(ob, n, lambda nt: nt.nodes.new('ShaderNodeTexCoord').outputs['Generated'])   # sınır kutusunda 0…1
     mn = np.array([min((ob.matrix_world @ Vector(c))[i] for c in ob.bound_box) for i in range(3)])
     mx = np.array([max((ob.matrix_world @ Vector(c))[i] for c in ob.bound_box) for i in range(3)])
@@ -351,8 +380,108 @@ def konum_pisir(ob):
     b = pisir(ob, n, oznitelik)
     ob.data.color_attributes.remove(ob.data.color_attributes['parca'])
     parca = np.where(b[..., 0] > -0.5, np.floor(b[..., 0] * 1000), -1).astype(np.int16)
-    np.savez_compressed(ARA / f'{AD}-konum.npz', P=P.astype(np.float32), maske=maske, parca=parca)
-    print('KONUM', maske.mean().round(3), mn, mx)
+    np.savez_compressed(ARA / f'{AD}{"-" + ek if ek else ""}-konum.npz', P=P.astype(np.float32), maske=maske, parca=parca)
+    print('KONUM', ek, maske.mean().round(3), mn, mx)
+
+
+# ---------------------------------------------------------------- R5: PALADİN VE ROGUE (2026-11-26)
+def yuz_sil(ob, sil, en_az=0):
+    """sil (yüz sayısı uzunluğunda bool) yüzlerini siler; en_az: sonra kopup kalan bu kadardan küçük parçalar da gider."""
+    bm = bmesh.new(); bm.from_mesh(ob.data); bm.faces.ensure_lookup_table()
+    bmesh.ops.delete(bm, geom=[bm.faces[i] for i in np.nonzero(sil)[0]], context='FACES')
+    if en_az: kirinti_sil(bm, en_az)
+    bm.to_mesh(ob.data); bm.free(); ob.data.update()
+    print('SIL', int(np.sum(sil)), 'yüz')
+
+
+def yuz_orta(ob):
+    o = np.zeros(len(ob.data.polygons) * 3, np.float32); ob.data.polygons.foreach_get('center', o); return o.reshape(-1, 3)
+
+
+def paladin_ham(ob):
+    """Kâğıttaki paladin (gorseller/3d karakterler/paladin-human-woman.jpg; önce erkek hâli): başı açık, kısa sarı saçlı, pelerinsiz.
+    Modelin kapalı miğferi ve boynundaki kukuletası (başın yerine bas_al başı takar), arkadaki uzun pelerini (oturunca
+    sandalyenin içine girerdi; kâğıtta yok) ve sol elindeki kılıcın ağzı ve balçağı silinir (kabzası elle birlikte gider:
+    kol_kes). Ölçüler modelin biriminde (boy 0,98; yüzü −y)."""
+    O = yuz_orta(ob); x, y, z = O[:, 0], O[:, 1], O[:, 2]; ax = np.abs(x)
+    bas = (z > 0.352) & (ax < 0.078) & (y > -0.2) & (y < 0.12)             # miğfer ve kukulete (omuzluklar |x| > 0,075)
+    bas |= (z > 0.368) & (ax < 0.125) & (y > -0.12)                         # kesilen kukuletadan omuzlarda kalan sivri uçlar
+    pelerin = (y > 0.095) & (z < 0.27)                                      # sırtın arkası (zırhın arkası y ≈ 0,09)
+    pelerin |= (ax > 0.188) & (z < -0.035)                                  # pelerinin yanlara açılan kenarları
+    pelerin |= (ax > 0.17) & (y > 0.04) & (z < 0.27)                        # kolların arkasından sarkan ince kenar şeritleri
+    pelerin |= (ax > 0.13) & (y > 0.045) & (z > 0.1) & (z < 0.235)          # sırt örtüsünün kolların arkasına uzanan yanları
+    pelerin |= (y > 0.045) & (z < 0.115) & (z > -0.06)                       # sırt örtüsünün aşağı sarkan yırtık uçları
+    pelerin |= (y > 0.02) & (ax < 0.1) & (z < -0.035) & (z > -0.27)          # arka tabarın kalçanın altı: oturunca oturağın içine
+                                                                            #   giriyordu (ayakta hâli savaş ekranında ayrıca kurulur)
+    kilic = (x > 0.088) & (y < -0.108) & (z < -0.012)                       # ağız ve balçak (sol bacağın önünde)
+    kilic |= (x > 0.10) & (x < 0.18) & (y < -0.165) & (z > -0.04) & (z < 0.16)   # kabza ve topuz (elin önünde)
+    yuz_sil(ob, bas | pelerin | kilic, 300)
+
+
+def rogue_ham(ob):
+    """Kâğıttaki buçukluk rogue (rogue-halfling.jpg): kapüşonu sırtına düşmüş, kıvırcık saçlı, sırtında ok kılıfı yok.
+    Kapüşonun başı saran kısmı ve maske (yerine bas_al başı takar), sırttaki ok kılıfı ve oklar silinir; sonra buçukluk
+    oranları: bacaklar kısalır, beden tıknazlaşır (AYAR['bucuk']). Ölçüler modelin biriminde (boy 0,98; yüzü −y)."""
+    O = yuz_orta(ob); x, y, z = O[:, 0], O[:, 1], O[:, 2]; ax = np.abs(x)
+    bas = (z > 0.835) & (ax < 0.085) & ~((y > 0.012) & (z < 0.885))         # kapüşonun başı saran kısmı, maske; arkadaki alt
+                                                                            #   kısmı kalır (sırta düşmüş kapüşon enseyi örter)
+    kilif = (y > 0.062) & (z > 0.6) & (z < 0.95)                            # sırttaki ok kılıfı ve oklar
+    yuz_sil(ob, bas | kilif, 200)
+    B = AYAR['bucuk']; me = ob.data
+    V = np.zeros(len(me.vertices) * 3, np.float32); me.vertices.foreach_get('co', V); V = V.reshape(-1, 3)
+    k = B['kalca']
+    alt = V[:, 2] < k
+    V[alt, 2] = k - (k - V[alt, 2]) * B['bacak']                           # kalçanın altı kısalır
+    V[:, 2] -= k * (1 - B['bacak'])                                         # ayaklar yine yerde
+    V[:, :2] *= B['en']
+    # Model bir kadın suikastçı (ince bel, göğüs): erkek buçukluk için göğüs düzleşir, bel kalınlaşır (tıknaz). Ölçüler yeni boyda.
+    yum = lambda t: np.clip(t, 0, 1) ** 2 * (3 - 2 * np.clip(t, 0, 1))
+    z = V[:, 2]
+    g = yum((z - 0.53) / 0.05) * yum((0.70 - z) / 0.05)                     # göğüs bandı (0,53–0,70)
+    on = V[:, 1] < -0.055
+    V[on, 1] = -0.055 + (V[on, 1] + 0.055) * (1 - 0.55 * g[on])
+    b = yum((z - 0.40) / 0.06) * yum((0.64 - z) / 0.06)                     # bel (kemerin çevresi)
+    gov = np.abs(V[:, 0]) < 0.14                                            # kollar değil
+    V[gov, 0] *= 1 + 0.13 * b[gov]
+    me.vertices.foreach_set('co', V.ravel()); me.update()
+    print('BUCUK', 'boy', round(float(V[:, 2].max() - V[:, 2].min()), 3))
+
+
+def bas_al(B):
+    """Baş verici modelden (B['girdi']) başı ve boynu alır, gövdedeki yerine (B['hedef']) ölçekleyip taşır: ayrı 'BasEk' parçası
+    (kendi dokusuyla; kur'da ayrı boyanır, ayrı az çokgenli olur, sonra gövdeye katılır)."""
+    once = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=str(REF / B['girdi']))
+    yeni = [o for o in bpy.data.objects if o not in once]
+    ms = [o for o in yeni if o.type == 'MESH']
+    for o in ms:
+        mw = o.matrix_world.copy(); o.parent = None; o.matrix_world = mw
+    for o in yeni:
+        if o.type != 'MESH': bpy.data.objects.remove(o, do_unlink=True)
+    secili(ms); bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    if len(ms) > 1: bpy.ops.object.join()
+    bo = bpy.context.active_object; bo.name = 'BasEk'; me = bo.data
+    renk_uv(bo)
+    while len(me.uv_layers) > 1: me.uv_layers.remove(me.uv_layers[-1])
+    bm = bmesh.new(); bm.from_mesh(me); bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5); bm.to_mesh(me); bm.free()
+    O = yuz_orta(bo); x, y, z = O[:, 0], O[:, 1], O[:, 2]
+    c = np.array([0, B['merkez_y'], (B['cene'] + B['tepe']) / 2 + 0.01])
+    kure = np.linalg.norm(O - c, axis=1) < B['r']
+    boyun = (np.hypot(x, y - B['boyun_y']) < B['boyun_r']) & (z < B['cene'] + 0.03)
+    tut = (kure | boyun) & (z > B['alt'])
+    yuz_sil(bo, ~tut, 150)
+    if B.get('yuz') and len(me.polygons) > B['yuz']:
+        md = bo.modifiers.new('az', 'DECIMATE'); md.ratio = B['yuz'] / len(me.polygons)
+        secili([bo]); bpy.ops.object.modifier_apply(modifier=md.name)
+    H = B['hedef']
+    k = (H['tepe'] - H['cene']) / (B['tepe'] - B['cene'])
+    M = Matrix.Translation((0, H['merkez_y'], H['cene'])) @ Matrix.Rotation(math.radians(B.get('egim', 0)), 4, 'X') @ \
+        Matrix.Scale(k, 4) @ Matrix.Translation((0, -B['merkez_y'], -B['cene']))
+    me.transform(M); me.update()
+    V = np.array([v.co[:] for v in me.vertices])
+    print('BAS', B['girdi'], 'ölçek', round(k, 3), 'yüz', len(me.polygons), 'z', V[:, 2].min().round(3), V[:, 2].max().round(3),
+          'y', V[:, 1].min().round(3), V[:, 1].max().round(3), 'x', V[:, 0].min().round(3), V[:, 0].max().round(3))
+    return bo
 
 
 # ---------------------------------------------------------------- İSKELET
@@ -412,6 +541,31 @@ for _k, _sx in (('l', 1), ('r', -1)):
         f'kalca_{_k}': (0.10, -0.01, 0.93), f'diz_{_k}': (0.13, -0.02, 0.55), f'ayak_{_k}': (0.15, 0.03, 0.10),
         f'tarak_{_k}': (0.15, -0.07, 0.03), f'parmakuc_{_k}': (0.15, -0.13, 0.02)}.items()})
 FIGHTER_BURGU = {}
+
+# Paladin'in eklemleri (paladin-v2, döndürülmüş; boy 0,97, yüzü −y; ızgaralı önizlemelerden: 3d/karakter). Kollar yanda, eller
+# yumruk (sol elinde kılıç vardı); baş takılan baş (bas_al).
+PALADIN_EKLEM = dict(legen=(0, -0.035, 0.03), bel=(0, -0.03, 0.08), gogus=(0, -0.025, 0.22), boyun=(0, -0.046, 0.335),
+                     bas=(0, -0.05, 0.385), tepe=(0, -0.055, 0.48),
+                     kprc_l=(0.02, -0.03, 0.31), omuz_l=(0.125, -0.02, 0.29), dirsek_l=(0.172, -0.055, 0.155), bilek_l=(0.183, -0.085, 0.035),
+                     bogum_l=(0.186, -0.092, -0.01), parmak_l=(0.186, -0.095, -0.028), uc_l=(0.186, -0.098, -0.05),
+                     bas0_l=(0.17, -0.108, 0.022), bas1_l=(0.166, -0.118, 0.004), bas2_l=(0.164, -0.124, -0.014),
+                     kprc_r=(-0.02, -0.03, 0.31), omuz_r=(-0.13, -0.02, 0.29), dirsek_r=(-0.19, -0.05, 0.155), bilek_r=(-0.205, -0.07, 0.02),
+                     bogum_r=(-0.208, -0.077, -0.025), parmak_r=(-0.208, -0.08, -0.043), uc_r=(-0.208, -0.083, -0.065),
+                     bas0_r=(-0.192, -0.093, 0.007), bas1_r=(-0.188, -0.103, -0.011), bas2_r=(-0.186, -0.109, -0.029),
+                     kalca_l=(0.058, -0.035, 0.0), diz_l=(0.085, -0.065, -0.21), ayak_l=(0.108, -0.05, -0.415),
+                     tarak_l=(0.11, -0.115, -0.462), parmakuc_l=(0.112, -0.16, -0.472),
+                     kalca_r=(-0.058, -0.035, 0.0), diz_r=(-0.085, -0.065, -0.21), ayak_r=(-0.10, -0.05, -0.415),
+                     tarak_r=(-0.10, -0.115, -0.462), parmakuc_r=(-0.10, -0.16, -0.472))
+# Rogue'un (buçukluk) eklemleri: rogue_ham'dan sonraki biçimde (boy 0,895, yüzü −y). Kollar yanda, eller açık.
+ROGUE_EKLEM = dict(legen=(0, -0.005, 0.41), bel=(0, -0.008, 0.46), gogus=(0, -0.012, 0.57), boyun=(0, -0.018, 0.69),
+                   bas=(0, -0.02, 0.73), tepe=(0, -0.03, 0.895))
+for _k, _sx in (('l', 1), ('r', -1)):
+    ROGUE_EKLEM.update({k: (x * _sx, y, z) for k, (x, y, z) in {
+        f'kprc_{_k}': (0.02, -0.005, 0.675), f'omuz_{_k}': (0.105, 0.0, 0.655), f'dirsek_{_k}': (0.152, 0.008, 0.54),
+        f'bilek_{_k}': (0.183, -0.015, 0.418), f'bogum_{_k}': (0.19, -0.025, 0.385), f'parmak_{_k}': (0.19, -0.028, 0.37),
+        f'uc_{_k}': (0.19, -0.03, 0.352), f'bas0_{_k}': (0.178, -0.035, 0.405), f'bas1_{_k}': (0.175, -0.045, 0.39),
+        f'bas2_{_k}': (0.172, -0.05, 0.375), f'kalca_{_k}': (0.055, -0.005, 0.385), f'diz_{_k}': (0.078, -0.03, 0.232),
+        f'ayak_{_k}': (0.092, -0.012, 0.065), f'tarak_{_k}': (0.095, -0.065, 0.022), f'parmakuc_{_k}': (0.097, -0.10, 0.012)}.items()})
 
 
 def fighter_bas(ob):
@@ -946,19 +1100,20 @@ def _boru(kv, yz, ag, halkalar, agirlik):
     yz += [tuple(range(bas, bas + n))[::-1], tuple(range(son, son + n))]
 
 
-def kol_ekle(arm, olcu, s, kivir, renk=None, bilezik=None):
+def kol_ekle(arm, olcu, s, kivir, renk=None, bilezik=None, el=None, kalin=1.0):
     """kol_kes'in ölçülerinden az çokgenli önkol (6 köşeli halkalar) ve el (yassı avuç, birleşik dört parmak, başparmak). Modelin
     kendi duruşunda kurulur (kollar aşağıda), duruşla birlikte çevrilir. Her halka kendi kemiğine bağlı, eklemlerde ikisine
     paylaştırılır. kivir: {'l'/'r': (kök, uç)} parmak bükümü (derece; avuca doğru). renk: önkol tenden başka renkte (ceketin
-    kolu; DM), bilezik: bileğin hemen üstünde o renkte bir kol ağzı (DM'in altın şeridi)."""
+    kolu; DM), bilezik: bileğin hemen üstünde o renkte bir kol ağzı (DM'in altın şeridi). el: elin rengi (paladin: deri eldiven;
+    verilmezse yüzün teni). kalin: önkolun kalınlık çarpanı (paladin: zırhlı kolluk, ölçülen kol gövdeye göre ince kalıyordu)."""
     kollar = {}
     for t, o in olcu.items():
         K = KOL_KEMIK[t]; P = lambda p: Vector(tuple(p)) * s
         kv, yz, ag = [], [], []
         a, n, w = Vector(tuple(o['a'])), Vector(tuple(o['n'])), Vector(tuple(o['w']))
-        dur = [(P(o['ust']), o['rA'] * 0.92, [(K[o['ust_kemik']], 1.0)])]          # baş: kalan kolun (bluz / gömlek kolu) içinde
-        if o['dirsek']: dur.append((P(o['di']), o['rD'], [(K['ust'], 0.5), (K['on'], 0.5)]))
-        dur += [(P(o['orta']), o['rO'], [(K['on'], 1.0)]), (P(o['bi']), o['rB'], [(K['on'], 0.6), (K['el'], 0.4)])]
+        dur = [(P(o['ust']), o['rA'] * 0.92 * kalin, [(K[o['ust_kemik']], 1.0)])]   # baş: kalan kolun (bluz / gömlek kolu) içinde
+        if o['dirsek']: dur.append((P(o['di']), o['rD'] * kalin, [(K['ust'], 0.5), (K['on'], 0.5)]))
+        dur += [(P(o['orta']), o['rO'] * kalin, [(K['on'], 1.0)]), (P(o['bi']), o['rB'] * kalin, [(K['on'], 0.6), (K['el'], 0.4)])]
         hal = []
         for i, (c, r, _) in enumerate(dur):
             d = dur[min(i + 1, len(dur) - 1)][0] - dur[max(i - 1, 0)][0]
@@ -991,7 +1146,7 @@ def kol_ekle(arm, olcu, s, kivir, renk=None, bilezik=None):
         me = bpy.data.meshes.new('Kol' + t.upper()); me.from_pydata([tuple(v) for v in kv], [], yz)
         bm = bmesh.new(); bm.from_mesh(me); bmesh.ops.recalc_face_normals(bm, faces=bm.faces); bm.to_mesh(me); bm.free()
         ko = bpy.data.objects.new('Kol' + t.upper(), me); bpy.context.scene.collection.objects.link(ko)
-        ko.data.materials.append(malzeme('Ten', o['ten']))
+        ko.data.materials.append(malzeme('Ten' if not el else 'Eldiven', el or o['ten']))
         if renk or bilezik:                                          # önkol (1) ve kol ağzı (2) kendi renginde; el ten (0)
             ko.data.materials.append(malzeme('KolRenk', renk or o['ten'])); ko.data.materials.append(malzeme('Bilezik', bilezik or renk or o['ten']))
             for i, f in enumerate(ko.data.polygons):
@@ -1112,35 +1267,79 @@ def yon_ver(arm, hedef, burgu=None, yalniz=None):
     bpy.ops.object.mode_set(mode='OBJECT')
 
 
-def kur():
+def doku_boya(o, fn, n, ek=''):
+    """o'nun renk dokusunu karakter_boya.<fn> ile kâğıda göre boyar (konum haritası: <ad>[-ek]-konum.npz); site yalnızca renk
+    dokusunu kullandığı için öbür doku düğümleri silinir."""
     import karakter_boya as kb
-    from zar_hareket import hareket_kur, cevir, bosta_kur, ozel_tablo, OZEL_KEMIK
-    DM, GARSON, OTUR = AD == 'dm', AD.startswith('garson'), AD in ('dm', 'fighter')   # oturanlar: masada zar atar
-    KOL = 'kol' in AYAR                                            # önkol ve el yeniden kurulur (garsonlar; 2026-10-30'dan beri DM ve hancı da)
-    bpy.ops.wm.open_mainfile(filepath=str(ARA / f'{AD}-ham.blend'))
-    ob = bpy.data.objects[AD]
-    # 1) doku: kâğıda göre yeniden boya (konum haritası pişirilirken olduğu gibi satır 0 altta)
-    C, im = doku_dizi(ob)
-    R0 = kose_renk(ob, C) if GARSON else None                      # boyamadan önceki renkler (kızın elindeki mavi bez)
-    J = {'dm': DM_EKLEM, 'fighter': FIGHTER_EKLEM, 'hanci': HANCI_EKLEM, 'garson_kiz': KIZ_EKLEM, 'garson_erkek': ERKEK_EKLEM}[AD]
-    if im.size[0] != AYAR['doku']:                                 # hancının dokusu 4096: konum haritasının boyuna (ve web'e uygun boya) indir
-        im.scale(AYAR['doku'], AYAR['doku']); C, im = doku_dizi(ob)
-    d = np.load(ARA / f'{AD}-konum.npz')
-    kb.KAPSAM = uv_kapsam(ob, C.shape[0])
-    Y = getattr(kb, AD)(C, d['P'], d['parca'] if 'parca' in d else None)
+    C, im = doku_dizi(o)
+    if im.size[0] != n:                                            # hancının dokusu 4096: konum haritasının boyuna (ve web'e uygun boya) indir
+        im.scale(n, n); C, im = doku_dizi(o)
+    d = np.load(ARA / f'{AD}{"-" + ek if ek else ""}-konum.npz')
+    kb.KAPSAM = uv_kapsam(o, C.shape[0])
+    kb.BAS = AYAR.get('bas')                                       # takılan başın boyası vericinin koordinatına döner (bas_yerel)
+    Y = getattr(kb, fn)(C, d['P'], d['parca'] if 'parca' in d else None)
     Y = kb.tasir(Y, kb.KAPSAM, 16)                               # kenar payı da yeni renkte (uzaktan bakınca küçük dokuda da çatlak olmasın)
     im.pixels.foreach_set(np.concatenate([Y, np.ones(Y.shape[:2] + (1,), np.float32)], -1).ravel())
     im.update(); im.pack()                                         # yeni pikseller hem dışa aktarıma hem .blend'e gitsin
-    for m in ob.data.materials:                                   # site yalnızca renk dokusunu kullanır (toon); ötekiler dosyayı büyütür
+    for m in o.data.materials:
         nt = m.node_tree
-        for n in list(nt.nodes):
-            if n.type in ('NORMAL_MAP', 'SEPARATE_COLOR', 'UVMAP') or (n.type == 'TEX_IMAGE' and n.image != im): nt.nodes.remove(n)
+        for nd in list(nt.nodes):
+            if nd.type in ('NORMAL_MAP', 'SEPARATE_COLOR', 'UVMAP') or (nd.type == 'TEX_IMAGE' and nd.image != im): nt.nodes.remove(nd)
+    return im
+
+
+def boy_birim(*obs):
+    """Parçaların (gövde + takılan baş) birlikte boyu, kendi biriminde."""
+    z = np.concatenate([[(o.matrix_world @ v.co).z for v in o.data.vertices] for o in obs if o])
+    return float(z.max() - z.min())
+
+
+def boya_onizle():
+    """Yalnızca boyama (kur'dan önce denemek için; 'boya' aşaması): ham dosyayı açar, gövdeyi ve başı boyar, önden / yandan /
+    arkadan / yukarıdan çizer (3d/karakter/<ad>-boya-<yön>.png). BOYA_HATA=1 ile bölgeler düz renkle."""
+    bpy.ops.wm.open_mainfile(filepath=str(ARA / f'{AD}-ham.blend'))
+    ob = bpy.data.objects[AD]; basek = bpy.data.objects.get('BasEk')
+    doku_boya(ob, AD, AYAR['doku'])
+    if basek: doku_boya(basek, AD + '_bas', AYAR['bas']['doku'], 'bas')
+    sah = bpy.context.scene
+    sah.render.engine = 'BLENDER_WORKBENCH'; sah.display.shading.light = 'FLAT'; sah.display.shading.color_type = 'TEXTURE'
+    sah.render.resolution_x, sah.render.resolution_y = 600, 800
+    sah.world = bpy.data.worlds.new('d'); sah.world.color = (0.35, 0.32, 0.3)
+    cam = bpy.data.objects.new('kam', bpy.data.cameras.new('kam')); sah.collection.objects.link(cam); sah.camera = cam
+    cam.data.type = 'ORTHO'
+    H = boy_birim(ob, basek); zc = min((ob.matrix_world @ v.co).z for v in ob.data.vertices) + H / 2
+    cam.data.ortho_scale = H * 1.05; cam.data.clip_end = 100
+    for yon, d in (('on', Vector((0, -1, 0))), ('yan', Vector((1, 0, 0))), ('arka', Vector((0, 1, 0))), ('ust', Vector((0.35, -0.75, 0.75)))):
+        cam.location = Vector((0, 0, zc)) + d.normalized() * 10; cam.rotation_euler = (-d).to_track_quat('-Z', 'Y').to_euler()
+        sah.render.filepath = str(ARA / f'{AD}-boya-{yon}.png'); bpy.ops.render.render(write_still=True)
+    print('BOYA BITTI')
+
+
+def kur():
+    import karakter_boya as kb
+    from zar_hareket import hareket_kur, cevir, bosta_kur, ozel_tablo, OZEL_KEMIK
+    DM, GARSON, OTUR = AD == 'dm', AD.startswith('garson'), AD in OTURANLAR   # oturanlar: masada zar atar
+    KOL = 'kol' in AYAR                                            # önkol ve el yeniden kurulur (garsonlar; 2026-10-30'dan beri DM ve hancı da)
+    bpy.ops.wm.open_mainfile(filepath=str(ARA / f'{AD}-ham.blend'))
+    ob = bpy.data.objects[AD]
+    basek = bpy.data.objects.get('BasEk')                          # takılan baş (paladin, rogue): ayrı boyanır, ayrı az çokgenli olur
+    # 1) doku: kâğıda göre yeniden boya (konum haritası pişirilirken olduğu gibi satır 0 altta)
+    C, im = doku_dizi(ob)
+    R0 = kose_renk(ob, C) if GARSON else None                      # boyamadan önceki renkler (kızın elindeki mavi bez)
+    J = {'dm': DM_EKLEM, 'fighter': FIGHTER_EKLEM, 'hanci': HANCI_EKLEM, 'garson_kiz': KIZ_EKLEM, 'garson_erkek': ERKEK_EKLEM,
+         'paladin': PALADIN_EKLEM, 'rogue': ROGUE_EKLEM}[AD]
+    im = doku_boya(ob, AD, AYAR['doku'])
+    if basek: doku_boya(basek, AD + '_bas', AYAR['bas']['doku'], 'bas')
     if AYAR.get('cikti_doku'):                                     # garsonlar küçük görünür: doku dosyası küçülsün
         im.scale(AYAR['cikti_doku'], AYAR['cikti_doku']); im.pack()
     olcu = ro = None
-    BOY = {'dm': 1.80, 'fighter': 1.80, 'hanci': 1.35, 'garson_kiz': 1.62, 'garson_erkek': 1.74}[AD]   # ayakta boy (m)
-    if KOL: olcu, ro = kol_kes(ob, J, ilk=R0, U=ob.dimensions.z / BOY, **AYAR['kol'])   # önkol ve el silinir (yeniden kurulur), kumaştaki delikler kapanır
+    BOY = BOYLAR[AD]
+    if KOL: olcu, ro = kol_kes(ob, J, ilk=R0, U=boy_birim(ob, basek) / BOY, **AYAR['kol'])   # önkol ve el silinir (yeniden kurulur), kumaştaki delikler kapanır
     if AYAR.get('alcak'): alcak_poli(ob, AYAR['alcak'], AYAR.get('renk', 16), temizle=AYAR.get('temizle', 3), ro=ro, ten_ayir=KOL)
+    if basek:                                                      # baş kendi paletiyle (ten ayrı), sonra gövdeye katılır (iki malzeme)
+        B = AYAR['bas']
+        alcak_poli(basek, B['alcak'], B.get('renk', 8), temizle=B.get('temizle', 3), ten_ayir=True)
+        secili([ob, basek], ob); bpy.ops.object.join()
     # 2) ölçü: DM ayakta 1,80 m; hancı (cüce) 1,35 m; garsonlar (genç) 1,62 ve 1,74 m
     s = BOY / ob.dimensions.z
     ob.scale = (s, s, s); secili([ob]); bpy.ops.object.transform_apply(scale=True)
@@ -1151,9 +1350,11 @@ def kur():
     md = next((m for m in ob.modifiers if m.type == 'ARMATURE'), None) or ob.modifiers.new('Iskelet', 'ARMATURE')
     md.object = arm
     # 4) kâğıttaki ekler: DM gözlük ve tüy; hancı örgü, anahtar halkası, havlu
-    ekler = dm_ekler(ob, s) if DM else [] if OTUR else garson_kulak(ob, s) if AD == 'garson_erkek' else [] if GARSON else hanci_ekler(ob, s)
+    ekler = dm_ekler(ob, s) if DM else paladin_ekler(ob, s) if AD == 'paladin' else rogue_ekler(ob, s) if AD == 'rogue' else \
+        [] if OTUR else garson_kulak(ob, s) if AD == 'garson_erkek' else [] if GARSON else hanci_ekler(ob, s)
     if KOL:                                                        # yeni önkollar ve eller (garson: sağ el gevşek, sol el tepsi için düz)
-        kollar = kol_ekle(arm, olcu, s, AYAR['kol'].get('kivir', {'r': (10, 22), 'l': (0, 0)}), AYAR['kol'].get('renk'), AYAR['kol'].get('bilezik'))
+        kollar = kol_ekle(arm, olcu, s, AYAR['kol'].get('kivir', {'r': (10, 22), 'l': (0, 0)}), AYAR['kol'].get('renk'), AYAR['kol'].get('bilezik'),
+                          AYAR['kol'].get('el'), AYAR['kol'].get('kalin', 1.0))
         ekler += list(kollar.values())
     # 5) duruş: kemikler büyücünün oturuşuna çevrilir (hancıda yalnızca kollar: yumruklar tezgâhta), poz modele işlenir,
     #    iskeletin yeni duruşu olur
@@ -1176,9 +1377,9 @@ def kur():
     bpy.ops.pose.armature_apply(selected=False); bpy.ops.object.mode_set(mode='OBJECT')
     # 6) yer. DM: leğen büyücününki gibi oturağın üstünde. Hancı: yumrukları tezgâhın üstünde; ayaklarının yerden yüksekliği
     #    modelde "basamak" (m): site hancıyı yere koyar, cüce tezgâhın arkasında o kadar yüksek bir kasanın üstünde durur
-    if OTUR:
+    if OTUR:                                                       # buçukluk minderin üstünde, daha yüksekte (AYAR['oturak'])
         legen = arm.data.bones['bip Pelvis_02'].head_local
-        T = Matrix.Translation((-legen.x, LEGEN_Y - legen.y, OTURAK - legen.z))
+        T = Matrix.Translation((-legen.x, LEGEN_Y - legen.y, AYAR.get('oturak', OTURAK) - legen.z))
     elif GARSON:                                                   # ayakları yerde, leğeni kökün üstünde
         legen = arm.data.bones['bip Pelvis_02'].head_local
         T = Matrix.Translation((-legen.x, -legen.y, -min(v.co.z for v in ob.data.vertices)))
@@ -1197,6 +1398,11 @@ def kur():
     secili([arm, ob] + ekler, ob); bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
     if GARSON: ekler += garson_tepsi(ob, arm, kollar['l'])          # tepsi duruştan sonra: yatay, elin üstünde
     if AD == 'hanci': ekler += hanci_esyalar(ob, arm)        # şişe, kupa, el bezi (kendi kemiklerinde)
+    if 'oturak' in AYAR: ekler += minder(ob, arm)                  # buçukluğun minderi (sandalyenin oturağıyla kalçasının arası)
+    if OTUR:                                                       # göz yüksekliği (site POV'da kullanır; buçukluk alçakta)
+        hb = arm.data.bones['bip Head_06']
+        arm['goz'] = round(hb.head_local.z + (hb.tail_local.z - hb.head_local.z) * 0.38, 3)
+        print('GOZ', arm['goz'])
     secili([ob] + ekler, ob); bpy.ops.object.join()
     ob.parent = arm
     md = ob.modifiers.new('Iskelet', 'ARMATURE'); md.object = arm
@@ -1206,11 +1412,21 @@ def kur():
     if AYAR.get('kumas'): kumas_agirlik(ob, arm, **AYAR['kumas'])   # sallanan kumaş (site: kumasMat)
     # 7) hareket, dışa aktar
     if OTUR:
-        bas_ayir(ob, arm)
+        bas_ayir(ob, arm, R=AYAR.get('bas_r', 0.21))
         hareket_kur(arm)
-        bosta_kur(arm, 'gozluk' if DM else 'boyun')                 # nefes + ara sıra özel hareket (zar_hareket.py)
+        # Özel hareketlerde elin kıyafete girmemesi için yerler modelden ölçülür (önden ışın): paladin'in yumruğu göğüs zırhının
+        # 3,5 cm önünde (kalbin üstü: göğsün solu), rogue'un elleri ceketin 6 cm önünde (karnın önü)
+        nokta = {}
+        g1 = arm.data.bones['bip Spine1_04'].tail_local; lg = arm.data.bones['bip Pelvis_02'].head_local
+        if AD == 'paladin':
+            v = isin(ob, (0.06, -3, g1.z - 0.15), (0, 1, 0)); nokta['kalp'] = tuple(v + Vector((0, -0.035, 0)))
+        if AD == 'rogue':
+            v = isin(ob, (0.0, -3, lg.z + 0.13), (0, 1, 0)); nokta['karin'] = tuple(v + Vector((0, -0.06, 0)))
+        print('NOKTA', {k: tuple(round(c, 3) for c in v) for k, v in nokta.items()})
+        bosta_kur(arm, {'dm': 'gozluk', 'fighter': 'boyun', 'paladin': 'yemin', 'rogue': 'etraf'}[AD], nokta)   # nefes + ara sıra özel hareket (zar_hareket.py)
         arm.animation_data.action = bpy.data.actions['zar_at']
-        disa_aktar(arm, ob, KOK / 'masa' / f'{AD}-iskelet.glb', f'{AD.upper()}_ISKELET_GLB', 'İskeletli ' + {'dm': 'DM', 'fighter': 'fighter'}[AD])
+        disa_aktar(arm, ob, KOK / 'masa' / f'{AD}-iskelet.glb', f'{AD.upper()}_ISKELET_GLB',
+                   'İskeletli ' + {'dm': 'DM', 'fighter': 'fighter', 'paladin': 'paladin', 'rogue': 'rogue (buçukluk)'}[AD])
     elif GARSON:
         hareket_kur(arm, 'bekle', GARSON_BEKLE, BEKLE_KEMIK, None)
         hareket_kur(arm, 'ozel', ozel_tablo(arm, 'sac' if AD == 'garson_kiz' else 'alin'), OZEL_KEMIK, None)   # durunca ara sıra
@@ -1234,6 +1450,76 @@ def kur():
     else: onizle(arm, ob)
     if GARSON: el_onizle(arm)
     if 'ozel' in bpy.data.actions: ozel_onizle(arm)
+
+
+def paladin_ekler(ob, s):
+    """Kâğıttaki tabarın göğsündeki altın güneş: ortada yuvarlak, çevresinde uzun-kısa on iki ışın (az çokgenli dokuda
+    seçilmezdi; ayrı parça). Göğse önden ışın atılarak yeri bulunur; göğüs kemiğine (Spine1) bağlı."""
+    arm = ob.parent
+    z = 0.248 * s
+    vur = isin(ob, (0, -2, z), (0, 1, 0)) or Vector((0, -0.125 * s, z))
+    c = vur + Vector((0, -0.005, 0))
+    kv, yz = [c], []
+    n = 12
+    for i in range(n):                                             # ortadaki yuvarlak (12 köşe)
+        a = 2 * math.pi * i / n
+        kv.append(c + Vector((math.cos(a) * 0.03, 0, math.sin(a) * 0.03)))
+    for i in range(n): yz.append((0, 1 + i, 1 + (i + 1) % n))
+    for i in range(n):                                             # ışınlar: dairenin dışında üçgenler
+        a = 2 * math.pi * (i + 0.5) / n; w = math.pi / n * 0.55
+        L = 0.072 if i % 2 == 0 else 0.054
+        b = len(kv)
+        kv += [c + Vector((math.cos(a - w) * 0.034, -0.001, math.sin(a - w) * 0.034)), c + Vector((math.cos(a) * L, -0.001, math.sin(a) * L)),
+               c + Vector((math.cos(a + w) * 0.034, -0.001, math.sin(a + w) * 0.034))]
+        yz.append((b, b + 1, b + 2))
+    me = bpy.data.meshes.new('Gunes'); me.from_pydata([tuple(v) for v in kv], [], yz)
+    g = bpy.data.objects.new('Gunes', me); bpy.context.scene.collection.objects.link(g)
+    g.data.materials.append(malzeme('Gunes', '#d6a843'))
+    vg = g.vertex_groups.new(name='bip Spine1_04'); vg.add(range(len(kv)), 1.0, 'REPLACE')
+    g.parent = arm; md = g.modifiers.new('Iskelet', 'ARMATURE'); md.object = arm
+    print('GUNES', tuple(round(v, 3) for v in c))
+    return [g]
+
+
+def rogue_ekler(ob, s):
+    """Buçukluğun hafif sivri kulak uçları (kâğıttaki gibi): kulağın üstünden yukarı ve geriye kısa koni (ten rengi). Kulağın
+    yeri takılan başın (DM'in hazır modeli) kulağından hesaplandı; yan taraftan ışın atılır (saçın dışında kalsın)."""
+    arm = ob.parent
+    parca = []
+    for sx in (-1, 1):
+        kulak = isin(ob, (sx * 2, -0.04 * s, 0.786 * s), (-sx, 0, 0)) or Vector((sx * 0.072 * s, -0.04 * s, 0.786 * s))
+        kok = kulak + Vector((-sx * 0.004, 0.004, 0.0))
+        uc = kok + Vector((sx * 0.012, 0.022, 0.032))
+        d = uc - kok
+        bpy.ops.mesh.primitive_cone_add(vertices=6, radius1=0.011, radius2=0.0008, depth=d.length, location=(kok + uc) / 2)
+        k = bpy.context.active_object
+        k.rotation_euler = d.to_track_quat('Z', 'Y').to_euler(); k.scale = (0.5, 1, 1)
+        k.data.materials.append(malzeme('Kulak', '#c98f70'))
+        vg = k.vertex_groups.new(name='bip Head_06'); vg.add(range(len(k.data.vertices)), 1.0, 'REPLACE')
+        k.parent = arm; md = k.modifiers.new('Iskelet', 'ARMATURE'); md.object = arm
+        parca.append(k)
+    return parca
+
+
+def minder(ob, arm):
+    """Buçukluk insan sandalyesinde alçak kalır (kolları masaya yetişmez): oturağın üstünde kalın bir minder (duruştan sonra;
+    kökü yerde). Üstü kalçanın en alt noktası, altı sandalyenin oturağı (index.html OTURAK 0,49). Leğene bağlı."""
+    L = arm.data.bones['bip Pelvis_02'].head_local
+    V = np.array([v.co[:] for v in ob.data.vertices])
+    yak = (np.abs(V[:, 0] - L.x) < 0.12) & (np.abs(V[:, 1] - L.y) < 0.12) & (V[:, 2] < L.z)
+    ust = float(V[yak, 2].min()) + 0.012 if yak.any() else L.z - 0.07
+    alt = 0.49
+    ust = max(ust, alt + 0.06)
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0)
+    for v in bm.verts: v.co = Vector((v.co.x * 0.36, v.co.y * 0.34 + (L.y - 0.03), alt + (v.co.z + 0.5) * (ust - alt)))
+    bmesh.ops.bevel(bm, geom=list(bm.edges), offset=0.035, segments=1, affect='EDGES')
+    me = bpy.data.meshes.new('Minder'); bm.to_mesh(me); bm.free()
+    o = bpy.data.objects.new('Minder', me); bpy.context.scene.collection.objects.link(o)
+    o.data.materials.append(malzeme('Minder', '#7b2f2a'))
+    o.vertex_groups.new(name='bip Pelvis_02').add(range(len(me.vertices)), 1.0, 'REPLACE')
+    print('MINDER', round(alt, 3), '→', round(ust, 3))
+    return [o]
 
 
 def garson_kulak(ob, s):
@@ -1629,9 +1915,10 @@ def ozel_onizle(arm):
     sah = bpy.context.scene; cam = sah.camera
     arm.animation_data.action = bpy.data.actions['ozel']
     son = int(bpy.data.actions['ozel'].frame_range[1])
-    hedef = Vector((0, -0.1, 1.15)) if AD in ('dm', 'fighter') else Vector((0, 0, 1.4))
-    for yon, yer in (('on', (0, -3.5, 1.3)), ('ust', (-1.6, -2.6, 3.0))):
-        cam.location = yer; cam.rotation_euler = (hedef - Vector(yer)).to_track_quat('-Z', 'Y').to_euler(); cam.data.ortho_scale = 1.1
+    hedef = Vector((0, -0.12, arm.get('goz', 1.2) - 0.22)) if AD in OTURANLAR else Vector((0, 0, 1.4))   # oturanlarda göğüs (eller görünsün)
+    for yon, yer in (('on', (0, -3.5, hedef.z + 0.15)), ('ust', (-1.6, -2.6, 3.0)), ('yan', (-3.5, -0.4, hedef.z + 0.1))):
+        if yon == 'yan' and AD not in OTURANLAR: continue
+        cam.location = yer; cam.rotation_euler = (hedef - Vector(yer)).to_track_quat('-Z', 'Y').to_euler(); cam.data.ortho_scale = 1.0
         for k in range(0, son + 1, max(1, son // 6)):
             sah.frame_set(k); sah.render.filepath = str(ARA / f'{AD}-ozel-{k:03d}-{yon}.png'); bpy.ops.render.render(write_still=True)
     arm.animation_data.action = bpy.data.actions['zar_at' if 'zar_at' in bpy.data.actions else 'yuru']
@@ -1644,7 +1931,7 @@ def onizle(arm, ob):
     sah.world = bpy.data.worlds.new('d'); sah.world.color = (0.12, 0.1, 0.08)
     cam = bpy.data.objects.new('kam', bpy.data.cameras.new('kam')); sah.collection.objects.link(cam); sah.camera = cam
     cam.data.type = 'ORTHO'; cam.data.ortho_scale = 1.6
-    if AD in ('dm', 'fighter'):                                    # masa (76 cm) ve oturanın kolları
+    if AD in OTURANLAR:                                            # masa (76 cm) ve oturanın kolları
         y0, y1, mz, hedef = -0.40, -1.4, 0.76, Vector((0, -0.25, 0.75))
     elif AD == 'hanci':                                            # tezgâh (TEZGAH) ve hancının üst gövdesi
         y0, y1, mz, hedef = -0.25, -0.85, TEZGAH, Vector((0, -0.1, 1.45))
@@ -1655,7 +1942,7 @@ def onizle(arm, ob):
     for ad, yer, kareler in [('on', (0, -4, 0.9), [0, 8, 20]), ('yan', (-4, -0.3, 0.8), [0, 20]), ('ust', (-2.0, -3.2, 3.2), [0]), ('arka', (0, 4, 0.9), [0])]:
         yer = Vector(yer) + Vector((0, 0, hedef.z - 0.75))
         if AD == 'hanci': kareler = [0, 75] if ad == 'on' else [0]
-        elif AD not in ('dm', 'fighter'): kareler = [0, 8, 16] if ad in ('on', 'yan') else [0]
+        elif AD not in OTURANLAR: kareler = [0, 8, 16] if ad in ('on', 'yan') else [0]
         cam.location = yer; cam.rotation_euler = (hedef - Vector(yer)).to_track_quat('-Z', 'Y').to_euler()
         for k in kareler:
             sah.frame_set(k)
@@ -1665,4 +1952,5 @@ def onizle(arm, ob):
 
 
 if 'ham' in ASAMA: ham()
+if 'boya' in ASAMA: boya_onizle()
 if 'kur' in ASAMA: kur()
